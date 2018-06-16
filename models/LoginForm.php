@@ -4,6 +4,7 @@ namespace app\models;
 
 use Yii;
 use yii\base\Model;
+use app\models\Auth;
 
 /**
  * LoginForm is the model behind the login form.
@@ -44,7 +45,7 @@ class LoginForm extends Model
             if($user === null) {
                 $this->addError($attribute, 'Incorrect username.');
             } else {
-                if($user['pass'] != md5(trim($this->password))) {
+                if($user->password !== md5(trim($this->password))) {
                     $this->addError($attribute, 'Incorrect password.');
                 }
             }
@@ -74,7 +75,7 @@ class LoginForm extends Model
     public function getUser()
     {
         if ($this->_user === false) {
-            $this->_user = User::findByUsername($this->username);
+            $this->_user = Auth::findByUsername($this->username);
         }
 
         return $this->_user;

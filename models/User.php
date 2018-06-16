@@ -4,7 +4,6 @@ namespace app\models;
 
 use Yii;
 use yii\db\ActiveRecord;
-use yii\web\IdentityInterface;
 use yii\web\UploadedFile;
 use yii\helpers\Html;
 
@@ -23,17 +22,8 @@ use yii\helpers\Html;
  * @property integer $calc_city
  * @property string $logo
  */
-class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
+class User extends \yii\db\ActiveRecord
 {
-    //public $id;
-    public $username;
-    public $password;
-    public $pass_repeat;
-    //public $authKey;
-    //public $accessToken;
-
-    private static $user;
-
     /**
      * @inheritdoc
      */
@@ -109,50 +99,6 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     {
         return static::findUserById($id)['username'];
     }
-
-    public static function findByUsername($username)
-    {
-        $users = self::find()->where('login=:uname' and 'visible=:vis', [':uname'=>trim($username), ':vis'=>'1'])->all();
-        
-        if($users !== null) {
-            foreach($users as $user){
-            if (strcasecmp($user['login'], trim($username)) === 0) {
-                return new static($user);
-            }}}
-            
-        
-        return null;
-    }
-    
-    public function validatePassword($password)
-    {
-        return $this->pass === md5(trim($password));
-    }
-
-    public static function findIdentity($id)
-    {
-       return static::findOne($id);
-    }
-
-    public static function findIdentityByAccessToken($token, $type = null)
-    {
-        return static::findOne(['access_token' => $token]);
-    }
-
-    public function getId()
-    {
-        return $this->id;
-    }
-
-    public function getAuthKey()
-    {
-        return $this->auth_key;
-    }
-
-    public function validateAuthKey($authKey)
-    {
-        return $this->getAuthKey() === $authKey;
-    }
     
     /**
      * Метод генерирует html блок с краткой информацией о текущем пользователе.
@@ -182,7 +128,6 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     public static function getUserInfo()
     {
         $userData = [];
-
         $userData['name'] = Yii::$app->session->get('user.uname');
         if(Yii::$app->session->get('user.uteacher')) {
             $userData['teacherId'] = Yii::$app->session->get('user.uteacher');
@@ -195,11 +140,68 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
         } else {
             $userData['office'] = null;
         }
-
         return $userData;
     }
 
-    /* метод генерирует html блок с информацией о текущем пользователе */
+    public static function getUserStatuses()
+    {
+        return [            
+            ['id' => '1', 'name' => Yii::t('app', 'Disabled')],
+            ['id' => '0', 'name' => Yii::t('app', 'Enabled')],
+        ];
+    }
+
+    protected static function getUsersColumns()
+    {
+        return [
+            [
+                'id'   => 'id',
+                'name' => '№',
+                'show' => true
+            ],
+            [
+                'id'   => 'name',
+                'name' => Yii::t('app', 'Fullname'),
+                'show' => true
+            ],
+            [
+                'id'   => 'login',
+                'name' => Yii::t('app', 'Username'),
+                'show' => true
+            ],
+            [
+                'id'   => 'roleId',
+                'name' => Yii::t('app', 'Role Id'),
+                'show' => false
+            ],
+            [
+                'id'   => 'role',
+                'name' => Yii::t('app', 'Role'),
+                'show' => true
+            ],
+        ];
+    }
+
+    public static function getUsersList($filters)
+    {
+        $limit  = 20;
+        $offset = $filters['page'] !== null ? $limit * ($filters['page'] - 1): null;
+        $users = (new \yii\db\Query())
+        ->select(['id' => 'u.id', 'name' => 'u.name', 'login' => 'u.login', 'roleId' => 'u.status', 'role' => 's.name'])
+        ->from('user u')
+        ->innerJoin('status s', 's.id=u.status')
+        ->orderBy(['u.status' => SORT_ASC, 'u.name' => SORT_ASC])
+        ->where('u.visible=:vis', [':vis' => $filters['visible']])
+        ->all();
+        return [
+            'columns' => static::getUsersColumns(),
+            'data'  => $users,
+            'pager' => [
+                'items' => (int)$pages->totalCount,
+                'pages' => ceil((int)$pages->totalCount / $limit)
+            ]
+        ];
+    }
 
     /**
      * Метод возвращает список пользователей. Выдача фильтруется
@@ -239,6 +241,20 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
         ->one();
 
         return $user;
+    }
+
+    public static function getUserHomeUrl()
+    {
+        $url = '/';
+        // переподим пользователя на нужную страничку
+        switch(Yii::$app->session->get('user.ustatus')){
+            case 3: $url = '/report/common'; break;
+            case 4: $url = '/call/index'; break;
+            case 5: $url = '/teacher/view?id='.Yii::$app->session->get('user.uteacher'); break;
+            case 6: $url = '/teacher/index'; break;
+            default: $url = '/';
+        }
+        return $url;
     }
 
     /* Метод проверки ролей пользователей на доступ к ресурсам */
