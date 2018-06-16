@@ -8,13 +8,12 @@
  * @license http://www.yiiframework.com/license/
  */
 
-#defined('YII_DEBUG') or define('YII_DEBUG', true);
-#defined('YII_ENV') or define('YII_ENV', 'dev');
+require_once __DIR__ . '/_bootstrap.php';
 
-require(__DIR__ . '/vendor/autoload.php');
-require(__DIR__ . '/vendor/yiisoft/yii2/Yii.php');
-
-$config = require(__DIR__ . '/config/console.php');
+$config = yii\helpers\ArrayHelper::merge(
+    require(YII_APP_BASE_PATH . '/config/console.php'),
+    require(__DIR__ . '/../config/config.php')
+);
 
 $application = new yii\console\Application($config);
 $exitCode = $application->run();
