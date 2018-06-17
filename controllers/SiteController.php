@@ -6,6 +6,7 @@ use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\Response;
+use app\models\Breadcrumbs;
 use app\models\ContactForm;
 use app\models\Kaslibro;
 use app\models\LoginForm;
@@ -24,7 +25,7 @@ class SiteController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['csrf', 'index', 'login', 'logout', 'nav', 'state'],
+                'only' => ['csrf', 'bc', 'index', 'login', 'logout', 'nav', 'state'],
                 'rules' => [
                     [
                         'actions' => ['csrf', 'login', 'state'],
@@ -32,12 +33,12 @@ class SiteController extends Controller
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index', 'logout', 'nav'],
+                        'actions' => ['bc', 'index', 'logout', 'nav'],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['csrf', 'index', 'logout', 'nav', 'state'],
+                        'actions' => ['csrf', 'bc', 'index', 'logout', 'nav', 'state'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -67,6 +68,14 @@ class SiteController extends Controller
         return [
             Yii::$app->request->csrfParam => Yii::$app->request->getCsrfToken()
         ];
+    }
+
+    /* метод возвращает массив со списком элементов хлебных крошек */
+    public function actionBc()
+    {
+        /* включаем формат ответа JSON */
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        return Breadcrumbs::getItems();
     }
 
     public function actionIndex()
