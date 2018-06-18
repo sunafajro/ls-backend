@@ -10,7 +10,6 @@ use yii\data\ActiveDataProvider;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
-use yii\filters\VerbFilter;
 
 /**
  * MoneystudController implements the CRUD actions for Moneystud model.
@@ -30,21 +29,10 @@ class MoneystudController extends Controller
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['create','disable','enable', 'remain', 'unremain'],
+                        'actions' => ['create','disable','enable','delete','remain','unremain'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
-                     [
-                        'actions' => ['delete'],
-                        'allow' => false,
-                        'roles' => ['@'],
-                    ],
-                ],
-            ],
-            'verbs' => [
-                'class' => VerbFilter::className(),
-                'actions' => [
-                    'delete' => ['post'],
                 ],
             ],
         ];
@@ -298,11 +286,14 @@ class MoneystudController extends Controller
      */
     public function actionDelete($id)
     {
-        $payment = $this->findModel($id);
-        $student = $payment->calc_studname;
-        $this->findModel($id)->delete();
-
-        return $this->redirect(['studname/view', 'id' => $student, 'tab'=>4]);
+        if((int)Yii::$app->session->get('user.ustatus') === 3) {
+            $payment = $this->findModel($id);
+            $student = $payment->calc_studname;
+            $this->findModel($id)->delete();
+            return $this->redirect(['studname/view', 'id' => $student, 'tab'=>4]);
+        } else {
+            return $this->redirect(Yii::$app->request->referrer);
+        }
     }
 
     /**
