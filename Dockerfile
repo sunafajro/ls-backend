@@ -19,4 +19,3 @@ RUN docker-php-ext-install -j$(nproc) zip
 RUN curl -sS https://getcomposer.org/installer | php -- --filename=composer.phar --install-dir=/usr/local/bin && php /usr/local/bin/composer.phar clear-cache
 WORKDIR /var/www/calc2
 RUN php /usr/local/bin/composer.phar global require "fxp/composer-asset-plugin:^1.4.3"
-#RUN php /usr/local/bin/composer.phar install
