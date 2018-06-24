@@ -95,8 +95,8 @@ class SiteController extends Controller
 
     public function actionLogin()
     {
-        if (Yii::$app->request->post()) {
-            Yii::$app->response->format = Response::FORMAT_JSON;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        if (Yii::$app->request->post()) {            
             $model = new LoginForm();
             if ($model->load(Yii::$app->request->post()) && $model->login()) {
                 $user = (new \yii\db\Query())
@@ -155,7 +155,6 @@ class SiteController extends Controller
     public function actionLogout()
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-
         if (Yii::$app->request->post()) {
             $login = new LoginLog();
             $login->date = date('Y-m-d H:i:s');

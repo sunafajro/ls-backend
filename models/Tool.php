@@ -62,14 +62,14 @@ class Tool extends Model
     }
     /* генерируем список лет с начала эксплуатации системы */
 
-    protected static function methodNotAllowed() {
+    public static function methodNotAllowed() {
         return [
             'status' => false,
             'text' => Yii::t('app','Method not allowed!')
         ];
     }
 
-    protected static function objectNotFound() {
+    public static function objectNotFound() {
         return [
             'status' => false,
             'text' => Yii::t('app','Object not found!')
