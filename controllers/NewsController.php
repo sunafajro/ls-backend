@@ -24,15 +24,15 @@ class NewsController extends Controller
         return [
 		    'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['create','delete','update'],
+                'only' => ['create', 'delete', 'index', 'update'],
                 'rules' => [
                     [
-                        'actions' => ['create','delete','update'],
+                        'actions' => ['create', 'delete', 'index', 'update'],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['create','delete','update'],
+                        'actions' => ['create', 'delete', 'index', 'update'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -45,6 +45,21 @@ class NewsController extends Controller
                 ],
             ],
         ];
+    }
+
+    public function actionIndex()
+    {
+        $userInfoBlock = User::getUserInfoBlock();
+
+        $params = ['month' => date('m'), 'year' => date('Y')];
+        $url_params = self::getUrlParams($params);
+
+        return $this->render('index',[
+            'url_params' => $url_params,
+			'news' => News::getNewsList($url_params['month'], $url_params['year']),
+            'months' => Tool::getMonthsSimple(),
+            'userInfoBlock' => $userInfoBlock
+	    ]);
     }
 
     /**

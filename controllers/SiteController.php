@@ -28,12 +28,12 @@ class SiteController extends Controller
                 'only' => ['csrf', 'bc', 'index', 'login', 'logout', 'nav', 'state'],
                 'rules' => [
                     [
-                        'actions' => ['csrf', 'login', 'state'],
+                        'actions' => ['csrf', 'index', 'login', 'state'],
                         'allow' => true,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['bc', 'index', 'logout', 'nav'],
+                        'actions' => ['bc', 'logout', 'nav'],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
@@ -80,17 +80,7 @@ class SiteController extends Controller
 
     public function actionIndex()
     {
-        $userInfoBlock = User::getUserInfoBlock();
-
-        $params = ['month' => date('m'), 'year' => date('Y')];
-        $url_params = self::getUrlParams($params);
-
-        return $this->render('index',[
-            'url_params' => $url_params,
-			'news' => News::getNewsList($url_params['month'], $url_params['year']),
-            'months' => Tool::getMonthsSimple(),
-            'userInfoBlock' => $userInfoBlock
-	    ]);
+        return $this->render('index');
     }
 
     public function actionLogin()
