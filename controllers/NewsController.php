@@ -3,11 +3,13 @@
 namespace app\controllers;
 
 use Yii;
+use app\models\AccessRule;
 use app\models\News;
 use app\models\User;
 use yii\data\ActiveDataProvider;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
+use yii\web\Response;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 
@@ -49,17 +51,22 @@ class NewsController extends Controller
 
     public function actionIndex()
     {
-        $userInfoBlock = User::getUserInfoBlock();
-
+        Yii::$app->response->format = Response::FORMAT_JSON;
         $params = ['month' => date('m'), 'year' => date('Y')];
-        $url_params = self::getUrlParams($params);
-
-        return $this->render('index',[
-            'url_params' => $url_params,
-			'news' => News::getNewsList($url_params['month'], $url_params['year']),
-            'months' => Tool::getMonthsSimple(),
-            'userInfoBlock' => $userInfoBlock
-	    ]);
+        if (Yii::$app->request->get('mon') && 
+           (int)Yii::$app->request->get('mon') >= 1 && 
+           (int)Yii::$app->request->get('month') <= 12) {
+                $params['month'] = (int)Yii::$app->request->get('month');
+        }
+        if (Yii::$app->request->get('year') && 
+           (int)Yii::$app->request->get('year') >= 2011) {
+                $params['year'] = (int)Yii::$app->request->get('year');
+        }
+        return [
+            'actions' => AccessRule::GetCRUD('news'),
+            'news'    => News::getNewsList($params['month'], $params['year']),
+            'status'  => true,			
+	    ];
     }
 
     /**
