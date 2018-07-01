@@ -13,12 +13,23 @@ foreach($offices as $o) {
         echo "<table class='table table-bordered table-stripped table-hover table-condensed'>";
         echo "<tbody>";
         foreach($payments as $p) {
-            if($p['date']==$value && $p['oid']==$o['oid']) {
-                echo "<tr".($p['visible']==0 ? " class='danger'" : "").">";
-                echo "<td>#".$p['mid'].($p['remain']==1 ? ' (ост.)' : '')."</td>";
-                echo "<td>".Html::a($p['sname']." → ", ['studname/view', 'id'=>$p['sid']])."</td>";
-                echo "<td>".$p['uname'].($p['receipt'] ? ' ('.$p['receipt'].')' : '')."</td>";
-                echo "<td>".$p['money']."</td>";
+            if($p['date'] == $value && $p['oid'] == $o['oid']) {
+                echo "<tr" . ($p['visible']==0 ? " class='danger'" : "") . ">";
+                echo "<td>#" . $p['mid'].($p['remain'] == 1 ? ' (ост.)' : '') . "</td>";
+                echo "<td>" . Html::a($p['sname']." → ", ['studname/view', 'id'=>$p['sid']]) . "</td>";
+                echo "<td>" . $p['uname'] . ($p['receipt'] ? ' ('.$p['receipt'].')' : '') . "</td>";
+                echo "<td>";
+                if ($p['cash'] !== '0.00') {
+                    echo '<span class="text-success">наличные</span>';
+                }
+                if ($p['card'] !== '0.00') {
+                    echo '<span class="text-info">карта</span>';
+                }
+                if ($p['bank'] !== '0.00') {
+                    echo '<span class="text-warning">банк</span>';
+                }
+                echo "</td>";
+                echo "<td>" . $p['money'] . "</td>";
                 echo "</tr>";
                 if($p['visible']==1&&$p['remain']==0) {
                     $totaldaysum = $totaldaysum + $p['money'];

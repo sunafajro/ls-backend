@@ -1384,7 +1384,7 @@ class ReportController extends Controller
 			
             // получаем даннные по оплатам
             $payments = (new \yii\db\Query())
-            ->select('ms.id as mid, sn.id as sid, sn.name as sname, ms.value as money, ms.data as date, ms.receipt as receipt, u.name as uname, ms.visible as visible, ms.remain as remain, ms.calc_office as oid')
+            ->select('ms.id as mid, sn.id as sid, sn.name as sname, ms.value as money, ms.value_card as card, ms.value_cash as cash, ms.value_bank as bank, ms.data as date, ms.receipt as receipt, u.name as uname, ms.visible as visible, ms.remain as remain, ms.calc_office as oid')
             ->from('calc_moneystud ms')
             ->leftjoin('calc_studname sn', 'sn.id=ms.calc_studname')
             ->leftJoin('user u', 'u.id=ms.user')
