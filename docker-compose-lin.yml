@@ -1,0 +1,26 @@
+version: '2'
+
+services:
+  web:
+    image: apache/php
+    container_name: web
+    restart: always
+    environment:
+      "$PWD": /var/www/calc2/web
+    volumes:
+     - /opt/calc2:/var/www/calc2
+     - /opt/apache2:/etc/apache2/sites-enabled
+    ports:
+     - 127.0.0.1:8080:80
+  db:
+    image: mysql:5.6
+    container_name: db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: langschool
+    volumes:
+     - /opt/mysql/data:/var/lib/mysql
+    ports:
+     - 127.0.0.1:3306:3306
+
