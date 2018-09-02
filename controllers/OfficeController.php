@@ -60,13 +60,18 @@ class OfficeController extends Controller
     public function actionIndex($type = null)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        if ($type == 'with_cities') {
+        if ($type === 'with_cities') {
             $data = Office::getOfficesWithCitiesList();
             return [
                 'actions' => AccessRule::GetCRUD('office'),
                 'columns' => $data['columns'],
                 'data'    => $data['data'],
                 'status'  => true,
+            ];
+        } else if ($type === 'bootstrap') {
+            return [
+                'status'  => true,
+                'offices' => Office::getOfficeForBootstrapSelect()
             ];
         } else {
             return [

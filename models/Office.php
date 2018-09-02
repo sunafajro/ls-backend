@@ -48,10 +48,23 @@ class Office extends \yii\db\ActiveRecord
             'num' => Yii::t('app', 'Num'),
         ];
     }
+
+    /* список офисов кроме помеченных удаленными. многомерный массив. */
+    public static function getOfficesList()
+    {
+        /* получаем список доступных офисов */
+        $offices = (new \yii\db\Query())
+        ->select('co.id as id, co.name as name')
+        ->from('calc_office co')
+        ->where('co.visible=:vis', [':vis'=>1])
+        ->orderBy(['co.name' => SORT_ASC])
+        ->all();
+        /* получаем список доступных офисов */
     
-    /**
-     *  Метод возвращает список офисов у которых есть занятия в расписании в виде одномерного массива
-     */
+        return $offices;
+    }
+
+    /* список офисов кроме помеченных удаленными, по которым есть занятия в расписании. одномерный массив. */
     public static function getOfficeInScheduleListSimple()
     {
         $offices = [];
@@ -78,20 +91,8 @@ class Office extends \yii\db\ActiveRecord
         return $offices;
     }
 
-    public static function getOfficesList()
-    {
-        /* получаем список доступных офисов */
-        $offices = (new \yii\db\Query())
-        ->select('co.id as id, co.name as name')
-        ->from('calc_office co')
-        ->where('co.visible=:vis', [':vis'=>1])
-        ->orderBy(['co.name' => SORT_ASC])
-        ->all();
-        /* получаем список доступных офисов */
-    
-        return $offices;
-    }
 
+    /* список офисов кроме помеченных удаленными, с привязкой к городам. многомерный массив. */
     public static function getOfficesWithCitiesList()
     {
         /* получаем список доступных офисов с привязкой к городу */ 
@@ -136,15 +137,11 @@ class Office extends \yii\db\ActiveRecord
         ];
     }
 
-    /**
-     *  Метод возвращает список действующих офисов в виде одномерного массива
-     */
+    /* список офисов кроме помеченных удаленными. одномерный массив. */
     public static function getOfficesListSimple()
     {
-        $offices = [];
-
         $tmp_offices = static::getOfficesList();
-        
+        $offices = [];
         /* если массив не пустой, формируем из него простой одномерный */
         if(!empty($tmp_offices)) {
             foreach($tmp_offices as $o) {
@@ -154,5 +151,19 @@ class Office extends \yii\db\ActiveRecord
         /* если массив не пустой, формируем из него простой одномерный */
 
         return !empty($offices) ? $offices : NULL;
+    }
+
+    /* список офисов кроме помеченных удаленными. многомерный массив. */
+    public static function getOfficeForBootstrapSelect()
+    {
+        $tmp_offices = static::getOfficesList();
+        $offices = [];
+        foreach($tmp_offices as $o) {
+            $offices[] = [
+              'value' => $o['id'],
+              'text' => $o['name']
+            ];
+        }
+        return $offices;
     }
 }
