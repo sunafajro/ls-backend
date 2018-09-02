@@ -50,6 +50,7 @@ class ScheduleController extends Controller
      */
     public function actionIndex()
     {
+        $this->layout = 'new-layout';
         $userInfoBlock = User::getUserInfoBlock();
         // задаем начальные переменные
 		$oid = NULL;
