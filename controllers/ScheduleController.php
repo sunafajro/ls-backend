@@ -3,12 +3,17 @@
 namespace app\controllers;
 
 use Yii;
+use app\models\Eduage;
+use app\models\Eduform;
+use app\models\Office;
+use app\models\Room;
 use app\models\Schedule;
 use app\models\Tool;
 use app\models\User;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
+use yii\web\Response;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 
@@ -169,20 +174,6 @@ class ScheduleController extends Controller
         }
         $slangs = array_unique($templangs);
 
-    	// получаем массив типов форм обучения
-    	$eduforms = (new \yii\db\Query())
-    	->select('id as eid, name as ename')
-    	->from('calc_eduform')
-    	->orderBy(['name'=>SORT_ASC])
-    	->all();
-
-    	// получаем массив возрастов учащихся
-    	$ages = (new \yii\db\Query())
-    	->select('id as aid, name as aname')
-    	->from('calc_eduage')
-    	->orderBy(['name'=>SORT_ASC])
-    	->all();
-
         // получаем массив преподавателей
     	$steachers = (new \yii\db\Query())
     	->select('ctch.id as tid, ctch.name as tname')
@@ -214,8 +205,6 @@ class ScheduleController extends Controller
             'offices' => $offices,
     	    'soffices' => $soffices,
     	    'slangs' => $slangs,
-    	    'eduforms' => $eduforms,
-    	    'ages' => $ages,
     	    'teachers' => $teachers,
             'oid' => $oid,
             'lid' => $lid,
@@ -563,47 +552,83 @@ class ScheduleController extends Controller
     public function actionAjaxgroup() 
     {
         if (Yii::$app->request->isAjax) {
-    	//достаем из базы и возвращаем кусок кода для выбора уч.группы преподавателя.
-    	if(Yii::$app->request->post('TID')){
-    	$teachergroups = (new \yii\db\Query())
-        ->select('gt.id as gid, s.id as sid, s.name as gname')
-        ->from('calc_teachergroup tg')
-        ->innerJoin('calc_groupteacher gt', 'tg.calc_groupteacher=gt.id')
-    	->innerJoin('calc_service s','s.id=gt.calc_service')
-        ->where('gt.visible=:vis and tg.calc_teacher=:tid', [':vis'=>1,':tid'=>Yii::$app->request->post('TID')])
-        ->orderBy(['s.name'=>SORT_ASC])
-        ->all();
-    	$teachergroup = "<label class='control-label' for='schedule-calc_groupteacher'>".\Yii::t('app','Group')."</label>"; 
-    	$teachergroup .= "<select id='schedule-calc_groupteacher' class='form-control' name='Schedule[calc_groupteacher]'>";
-    	$teachergroup .= "<option value=''>-выбрать-</option>";
-    	foreach($teachergroups as $tg){
-    	$teachergroup .= "<option value='".$tg['gid']."'>#".$tg['gid']." ".$tg['gname']."</option>";
-    	}
-    	$teachergroup .= "</select>";
-    	$teachergroup .= "<div class='help-block'></div>";
-    	
-            return $teachergroup;}
+            //достаем из базы и возвращаем кусок кода для выбора уч.группы преподавателя.
+            if(Yii::$app->request->post('TID')){
+                $teachergroups = (new \yii\db\Query())
+                ->select('gt.id as gid, s.id as sid, s.name as gname')
+                ->from('calc_teachergroup tg')
+                ->innerJoin('calc_groupteacher gt', 'tg.calc_groupteacher=gt.id')
+                ->innerJoin('calc_service s','s.id=gt.calc_service')
+                ->where('gt.visible=:vis and tg.calc_teacher=:tid', [':vis'=>1,':tid'=>Yii::$app->request->post('TID')])
+                ->orderBy(['s.name'=>SORT_ASC])
+                ->all();
+                $teachergroup = "<label class='control-label' for='schedule-calc_groupteacher'>".\Yii::t('app','Group')."</label>"; 
+                $teachergroup .= "<select id='schedule-calc_groupteacher' class='form-control' name='Schedule[calc_groupteacher]'>";
+                $teachergroup .= "<option value=''>-выбрать-</option>";
+                foreach($teachergroups as $tg){
+                    $teachergroup .= "<option value='".$tg['gid']."'>#".$tg['gid']." ".$tg['gname']."</option>";
+                }
+                $teachergroup .= "</select>";
+                $teachergroup .= "<div class='help-block'></div>";
+            
+                return $teachergroup;
+            }
 
-    	//достаем из базы и возвращаем кусок кода для выбора кабинета офиса.
-    	if(Yii::$app->request->post('OID')){
-    	$officecabinets = (new \yii\db\Query())
-            ->select('co.id as oid, cco.id as cid, cco.name as cname')
-            ->from('calc_cabinetoffice cco')
-    	->leftJoin('calc_office co','co.id=cco.calc_office')
-            ->where('cco.visible=:vis and co.visible=:vis and co.id=:oid', [':vis'=>1,':oid'=>Yii::$app->request->post('OID')])
-            ->orderBy(['cco.name'=>SORT_ASC])
-            ->all();
+            //достаем из базы и возвращаем кусок кода для выбора кабинета офиса.
+            if (Yii::$app->request->post('OID')) {
+                $officecabinets = (new \yii\db\Query())
+                ->select('co.id as oid, cco.id as cid, cco.name as cname')
+                ->from('calc_cabinetoffice cco')
+                ->leftJoin('calc_office co','co.id=cco.calc_office')
+                ->where('cco.visible=:vis and co.visible=:vis and co.id=:oid', [':vis'=>1,':oid'=>Yii::$app->request->post('OID')])
+                ->orderBy(['cco.name'=>SORT_ASC])
+                ->all();
 
-    	$officecabinet = "<label class='control-label' for='schedule-calc_cabinetoffice'>".\Yii::t('app','Room')."</label>"; 
-    	$officecabinet .= "<select id='schedule-calc_cabinetoffice' class='form-control' name='Schedule[calc_cabinetoffice]'>";
-    	$officecabinet .= "<option value=''>-выбрать-</option>";
-    	foreach($officecabinets as $oc){
-    	$officecabinet .= "<option value='".$oc['cid']."'>".$oc['cname']."</option>";
+                $officecabinet = "<label class='control-label' for='schedule-calc_cabinetoffice'>".\Yii::t('app','Room')."</label>"; 
+                $officecabinet .= "<select id='schedule-calc_cabinetoffice' class='form-control' name='Schedule[calc_cabinetoffice]'>";
+                $officecabinet .= "<option value=''>-выбрать-</option>";
+                foreach ($officecabinets as $oc) {
+                    $officecabinet .= "<option value='".$oc['cid']."'>".$oc['cname']."</option>";
+                }
+                $officecabinet .= "</select>";
+                $officecabinet .= "<div class='help-block'></div>";
+                
+                return $officecabinet;
+            }
     	}
-    	$officecabinet .= "</select>";
-    	$officecabinet .= "<div class='help-block'></div>";
-    	
-            return $officecabinet;}
-    	}
-	}
+    }
+    
+    public function actionGetFilters()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        return [
+          'status' => true,
+          'filtersData' => [
+            'days' => [],
+            'eduages' => Eduage::getEduages(),
+            'eduforms' => Eduform::getEduforms(),
+            'languages' => [],
+            'offices' => Office::getOfficeByScheduleForBootstrapSelect(),
+            'teachers' => [],
+          ]
+        ];
+    }
+
+    public function actionGetInfo()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        return [
+          'status' => true,
+          'lessonData' => []
+        ];
+    }
+
+    public function actionGetHours($teacherId = null)
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        return [
+          'status' => true,
+          'hoursData' => []
+        ];
+    }
 }
