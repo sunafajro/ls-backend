@@ -71,24 +71,46 @@ class Teacher extends \yii\db\ActiveRecord
         ];
     }
 
-    /* Метод возвращает список действующих преподавателей в виде одномерного массива */
-    public static function getTeachersInUserListSimple()
+    /* возвращает список действующих преподавателей. многомерный массив. */
+    public static function getTeachers()
     {
-        $teachers = [];
-
-        $tmp_teachers = (new \yii\db\Query())
+        $teachers = (new \yii\db\Query())
         ->select('ct.id as id, ct.name as name')
         ->from('calc_teacher ct')
         ->where('ct.visible=:vis and ct.old=:old', [':vis'=> 1,':old'=>0])
-        ->orderBy(['ct.name'=>SORT_ASC])
+        ->orderBy(['ct.name' => SORT_ASC])
         ->all();
         
+        return $teachers;
+    }
+
+    /* возвращает список действующих преподавателей. одномерный массив. */
+    public static function getTeacherListSimple()
+    {
+        $tmp_teachers = static::getTeachers();
+        $teachers = [];
         if(!empty($tmp_teachers)) {
-            foreach($tmp_teachers as $t){
+            foreach ($tmp_teachers as $t) {
                 $teachers[$t['id']] = $t['name'];
             }
         }
+        return $teachers;
+    }
 
+    /* возвращает список действующих преподавателей. многомерный массив. */
+    public static function getTeachersForBootstrapSelect()
+    {
+        $tmp_teachers = static::getTeachers();
+        
+        $teachers = [];
+        if(!empty($tmp_teachers)) {
+            foreach ($tmp_teachers as $t) {
+                $teachers[] = [
+                    'value' => $t['id'],
+                    'text' => $t['name']
+                ];
+            }
+        }
         return $teachers;
     }
 }

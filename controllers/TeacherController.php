@@ -9,10 +9,10 @@ use app\models\Tool;
 use app\models\User;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
+use yii\web\Response;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\data\Pagination;
-
 
 /**
  * TeacherController implements the CRUD actions for CalcTeacher model.
@@ -24,15 +24,15 @@ class TeacherController extends Controller
         return [
 	    'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['index','view','create','update','delete','enable','disable','ajaxgroup'],
+                'only' => ['index','view','create','update','delete','enable','disable'],
                 'rules' => [
                     [
-                        'actions' => ['index','view','create','update','delete','enable','disable','ajaxgroup'],
+                        'actions' => ['index','view','create','update','delete','enable','disable'],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index','view','create','update','delete','enable','disable','ajaxgroup'],
+                        'actions' => ['index','view','create','update','delete','enable','disable'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -615,7 +615,16 @@ class TeacherController extends Controller
             }
             return $this->redirect(['index']);
         }
-    }
+	}
+	
+	public function actionGetTeachers()
+	{
+		Yii::$app->response->format = Response::FORMAT_JSON;
+		return [
+			'status' => true,
+			'teachers' => Teacher::getTeachersForBootstrapSelect()
+		];
+	}
 
     /**
      * Finds the CalcTeacher model based on its primary key value.
