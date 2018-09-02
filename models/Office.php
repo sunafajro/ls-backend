@@ -84,7 +84,6 @@ class Office extends \yii\db\ActiveRecord
             foreach($tmp_offices as $o) {
                 $offices[$o['id']] = $o['name'];
             }
-            unset($o);
         }
         // если массив не пустой, формируем простой одноуровневый список
 
@@ -162,6 +161,19 @@ class Office extends \yii\db\ActiveRecord
             $offices[] = [
               'value' => $o['id'],
               'text' => $o['name']
+            ];
+        }
+        return $offices;
+    }
+
+    public static function getOfficeByScheduleForBootstrapSelect()
+    {
+        $tmp_offices = static::getOfficeInScheduleListSimple();
+        $offices = [];
+        foreach($tmp_offices as $key => $value) {
+            $offices[] = [
+              'value' => $key,
+              'text' => $value
             ];
         }
         return $offices;
