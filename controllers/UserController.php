@@ -120,7 +120,7 @@ class UserController extends Controller
         } else {
             return $this->render('create', [
                 'model' => $model,
-                'teachers' => Teacher::getTeachersInUserListSimple(),
+                'teachers' => Teacher::getTeacherListSimple(),
                 'statuses' => Role::getRolesListSimple(),
                 'offices' => Office::getOfficesListSimple(),
                 'cities' => City::getCitiesInUserListSimple(),
@@ -157,7 +157,7 @@ class UserController extends Controller
         } else {
             return $this->render('update', [
                 'model' => $model,
-                'teachers' => Teacher::getTeachersInUserListSimple(),
+                'teachers' => Teacher::getTeacherListSimple(),
                 'statuses' => Role::getRolesListSimple(),
                 'offices' => Office::getOfficesListSimple(),
                 'cities' => City::getCitiesInUserListSimple(),
