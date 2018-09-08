@@ -10,7 +10,7 @@ use yii\base\Model;
  */
 class Tool extends Model
 {
-    /* выбираем список мес¤цев */
+    /* список месяцев */
     public static function getMonthsSimple() {
         $months = [];
         
@@ -27,9 +27,8 @@ class Tool extends Model
         
         return $months;
     }
-    /* выбираем список мес¤цев */
 
-    /* выбираем список дней недели */
+    /* список дней недели */
     public static function getDayOfWeekSimple() {
         $days = [];
         
@@ -46,9 +45,8 @@ class Tool extends Model
         
         return $days;
     }
-    /* выбираем список дней недели */ 
     
-    /* генерируем список лет с начала эксплуатации системы */
+    /* список лет с начала эксплуатации системы */
     public static function getYearsSimple() {
         $years = [];
         $year = 2011;
@@ -60,7 +58,20 @@ class Tool extends Model
         
         return $years;
     }
-    /* генерируем список лет с начала эксплуатации системы */
+
+    public static function prepareForBootstrapSelect($data)
+    {
+        $result = [];
+        if(!empty($data)) {
+            foreach ($data as $d) {
+                $result[] = [
+                    'value' => $d['id'],
+                    'text' => $d['name']
+                ];
+            }
+        }
+        return $result;
+    }
 
     protected static function methodNotAllowed() {
         return [
