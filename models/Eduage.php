@@ -43,7 +43,7 @@ class Eduage extends \yii\db\ActiveRecord
     public static function getEduages()
     {
     	$data = (new \yii\db\Query())
-    	->select('id as value, name as text')
+    	->select('id as id, name as name')
     	->from(static::tableName())
     	->orderBy(['name'=>SORT_ASC])
         ->all();

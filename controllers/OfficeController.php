@@ -69,9 +69,9 @@ class OfficeController extends Controller
                 'status'  => true,
             ];
         } else if ($type === 'bootstrap') {
+            $offices = Office::getOfficesList();
             return [
-                'status'  => true,
-                'offices' => Office::getOfficeForBootstrapSelect()
+                'offices' => Tool::prepareForBootstrapSelect($offices)
             ];
         } else {
             return [

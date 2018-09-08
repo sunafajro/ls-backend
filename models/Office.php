@@ -64,20 +64,24 @@ class Office extends \yii\db\ActiveRecord
         return $offices;
     }
 
-    /* список офисов кроме помеченных удаленными, по которым есть занятия в расписании. одномерный массив. */
-    public static function getOfficeInScheduleListSimple()
+    // возвращает список офисов по которым есть занятия в расписании
+    public static function getOfficeBySchedule()
     {
-        $offices = [];
-
-        // получаем список офисов по которым есть занятия в расписании
-        $tmp_offices = (new \yii\db\Query())
+        $offices = (new \yii\db\Query())
         ->select('o.id as id, o.name as name')
         ->distinct()
         ->from('calc_office o')
         ->innerJoin('calc_schedule sch', 'sch.calc_office=o.id')
         ->where('o.visible=:one', [':one' => 1])
         ->all();
-        // получаем список офисов
+        return $offices;
+    }
+
+    /* список офисов кроме помеченных удаленными, по которым есть занятия в расписании. одномерный массив. */
+    public static function getOfficeInScheduleListSimple()
+    {
+        $offices = [];
+        $tmp_offices = static::getOfficeBySchedule();
         
         // если массив не пустой, формируем простой одноуровневый список
         if(!empty($tmp_offices)) {
@@ -150,32 +154,5 @@ class Office extends \yii\db\ActiveRecord
         /* если массив не пустой, формируем из него простой одномерный */
 
         return !empty($offices) ? $offices : NULL;
-    }
-
-    /* список офисов кроме помеченных удаленными. многомерный массив. */
-    public static function getOfficeForBootstrapSelect()
-    {
-        $tmp_offices = static::getOfficesList();
-        $offices = [];
-        foreach($tmp_offices as $o) {
-            $offices[] = [
-              'value' => $o['id'],
-              'text' => $o['name']
-            ];
-        }
-        return $offices;
-    }
-
-    public static function getOfficeByScheduleForBootstrapSelect()
-    {
-        $tmp_offices = static::getOfficeInScheduleListSimple();
-        $offices = [];
-        foreach($tmp_offices as $key => $value) {
-            $offices[] = [
-              'value' => $key,
-              'text' => $value
-            ];
-        }
-        return $offices;
     }
 }

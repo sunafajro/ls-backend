@@ -76,11 +76,10 @@ class Teacher extends \yii\db\ActiveRecord
     {
         $teachers = (new \yii\db\Query())
         ->select('ct.id as id, ct.name as name')
-        ->from('calc_teacher ct')
+        ->from(static::tableName() . ' ct')
         ->where('ct.visible=:vis and ct.old=:old', [':vis'=> 1,':old'=>0])
         ->orderBy(['ct.name' => SORT_ASC])
-        ->all();
-        
+        ->all();        
         return $teachers;
     }
 
@@ -97,20 +96,33 @@ class Teacher extends \yii\db\ActiveRecord
         return $teachers;
     }
 
-    /* возвращает список действующих преподавателей. многомерный массив. */
-    public static function getTeachersForBootstrapSelect()
+    /* возвращает список преподавателей имеющих активные группы */
+    public static function getTeachersWithActiveGroups($tid = null)
     {
-        $tmp_teachers = static::getTeachers();
-        
-        $teachers = [];
-        if(!empty($tmp_teachers)) {
-            foreach ($tmp_teachers as $t) {
-                $teachers[] = [
-                    'value' => $t['id'],
-                    'text' => $t['name']
-                ];
-            }
-        }
+        $teachers = (new \yii\db\Query())
+        ->select('ctch.id as id, ctch.name as name')
+        ->distinct()
+        ->from('calc_teacher ctch')
+        ->leftjoin('calc_teachergroup tg', 'tg.calc_teacher=ctch.id')
+        ->leftJoin('calc_groupteacher cgt','cgt.id=tg.calc_groupteacher')
+        ->where('ctch.visible=:vis and ctch.old=:old and cgt.visible=:vis', [':vis' => 1, ':old' => 0])
+        ->andFilterWhere(['ctch.id' => $tid])
+        ->orderBy(['ctch.name' => SORT_ASC])
+        ->all();
         return $teachers;
+    }
+
+    /* возвращает список активных групп преподавателя */
+    public static function getActiveTeacherGroups($tid = null)
+    {
+        $groups = (new \yii\db\Query())
+        ->select('gt.id as id, s.name as name')
+        ->from('calc_teachergroup tg')
+        ->innerJoin('calc_groupteacher gt', 'tg.calc_groupteacher=gt.id')
+        ->innerJoin('calc_service s','s.id=gt.calc_service')
+        ->where('gt.visible=:vis and tg.calc_teacher=:tid', [':vis' => 1, ':tid' => $tid])
+        ->orderBy(['s.name' => SORT_ASC])
+        ->all();
+        return $groups;
     }
 }

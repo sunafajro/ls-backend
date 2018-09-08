@@ -620,9 +620,18 @@ class TeacherController extends Controller
 	public function actionGetTeachers()
 	{
 		Yii::$app->response->format = Response::FORMAT_JSON;
+		$teachers = Teacher::getTeachers();
 		return [
-			'status' => true,
-			'teachers' => Teacher::getTeachersForBootstrapSelect()
+			'teachers' => Tool::prepareForBootstrapSelect($teachers)
+		];
+	}
+
+	public function actionGetTeachersWithGroups($tid = null)
+	{
+		Yii::$app->response->format = Response::FORMAT_JSON;
+		$teachers = Teacher::getTeachersWithActiveGroups($tid);
+		return [
+			'teachers' => Tool::prepareForBootstrapSelect($teachers)
 		];
 	}
 

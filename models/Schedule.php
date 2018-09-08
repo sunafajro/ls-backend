@@ -61,6 +61,43 @@ class Schedule extends \yii\db\ActiveRecord
         ];
     }
 
+    /* возвращает заголовки столбцов таблицы расписания */
+    public static function getTableColumns()
+    {
+        return [
+            [
+                'id' => 1,
+                'thClass' => 'tbl-cell-10',
+                'title' => Yii::t('app', 'Day')
+            ],
+            [
+                'id' => 2,
+                'thClass' => 'tbl-cell-10',
+                'title' => Yii::t('app', 'Room')
+            ],
+            [
+                'id' => 3,
+                'thClass' => 'tbl-cell-10',
+                'title' => Yii::t('app', 'Time')
+            ],
+            [
+                'id' => 4,
+                'thClass' => 'tbl-cell-20',
+                'title' => Yii::t('app', 'Teacher')
+            ],
+            [
+                'id' => 5,
+                'thClass' => 'tbl-cell-40',
+                'title' => Yii::t('app', 'Group')
+            ],
+            [
+                'id' => 6,
+                'thClass' => 'tbl-cell-5 text-center',
+                'title' => Yii::t('app', 'Act.')
+            ],
+        ];
+    }
+
     /**
      * метод возвращает расписание занятий студента
      * вызывается из StudnameController.php actionView
