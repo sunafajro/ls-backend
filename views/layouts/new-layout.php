@@ -3,9 +3,9 @@ use yii\helpers\Html;
 use yii\bootstrap\Nav;
 use yii\bootstrap\NavBar;
 use yii\widgets\Breadcrumbs;
-use app\assets\AppAsset;
+use app\assets\CleanAsset;
 
-AppAsset::register($this);
+CleanAsset::register($this);
 ?>
 <?php $this->beginPage() ?>
 <!DOCTYPE html>
@@ -19,19 +19,7 @@ AppAsset::register($this);
 </head>
 <body>
 <?php $this->beginBody() ?>
-    <div class="container-fluid">
-        <?php
-            if(!Yii::$app->user->isGuest){
-                echo Breadcrumbs::widget([
-                    'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
-                ]);
-                } else {
-                echo "<br />";
-            }
-            ?>
-        <?= $content ?>
-    </div>
-
+    <?= $content ?>
     <footer class="footer">
         <div class="container-fluid">
             <span class="text-muted">&copy; Школа иностранных языков "Язык для Успеха" <?= date('Y') ?></span>
