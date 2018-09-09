@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use Yii;
+use app\models\AccessRule;
 use app\models\Eduage;
 use app\models\Eduform;
 use app\models\Office;
@@ -13,9 +14,7 @@ use app\models\Tool;
 use app\models\User;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
-use yii\web\NotFoundHttpException;
 use yii\web\Response;
-use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 
 /**
@@ -28,21 +27,44 @@ class ScheduleController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['index','view','create','update','disable','hours','ajaxgroup'],
+                'only' => ['get-filters','get-hours','get-lessons','get-offices','get-office-rooms','get-teachers','get-teacher-groups','index','create','update','delete'],
                 'rules' => [
                     [
-                        'actions' => ['index','create','update','disable','hours','ajaxgroup'],
+                        'actions' => ['get-filters','get-hours','get-lessons','get-offices','get-office-rooms','get-teachers','get-teacher-groups','index','create','update','delete'],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index','create','update','disable','hours','ajaxgroup'],
+                        'actions' => ['get-filters','get-hours','get-lessons','get-offices','get-office-rooms','get-teachers','get-teacher-groups','index','create','update','delete'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
                 ],
             ],
         ];
+    }
+
+    public function beforeAction($action)
+    {
+        $customActions = ['get-filters','get-hours','get-lessons','get-offices','get-office-rooms','get-teachers','get-teacher-groups'];
+        if(parent::beforeAction($action)) {
+            $customAction = $action->id;
+            switch ($action->id) {
+                case 'get-hours': $customAction = 'hours'; break;
+                case 'get-filters':
+                case 'get-lessons': $customAction = 'index'; break;
+                case 'get-offices':
+                case 'get-office-rooms':
+                case 'get-teachers':
+                case 'get-teacher-groups': $customAction = 'create';
+            }
+            if (AccessRule::CheckAccess($action->controller->id, $customAction) === false) {
+                throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -224,83 +246,39 @@ class ScheduleController extends Controller
      */
     public function actionCreate()
     {
-        /* проверяем права доступа */
-        if(!Yii::$app->session->get('user.ustatus')==3 && !Yii::$app->session->get('user.ustatus')==4 && !Yii::$app->session->get('user.uteacher')){
-            return $this->redirect(Yii::$app->request->referrer);
-        }
-        
-        $userInfoBlock = User::getUserInfoBlock();
-        // создаем новую пустую запись
-        $model = new Schedule();
-        // определяем фильтр выборки
-        if(Yii::$app->session->get('user.ustatus')==5){
-            // для преподавателей
-            $teacher = Yii::$app->session->get('user.uteacher');
-        } else {
-        //  для менеджеров и руководителей
-            $teacher = NULL;
-        }
-        // получаем список преподавателей для селекта формы
-        $steachers = (new \yii\db\Query())
-        ->select('ctch.id as tid, ctch.name as tname')
-        ->from('calc_teacher ctch')
-        ->leftjoin('calc_teachergroup tg', 'tg.calc_teacher=ctch.id')
-        ->leftJoin('calc_groupteacher cgt','cgt.id=tg.calc_groupteacher')
-        ->where('ctch.visible=:vis and ctch.old=:old and cgt.visible=:vis',[':vis'=>1,':old'=>0])
-        ->andFilterWhere(['ctch.id'=>$teacher])
-        ->orderBy(['ctch.name'=>SORT_ASC])
-        ->all();
-
-        //составляем список преподавателей для селекта
-        foreach($steachers as $steacher){
-            $tempteachers[$steacher['tid']]=$steacher['tname'];
-        }
-        $teachers = array_unique($tempteachers);
-        unset($tempteachers);
-        unset($steacher);
-        unset($steachers);
-
-        // получаем список офисов в которых есть занятия для селекта формы
-        $teacheroffices = (new \yii\db\Query())
-        ->select('co.id as oid, co.name as oname')
-        ->from('calc_office co')
-        ->where('co.visible=:vis', [':vis'=>1])
-        ->orderBy(['co.id'=>SORT_ASC])
-        ->all();
-
-        //составляем массив офисов для селекта
-        foreach($teacheroffices as $teacheroffice){
-            $offices[$teacheroffice['oid']]=$teacheroffice['oname'];
-        }
-        unset($teacheroffice);
-        unset($teacheroffices);
-
-        if ($model->load(Yii::$app->request->post())) {
-            // присваиваем id преподавателя для всех кроме менеджеров и руководителей
-            //if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4) {
-            //   $model->calc_teacher = Yii::$app->session->get('user.uteacher');
-            //}
-            // помечаем занятие как действующее
-            $model->visible = 1;
-            // указываем пользователя добавившего занятие в расписание
-            $model->user = Yii::$app->session->get('user.uid');
-            // указывае дату добавления занятия в расписание
-            $model->data = date('Y-m-d');
-            // сохраняем запись
-            if($model->save()) {
-                Yii::$app->session->setFlash('success', 'Занятие успешно добавлено в расписание!');
+        $permission = Tool::checkAccesstoAction('schedule', 'create');
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        if ($permission['status']) {
+            if ($model->load(Yii::$app->request->post())) {
+                // присваиваем id преподавателя для всех кроме менеджеров и руководителей
+                //if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4) {
+                //   $model->calc_teacher = Yii::$app->session->get('user.uteacher');
+                //}
+                // помечаем занятие как действующее
+                $model->visible = 1;
+                // указываем пользователя добавившего занятие в расписание
+                $model->user = Yii::$app->session->get('user.uid');
+                // указывае дату добавления занятия в расписание
+                $model->data = date('Y-m-d');
+                // сохраняем запись
+                if($model->save()) {
+                    return [
+                        'message' => 'Занятие успешно добавлено в расписание!'
+                    ];
+                } else {
+                    Yii::$app->response->statusCode = 500;
+                    return [
+                        'message' => 'Не удалось добавить занятие в расписание!'
+                    ];
+                }
             } else {
-                Yii::$app->session->setFlash('error', 'Не удалось добавить занятие в расписание!');
+                return Tool::methodNotAllowed();
             }
-            return $this->redirect(['index']);
         } else {
-            return $this->render('create', [
-                'model' => $model,
-                'offices' => $offices,
-                'teachers' => $teachers,
-                'days' => Tool::getDayOfWeekSimple(),
-                'userInfoBlock' => $userInfoBlock
-            ]);
+            Yii::$app->response->statusCode = $permission['code'];
+            return [
+                'message' => $permission['text']
+            ];
         }
     }
 
@@ -395,6 +373,7 @@ class ScheduleController extends Controller
                 'model' => $model,
                 'offices'=>$offices,
                 'teachers'=>$teachers,
+                /* проверяем права доступа */
                 'groups'=>$groups,
                 'cabinets'=>$cabinets,
                 'days' => Tool::getDayOfWeekSimple(),
@@ -404,134 +383,42 @@ class ScheduleController extends Controller
     }
 
     /**
-     * Deletes an existing CalcSchedule model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
+     * Помечает запись в расписании удаленной
      * @param integer $id
      * @return mixed
      */
-	/*
     public function actionDelete($id)
     {
-		if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4) {
-            $model = $this->findModel($id);
-			$model->visible = 0;
-			
-		} else {
-            return $this->redirect(['index']);
-        }
-    }
-    */
-    /*
-    public function actionEnable($id)
-    {
-        // получаем информацию по пользователю
-        $model=$this->findModel($id);
-        // проверяем что пользователь руководитель или менеджер или преподаватель которому назначено занятие
-        if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4||$model->calc_teacher==Yii::$app->session->get('user.uteacher')){
-            //проверяем текущее состояние
-            if($model->visible==0) {
-                // помечаем занятие как действующее
-                $model->visible = 1;
-                // сохраняем модель
-                $model->save();
+        $permission = Tool::checkAccesstoAction('schedule', 'create');
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        if ($permission['status'] === true) {
+            $model=$this->findModel($id);
+            if ($model->calc_teacher == Yii::$app->session->get('user.uteacher')) {
+                if ((int)$model->visible === 1) {
+                    $model->visible = 0;
+                    if ($model->save()) {
+                        return [
+                            'message' => 'Занятие успешно удалено!'
+                        ];
+                    } else {
+                        Yii::$app->response->statusCode = 500;
+                        return [
+                            'message' => 'Не удалось удалить занятие из расписания!'
+                        ];
+                    }
+                }
+            } else {
+                Yii::$app->response->statusCode = 403;
+                return [
+                    'text'   => Yii::t('app','Forbidden!')
+                ];
             }
+        } else {
+            Yii::$app->response->statusCode = $permission['code'];
+            return [
+                'message' => $permission['text']
+            ];
         }
-        return $this->redirect(['index']);
-    }
-    */
-    public function actionDisable($id)
-    {
-        // получаем информацию по пользователю
-        $model=$this->findModel($id);
-        // проверяем что пользователь руководитель или менеджер или преподаватель которому назначено занятие
-        if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4||$model->calc_teacher==Yii::$app->session->get('user.uteacher')){
-            //проверяем текущее состояние
-            if($model->visible==1){
-                // помечаем занятие как отмененное
-                $model->visible = 0;
-                // сохраняем модель
-                $model->save();
-            }
-        }
-        return $this->redirect(['index']);
-    }
-
-    public function actionHours()
-    {
-        /* проверяем права доступа */
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
-        }
-
-        $params['oid'] = (Yii::$app->request->get('OID') && Yii::$app->request->get('OID') !== 'all') ? Yii::$app->request->get('OID') : NULL;
-
-        // пишем исходный кусок запроса    
-    	$lessons = (new \yii\db\Query()) 
-        ->select('sch.id as schedule_id,
-        t.id as teacher_id,
-        t.name as teacher,
-        o.id as office_id,
-        o.name as office,
-        l.id as language_id,
-        l.name as language,
-        tn.value as hours')
-        ->distinct()
-        ->from('calc_schedule sch')
-        ->innerJoin('calc_groupteacher gt', 'gt.id=sch.calc_groupteacher')
-        ->innerJoin('calc_service s', 's.id=gt.calc_service')
-        ->innerJoin('calc_timenorm tn', 's.calc_timenorm=tn.id')
-        ->innerJoin('calc_lang l', 'l.id=s.calc_lang')
-        ->innerJoin('calc_teachergroup tg', 'tg.calc_teacher=sch.calc_teacher')
-        ->innerJoin('calc_teacher t', 't.id=sch.calc_teacher')
-        ->innerJoin('calc_office o', 'o.id=sch.calc_office')
-        ->where('sch.calc_groupteacher!=:zero AND o.visible=:vis and sch.visible=:vis', [':zero'=>0, ':vis'=>1])
-        ->andFilterWhere(['sch.calc_office' => $params['oid']])
-        ->orderby(['t.name'=>SORT_ASC, 'l.id'=>SORT_ASC])
-        ->all();
-
-        $teachers = [];
-        if(!empty($lessons)) {
-            foreach($lessons as $l) {
-                $teachers[$l['teacher_id']] = $l['teacher'];
-            }
-            $teachers = array_unique($teachers);
-        }
-
-        $languages = [];
-        if(!empty($lessons)) {
-            foreach($lessons as $l) {
-                $languages[$l['language_id']] = $l['language'];
-            }
-            $languages = array_unique($languages);
-        }
-
-        // получаем массив со списком офисов
-    	$tmp_offices = (new \yii\db\Query())
-    	->select('co.id as oid, co.name as oname, csch.calc_teacher as tid')
-    	->from('calc_schedule csch')
-    	->leftJoin('calc_office co', 'csch.calc_office=co.id')
-    	->where('co.visible=:vis', [':vis'=>1])
-        ->orderBy(['co.id'=>SORT_ASC])
-        ->all();
-        
-        $offices = [];
-        if (!empty($tmp_offices)) {
-            //составляем список офисов для селектов
-            foreach($tmp_offices as $o){
-                $offices[$o['oid']]=$o['oname'];
-            }
-
-            $offices = array_unique($offices);
-        }
-
-        return $this->render('hours', [
-            'params' => $params,
-            'teachers' => $teachers,
-            'languages' => $languages,
-            'lessons' => $lessons,
-            'offices' => $offices,
-            'userInfoBlock' => User::getUserInfoBlock()
-        ]);
     }
 
     /**
@@ -558,44 +445,72 @@ class ScheduleController extends Controller
         $eduforms = Eduform::getEduforms();
         $offices  = Office::getOfficeBySchedule();
         return [
-          'filtersData' => [
-            'eduages'   => Tool::prepareForBootstrapSelect($eduages),
-            'eduforms'  => Tool::prepareForBootstrapSelect($eduforms),
-            'languages' => [],
-            'offices'   => Tool::prepareForBootstrapSelect($offices),
-            'teachers'  => [],
-          ]
+            'filters' => [
+                'eduages'   => Tool::prepareForBootstrapSelect($eduages),
+                'eduforms'  => Tool::prepareForBootstrapSelect($eduforms),
+                'languages' => [],
+                'offices'   => Tool::prepareForBootstrapSelect($offices),
+                'teachers'  => [],
+            ]
         ];
     }
 
-    public function actionGetScheduleInfo()
+    public function actionGetHours($oid = null)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         return [
-          'columns' => Schedule::getTableColumns(),
-          'lessonsData' => []
+            'columns' => Schedule::getTableColumns('hours'),
+            'hours' => Schedule::getTeacherHours($oid)
         ];
     }
 
-    public function actionGetTeacherGroups($tid = 0)
-    {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        if ($tid) {
-            $groups = Teacher::getActiveTeacherGroups($tid);
-            return [
-                'groupsData' => Tool::prepareForBootstrapSelect($groups)
-            ];
-        } else {
-            Yii::$app->response->statusCode = 400;
-            return null;
-        }
-    }
-
-    public function actionGetHours($teacherId = null)
+    public function actionGetLessons()
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         return [
-          'hoursData' => []
+            'columns' => Schedule::getTableColumns(),
+            'lessons' => []
+        ];
+    }
+
+    /* возвращает список офисов для метода create */
+    public function actionGetOffices()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        $offices = Office::getOfficesList();
+        return [
+            'offices' => Tool::prepareForBootstrapSelect($offices)
+        ];
+    }
+
+    /* возвращает список офисов для метода create */
+    public function actionGetOfficeRooms($oid)
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        $rooms = Room::getRooms($oid);
+        return [
+            'rooms' => Tool::prepareForBootstrapSelect($rooms)
+        ];
+
+    }
+
+    /* возвращает список офисов для метода create */
+    public function actionGetTeachers()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+		$teachers = Teacher::getTeachersWithActiveGroups($tid);
+		return [
+			'teachers' => Tool::prepareForBootstrapSelect($teachers)
+		];
+    }
+
+    /* возвращает список групп преподавателя для метода create */
+    public function actionGetTeacherGroups($tid)
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        $groups = Teacher::getActiveTeacherGroups($tid);
+        return [
+            'groups' => Tool::prepareForBootstrapSelect($groups)
         ];
     }
 }

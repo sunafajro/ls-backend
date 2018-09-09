@@ -314,8 +314,7 @@ class UserController extends Controller
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         return [
-            'status' => true,
-            'userData' => User::getUserInfo()
+            'user' => User::getUserInfo()
         ];
         
     }

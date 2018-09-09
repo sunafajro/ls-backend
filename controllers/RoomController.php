@@ -57,23 +57,16 @@ class RoomController extends Controller
      * Lists all Office models.
      * @return mixed
      */
-    public function actionIndex($type = null, $oid = null)
+    public function actionIndex()
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        if ($type === 'bootstrap') {
-          $rooms = Room::getRooms($oid);
-          return [
-              'roomsData' => Tool::prepareForBootstrapSelect($rooms)
-          ];
-        } else {
-            $data = Room::getRoomsList();
-            return [
-                'actions' => AccessRule::GetCRUD('room'),
-                'columns' => $data['columns'],
-                'data'    => $data['data'],
-                'status'  => true
-            ];
-        }
+        Yii::$app->response->format = Response::FORMAT_JSON;e {
+        $data = Room::getRoomsList();
+        return [
+            'actions' => AccessRule::GetCRUD('room'),
+            'columns' => $data['columns'],
+            'data'    => $data['data'],
+            'status'  => true
+        ];    
     }
 
     /**

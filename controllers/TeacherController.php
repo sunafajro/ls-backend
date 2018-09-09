@@ -616,24 +616,6 @@ class TeacherController extends Controller
             return $this->redirect(['index']);
         }
 	}
-	
-	public function actionGetTeachers()
-	{
-		Yii::$app->response->format = Response::FORMAT_JSON;
-		$teachers = Teacher::getTeachers();
-		return [
-			'teachers' => Tool::prepareForBootstrapSelect($teachers)
-		];
-	}
-
-	public function actionGetTeachersWithGroups($tid = null)
-	{
-		Yii::$app->response->format = Response::FORMAT_JSON;
-		$teachers = Teacher::getTeachersWithActiveGroups($tid);
-		return [
-			'teachers' => Tool::prepareForBootstrapSelect($teachers)
-		];
-	}
 
     /**
      * Finds the CalcTeacher model based on its primary key value.

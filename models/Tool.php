@@ -4,6 +4,7 @@ namespace app\models;
 
 use Yii;
 use yii\base\Model;
+use app\models\AccessRule;
 
 /**
  * Tool класс со служебными методами.
@@ -73,17 +74,19 @@ class Tool extends Model
         return $result;
     }
 
-    protected static function methodNotAllowed() {
+    public static function methodNotAllowed() {
         return [
+            'code'   => 405,
             'status' => false,
-            'text' => Yii::t('app','Method not allowed!')
+            'text'   => Yii::t('app','Method not allowed!')
         ];
     }
 
-    protected static function objectNotFound() {
+    public static function objectNotFound() {
         return [
+            'code'   => 404,
             'status' => false,
-            'text' => Yii::t('app','Object not found!')
+            'text'   => Yii::t('app','Object not found!')
         ];
     }
 }
