@@ -246,39 +246,24 @@ class ScheduleController extends Controller
      */
     public function actionCreate()
     {
-        $permission = Tool::checkAccesstoAction('schedule', 'create');
         Yii::$app->response->format = Response::FORMAT_JSON;
-        if ($permission['status']) {
-            if ($model->load(Yii::$app->request->post())) {
-                // присваиваем id преподавателя для всех кроме менеджеров и руководителей
-                //if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4) {
-                //   $model->calc_teacher = Yii::$app->session->get('user.uteacher');
-                //}
-                // помечаем занятие как действующее
-                $model->visible = 1;
-                // указываем пользователя добавившего занятие в расписание
-                $model->user = Yii::$app->session->get('user.uid');
-                // указывае дату добавления занятия в расписание
-                $model->data = date('Y-m-d');
-                // сохраняем запись
-                if($model->save()) {
-                    return [
-                        'message' => 'Занятие успешно добавлено в расписание!'
-                    ];
-                } else {
-                    Yii::$app->response->statusCode = 500;
-                    return [
-                        'message' => 'Не удалось добавить занятие в расписание!'
-                    ];
-                }
+        $model = new Schedule();
+        if ($model->load(Yii::$app->request->post())) {
+            $model->visible = 1;
+            $model->user = Yii::$app->session->get('user.uid');
+            $model->data = date('Y-m-d');
+            if($model->save()) {
+                return [
+                    'message' => 'Занятие успешно добавлено в расписание!'
+                ];
             } else {
-                return Tool::methodNotAllowed();
+                Yii::$app->response->statusCode = 500;
+                return [
+                    'message' => 'Не удалось добавить занятие в расписание!'
+                ];
             }
         } else {
-            Yii::$app->response->statusCode = $permission['code'];
-            return [
-                'message' => $permission['text']
-            ];
+            return Tool::methodNotAllowed();
         }
     }
 
@@ -389,34 +374,26 @@ class ScheduleController extends Controller
      */
     public function actionDelete($id)
     {
-        $permission = Tool::checkAccesstoAction('schedule', 'create');
         Yii::$app->response->format = Response::FORMAT_JSON;
-        if ($permission['status'] === true) {
-            $model=$this->findModel($id);
-            if ($model->calc_teacher == Yii::$app->session->get('user.uteacher')) {
-                if ((int)$model->visible === 1) {
-                    $model->visible = 0;
-                    if ($model->save()) {
-                        return [
-                            'message' => 'Занятие успешно удалено!'
-                        ];
-                    } else {
-                        Yii::$app->response->statusCode = 500;
-                        return [
-                            'message' => 'Не удалось удалить занятие из расписания!'
-                        ];
-                    }
+        $model=$this->findModel($id);
+        if ($model->calc_teacher == Yii::$app->session->get('user.uteacher')) {
+            if ((int)$model->visible === 1) {
+                $model->visible = 0;
+                if ($model->save()) {
+                    return [
+                        'message' => 'Занятие успешно удалено!'
+                    ];
+                } else {
+                    Yii::$app->response->statusCode = 500;
+                    return [
+                        'message' => 'Не удалось удалить занятие из расписания!'
+                    ];
                 }
-            } else {
-                Yii::$app->response->statusCode = 403;
-                return [
-                    'text'   => Yii::t('app','Forbidden!')
-                ];
             }
         } else {
-            Yii::$app->response->statusCode = $permission['code'];
+            Yii::$app->response->statusCode = 403;
             return [
-                'message' => $permission['text']
+                'text'   => Yii::t('app','Forbidden!')
             ];
         }
     }
