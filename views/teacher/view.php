@@ -373,7 +373,9 @@ if($tab == 3){
                             // количество активных студентво в группе и сколько из них присутствовало
                             echo "<small><span class='inblocktext'>Присутствовало ".$uvl['present']." из ".$uvl['all']."</span></small>";
                             // Для руководителей и менеджеров добавляем кнопку проверки занятия
-                            if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4){
+                            if((int)Yii::$app->session->get('user.ustatus') === 3 ||
+                               (int)Yii::$app->session->get('user.ustatus') === 4 ||
+                               (int)Yii::$app->session->get('user.uid') === 296){
                                 echo "<br/ ><small>";
                                 echo Html::a('Так и есть :)', ['journalgroup/view','gid'=>$uvl['gid'],'id'=>$uvl['jid']]);
                                 echo "</small>";

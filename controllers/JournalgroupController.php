@@ -489,7 +489,9 @@ class JournalgroupController extends Controller
     public function actionView($gid, $id)
 	{
         /* проверяем права доступа (! переделать в поведения !) */
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+        if((int)Yii::$app->session->get('user.ustatus') !== 3 &&
+           (int)Yii::$app->session->get('user.ustatus') !== 4 &&
+           (int)Yii::$app->session->get('user.uid') !== 296) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 		
@@ -598,7 +600,9 @@ class JournalgroupController extends Controller
     public function actionUnview($gid, $id)
 	{
         /* проверяем права доступа (! переделать в поведения !) */
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+        if((int)Yii::$app->session->get('user.ustatus') !== 3 &&
+           (int)Yii::$app->session->get('user.ustatus') !== 4 &&
+           (int)Yii::$app->session->get('user.uid') !== 296) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 		

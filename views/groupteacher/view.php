@@ -128,12 +128,17 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Journal');
                         echo Html::a(Yii::t('app','Edit'), ['journalgroup/update', 'id'=>$lesson['jid'], 'gid'=>$model->id]);
                     }
                     // проверить занятие могут только менеджер или руководитель
-                    if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4){
+                    if((int)Yii::$app->session->get('user.ustatus') === 3 ||
+                       (int)Yii::$app->session->get('user.ustatus') === 4 ||
+                       (int)Yii::$app->session->get('user.uid') === 296){
                         echo " | " . Html::a("Так и есть :)",['journalgroup/view','id'=>$lesson['jid'], 'gid'=>$model->id]);
                     }
                 }
                 // отменить проверку занятия могут только менеджер или руководитель
-                elseif($lesson['jview']==1&&(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4)) {
+                elseif((int)$lesson['jview'] === 1 &&
+                      ((int)Yii::$app->session->get('user.ustatus') === 3 ||
+                       (int)Yii::$app->session->get('user.ustatus') === 4 ||
+                       (int)Yii::$app->session->get('user.uid') === 296)) {
                     echo " | " . Html::a("Отменить 'проверено'",['journalgroup/unview','gid'=>$model->id,'id'=>$lesson['jid']]);
                 }
                 // занятие могут исключить только преподаватель назначенный в группу, менеджер или руководитель
