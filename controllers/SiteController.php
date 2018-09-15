@@ -46,9 +46,7 @@ class SiteController extends Controller
             ],
             'verbs' => [
                 'class' => VerbFilter::className(),
-                'actions' => [
-                    'nav' => ['post']
-                ],
+                'actions' => [],
             ],
         ];
     }
@@ -160,18 +158,12 @@ class SiteController extends Controller
     }
 
     /* метод возвращает массив со списком элементов навигации */
-    public function actionNav()
+    public function actionNav($type = null)
     {
-        /* включаем формат ответа JSON */
         Yii::$app->response->format = Response::FORMAT_JSON;
-
-        if (Yii::$app->request->post('type')) {
-            switch (Yii::$app->request->post('type')) {
-              /* запрашиваем только счетчики */
-              case 'counters': return Navigation::getCounters(); break;
-              /* запрашиваем из модели элементы навигации и возвращаем массив */
-              default: return Navigation::getItems();
-            }
+        if ($type) {
+            /* запрашиваем только счетчики */
+            return Navigation::getCounters();
         } else {
             /* запрашиваем из модели элементы навигации и возвращаем массив */
             return Navigation::getItems();
