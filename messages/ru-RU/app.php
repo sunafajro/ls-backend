@@ -125,6 +125,7 @@ return array(
 'Delete call'=>'Удалить звонок',
 'Delete teacher' => 'Удалить преподавателя',
 'Description'=>'Описание',
+'Detail'=>'Детализация',
 'Discount'=>'Скидка',
 'Disabled'=>'Отключенные',
 'Discount was successfully created!' => 'Скидка была успешно создана!',
