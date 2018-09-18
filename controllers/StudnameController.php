@@ -605,7 +605,13 @@ class StudnameController extends Controller
     {
         if (Yii::$app->request->isPost) {
             Yii::$app->response->format = Response::FORMAT_JSON;
-            return [];
+            return [
+                "status" => true,
+                "detailsData" => [
+                    "columns" => [],
+                    "rows" => []
+                ]
+            ];
         } else {
             return $this->render('detail', [
               'model' => $this->findModel($id)
