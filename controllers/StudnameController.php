@@ -16,7 +16,7 @@ use app\models\User;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
-use yii\web\Respoponse;
+use yii\web\Response;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use yii\data\Pagination;
@@ -601,12 +601,15 @@ class StudnameController extends Controller
     }
 
 
-    public function actionDetail($id) {
-        if (Yii::$app->request->post()) {
+    public function actionDetail($id)
+    {
+        if (Yii::$app->request->isPost) {
             Yii::$app->response->format = Response::FORMAT_JSON;
             return [];
         } else {
-            return $this->render('detail');
+            return $this->render('detail', [
+              'model' => $this->findModel($id)
+            ]);
         }
     }
 
