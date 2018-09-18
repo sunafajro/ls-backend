@@ -189,6 +189,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
         } else {
             $userData['teacherId'] = null;
         }
+        $userData['roleId'] = Yii::$app->session->get('user.ustatus');
         $userData['role'] = Yii::$app->session->get('user.stname');
         if((int)Yii::$app->session->get('user.ustatus') === 4) {
             $userData['office'] = Yii::$app->session->get('user.uoffice');
