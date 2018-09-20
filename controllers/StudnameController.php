@@ -601,15 +601,15 @@ class StudnameController extends Controller
     }
 
 
-    public function actionDetail($id)
+    public function actionDetail($id = null)
     {
         if (Yii::$app->request->isPost) {
             Yii::$app->response->format = Response::FORMAT_JSON;
             return [
                 "status" => true,
                 "detailsData" => [
-                    "columns" => [],
-                    "rows" => []
+                    "columns" => Student::getStudentDetailsColumns(),
+                    "rows" => Student::getStudentDetailsRows($id)
                 ]
             ];
         } else {

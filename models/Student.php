@@ -153,6 +153,67 @@ class Student extends \yii\db\ActiveRecord
         return $students;
     }
 
+    public static function getStudentDetailsColumns()
+    {
+        return [
+            [
+                'id' => 'id',
+                'name' => '№',
+                'show' => false                            
+            ],
+            [
+                'id' => 'date',
+                'name' => Yii::t('app', 'Date'),
+                'show' => true
+            ],
+            [
+                'id' => 'type',
+                'name' => Yii::t('app', 'Type'),
+                'show' => true
+            ],
+            [
+                'id' => 'name',
+                'name' => Yii::t('app', 'Name'),
+                'show' => true
+            ],
+            [
+                'id' => 'num',
+                'name' => Yii::t('app', 'Count'),
+                'show' => true
+            ],
+            [
+                'id' => 'sum',
+                'name' => Yii::t('app', 'Sum'),
+                'show' => true
+            ],
+            [
+                'id' => 'receipt',
+                'name' => Yii::t('app', 'Receipt'),
+                "show" => true
+            ]
+        ];
+    }
+
+    public static function getStudentDetailsRows($id = null)
+    {
+        $result = [];
+        if ($id) {
+            $invoises = Invoicestud::getStudentInvoiceByIdBrief($id);
+            $payments = Moneystud::getStudentPaymentByIdBrief($id);
+            $result = array_merge($payments, $invoises);
+            // сортируем по двум колонкам
+            $date = [];
+            $name = [];
+            foreach($result as $key => $row) {
+                $date[$key] = isset($row['date']) ? $row['date'] : '';
+                $name[$key] = isset($row['name']) ? $row['name'] : '';
+                $result[$key]['type'] = isset($row['name']) && isset($row['num']) ? 'счёт' : 'оплата';
+            }
+            array_multisort($date, SORT_DESC, $name, SORT_ASC, $result);
+        }
+        return $result;
+    }
+
     /**
      *  метод переносит данные из профиля студента с id2 в профиль студента с id1
      */
