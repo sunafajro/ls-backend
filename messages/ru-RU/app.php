@@ -96,6 +96,7 @@ return array(
 'Correction'=>'Корректировка',
 'Cost'=>'Стоимость',
 'Cost for one account unit'=>'Стоимость за 1 учетную единицу',
+'Count'=>'Количество',
 'Create'=>'Создать',
 'Create call'=>'Создать звонок',
 'Create client'=>'Создать клиента',
