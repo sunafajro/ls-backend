@@ -317,6 +317,5 @@ class UserController extends Controller
             'status' => true,
             'userData' => User::getUserInfo()
         ];
-        
     }
 }

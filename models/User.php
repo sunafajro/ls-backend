@@ -189,6 +189,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
         } else {
             $userData['teacherId'] = null;
         }
+        $userData['roleId'] = Yii::$app->session->get('user.ustatus');
         $userData['role'] = Yii::$app->session->get('user.stname');
         if((int)Yii::$app->session->get('user.ustatus') === 4) {
             $userData['office'] = Yii::$app->session->get('user.uoffice');
@@ -256,7 +257,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
                         case 6: $result = true; break;
                         default: $result = false;        
                     }
-                } else if ($action === 'update' || $action === 'active' || $action === 'inactive') {
+                } else if ($action === 'update' || $action === 'active' || $action === 'inactive' || $action == 'detail') {
                     switch(Yii::$app->session->get('user.ustatus')) {
                         case 3: $result = true; break;
                         case 4: $result = true; break;
