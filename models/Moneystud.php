@@ -102,7 +102,7 @@ class Moneystud extends \yii\db\ActiveRecord
         $payments = (new \yii\db\Query())
         ->select(['id' => 'm.id', 'date' => 'm.data', 'sum' => 'm.value', 'receipt' => 'm.receipt'])
         ->from('calc_moneystud m')
-        ->where('m.calc_studname=:id', [':id' => $sid])
+        ->where('m.calc_studname=:id AND m.visible=:one', [':id' => $sid, ':one' => 1])
         ->orderby(['m.data' => SORT_DESC])
         ->all();
         return $payments;
