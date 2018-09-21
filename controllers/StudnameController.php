@@ -16,6 +16,7 @@ use app\models\User;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
+use yii\web\Response;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use yii\data\Pagination;
@@ -29,15 +30,15 @@ class StudnameController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['index','view','create','update','delete','active', 'inactive','merge'],
+                'only' => ['index','view','create','update','delete','detail','active', 'inactive','merge'],
                 'rules' => [
                     [
-                        'actions' => ['index','view','create','update','delete','active','inactive','merge'],
+                        'actions' => ['index','view','create','update','delete','detail','active','inactive','merge'],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index','view','create','update','delete','active','inactive','merge'],
+                        'actions' => ['index','view','create','update','delete','detail','active','inactive','merge'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -599,6 +600,24 @@ class StudnameController extends Controller
         return $this->redirect(['index']);
     }
 
+
+    public function actionDetail($id = null)
+    {
+        if (Yii::$app->request->isPost) {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return [
+                "status" => true,
+                "detailsData" => [
+                    "columns" => Student::getStudentDetailsColumns(),
+                    "rows" => Student::getStudentDetailsRows($id)
+                ]
+            ];
+        } else {
+            return $this->render('detail', [
+              'model' => $this->findModel($id)
+            ]);
+        }
+    }
 
     public function actionMerge($id)
     {

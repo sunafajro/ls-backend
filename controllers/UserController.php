@@ -316,6 +316,5 @@ class UserController extends Controller
         return [
             'user' => User::getUserInfo()
         ];
-        
     }
 }

@@ -97,6 +97,18 @@ class Moneystud extends \yii\db\ActiveRecord
         return $payments;
     }
 
+    public static function getStudentPaymentByIdBrief($sid)
+    {
+        $payments = (new \yii\db\Query())
+        ->select(['id' => 'm.id', 'date' => 'm.data', 'sum' => 'm.value', 'receipt' => 'm.receipt'])
+        ->from('calc_moneystud m')
+        ->where('m.calc_studname=:id AND m.visible=:one', [':id' => $sid, ':one' => 1])
+        ->orderby(['m.data' => SORT_DESC])
+        ->all();
+        return $payments;
+    }
+
+
     /**
      * метод считает и возвращает дату окончания баланса занятий по одной услуге
      * вызывается из StudnameController.php actonView

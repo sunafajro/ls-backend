@@ -52,6 +52,7 @@ if(Yii::$app->request->get('tab')){
                 <?= Html::a('<span class="fa fa-times" aria-hidden="true"></span> ' . Yii::t('app', 'To inactive'), ['studname/inactive', 'id' => $model->id], ['class' => 'btn btn-warning btn-sm btn-block']) ?>
                 <?= Html::a('<span class="fa fa-file" aria-hidden="true"></span> ' . Yii::t('app', 'Invoice'), ['invoice/index', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
                 <?= Html::a('<span class="fa fa-rub" aria-hidden="true"></span> ' . Yii::t('app', 'Payment'), ['moneystud/create', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
+                <?= Html::a('<span class="fa fa-list" aria-hidden="true"></span> ' . Yii::t('app', 'Detail'), ['studname/detail', 'id' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
                 <?= Html::a('<span class="fa fa-gift" aria-hidden="true"></span> ' . Yii::t('app', 'Sale'), ['salestud/create', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
                 <?php if(!$clientaccess): ?>
                     <?= Html::a('<span class="fa fa-user-plus" aria-hidden="true"></span> ' . Yii::t('app', 'Account'), ['clientaccess/create', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
