@@ -40,7 +40,7 @@ class Report extends Model
             $items[] = [
                 'id' => 'invoices',
                 'label' => Yii::t('app','Invoices'),
-                'url' => '/report/index&type=5'
+                'url' => '/report/index?type=5'
             ];
         }
         if ((int)Yii::$app->session->get('user.ustatus') === 3) {
@@ -61,7 +61,7 @@ class Report extends Model
             $items[] = [
                 'id' => 'journals',
                 'label' => Yii::t('app','Journals'),
-                'url' => '/report/index&type=8'
+                'url' => '/report/index?type=8'
             ];
         }
         if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 8) {
