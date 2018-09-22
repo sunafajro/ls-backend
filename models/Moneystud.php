@@ -79,6 +79,26 @@ class Moneystud extends \yii\db\ActiveRecord
         ];
     }
     
+    /* возвращает список оплат в рамках указанных диапазона времени и офиса */
+    public static function getPayments($start = null, $end = null, $office = null)
+    {
+        $payments = (new \yii\db\Query())
+        ->select(['id' => 'ms.id', 'studentId' => 'sn.id', 'student' => 'sn.name', 
+        'manager' => 'u.name','sum' => 'ms.value', 'card' => 'ms.value_card', 'cash' => 'ms.value_cash', 
+        'bank' => 'ms.value_bank', 'date' => 'ms.data', 'receipt' => 'ms.receipt', 
+        'active' => 'ms.visible', 'remain' => 'ms.remain', 'office' => 'ms.calc_office'])
+        ->from('calc_moneystud ms')
+        ->leftjoin('calc_studname sn', 'sn.id=ms.calc_studname')
+        ->leftJoin('user u', 'u.id=ms.user')
+        ->andFilterWhere(['ms.calc_office' => $office])
+        ->andFilterWhere(['>=', 'ms.data', $start])
+        ->andFilterWhere(['<=', 'ms.data', $end])
+        ->orderby(['ms.data'=>SORT_DESC, 'ms.id'=>SORT_DESC])
+        ->all();
+
+        return $payments;
+    }
+
     /**
      *  метод возвращает массив с оплатами студента по его id
      */
@@ -97,6 +117,7 @@ class Moneystud extends \yii\db\ActiveRecord
         return $payments;
     }
 
+    /* возвращает краткие данные по оплатам студента по его id */
     public static function getStudentPaymentByIdBrief($sid)
     {
         $payments = (new \yii\db\Query())

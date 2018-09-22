@@ -8,8 +8,8 @@
 <div id="app" data-student="<?= $model->id ?>"></div>
 
 <?php
-    $this->registerJsFile('/js/student/vendors.js',
+    $this->registerJsFile('/js/students/vendors.js',
     ['position' => yii\web\View::POS_END]);
-    $this->registerJsFile('/js/student/app.js',
+    $this->registerJsFile('/js/students/app.js',
     ['position' => yii\web\View::POS_END]);
 ?>
