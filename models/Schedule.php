@@ -61,6 +61,63 @@ class Schedule extends \yii\db\ActiveRecord
         ];
     }
 
+    /* возвращает заголовки столбцов таблицы расписания */
+    public static function getTableColumns($type = null)
+    {
+        if ($type === 'hours') {
+            return [
+                [
+                    'id' => 1,
+                    'thClass' => 'tbl-cell-10',
+                    'title' => Yii::t('app', 'Teacher')
+                ],
+                [
+                    'id' => 2,
+                    'thClass' => 'tbl-cell-10',
+                    'title' => Yii::t('app', 'Language')
+                ],
+                [
+                    'id' => 3,
+                    'thClass' => 'tbl-cell-10',
+                    'title' => Yii::t('app', 'Hours')
+                ]
+            ];
+        } else {
+            return [
+                [
+                    'id' => 1,
+                    'thClass' => 'tbl-cell-10',
+                    'title' => Yii::t('app', 'Day')
+                ],
+                [
+                    'id' => 2,
+                    'thClass' => 'tbl-cell-10',
+                    'title' => Yii::t('app', 'Room')
+                ],
+                [
+                    'id' => 3,
+                    'thClass' => 'tbl-cell-10',
+                    'title' => Yii::t('app', 'Time')
+                ],
+                [
+                    'id' => 4,
+                    'thClass' => 'tbl-cell-20',
+                    'title' => Yii::t('app', 'Teacher')
+                ],
+                [
+                    'id' => 5,
+                    'thClass' => 'tbl-cell-40',
+                    'title' => Yii::t('app', 'Group')
+                ],
+                [
+                    'id' => 6,
+                    'thClass' => 'tbl-cell-5 text-center',
+                    'title' => Yii::t('app', 'Act.')
+                ],
+            ];
+        }
+    }
+
     /**
      * метод возвращает расписание занятий студента
      * вызывается из StudnameController.php actionView
@@ -81,5 +138,68 @@ class Schedule extends \yii\db\ActiveRecord
         ->all();
 
         return $schedule;
+    }
+
+    public static function getTeacherHours($oid)
+    {
+        $data = (new \yii\db\Query()) 
+        ->select('sch.id as schedule_id,
+        t.id as teacher_id,
+        t.name as teacher,
+        o.id as office_id,
+        o.name as office,
+        l.id as language_id,
+        l.name as language,
+        tn.value as hours')
+        ->distinct()
+        ->from('calc_schedule sch')
+        ->innerJoin('calc_groupteacher gt', 'gt.id=sch.calc_groupteacher')
+        ->innerJoin('calc_service s', 's.id=gt.calc_service')
+        ->innerJoin('calc_timenorm tn', 's.calc_timenorm=tn.id')
+        ->innerJoin('calc_lang l', 'l.id=s.calc_lang')
+        ->innerJoin('calc_teachergroup tg', 'tg.calc_teacher=sch.calc_teacher')
+        ->innerJoin('calc_teacher t', 't.id=sch.calc_teacher')
+        ->innerJoin('calc_office o', 'o.id=sch.calc_office')
+        ->where('sch.calc_groupteacher!=:zero AND o.visible=:vis and sch.visible=:vis', [':zero' => 0, ':vis' => 1])
+        ->andFilterWhere(['sch.calc_office' => $oid])
+        ->orderby(['t.name' => SORT_ASC, 'l.id' => SORT_ASC])
+        ->all();
+        // $teachers = [];
+        // $languages = [];
+        // if(!empty($data)) {
+        //     foreach($data as $l) {
+        //         $teachers[$l['teacher_id']] = $l['teacher'];
+        //         $languages[$l['language_id']] = $l['language'];
+        //     }
+        //     $teachers = array_unique($teachers);
+        //     $languages = array_unique($languages);
+        // }
+        $lessons = [];
+        if (!empty($data)) {
+            foreach ($data as $l) {
+                if (!$lessons[$l['teacher_id']]) {
+                    $lessons[$l['teacher_id']] = [
+                        'id' => $l['teacher_id'],
+                        'teacher' => $l['teacher'],
+                        'languages' => [
+                            $l['language_id'] => [
+                                'name' => $l['language'],
+                                'hours' => $l['hours']
+                            ]
+                        ]
+                    ];
+                } else {
+                    if (!$lessons[$l['teacher_id']]['languages'][$l['language_id']]) {
+                        $lessons[$l['teacher_id']]['languages'][$l['language_id']] = [
+                            'name' => $l['language'],
+                            'hours' => $l['hours'] 
+                        ];
+                    } else {
+                        $lessons[$l['teacher_id']]['languages'][$l['language_id']]['hours'] = $lessons[$l['teacher_id']]['languages'][$l['language_id']]['hours'] + $l['hours'];
+                    }
+                }
+            }
+        }
+        return $lessons;
     }
 }
