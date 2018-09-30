@@ -85,4 +85,15 @@ class Room extends \yii\db\ActiveRecord
             'data'    => $rooms
         ];
     }
+
+    public function getRooms($oid)
+    {
+    	$data = (new \yii\db\Query())
+    	->select('id as id, name as name')
+        ->from(static::tableName())
+        ->andFilterWhere(['calc_office' => $oid])
+    	->orderBy(['name'=>SORT_ASC])
+        ->all();        
+        return $data;
+    }
 }

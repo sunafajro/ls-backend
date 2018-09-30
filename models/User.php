@@ -442,7 +442,26 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             case 'roles':
                 switch(Yii::$app->session->get('user.ustatus')) {
                     case 3: $result = true; break;
-                    default: $result = false;            
+                    default: $result = false;
+                }
+                break;
+            
+            case 'schedule':
+                if ($action === 'index' || $action === 'create' || $action === 'update' || $action === 'delete') {
+                    switch(Yii::$app->session->get('user.ustatus')) {
+                        case 3: $result = true; break;
+                        case 4: $result = true; break;
+                        case 5: $result = true; break;
+                        case 6: $result = true; break;
+                        case 10: $result = true; break;
+                        default: $result = false;
+                    }
+                } else if ($action === 'hours') {
+                    switch(Yii::$app->session->get('user.ustatus')) {
+                        case 3: $result = true; break;
+                        case 4: $result = true; break;
+                        default: $result = false;
+                    }
                 }
                 break;
 		}
