@@ -18,6 +18,7 @@ use Yii;
  * @property integer $visible
  * @property integer $user
  * @property string $data
+ * @property string notes
  */
 class Schedule extends \yii\db\ActiveRecord
 {
@@ -37,6 +38,7 @@ class Schedule extends \yii\db\ActiveRecord
         return [
             [['calc_teacher', 'calc_groupteacher', 'calc_office', 'calc_cabinetoffice', 'calc_denned', 'time_begin', 'time_end', 'visible', 'user', 'data'], 'required'],
             [['calc_teacher', 'calc_groupteacher', 'calc_office', 'calc_cabinetoffice', 'calc_denned', 'visible', 'user'], 'integer'],
+            [['notes'], 'string'],
             [['time_begin', 'time_end', 'data'], 'safe']
         ];
     }
@@ -55,9 +57,10 @@ class Schedule extends \yii\db\ActiveRecord
             'calc_denned' => Yii::t('app','Day of week'),
             'time_begin' => Yii::t('app','Start time'),
             'time_end' => Yii::t('app','End time'),
-            'visible' => 'Visible',
-            'user' => 'User',
-            'data' => 'Data',
+            'visible' => Yii::t('app','Visible'),
+            'user' => Yii::t('app','User'),
+            'data' => Yii::t('app','Data'),
+            'notes' => Yii::t('app','Notes')
         ];
     }
 
@@ -67,52 +70,67 @@ class Schedule extends \yii\db\ActiveRecord
         if ($type === 'hours') {
             return [
                 [
-                    'id' => 1,
-                    'thClass' => 'tbl-cell-10',
-                    'title' => Yii::t('app', 'Teacher')
+                    'id' => 'teacher',
+                    'style' => 'width: 10%',
+                    'title' => Yii::t('app', 'Teacher'),
+                    'show' => true
                 ],
                 [
-                    'id' => 2,
-                    'thClass' => 'tbl-cell-10',
-                    'title' => Yii::t('app', 'Language')
+                    'id' => 'language',
+                    'style' => 'width: 10%',
+                    'title' => Yii::t('app', 'Language'),
+                    'show' => true
                 ],
                 [
-                    'id' => 3,
-                    'thClass' => 'tbl-cell-10',
-                    'title' => Yii::t('app', 'Hours')
+                    'id' => 'hours',
+                    'style' => 'width: 10%',
+                    'title' => Yii::t('app', 'Hours'),
+                    'show' => true
                 ]
             ];
         } else {
             return [
                 [
-                    'id' => 1,
-                    'thClass' => 'tbl-cell-10',
-                    'title' => Yii::t('app', 'Day')
+                    'id' => 'day',
+                    'style' => 'width: 10%',
+                    'title' => Yii::t('app', 'Day'),
+                    'show' => true
                 ],
                 [
-                    'id' => 2,
-                    'thClass' => 'tbl-cell-10',
-                    'title' => Yii::t('app', 'Room')
+                    'id' => 'room',
+                    'style' => 'width: 10%',
+                    'title' => Yii::t('app', 'Room'),
+                    'show' => true
                 ],
                 [
-                    'id' => 3,
-                    'thClass' => 'tbl-cell-10',
-                    'title' => Yii::t('app', 'Time')
+                    'id' => 'time',
+                    'style' => 'width: 10%',
+                    'title' => Yii::t('app', 'Time'),
+                    'show' => true
                 ],
                 [
-                    'id' => 4,
-                    'thClass' => 'tbl-cell-20',
-                    'title' => Yii::t('app', 'Teacher')
+                    'id' => 'teacher',
+                    'style' => 'width: 20%',
+                    'title' => Yii::t('app', 'Teacher'),
+                    'show' => true
                 ],
                 [
-                    'id' => 5,
-                    'thClass' => 'tbl-cell-40',
-                    'title' => Yii::t('app', 'Group')
+                    'id' => 'group',
+                    'style' => 'width: 35%',
+                    'title' => Yii::t('app', 'Group'),
+                    'show' => true
+                ],
+                [
+                    'id' => 'notes',
+                    'style' => 'width: 10%',
+                    'title' => Yii::t('app', 'Notes'),
+                    'show' => true
                 ],
                 [
                     'id' => 6,
-                    'thClass' => 'tbl-cell-5 text-center',
-                    'title' => Yii::t('app', 'Act.')
+                    'style' => 'width: 5%; text-align: center',
+                    'title' => Yii::t('app', 'Act.'),
+                    'show' => true
                 ],
             ];
         }
