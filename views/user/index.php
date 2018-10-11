@@ -68,20 +68,22 @@ $this->params['breadcrumbs'][] = Yii::t('app','Users');
                     <th>Имя</th>
                     <th>Логин</th>
                     <th>Роль</th>
+                    <th>Офис</th>
                     <th>Действия</th>
                 </tr>
             </thead>
             <tbody>
-            <?php foreach($userlist as $ustr) : ?>
+            <?php foreach($users as $u) : ?>
                 <tr>
-                    <td><?= $ustr['uname'] ?></td>
-                    <td><?= $ustr['ulogin'] ?></td>
-                    <td><?= $ustr['urole'] ?></td>
+                    <td><?= $u['name'] ?></td>
+                    <td><?= $u['login'] ?></td>
+                    <td><?= $u['role'] ?></td>
+                    <td><?= $u['office'] ?></td>
                     <td>
-                        <?= ($ustr['visible']==1) ? Html::a('<span class="fa fa-times"></span>', ['user/disable', 'id' => $ustr['uid']], ['Title' => Yii::t('app', 'Disable user')]) : Html::a('<span class="fa fa-check"></span>', ['user/enable', 'id' => $ustr['uid']], ['Title' => Yii::t('app', 'Enable user')]) ?>
-                        <?= ($ustr['visible']==1) ? Html::a('<span class="fa fa-pencil" aria-hidden="true"></span>', ['user/update', 'id' => $ustr['uid']], ['title' => Yii::t('app', 'Update user')]) : '' ?>
-                        <?= ($ustr['visible']==1) ? Html::a('<span class="fa fa-key" aria-hidden="true"></span>', ['user/changepass', 'id' => $ustr['uid']], ['title' => Yii::t('app', 'Change password')]) : '' ?>
-                        <?= ($ustr['visible']==1) ? Html::a('<span class="fa fa-picture-o" aria-hidden="true"></span>', ['user/upload', 'id' => $ustr['uid']], ['title' => Yii::t('app', 'Add picture')]) : '' ?>
+                        <?= ($u['visible']==1) ? Html::a('<span class="fa fa-times"></span>', ['user/disable', 'id' => $u['id']], ['Title' => Yii::t('app', 'Disable user')]) : Html::a('<span class="fa fa-check"></span>', ['user/enable', 'id' => $u['id']], ['Title' => Yii::t('app', 'Enable user')]) ?>
+                        <?= ($u['visible']==1) ? Html::a('<span class="fa fa-pencil" aria-hidden="true"></span>', ['user/update', 'id' => $u['id']], ['title' => Yii::t('app', 'Update user')]) : '' ?>
+                        <?= ($u['visible']==1) ? Html::a('<span class="fa fa-key" aria-hidden="true"></span>', ['user/changepass', 'id' => $u['id']], ['title' => Yii::t('app', 'Change password')]) : '' ?>
+                        <?= ($u['visible']==1) ? Html::a('<span class="fa fa-picture-o" aria-hidden="true"></span>', ['user/upload', 'id' => $u['id']], ['title' => Yii::t('app', 'Add picture')]) : '' ?>
                     </td>
                 </tr>
             <?php endforeach; ?>

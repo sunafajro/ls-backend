@@ -8,6 +8,7 @@ return array(
 '-all languages-'=>'-все языки-',
 '-all months-'=>'-все месяцы-',
 '-all offices-'=>'-все офисы-',
+'-all roles-'=>'-все роли-',
 '-all sales-'=>'-все скидки-',
 '-all states-'=>'-все состояния-',
 '-all teachers-'=>'-все преподаватели-',
