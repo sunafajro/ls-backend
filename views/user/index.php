@@ -80,10 +80,14 @@ $this->params['breadcrumbs'][] = Yii::t('app','Users');
                     <td><?= $u['role'] ?></td>
                     <td><?= $u['office'] ?></td>
                     <td>
-                        <?= ($u['visible']==1) ? Html::a('<span class="fa fa-times"></span>', ['user/disable', 'id' => $u['id']], ['Title' => Yii::t('app', 'Disable user')]) : Html::a('<span class="fa fa-check"></span>', ['user/enable', 'id' => $u['id']], ['Title' => Yii::t('app', 'Enable user')]) ?>
-                        <?= ($u['visible']==1) ? Html::a('<span class="fa fa-pencil" aria-hidden="true"></span>', ['user/update', 'id' => $u['id']], ['title' => Yii::t('app', 'Update user')]) : '' ?>
-                        <?= ($u['visible']==1) ? Html::a('<span class="fa fa-key" aria-hidden="true"></span>', ['user/changepass', 'id' => $u['id']], ['title' => Yii::t('app', 'Change password')]) : '' ?>
-                        <?= ($u['visible']==1) ? Html::a('<span class="fa fa-picture-o" aria-hidden="true"></span>', ['user/upload', 'id' => $u['id']], ['title' => Yii::t('app', 'Add picture')]) : '' ?>
+                        <?php if ((int)$u['visible'] === 1) : ?>
+                            <?= Html::a('<span class="fa fa-times"></span>', ['user/disable', 'id' => $u['id']], ['Title' => Yii::t('app', 'Disable user')]) ?>
+                            <?= Html::a('<span class="fa fa-pencil" aria-hidden="true"></span>', ['user/update', 'id' => $u['id']], ['title' => Yii::t('app', 'Update user')]) ?>
+                            <?= Html::a('<span class="fa fa-key" aria-hidden="true"></span>', ['user/changepass', 'id' => $u['id']], ['title' => Yii::t('app', 'Change password')]) ?>
+                            <?= Html::a('<span class="fa fa-picture-o" aria-hidden="true"></span>', ['user/upload', 'id' => $u['id']], ['title' => Yii::t('app', 'Add picture')]) ?>
+                        <?php else : ?>
+                            <?= Html::a('<span class="fa fa-check"></span>', ['user/enable', 'id' => $u['id']], ['Title' => Yii::t('app', 'Enable user')]) ?>
+                        <?php endif; ?>
                     </td>
                 </tr>
             <?php endforeach; ?>
