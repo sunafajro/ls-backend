@@ -63,7 +63,8 @@ use kartik\time\TimePicker;
 	?>
 	
     <?= $form->field($model, 'calc_denned')->dropDownList($items=$days,['prompt' => Yii::t('app','-select-')]) ?>
-	
+
+    <?= $form->field($model, 'notes')->textInput() ?>
     <div class="form-group">
         <?= Html::submitButton($model->isNewRecord ? Yii::t('app','Create') : Yii::t('app','Update'), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
     </div>

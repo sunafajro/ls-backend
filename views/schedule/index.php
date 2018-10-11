@@ -146,7 +146,8 @@ $this->params['breadcrumbs'][] = Yii::t('app','Schedule');
 					<th class="tbl-cell-10"><?= Yii::t('app', 'Room') ?></th>
 					<th class="tbl-cell-10"><?= Yii::t('app', 'Time') ?></th>
 					<th class="tbl-cell-20"><?= Yii::t('app', 'Teacher') ?></th>
-					<th class="tbl-cell-40"><?= Yii::t('app', 'Service') ?></th>
+					<th class="tbl-cell-35"><?= Yii::t('app', 'Service') ?></th>
+                                        <th class="tbl-cell-10"><?= Yii::t('app', 'Notes') ?></th>
 					<th class="tb-cell-5 text-center"><?= Yii::t('app', 'Act.') ?></th>
 				</tr>
         	</thead>
@@ -166,7 +167,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Schedule');
                         echo $lesson['teacher'];
                     } ?>
                     </td>
-                    <td class="tbl-cell-40">
+                    <td class="tbl-cell-35">
                     <?php if(Yii::$app->session->get('user.ustatus')==3 || Yii::$app->session->get('user.ustatus')==4) {
                         echo Html::a($lesson['service'],['groupteacher/view','id'=>$lesson['gid']]);
                     } elseif(Yii::$app->session->get('user.ustatus')==5 && Yii::$app->session->get('user.uteacher')==$lesson['tid']) {
@@ -175,6 +176,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Schedule');
                         echo $lesson['service'];
                     } ?>
                     </td>
+                    <td class="tbl-cell-10"><?= $lesson['notes'] ?></td>
             	    <td class="tbl-cell-5 text-center">
                     <?php
                     /* если занятие активное

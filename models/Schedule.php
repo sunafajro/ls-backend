@@ -18,6 +18,7 @@ use Yii;
  * @property integer $visible
  * @property integer $user
  * @property string $data
+ * @property string $notes
  */
 class Schedule extends \yii\db\ActiveRecord
 {
@@ -37,6 +38,7 @@ class Schedule extends \yii\db\ActiveRecord
         return [
             [['calc_teacher', 'calc_groupteacher', 'calc_office', 'calc_cabinetoffice', 'calc_denned', 'time_begin', 'time_end', 'visible', 'user', 'data'], 'required'],
             [['calc_teacher', 'calc_groupteacher', 'calc_office', 'calc_cabinetoffice', 'calc_denned', 'visible', 'user'], 'integer'],
+            [['notes'], 'string'],
             [['time_begin', 'time_end', 'data'], 'safe']
         ];
     }
@@ -55,9 +57,10 @@ class Schedule extends \yii\db\ActiveRecord
             'calc_denned' => Yii::t('app','Day of week'),
             'time_begin' => Yii::t('app','Start time'),
             'time_end' => Yii::t('app','End time'),
-            'visible' => 'Visible',
-            'user' => 'User',
-            'data' => 'Data',
+            'visible' => Yii::t('app', 'Visible'),
+            'user' => Yii::t('app', 'User'),
+            'data' => Yii::t('app', 'Date'),
+            'notes' => Yii::t('app', 'Notes')
         ];
     }
 
