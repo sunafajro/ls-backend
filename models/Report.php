@@ -248,26 +248,26 @@ class Report extends Model
             $type = '';
             if ($p['card'] != '0.00') {
                 $type = Yii::t('app','Card');
-                if ($p['active']) {
+                if ($p['active'] && !$p['remain']) {
                     $result[$p['office']]['counts']['card'] += $p['card'];
                     $result[$p['office']][$p['date']]['counts']['card'] += $p['card'];
                 }
             }
             if ($p['cash'] != '0.00') {
                 $type = Yii::t('app','Cash');
-                if ($p['active']) {
+                if ($p['active'] && !$p['remain']) {
                     $result[$p['office']]['counts']['cash'] += $p['cash'];
                     $result[$p['office']][$p['date']]['counts']['cash'] += $p['cash'];
                 }
             }
             if ($p['bank'] != '0.00') {
                 $type = Yii::t('app','Bank');
-                if ($p['active']) {
+                if ($p['active'] && !$p['remain']) {
                     $result[$p['office']]['counts']['bank'] += $p['bank'];
                     $result[$p['office']][$p['date']]['counts']['bank'] += $p['bank'];
                 }
             }
-            if ($p['active']) {
+            if ($p['active'] && !$p['remain']) {
                 $result[$p['office']]['counts']['all'] += $p['sum'];
                 $result[$p['office']][$p['date']]['counts']['all'] += $p['sum'];
             }
