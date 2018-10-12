@@ -75,7 +75,7 @@ class UserController extends Controller
 
         return $this->render('index', [
             'userInfoBlock' => User::getUserInfoBlock(),                        
-            'userlist' => User::getUserListFiltered($url_params),
+            'users' => User::getUserListFiltered($url_params),
             'statuses' => Role::getRolesList(),
             'url_params' => $url_params,
         ]);

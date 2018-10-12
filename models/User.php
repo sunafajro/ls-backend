@@ -213,14 +213,24 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     public static function getUserListFiltered($params)
     {
         $userlist = (new \yii\db\Query())
-	    ->select('u.id as uid, u.name as uname, u.login as ulogin, u.status as stid, s.name as urole, u.visible as visible')
-	    ->from('user u')
-	    ->leftJoin('status s','u.status=s.id')
+	    ->select(
+            [
+                'id' => 'u.id',
+                'name' => 'u.name',
+                'login' => 'u.login',
+                'roleId' => 'u.status',
+                'role' => 's.name',
+                'office' => 'o.name',
+                'visible' => 'u.visible'
+            ]
+        )
+	    ->from(['u' => 'user'])
+        ->leftJoin('status s','u.status=s.id')
+        ->leftJoin('calc_office o', 'u.calc_office=o.id')
 	    ->andFilterWhere(['u.visible'=> $params['active']])
         ->andFilterWhere(['u.status'=> $params['role']])
 	    ->orderBy(['s.id'=>SORT_ASC,'u.name'=>SORT_ASC])
 	    ->all();
-
         return $userlist;
     }
 
