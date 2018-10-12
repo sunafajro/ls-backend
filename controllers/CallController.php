@@ -642,7 +642,7 @@ class CallController extends Controller
     public function actionTransform($id)
     {
         // проверяем роль пользователя, создание клиента разрешено только руководителям и менеджерам
-        if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4) {
+        if((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4) {
             // получаем данные по записи звонка
             $call = $this->findModel($id);
             // на всякий случай проверяем, что по звонку карточки клиента нет
@@ -671,7 +671,15 @@ class CallController extends Controller
                 
                 // сохраняем модель клиента               
                 if($student->save()){
-
+                    // формируем связь студента с офисом
+                    $db = (new \yii\db\Query())
+                    ->createCommand()
+                    ->insert('calc_student_office',
+                    [
+                        'student_id' => $student->id,
+                        'office_id' => (int)Yii::$app->session->get('user.ustatus') === 4 ? Yii::$app->session->get('user.uoffice_id') : $call->calc_office,
+                    ])
+                    ->execute();
                     // обновляем данные записи звонка
                     $call->calc_studname = $student->id;
                     // указываем что запись о звонке трансформирована в карточку клиента
