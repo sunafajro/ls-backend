@@ -15,8 +15,6 @@ $(function () {
 });
 SCRIPT;
 $this->registerJs($js);
-
-
 ?>
 <div class="row row-offcanvas row-offcanvas-left schedule-index">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">

@@ -268,12 +268,13 @@ class StudnameController extends Controller
         
         /* данные по назначенным скидкам и по колич оплаченных занятий видны только менеджерам и руководителям */
         if((int)Yii::$app->session->get('user.ustatus') === 3|| (int)Yii::$app->session->get('user.ustatus') === 4) {
-            /* получаем список скидкок клиента */
+            // список скидок клиента
             $studsales = Salestud::getAllClientSales($id);
 				
-			/* определяем постоянную скидку студента */
+			// постоянная скидка студента
 			$permsale = Salestud::getClientPermamentSale($id);
 
+            // расписание студента
             $schedule = Schedule::getStudentSchedule($id);
 
             // запрашиваем услуги назначенные студенту
@@ -418,7 +419,8 @@ class StudnameController extends Controller
             'invcount'      => $invcount,
             'clientaccess'  => ClientAccess::find()->where(['calc_studname'=>$id])->one(),
             'permsale'      => $permsale,
-            'userInfoBlock' => $userInfoBlock
+            'userInfoBlock' => $userInfoBlock,
+            'offices'       => Student::getStudentOffices($id)
             //'debt'=>number_format($this->studentDebt($id), 1, '.', ' '),
         ]);
     }

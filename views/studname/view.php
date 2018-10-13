@@ -76,6 +76,14 @@ if(Yii::$app->request->get('tab')){
                     ],
                 ]) ?>
             <?php endif; ?>
+            <?php if (isset($offices) && count($offices)) : ?>
+              <h4>Закреплен за офисом:</h4>
+                <ul class="list-group">
+                <?php foreach($offices as $o) : ?>
+                    <li class="list-group-item list-group-item-warning"><?= $o['name'] ?></li>
+                <?php endforeach; ?>
+              </ul>
+            <?php endif; ?>
         <?php endif; ?>
     </div>
     <div id="content" class="col-sm-10">
