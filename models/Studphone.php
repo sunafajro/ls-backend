@@ -14,8 +14,6 @@ use Yii;
  * @property string $description
  * @property string $create_date
  * @property integer $create_user
- * @property string $update_date
- * @property integer $update_user
  * @property integer $type
  * @property string $delete_date
  * @property integer $delete_user
@@ -37,8 +35,8 @@ class Studphone extends \yii\db\ActiveRecord
     {
         return [
             [['visible', 'calc_studname', 'phone', 'create_date', 'create_user', 'type'], 'required'],
-            [['visible', 'calc_studname', 'create_user', 'update_user', 'type', 'delete_user'], 'integer'],
-            [['create_date', 'update_date', 'delete_date'], 'safe'],
+            [['visible', 'calc_studname', 'create_user', 'type', 'delete_user'], 'integer'],
+            [['create_date', 'delete_date'], 'safe'],
             [['phone', 'description'], 'string', 'max' => 255]
         ];
     }
@@ -56,8 +54,6 @@ class Studphone extends \yii\db\ActiveRecord
             'description' => Yii::t('app', 'Description'),
             'create_date' => Yii::t('app', 'Create Date'),
             'create_user' => Yii::t('app', 'Create User'),
-            'update_date' => Yii::t('app', 'Update Date'),
-            'update_user' => Yii::t('app', 'Update User'),
             'type' => Yii::t('app', 'Type'),
             'delete_date' => Yii::t('app', 'Delete Date'),
             'delete_user' => Yii::t('app', 'Delete User'),
