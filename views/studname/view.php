@@ -83,26 +83,33 @@ if(Yii::$app->request->get('tab')){
                 <ul class="list-group" style="margin-bottom: 10px">
                 <?php
                     foreach($offices['added'] as $o) : ?>
-                    <li class="list-group-item list-group-item-warning"><?= Html::a('<i class="fa fa-trash" aria-hidden="true"></i>', ['studname/change-office', 'sid' => $model->id, 'oid' => $o['id'], 'action' => 'delete'], ['data' => ['method' => 'post']]) ?> <?= $o['name'] ?></li>
+                    <li class="list-group-item list-group-item-warning">
+                      <?php if ((int)$model->active === 1) : ?>
+                        <?= Html::a('<i class="fa fa-trash" aria-hidden="true"></i>', ['studname/change-office', 'sid' => $model->id, 'oid' => $o['id'], 'action' => 'delete'], ['data' => ['method' => 'post']]) ?>
+                      <?php endif; ?>
+                      <?= $o['name'] ?>
+                    </li>
                     <?php $filtered_offices[] = $o['id'] ?>
                 <?php endforeach; ?>
               </ul>
             <?php endif; ?>
-            <form method="post" action="/studname/change-office?sid=<?= $model->id?>&action=add">
-              <div style="margin-bottom: 10px">
-                <select class="form-control input-sm" name="office">
-                  <option value="-all-">-выбрать-</option>
-                  <?php if (isset($offices) && isset($offices['all']) && count($offices['all'])) : ?>
-                    <?php foreach($offices['all'] as $o) : ?>
-                      <?php if (!in_array($o['id'], $filtered_offices)) : ?>
-                        <option value="<?= $o['id']?>"><?= $o['name'] ?></option>
-                      <?php endif; ?>
-                    <?php endforeach; ?>
-                  <?php endif; ?>
-                </select>
-              </div>
-              <button class="btn btn-success btn-sm btn-block" type="submit">Добавить</button>
+            <?php if ((int)$model->active === 1) : ?>
+              <form method="post" action="/studname/change-office?sid=<?= $model->id?>&action=add">
+                <div style="margin-bottom: 10px">
+                  <select class="form-control input-sm" name="office">
+                    <option value="-all-">-выбрать-</option>
+                    <?php if (isset($offices) && isset($offices['all']) && count($offices['all'])) : ?>
+                      <?php foreach($offices['all'] as $o) : ?>
+                        <?php if (!in_array($o['id'], $filtered_offices)) : ?>
+                          <option value="<?= $o['id']?>"><?= $o['name'] ?></option>
+                        <?php endif; ?>
+                      <?php endforeach; ?>
+                    <?php endif; ?>
+                  </select>
+                </div>
+                <button class="btn btn-success btn-sm btn-block" type="submit">Добавить</button>
               </form>
+            <?php endif; ?>
         <?php endif; ?>
     </div>
     <div id="content" class="col-sm-10">
