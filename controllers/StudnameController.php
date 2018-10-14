@@ -7,6 +7,7 @@ use app\models\Student;
 use app\models\ClientAccess;
 use app\models\Invoicestud;
 use app\models\Moneystud;
+use app\models\Office;
 use app\models\Salestud;
 use app\models\Schedule;
 use app\models\StudentMergeForm;
@@ -30,15 +31,15 @@ class StudnameController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['index','view','create','update','delete','detail','active', 'inactive','merge'],
+                'only' => ['index', 'view', 'create', 'update', 'delete', 'detail', 'active', 'inactive', 'merge', 'change-office'],
                 'rules' => [
                     [
-                        'actions' => ['index','view','create','update','delete','detail','active','inactive','merge'],
+                        'actions' => ['index', 'view', 'create', 'update', 'delete', 'detail', 'active', 'inactive', 'merge', 'change-office'],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index','view','create','update','delete','detail','active','inactive','merge'],
+                        'actions' => ['index', 'view', 'create', 'update', 'delete', 'detail', 'active', 'inactive', 'merge', 'change-office'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -420,7 +421,10 @@ class StudnameController extends Controller
             'clientaccess'  => ClientAccess::find()->where(['calc_studname'=>$id])->one(),
             'permsale'      => $permsale,
             'userInfoBlock' => $userInfoBlock,
-            'offices'       => Student::getStudentOffices($id)
+            'offices'       => [
+                'added' => Student::getStudentOffices($id),
+                'all' => Office::getOfficesList(),
+            ]
             //'debt'=>number_format($this->studentDebt($id), 1, '.', ' '),
         ]);
     }
@@ -663,6 +667,30 @@ class StudnameController extends Controller
             'model' => $model,
             'userInfoBlock' => $userInfoBlock
         ]);
+    }
+
+    public function actionChangeOffice($sid, $oid = 0, $action)
+    {
+        if (Yii::$app->request->isPost) {
+            if ($action === 'add') {
+                $db = (new \yii\db\Query())
+                ->createCommand()
+                ->insert('calc_student_office',
+                [
+                    'student_id' => $sid,
+                    'office_id' => Yii::$app->request->post('office'),
+                ])
+                ->execute();
+                $this->redirect(['studname/view', 'id' => $sid]);
+            } else if ($action === 'delete') {
+                $db = (new \yii\db\Query())
+                ->createCommand()
+                ->delete('calc_student_office', 'student_id=:sid AND office_id=:oid', [':sid' => $sid, ':oid' => $oid])->execute();
+                $this->redirect(['studname/view', 'id' => $sid]);
+            }
+        } else {
+            return $this->redirect(Yii::$app->request->referrer);
+        }
     }
 
     //public function actionCalculate($id)

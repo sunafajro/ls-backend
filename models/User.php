@@ -267,7 +267,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
                         case 6: $result = true; break;
                         default: $result = false;        
                     }
-                } else if ($action === 'update' || $action === 'active' || $action === 'inactive' || $action == 'detail') {
+                } else if ($action === 'update' || $action === 'active' || $action === 'inactive' || $action === 'detail' || $action === 'change-office') {
                     switch(Yii::$app->session->get('user.ustatus')) {
                         case 3: $result = true; break;
                         case 4: $result = true; break;
