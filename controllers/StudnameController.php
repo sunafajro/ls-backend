@@ -66,8 +66,6 @@ class StudnameController extends Controller
      */
     public function actionIndex()
     {
-        $userInfoBlock = User::getUserInfoBlock();
-
         $tss = NULL;
         // проверяем GET запрос на наличие переменной TSS (фильтр по имени)
         if (Yii::$app->request->get('TSS')) {
@@ -250,7 +248,7 @@ class StudnameController extends Controller
             'tss' => $tss,
             'state' => $state,
             'offices' => $offices,
-            'userInfoBlock' => $userInfoBlock
+            'userInfoBlock' => User::getUserInfoBlock()
         ]);
     }
 
