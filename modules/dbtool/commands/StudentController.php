@@ -101,6 +101,53 @@ class StudentController extends Controller
     }
     public function actionInactive()
     {
-
+        $offset = 0;
+        $limit = 20;
+        $cnt = (new \yii\db\Query())
+        ->select('count(s.id) as num')
+        ->from(['s' => 'calc_studname'])
+        ->where(['s.active' => 1])
+        ->one();
+        if (isset($cnt) && isset($cnt['num']) && (int)$cnt['num'] > 1) {
+            echo 'Student List total count: ' . (int)$cnt['num'] . PHP_EOL;
+            for ($i = 0; $i < (int)$cnt['num']; $i = $i + $limit) {
+                $offset = $offset + $limit;
+                $students = (new \yii\db\Query())
+                ->select(['id' => 's.id'])
+                ->from(['s' => 'calc_studname'])
+                ->where(['s.active' => 1])
+                ->limit($limit)
+                ->offset($offset)
+                ->all();
+                echo 'Student List from ' . $offset . ' to ' . ($offset + $limit) . ':' . PHP_EOL;
+                if (isset($students) && count($students)) {
+                    foreach($students as $s) {
+                        $invoice = (new \yii\db\Query())
+                        ->select(['date' => 'data'])
+                        ->from(['calc_invoicestud'])
+                        ->where(['visible' => 1, 'calc_studname' => $s['id']])
+                        ->orderBy(['data' => SORT_DESC])
+                        ->one();
+                        if (isset($invoice) && isset($invoice['date'])) {
+                            if ($invoice['date'] < '2018-01-01') {
+                                // $db = (new \yii\db\Query())
+                                // ->createCommand()
+                                // ->update('calc_studname',
+                                // [
+                                //     'active' => 0
+                                // ],
+                                // ['id' => $s['id']])
+                                // ->execute();
+                                echo 'UPDATE calc_studname SET active = 0 where id = ' . $s['id'] . ';' . PHP_EOL;
+                            } else {
+                                echo "Student " . $s['id'] . " last invoice date " . $invoice['date'] . PHP_EOL;
+                            }
+                        } else {
+                            echo 'UPDATE calc_studname SET active = 0 where id = ' . $s['id'] . ';' . PHP_EOL;
+                        }
+                    }
+                }
+            }
+        }
     }
 }
