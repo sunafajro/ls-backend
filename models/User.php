@@ -404,12 +404,12 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
                         case 7: $result = true; break;
                         case 8: $result = true; break;
                         case 9: $result = true; break;
-                        default: $result = false;        
+                        default: $result = false;
                     }
                 } else {
                     switch(Yii::$app->session->get('user.ustatus')) {
                         case 3: $result = true; break;
-                        default: $result = false;        
+                        default: $result = false;
                     }
                 }
                 break;
@@ -417,7 +417,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             case 'langpremium':
                 switch(Yii::$app->session->get('user.ustatus')) {
                     case 3: $result = true; break;
-                    default: $result = false;            
+                    default: $result = false;
                 }
                 break;
             /* подраздел Языковые надбавки */
@@ -426,9 +426,21 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             /* раздел Преподаватели */
             /* подраздел Ставки */
             case 'edunormteacher':
-                switch(Yii::$app->session->get('user.ustatus')) {
-                    case 3: $result = true; break;
-                    default: $result = false;            
+                if ($action === 'create') {
+                    switch(Yii::$app->session->get('user.ustatus')) {
+                        case 3: $result = true; break;
+                        default:
+                            if ((int)Yii::$app->session->get('user.uid') === 296) {
+                                return true;
+                            } else {
+                                $result = false;
+                            }
+                    }
+                } else {
+                    switch(Yii::$app->session->get('user.ustatus')) {
+                        case 3: $result = true; break;
+                        default: $result = false;
+                    }
                 }
                 break;
             /* подраздел Ставки */

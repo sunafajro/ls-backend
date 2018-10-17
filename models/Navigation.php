@@ -158,7 +158,7 @@ class Navigation extends Model
                 'hasBadge' => false
             ];
         }
-        if((int)Yii::$app->session->get('user.ustatus') === 3) {
+        if((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.uid') === 296) {
             /* ссылка на раздел Пользователи */
             $menu[] = [
                 'id' => 'users',

@@ -74,9 +74,11 @@ if($tab == 3){
               <?= Html::a('<span class="fa fa-users" aria-hidden="true"></span> ' . Yii::t('app', 'Add group'), ['groupteacher/create','tid'=>$model->id], ['class' => 'btn btn-default btn-sm btn-block', 'title' => Yii::t('app','Add group')]) ?>
               <?= Html::a('<span class="fa fa-language" aria-hidden="true"></span> ' . Yii::t('app', 'Add language'), ['langteacher/create','tid'=>$model->id], ['class' => 'btn btn-default btn-sm btn-block', 'title' => Yii::t('app','Add language')]) ?>
             <?php endif; ?>
-            <?php if ((int)Yii::$app->session->get('user.uid') !== 296 && (int)Yii::$app->session->get('user.ustatus') !== 4) : ?>
+            <?php if ((int)Yii::$app->session->get('user.ustatus') !== 4) : ?>
                 <?= Html::a('<span class="fa fa-money" aria-hidden="true"></span> ' . Yii::t('app', 'Add rate'), ['edunormteacher/create','tid'=>$model->id], ['class' => 'btn btn-default btn-sm btn-block', 'title' => Yii::t('app','Add rate')]) ?>
-                <?= Html::a('<span class="fa fa-gift" aria-hidden="true"></span> ' . Yii::t('app', 'Add premium'), ['teacherlangpremium/create','tid'=>$model->id], ['class' => 'btn btn-default btn-sm btn-block', 'title' => Yii::t('app','Add premium')]) ?>
+            <?php endif; ?>
+            <?php if ((int)Yii::$app->session->get('user.uid') !== 296 && (int)Yii::$app->session->get('user.ustatus') !== 4) : ?>
+            <?= Html::a('<span class="fa fa-gift" aria-hidden="true"></span> ' . Yii::t('app', 'Add premium'), ['teacherlangpremium/create','tid'=>$model->id], ['class' => 'btn btn-default btn-sm btn-block', 'title' => Yii::t('app','Add premium')]) ?>
             <?php endif; ?>
             <?= Html::a('<span class="fa fa-pencil" aria-hidden="true"></span> ' . Yii::t('app', 'Edit'), ['teacher/update','id'=>$model->id], ['class' => 'btn btn-warning btn-sm btn-block', 'title' => Yii::t('app','Edit teacher')]) ?>
             <?php if ((int)Yii::$app->session->get('user.uid') !== 296 && (int)Yii::$app->session->get('user.ustatus') !== 4) : ?>
