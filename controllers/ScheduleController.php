@@ -5,6 +5,7 @@ namespace app\controllers;
 use Yii;
 use app\models\Eduage;
 use app\models\Eduform;
+use app\models\Language;
 use app\models\Office;
 use app\models\Room;
 use app\models\Schedule;
@@ -79,11 +80,12 @@ class ScheduleController extends Controller
                 $eduages = Eduage::getEduages();
                 $eduforms = Eduform::getEduforms();
                 $offices = Office::getOfficeBySchedule();
+                $languages = Language::getTeachersLanguages();
                 return [
                     'filters' => [
                         'eduages' => Tool::prepareDataForSelectElement($eduages),
                         'eduforms' => Tool::prepareDataForSelectElement($eduforms),
-                        'languages' => [],
+                        'languages' => Tool::prepareDataForSelectElement($languages),
                         'offices' => Tool::prepareDataForSelectElement($offices),
                         'teachers' => [],
                     ]

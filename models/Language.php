@@ -78,12 +78,26 @@ class Language extends \yii\db\ActiveRecord
         $tmp_languages = self::getLanguages();
         
         $languages = [];
-        foreach($tmp_languages as $l) {
+        foreach($tmp_languages['data'] as $l) {
             if ((int)$l['id'] !== 16) {
                 $languages[$l['id']] = $l['name'];
             }
         }
 
         return $languages;
+    }
+
+    public static function getTeachersLanguages()
+    {
+        // получаем массив языков
+    	$langs =  (new \yii\db\Query())
+        ->select(['id' => 'l.id', 'name' => 'l.name'])
+        ->distinct()
+        ->from(['l' => 'calc_lang'])
+        ->innerJoin('calc_langteacher lt', 'l.id=lt.calc_lang')
+        ->where(['lt.visible' => 1])
+        ->orderBy(['l.name' => SORT_ASC, 'lt.calc_teacher' => SORT_ASC])
+        ->all();
+        return $langs;
     }
 }
