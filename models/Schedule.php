@@ -18,7 +18,7 @@ use Yii;
  * @property integer $visible
  * @property integer $user
  * @property string $data
- * @property string notes
+ * @property string $notes
  */
 class Schedule extends \yii\db\ActiveRecord
 {
@@ -57,10 +57,10 @@ class Schedule extends \yii\db\ActiveRecord
             'calc_denned' => Yii::t('app','Day of week'),
             'time_begin' => Yii::t('app','Start time'),
             'time_end' => Yii::t('app','End time'),
-            'visible' => Yii::t('app','Visible'),
-            'user' => Yii::t('app','User'),
-            'data' => Yii::t('app','Data'),
-            'notes' => Yii::t('app','Notes')
+            'visible' => Yii::t('app', 'Visible'),
+            'user' => Yii::t('app', 'User'),
+            'data' => Yii::t('app', 'Date'),
+            'notes' => Yii::t('app', 'Notes')
         ];
     }
 

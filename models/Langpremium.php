@@ -49,7 +49,7 @@ class Langpremium extends \yii\db\ActiveRecord
         ];
     }
 
-    public function getLangPremiums($params = NULL)
+    public static function getLangPremiums($params = NULL)
     {
         $lp = (new yii\db\Query())
         ->select(['id' => 'lp.id', 'language' => 'l.name', 'value' => 'lp.value'])
@@ -82,12 +82,12 @@ class Langpremium extends \yii\db\ActiveRecord
         ];
     }
 
-    public function getLangPremiumsSimple($params = NULL)
+    public static function getLangPremiumsSimple($params = NULL)
     {
         $result = [];
         $lps = self::getLangpremiums($params);
         if(!empty($lps)) {
-            foreach($lps as $lp) {
+            foreach($lps['data'] as $lp) {
                 $result[$lp['id']] = $lp['language'] . ' ' . $lp['value'] . ' р.';
             }
         }

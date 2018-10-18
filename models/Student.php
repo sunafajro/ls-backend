@@ -214,6 +214,17 @@ class Student extends \yii\db\ActiveRecord
         return $result;
     }
 
+    public static function getStudentOffices($id = 0)
+    {
+        $offices = (new \yii\db\Query())
+        ->select(['id' => 'o.id', 'name' => 'o.name'])
+        ->from(['so' => 'calc_student_office'])
+        ->innerJoin('calc_office o', 'o.id=so.office_id')
+        ->where(['so.student_id' => $id])
+        ->all();
+        return $offices;
+    }
+
     /**
      *  метод переносит данные из профиля студента с id2 в профиль студента с id1
      */

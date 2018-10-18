@@ -52,7 +52,7 @@ $this->params['breadcrumbs'][] = $this->title;
 			</div>
 		<?php endif; ?>  
         <?php if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4): ?>
-            <h4><?= Yii::t('app', 'Add teacher to group') . ' #' . $params['gid'] ?></h4>
+            <h4><?= Yii::t('app', 'Add student to group') . ' #' . $params['gid'] ?></h4>
             
             <?php $form = ActiveForm::begin(); ?>
 

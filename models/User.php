@@ -213,24 +213,24 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     public static function getUserListFiltered($params)
     {
         $userlist = (new \yii\db\Query())
-	    ->select(
-            [
-                'id' => 'u.id',
-                'name' => 'u.name',
-                'login' => 'u.login',
-                'roleId' => 'u.status',
-                'role' => 's.name',
-                'office' => 'o.name',
-                'visible' => 'u.visible'
-            ]
+        ->select(
+          [
+            'id' => 'u.id',
+            'name' => 'u.name',
+            'login' => 'u.login',
+            'roleId' => 'u.status',
+            'role' => 's.name',
+            'office' => 'o.name',
+            'visible' => 'u.visible'
+          ]
         )
-	    ->from(['u' => 'user'])
+        ->from(['u' => 'user'])
         ->leftJoin('status s','u.status=s.id')
         ->leftJoin('calc_office o', 'u.calc_office=o.id')
-	    ->andFilterWhere(['u.visible'=> $params['active']])
+        ->andFilterWhere(['u.visible'=> $params['active']])
         ->andFilterWhere(['u.status'=> $params['role']])
-	    ->orderBy(['s.id'=>SORT_ASC,'u.name'=>SORT_ASC])
-	    ->all();
+        ->orderBy(['s.id'=>SORT_ASC,'u.name'=>SORT_ASC])
+        ->all();
         return $userlist;
     }
 
@@ -241,12 +241,12 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      */
     public static function getUserInfoById($id)
     {
-		$user = (new \yii\db\Query())
-		->select('u.id as uid, u.name as uname, u.login as ulogin, u.visible as vis, s.name as urole, o.name as uoffice, u.logo as ulogo')
-		->from('user u')
-		->leftjoin('status s', 's.id=u.status')
-		->leftjoin('calc_office o', 'o.id=u.calc_office')
-		->where('u.id=:id', [':id'=>$id])
+		    $user = (new \yii\db\Query())
+		    ->select('u.id as uid, u.name as uname, u.login as ulogin, u.visible as vis, s.name as urole, o.name as uoffice, u.logo as ulogo')
+		    ->from('user u')
+		    ->leftjoin('status s', 's.id=u.status')
+		    ->leftjoin('calc_office o', 'o.id=u.calc_office')
+		    ->where('u.id=:id', [':id'=>$id])
         ->one();
 
         return $user;
@@ -267,7 +267,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
                         case 6: $result = true; break;
                         default: $result = false;        
                     }
-                } else if ($action === 'update' || $action === 'active' || $action === 'inactive' || $action == 'detail') {
+                } else if ($action === 'update' || $action === 'active' || $action === 'inactive' || $action === 'detail' || $action === 'change-office') {
                     switch(Yii::$app->session->get('user.ustatus')) {
                         case 3: $result = true; break;
                         case 4: $result = true; break;
@@ -404,12 +404,12 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
                         case 7: $result = true; break;
                         case 8: $result = true; break;
                         case 9: $result = true; break;
-                        default: $result = false;        
+                        default: $result = false;
                     }
                 } else {
                     switch(Yii::$app->session->get('user.ustatus')) {
                         case 3: $result = true; break;
-                        default: $result = false;        
+                        default: $result = false;
                     }
                 }
                 break;
@@ -417,7 +417,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             case 'langpremium':
                 switch(Yii::$app->session->get('user.ustatus')) {
                     case 3: $result = true; break;
-                    default: $result = false;            
+                    default: $result = false;
                 }
                 break;
             /* подраздел Языковые надбавки */
@@ -426,9 +426,21 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             /* раздел Преподаватели */
             /* подраздел Ставки */
             case 'edunormteacher':
-                switch(Yii::$app->session->get('user.ustatus')) {
-                    case 3: $result = true; break;
-                    default: $result = false;            
+                if ($action === 'create') {
+                    switch(Yii::$app->session->get('user.ustatus')) {
+                        case 3: $result = true; break;
+                        default:
+                            if ((int)Yii::$app->session->get('user.uid') === 296) {
+                                return true;
+                            } else {
+                                $result = false;
+                            }
+                    }
+                } else {
+                    switch(Yii::$app->session->get('user.ustatus')) {
+                        case 3: $result = true; break;
+                        default: $result = false;
+                    }
                 }
                 break;
             /* подраздел Ставки */

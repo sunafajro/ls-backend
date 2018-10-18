@@ -42,6 +42,7 @@ return array(
 'Add premium' => 'Добавить надбавку',
 'Add rate' => 'Добавить ставку',
 'Add sale'=>'Назначить скидку',
+'Add student to group' => 'Добавить студента в группу',
 'Add tax'=>'Добавить ставку',
 'Add teacher'=>'Добавить преподавателя',
 'Add teacher to group'=>'Добавить преподавателя в группу',

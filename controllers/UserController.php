@@ -57,28 +57,26 @@ class UserController extends Controller
      */
     public function actionIndex()
     {
-        if(Yii::$app->session->get('user.ustatus') != 3){
-            return $this->redirect(Yii::$app->request->referrer);            
-        }
+      if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.uid') !== 296){
+        return $this->redirect(Yii::$app->request->referrer);
+      }
+      $url_params = [
+        'active' => 1,
+        'role' => NULL,
+      ];
 
-        $url_params = [
-            'active' => 1,
-            'role' => NULL,
-        ];
-
-        if(isset($_GET['active'])) {
-            $url_params['active'] = $_GET['active'] != 'all' ? $_GET['active'] : NULL;
-        }
-        if(isset($_GET['role'])) {
-            $url_params['role'] =  $_GET['role'] != 'all' ? $_GET['role'] : NULL;;
-        }
-
-        return $this->render('index', [
-            'userInfoBlock' => User::getUserInfoBlock(),                        
-            'users' => User::getUserListFiltered($url_params),
-            'statuses' => Role::getRolesList(),
-            'url_params' => $url_params,
-        ]);
+      if(isset($_GET['active'])) {
+        $url_params['active'] = $_GET['active'] !== 'all' ? $_GET['active'] : NULL;
+      }
+      if(isset($_GET['role'])) {
+        $url_params['role'] =  $_GET['role'] !== 'all' ? $_GET['role'] : NULL;;
+      }
+      return $this->render('index', [
+        'userInfoBlock' => User::getUserInfoBlock(),
+        'users' => User::getUserListFiltered($url_params),
+        'statuses' => Role::getRolesList(),
+        'url_params' => $url_params,
+      ]);
     }
 
     /**
@@ -89,7 +87,7 @@ class UserController extends Controller
      */
     public function actionCreate()
     {
-        if(Yii::$app->session->get('user.ustatus') != 3){
+        if(Yii::$app->session->get('user.ustatus') != 3 && (int)Yii::$app->session->get('user.uid') !== 296){
             return $this->redirect(Yii::$app->request->referrer);
         }
 
@@ -138,7 +136,7 @@ class UserController extends Controller
      */
     public function actionUpdate($id)
     {
-        if(Yii::$app->session->get('user.ustatus')!=3){
+        if((int)Yii::$app->session->get('user.ustatus')!==3 && (int)Yii::$app->session->get('user.uid') !== 296){
             return $this->redirect(Yii::$app->request->referrer);
         }
 
@@ -200,7 +198,7 @@ class UserController extends Controller
     }
     public function actionEnable($id)
     {
-        if(Yii::$app->session->get('user.ustatus')!=3){
+        if((int)Yii::$app->session->get('user.ustatus')!==3 && (int)Yii::$app->session->get('user.uid') !== 296){
             return $this->redirect(Yii::$app->request->referrer);
         }
 
@@ -216,7 +214,7 @@ class UserController extends Controller
     }
     public function actionDisable($id)
     {
-        if(Yii::$app->session->get('user.ustatus')!=3){
+        if((int)Yii::$app->session->get('user.ustatus')!==3 && (int)Yii::$app->session->get('user.uid') !== 296){
             return $this->redirect(Yii::$app->request->referrer);
         }
 
@@ -232,7 +230,7 @@ class UserController extends Controller
 
     public function actionUpload($id)
     {
-        if(Yii::$app->session->get('user.ustatus')!=3){
+        if((int)Yii::$app->session->get('user.ustatus')!==3 && (int)Yii::$app->session->get('user.uid') !== 296){
             return $this->redirect(Yii::$app->request->referrer);
         }
         // подключаем боковую панель
@@ -263,7 +261,6 @@ class UserController extends Controller
                     // в ней создаем папку logo
                     FileHelper::createDirectory($spath.$id."/logo/");
                 }
-                
                 $model->file->saveAs($filepath.$filename);
                 $logoname = 'calc-language-school-ru-'.$id.'.'.$model->file->extension;
                 $db = (new \yii\db\Query())
@@ -283,7 +280,7 @@ class UserController extends Controller
 
     public function actionChangepass($id)
     {
-        if(Yii::$app->session->get('user.ustatus')!=3){
+        if((int)Yii::$app->session->get('user.ustatus')!==3 && (int)Yii::$app->session->get('user.uid') !== 296){
             return $this->redirect(Yii::$app->request->referrer);
         }
 
