@@ -87,9 +87,9 @@ class Language extends \yii\db\ActiveRecord
         return $languages;
     }
 
+    /* возвращает список языков по которым есть занятия в расписании */
     public static function getTeachersLanguages()
     {
-        // получаем массив языков
     	$langs =  (new \yii\db\Query())
         ->select(['id' => 'l.id', 'name' => 'l.name'])
         ->distinct()
