@@ -71,7 +71,6 @@ class UserController extends Controller
       if(isset($_GET['role'])) {
         $url_params['role'] =  $_GET['role'] !== 'all' ? $_GET['role'] : NULL;;
       }
-
       return $this->render('index', [
         'userInfoBlock' => User::getUserInfoBlock(),
         'users' => User::getUserListFiltered($url_params),

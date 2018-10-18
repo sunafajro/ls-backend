@@ -51,6 +51,9 @@ $config = [
             'class' => 'yii\web\UrlManager',
             'showScriptName' => false,
             'enablePrettyUrl' => true,
+            'rules' => [
+                '/schedule' => 'schedule/index'
+            ]
         ],
     ],
     'params' => $params,

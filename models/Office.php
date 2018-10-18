@@ -92,6 +92,19 @@ class Office extends \yii\db\ActiveRecord
         return $offices;
     }
 
+    // возвращает список офисов по которым есть занятия в расписании
+    public static function getOfficeBySchedule()
+    {
+        $offices = (new \yii\db\Query())
+        ->select('o.id as id, o.name as name')
+        ->distinct()
+        ->from('calc_office o')
+        ->innerJoin('calc_schedule sch', 'sch.calc_office=o.id')
+        ->where('o.visible=:one', [':one' => 1])
+        ->all();
+        return $offices;
+    }
+
     /* возвращает список действующих офисов с привязкой к городу */
     public static function getOfficesWithCitiesList()
     {

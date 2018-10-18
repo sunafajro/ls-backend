@@ -642,7 +642,7 @@ class CallController extends Controller
     public function actionTransform($id)
     {
         // проверяем роль пользователя, создание клиента разрешено только руководителям и менеджерам
-        if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4) {
+        if((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4) {
             // получаем данные по записи звонка
             $call = $this->findModel($id);
             // на всякий случай проверяем, что по звонку карточки клиента нет
@@ -667,8 +667,8 @@ class CallController extends Controller
                 $student->debt = 0;
                 $student->debt2 = 0;
                 $student->invoice = 0;
-                $student->money = 0;
-
+                $student->money = 0;                
+                               
                 // сохраняем модель клиента
                 if($student->save()){
                     // формируем связь студента с офисом

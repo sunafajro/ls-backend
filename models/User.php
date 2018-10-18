@@ -213,7 +213,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     public static function getUserListFiltered($params)
     {
         $userlist = (new \yii\db\Query())
-	->select(
+        ->select(
           [
             'id' => 'u.id',
             'name' => 'u.name',
@@ -224,13 +224,13 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             'visible' => 'u.visible'
           ]
         )
-	->from(['u' => 'user'])
+        ->from(['u' => 'user'])
         ->leftJoin('status s','u.status=s.id')
         ->leftJoin('calc_office o', 'u.calc_office=o.id')
-	->andFilterWhere(['u.visible'=> $params['active']])
+        ->andFilterWhere(['u.visible'=> $params['active']])
         ->andFilterWhere(['u.status'=> $params['role']])
-	->orderBy(['s.id'=>SORT_ASC,'u.name'=>SORT_ASC])
-	->all();
+        ->orderBy(['s.id'=>SORT_ASC,'u.name'=>SORT_ASC])
+        ->all();
         return $userlist;
     }
 
@@ -241,12 +241,12 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      */
     public static function getUserInfoById($id)
     {
-		$user = (new \yii\db\Query())
-		->select('u.id as uid, u.name as uname, u.login as ulogin, u.visible as vis, s.name as urole, o.name as uoffice, u.logo as ulogo')
-		->from('user u')
-		->leftjoin('status s', 's.id=u.status')
-		->leftjoin('calc_office o', 'o.id=u.calc_office')
-		->where('u.id=:id', [':id'=>$id])
+		    $user = (new \yii\db\Query())
+		    ->select('u.id as uid, u.name as uname, u.login as ulogin, u.visible as vis, s.name as urole, o.name as uoffice, u.logo as ulogo')
+		    ->from('user u')
+		    ->leftjoin('status s', 's.id=u.status')
+		    ->leftjoin('calc_office o', 'o.id=u.calc_office')
+		    ->where('u.id=:id', [':id'=>$id])
         ->one();
 
         return $user;
@@ -464,7 +464,26 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             case 'roles':
                 switch(Yii::$app->session->get('user.ustatus')) {
                     case 3: $result = true; break;
-                    default: $result = false;            
+                    default: $result = false;
+                }
+                break;
+            
+            case 'schedule':
+                if ($action === 'index' || $action === 'create' || $action === 'update' || $action === 'delete') {
+                    switch(Yii::$app->session->get('user.ustatus')) {
+                        case 3: $result = true; break;
+                        case 4: $result = true; break;
+                        case 5: $result = true; break;
+                        case 6: $result = true; break;
+                        case 10: $result = true; break;
+                        default: $result = false;
+                    }
+                } else if ($action === 'hours') {
+                    switch(Yii::$app->session->get('user.ustatus')) {
+                        case 3: $result = true; break;
+                        case 4: $result = true; break;
+                        default: $result = false;
+                    }
                 }
                 break;
 		}

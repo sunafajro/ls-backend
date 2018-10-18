@@ -62,6 +62,20 @@ class Tool extends Model
     }
     /* генерируем список лет с начала эксплуатации системы */
 
+    public static function prepareDataForSelectElement($data)
+    {
+        $result = [];
+        if(!empty($data)) {
+            foreach ($data as $d) {
+                $result[] = [
+                    'value' => $d['id'],
+                    'text' => $d['name']
+                ];
+            }
+        }
+        return $result;
+    }
+
     protected static function methodNotAllowed() {
         return [
             'status' => false,
