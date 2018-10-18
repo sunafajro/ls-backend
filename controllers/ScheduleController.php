@@ -81,13 +81,14 @@ class ScheduleController extends Controller
                 $eduforms = Eduform::getEduforms();
                 $offices = Office::getOfficeBySchedule();
                 $languages = Language::getTeachersLanguages();
+                $teachers = Teacher::getTeachersInSchedule();
                 return [
                     'filters' => [
                         'eduages' => Tool::prepareDataForSelectElement($eduages),
                         'eduforms' => Tool::prepareDataForSelectElement($eduforms),
                         'languages' => Tool::prepareDataForSelectElement($languages),
                         'offices' => Tool::prepareDataForSelectElement($offices),
-                        'teachers' => [],
+                        'teachers' => Tool::prepareDataForSelectElement($teachers),
                     ]
                 ];
             } else if ($t === 'lessons') {

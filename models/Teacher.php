@@ -121,4 +121,18 @@ class Teacher extends \yii\db\ActiveRecord
         ->all();
         return $groups;
     }
+    
+    /* возвращает список преподавателей по которым есть занятия в расписании */
+    public static function getTeachersInSchedule()
+    {
+    	$teachers = (new \yii\db\Query())
+    	->select(['id' => 't.id', 'name' => 't.name'])
+        ->distinct()
+        ->from(['s' => 'calc_schedule'])
+        ->innerJoin('calc_teacher t','s.calc_teacher=t.id')
+        ->where(['t.visible' => 1])
+    	->orderBy(['t.name' => SORT_ASC])
+    	->all();
+        return $teachers;
+    }
 }
