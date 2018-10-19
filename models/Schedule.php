@@ -91,6 +91,18 @@ class Schedule extends \yii\db\ActiveRecord
         } else {
             return [
                 [
+                    'id' => 'id',
+                    'style' => '',
+                    'title' => '№',
+                    'show' => false
+                ],
+                [
+                    'id' => 'officeId',
+                    'style' => '',
+                    'title' => Yii::t('app', 'Office Id'),
+                    'show' => false
+                ],
+                [
                     'id' => 'day',
                     'style' => 'width: 10%',
                     'title' => Yii::t('app', 'Day'),
@@ -109,10 +121,22 @@ class Schedule extends \yii\db\ActiveRecord
                     'show' => true
                 ],
                 [
+                    'id' => 'teacherId',
+                    'style' => '',
+                    'title' => Yii::t('app', 'Teacher Id'),
+                    'show' => false
+                ],
+                [
                     'id' => 'teacher',
                     'style' => 'width: 20%',
                     'title' => Yii::t('app', 'Teacher'),
                     'show' => true
+                ],
+                [
+                    'id' => 'groupId',
+                    'style' => '',
+                    'title' => Yii::t('app', 'Group Id'),
+                    'show' => false
                 ],
                 [
                     'id' => 'group',
@@ -158,6 +182,7 @@ class Schedule extends \yii\db\ActiveRecord
         return $schedule;
     }
 
+    /** возвращает почасовку преподавателей */
     public static function getTeacherHours($oid)
     {
         $data = (new \yii\db\Query()) 
@@ -218,6 +243,52 @@ class Schedule extends \yii\db\ActiveRecord
                 }
             }
         }
+        return $lessons;
+    }
+
+    public static function getScheduleData($aid = null, $did = null, $fid = null, $lid = null, $oid = null, $tid = null)
+    {  
+    	$lessons = (new \yii\db\Query()) 
+        ->select([
+            'id' => 'sd.id',
+            'officeId' => 'sd.calc_office',
+            'day' => 'sd.calc_denned',
+            'room' => 'r.name',
+            'time' => 'CONCAT(SUBSTR(sd.time_begin, 1, 5)," - ",SUBSTR(sd.time_end, 1, 5))',
+            'teacherId' => 't.id',
+            'teacher' => 't.name',
+            'groupId' => 'gt.id',
+            'group' => 's.name',
+            'notes' => 'sd.notes'
+        ])
+        ->from(['sd' => 'calc_schedule'])
+        ->innerJoin('calc_office o', 'o.id=sd.calc_office')
+        ->innerJoin('calc_cabinetoffice r', 'r.id=sd.calc_cabinetoffice')
+        ->innerJoin('calc_teacher t', 't.id=sd.calc_teacher')
+        ->innerJoin('calc_groupteacher gt', 'gt.id=sd.calc_groupteacher')
+        ->innerJoin('calc_service s', 's.id=gt.calc_service')
+        ->where([
+            'o.visible' => 1,
+            'sd.visible' => 1
+        ])
+        ->andWhere(['!=', 'sd.calc_groupteacher', 0]);
+        // добавляем условие выборки по номеру дня недели
+        $lessons = $lessons->andFilterWhere(['sd.calc_denned' => $did])
+        // добавляем условия выборки по параметрам полученным из формы
+        ->andFilterWhere(['sd.calc_office' => $oid])
+        ->andFilterWhere(['s.calc_lang' => $lid])
+        ->andFilterWhere(['s.calc_eduform' => $fid])
+        ->andFilterWhere(['s.calc_eduage' => $aid])
+        ->andFilterWhere(['sd.calc_teacher' => $tid])
+        // добавляем сортировку
+        ->orderby([
+            'sd.calc_office' => SORT_ASC,
+            'sd.calc_denned' => SORT_ASC,
+            'r.name' => SORT_ASC,
+            'sd.time_begin' => SORT_ASC])
+	    // запрашиваем данные
+        ->all();
+
         return $lessons;
     }
 }

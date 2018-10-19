@@ -62,9 +62,15 @@ class ScheduleController extends Controller
      * Lists all CalcSchedule models.
      * @return mixed
      */
-    public function actionIndex($t = null, $oid = null)
+    public function actionIndex($t = null)
     {
         if (Yii::$app->request->isPost) {
+            $aid = Yii::$app->request->post('aid') ? Yii::$app->request->post('aid') : null;
+            $did = Yii::$app->request->post('did') ? Yii::$app->request->post('did') : null;
+            $fid = Yii::$app->request->post('fid') ? Yii::$app->request->post('fid') : null;
+            $lid = Yii::$app->request->post('lid') ? Yii::$app->request->post('lid') : null;
+            $oid = Yii::$app->request->post('oid') ? Yii::$app->request->post('oid') : null;
+            $tid = Yii::$app->request->post('tid') ? Yii::$app->request->post('tid') : null;
             Yii::$app->response->format = Response::FORMAT_JSON;
             if ($t === 'actions') {
                 return [
@@ -94,7 +100,7 @@ class ScheduleController extends Controller
             } else if ($t === 'lessons') {
                 return [
                     'columns' => Schedule::getTableColumns(),
-                    'lessons' => []
+                    'lessons' => Schedule::getScheduleData($aid, $did, $fid, $lid, $oid, $tid)
                 ];
             } else if ($t === 'hours') {
                 return [
