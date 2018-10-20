@@ -103,6 +103,12 @@ class Schedule extends \yii\db\ActiveRecord
                     'show' => false
                 ],
                 [
+                    'id' => 'office',
+                    'style' => '',
+                    'title' => Yii::t('app', 'Office'),
+                    'show' => false
+                ],
+                [
                     'id' => 'day',
                     'style' => 'width: 10%',
                     'title' => Yii::t('app', 'Day'),
@@ -151,7 +157,7 @@ class Schedule extends \yii\db\ActiveRecord
                     'show' => true
                 ],
                 [
-                    'id' => 6,
+                    'id' => 'actions',
                     'style' => 'width: 5%; text-align: center',
                     'title' => Yii::t('app', 'Act.'),
                     'show' => true
@@ -248,10 +254,11 @@ class Schedule extends \yii\db\ActiveRecord
 
     public static function getScheduleData($aid = null, $did = null, $fid = null, $lid = null, $oid = null, $tid = null)
     {  
-    	$lessons = (new \yii\db\Query()) 
+    	$raw_lessons = (new \yii\db\Query()) 
         ->select([
             'id' => 'sd.id',
             'officeId' => 'sd.calc_office',
+            'office' => 'o.name',
             'day' => 'sd.calc_denned',
             'room' => 'r.name',
             'time' => 'CONCAT(SUBSTR(sd.time_begin, 1, 5)," - ",SUBSTR(sd.time_end, 1, 5))',
@@ -273,7 +280,7 @@ class Schedule extends \yii\db\ActiveRecord
         ])
         ->andWhere(['!=', 'sd.calc_groupteacher', 0]);
         // добавляем условие выборки по номеру дня недели
-        $lessons = $lessons->andFilterWhere(['sd.calc_denned' => $did])
+        $raw_lessons = $raw_lessons->andFilterWhere(['sd.calc_denned' => $did])
         // добавляем условия выборки по параметрам полученным из формы
         ->andFilterWhere(['sd.calc_office' => $oid])
         ->andFilterWhere(['s.calc_lang' => $lid])
@@ -288,6 +295,20 @@ class Schedule extends \yii\db\ActiveRecord
             'sd.time_begin' => SORT_ASC])
 	    // запрашиваем данные
         ->all();
+
+        $lessons = [];
+
+        if ($raw_lessons && count($raw_lessons)) {
+            foreach($raw_lessons as $l) {
+              if (!isset($lessons[$l['officeId']])) {
+                $lessons[$l['officeId']] = [
+                    'name' => $l['office'],
+                    'rows' => []
+                ];
+              }
+              $lessons[$l['officeId']]['rows'][] = $l;
+            }
+        }
 
         return $lessons;
     }
