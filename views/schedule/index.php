@@ -7,7 +7,7 @@
 
 <?php
     $this->registerCssFile('/css/schedule/vendors.css');
-    $this->registerCssFile('/css/schedule/app.css');
+    // $this->registerCssFile('/css/schedule/app.css');
     $this->registerJsFile('/js/schedule/vendors.js');
     $this->registerJsFile('/js/schedule/app.js');
 ?>
