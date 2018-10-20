@@ -274,19 +274,36 @@ class ScheduleController extends Controller
 
     public function actionDelete($id)
     {
-        // получаем информацию по пользователю
-        $model=$this->findModel($id);
-        // проверяем что пользователь руководитель или менеджер или преподаватель которому назначено занятие
-        if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4||$model->calc_teacher==Yii::$app->session->get('user.uteacher')){
-            //проверяем текущее состояние
-            if($model->visible==1){
-                // помечаем занятие как отмененное
-                $model->visible = 0;
-                // сохраняем модель
-                $model->save();
-            }
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        // находим занятие
+        $model = $this->findModel($id);
+        // пользователь преподаватель не может удалять чужие занятия
+        if((int)Yii::$app->session->get('user.ustatus') === 5 && (int)$model->calc_teacher !== (int)Yii::$app->session->get('user.uteacher')) {
+            Yii::$app->response->statusCode = 403;
+            return [
+                "message" => "Вам не разрешено производить это действие!"
+            ];
         }
-        return $this->redirect(['index']);
+        // проверяем текущее состояние
+        if ((int)$model->visible === 1) {
+            // помечаем занятие как удаленное
+            $model->visible = 0;
+            // сохраняем занятие
+            if ($model->save()) {
+                return [
+                    "message" => "Занятие успешно удалено из расписания!"
+                ];
+            } else {
+                Yii::$app->response->statusCode = 500;
+                return [
+                    "message" => "Ошибка при удалении занятия!"
+                ];
+            }
+        } else {
+            return [
+                "message" => "Занятие успешно удалено из расписания!"
+            ];
+        }
     }
 
     /**
