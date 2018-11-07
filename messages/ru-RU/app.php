@@ -300,6 +300,7 @@ return array(
 'Ruble sale (assigned)' => 'Рублевая скидка (назнач.)',
 'Ruble sale (manual)' => 'Рублевая скидка (произв.)',
 'Rules' => 'Правила',
+'Salaries' => 'Зарплаты',
 'Sale'=>'Скидка',
 'Sale date'=>'Дата назначения',
 'Sale name'=>'Название',
