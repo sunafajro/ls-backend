@@ -113,33 +113,34 @@ if(\Yii::$app->request->get('TSS')){
     // формируем выпадающий список с типами отчетов для руководителей
     if(\Yii::$app->session->get('user.ustatus')==3) {
 
-        $items[] = ['label' => \Yii::t('app', 'Reports'), 'url' => '#', 'items'=> [
-                ['label' => \Yii::t('app','Common'), 'url' => ['report/common']],
-				['label' => \Yii::t('app','Margin'), 'url' => ['report/margin']],
-                ['label' => \Yii::t('app','Payments'), 'url' => ['report/payments']],
-                ['label' => \Yii::t('app','Invoices'), 'url' => ['report/index','type'=>5]],
-                ['label' => \Yii::t('app','Debts'), 'url' => ['report/debt']],
-                ['label' => \Yii::t('app','Journals'), 'url' => ['report/index','type'=>8]],
-                ['label' => \Yii::t('app', 'Accruals'), 'url' => ['report/accrual']],
-                //['label' => \Yii::t('app', 'Translations'), 'url' => ['report/index', 'type'=>10]],
-				['label' => \Yii::t('app', 'Office plan'), 'url' => ['report/plan']]
+        $items[] = ['label' => Yii::t('app', 'Reports'), 'url' => '#', 'items'=> [
+                ['label' => Yii::t('app','Common'), 'url' => ['report/common']],
+				['label' => Yii::t('app','Margin'), 'url' => ['report/margin']],
+                ['label' => Yii::t('app','Payments'), 'url' => ['report/payments']],
+                ['label' => Yii::t('app','Invoices'), 'url' => ['report/index','type'=>5]],
+                ['label' => Yii::t('app','Debts'), 'url' => ['report/debt']],
+                ['label' => Yii::t('app','Journals'), 'url' => ['report/index','type'=>8]],
+                ['label' => Yii::t('app', 'Accruals'), 'url' => ['report/accrual']],
+                ['label' => \Yii::t('app', 'Salaries'), 'url' => ['report/salaries']],
+                ['label' => Yii::t('app', 'Office plan'), 'url' => ['report/plan']]
         ]];
     }
     // формируем выпадающий список с типами отчетов для менеджеров
     elseif(Yii::$app->session->get('user.ustatus')==4) {
         $items[] = ['label' => Yii::t('app', 'Reports'), 'url' => '#', 'items'=> [
-            ['label' => \Yii::t('app','Payments'), 'url' => ['report/payments']],
-            ['label' => \Yii::t('app','Invoices'), 'url' => ['report/index','type'=>5]],
-            ['label' => \Yii::t('app','Debts'), 'url' => ['report/debt']],
-            ['label' => \Yii::t('app','Journals'), 'url' => ['report/index','type'=>8]]
+            ['label' => Yii::t('app','Payments'), 'url' => ['report/payments']],
+            ['label' => Yii::t('app','Invoices'), 'url' => ['report/index','type'=>5]],
+            ['label' => Yii::t('app','Debts'), 'url' => ['report/debt']],
+            ['label' => Yii::t('app','Journals'), 'url' => ['report/index','type'=>8]]
         ]];
     }
     // формируем выпадающий список с типами отчетов для бухгатера
     elseif(Yii::$app->session->get('user.ustatus')==8) {
-        $items[] = ['label' => \Yii::t('app', 'Reports'), 'url' => '#', 'items'=> [
-            ['label' => \Yii::t('app','Common'), 'url' => ['report/common']],
-            ['label' => \Yii::t('app','Payments'), 'url' => ['report/payments']],
-            ['label' => \Yii::t('app', 'Accruals'), 'url' => ['report/accrual']]
+        $items[] = ['label' => Yii::t('app', 'Reports'), 'url' => '#', 'items'=> [
+            ['label' => Yii::t('app','Common'), 'url' => ['report/common']],
+            ['label' => Yii::t('app','Payments'), 'url' => ['report/payments']],
+            ['label' => Yii::t('app', 'Accruals'), 'url' => ['report/accrual']],
+            ['label' => Yii::t('app', 'Salaries'), 'url' => ['report/salaries']]
         ]];
     }
 
