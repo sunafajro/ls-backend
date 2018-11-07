@@ -128,19 +128,24 @@ class Groupteacher extends \yii\db\ActiveRecord
         $students = (new \yii\db\Query())
         ->select(['id' => 's.id', 'name' => 's.name'])
         ->from(['s' => 'calc_studname'])
-        ->leftJoin('calc_invoicestud i', 'i.calc_studname=s.id')
-        ->leftJoin('calc_groupteacher gt', 'gt.calc_service=i.calc_service')
-        ->leftJoin('calc_studgroup sg', 's.id=sg.calc_studname and gt.id=sg.calc_groupteacher')
-        ->where([
+        ->innerJoin('calc_invoicestud i', 'i.calc_studname=s.id')
+        ->innerJoin('calc_groupteacher gt', 'gt.calc_service=i.calc_service')
+        ->leftJoin('calc_studgroup sg', 's.id=sg.calc_studname and gt.id=sg.calc_groupteacher');
+        if ((int)Yii::$app->session->get('user.ustatus') === 4) {
+          $students = $students->innerJoin('calc_student_office so', 's.id=so.student_id');
+        }
+        $students = $students->where([
             'gt.id' => $id,
             's.visible' => 1,
             's.active' => 1,
             'i.done' => 0,
             'i.visible' => 1,
             'sg.id' =>  NULL
-        ])
-        ->andFilterWhere(['i.calc_office' => $oid ])
-        ->orderby(['s.name' => SORT_ASC])
+        ]);
+        if ((int)Yii::$app->session->get('user.ustatus') === 4) {
+          $students = $students->andWhere(['so.office_id' => $oid ]);
+        }
+        $students = $students->orderby(['s.name' => SORT_ASC])
         ->all();
 
         if(!empty($students)) {
