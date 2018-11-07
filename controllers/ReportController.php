@@ -24,15 +24,15 @@ class ReportController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['accrual','common','debt','index','margin','payments','plan','sale'],
+                'only' => ['accrual','common','debt','index','margin','payments','plan','sale','salaries'],
                 'rules' => [
                     [
-                        'actions' => ['accrual','common','debt','index','margin','plan','payments','sale'],
+                        'actions' => ['accrual','common','debt','index','margin','plan','payments','sale','salaries'],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['accrual','common','debt','index','margin','plan','payments','sale'],
+                        'actions' => ['accrual','common','debt','index','margin','plan','payments','sale','salaries'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -300,6 +300,10 @@ class ReportController extends Controller
     
     public function actionPayments ($start = null, $end = null)
     {
+        /* всех кроме руководителей, менеджеров и бухгалтеров редиректим обратно */
+        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4 && (int)Yii::$app->session->get('user.ustatus') !== 8) {
+            return $this->redirect(Yii::$app->request->referrer);
+        }
         if (Yii::$app->request->isPost) {
             $office = null;
             if ((int)Yii::$app->session->get('user.ustatus') === 4) {
@@ -315,7 +319,7 @@ class ReportController extends Controller
                 ]
             ];
         } else {
-            return $this->render('payments', []);
+            return $this->render('payments');
         }
     }
 
@@ -418,6 +422,33 @@ class ReportController extends Controller
 		]);
 		/* выводим данные в вьюз */
 	}
+
+    public function actionSalaries ($end = null, $limit = 10, $offset = 0, $tid = null, $start = null)
+    {
+        /* всех кроме руководителей и бухгалтеров редиректим обратно */
+        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 8) {
+            return $this->redirect(Yii::$app->request->referrer);
+        }
+        if (Yii::$app->request->isPost) {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return [
+                "status" => true,
+                "menuData" => Report::getReportTypes(),
+                "salariesData" => [
+                    "columns" => Report::getSalariesReportColumns(),
+                    "rows" => Report::getSalariesReportRows([
+                        'end' => $end,
+                        'id' => $tid,
+                        'limit' => $limit,
+                        'offset' => $offset,
+                        'start' => $start,
+                    ])
+                ]
+            ];
+        } else {
+            return $this->render('salaries');
+        }
+    }
 
     public function actionSale()
     {
