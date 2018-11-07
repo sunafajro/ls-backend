@@ -6,6 +6,8 @@ use Yii;
 use yii\base\Model;
 use app\models\Moneystud;
 use app\models\Office;
+use app\models\Teacher;
+
 /**
  * 
  */
@@ -69,6 +71,13 @@ class Report extends Model
                 'id' => 'accruals',
                 'label' => Yii::t('app','Accruals'),
                 'url' => '/report/accrual'
+            ];
+        }
+        if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 8) {
+            $items[] = [
+                'id' => 'accruals',
+                'label' => Yii::t('app','Salaries'),
+                'url' => '/report/salaries'
             ];
         }
         if ((int)Yii::$app->session->get('user.ustatus') === 3) {
@@ -285,5 +294,60 @@ class Report extends Model
         }
 
         return $result;
+    }
+
+    // возвращает заголовки таблицы отчета по оплатам
+    public static function getSalariesReportColumns()
+    {
+        return [
+            [
+                'id' => 'id',
+                'name' => '№',
+                'show' => true,
+                'width' => '10%'
+            ],
+            [
+                'id' => 'teacherId',
+                'name' => Yii::t('app', 'Teacher ID'),
+                'show' => false,
+                'width' => ''
+            ],
+            [
+                'id' => 'teacher',
+                'name' => Yii::t('app', 'Teacher'),
+                'show' => true,
+                'width' => '30%'
+            ],
+            [
+                'id' => 'date',
+                'name' => Yii::t('app', 'Date'),
+                'show' => true,
+                'width' => '10%'
+            ],
+            [
+                'id' => 'hours',
+                'name' => Yii::t('app', 'Hours'),
+                'show' => true,
+                'width' => '10%'
+            ],
+            [
+                'id' => 'tax',
+                'name' => Yii::t('app', 'Tax'),
+                'show' => true,
+                'width' => '10%'
+            ],
+            [
+                'id' => 'sum',
+                'name' => Yii::t('app', 'Sum'),
+                'show' => true,
+                'width' => '10%'
+            ],
+        ];
+    }
+
+    public static function getSalariesReportRows($params = null)
+    {
+        $teachers = Teacher::getTeachersByAccruals($params); 
+        return [];
     }
 }
