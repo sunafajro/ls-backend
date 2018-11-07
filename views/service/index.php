@@ -41,8 +41,8 @@ if (Yii::$app->request->get('type')) {
         <div class="well well-sm small">
             <span class="font-weight-bold"><?= Yii::$app->session->get('user.uname') ?></span>
             <?php if(Yii::$app->session->get('user.uteacher')) { ?>
-                <?= Html::a('', ['teacher/view', 'id'=>Yii::$app->session->get('user.uteacher')], ['class'=>'fa fa-user btn btn-default btn-xs']); ?>                   
-            <?php } ?>               
+                <?= Html::a('', ['teacher/view', 'id'=>Yii::$app->session->get('user.uteacher')], ['class'=>'fa fa-user btn btn-default btn-xs']); ?>
+            <?php } ?>
             <br />
             <?= Yii::$app->session->get('user.stname') ?>
             <?php if(Yii::$app->session->get('user.ustatus')==4) { ?>
@@ -63,7 +63,7 @@ if (Yii::$app->request->get('type')) {
                     ]);
                     ?>
             <div class="form-group">
-                <input type="text" class="form-control input-sm" placeholder="Найти по id..." name="TSS" value="<?= ($url_params['TSS'] != '') ? $url_params['TSS'] : '' ?>">
+                <input type="text" class="form-control input-sm" placeholder="id или название..." name="TSS" value="<?= ($url_params['TSS'] != '') ? $url_params['TSS'] : '' ?>">
             </div>
             <div class="form-group">
                 <select class="form-control input-sm" name="type">
