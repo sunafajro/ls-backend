@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use \yii\data\Pagination;
 
 /**
  * This is the model class for table "calc_teacher".
@@ -71,24 +72,78 @@ class Teacher extends \yii\db\ActiveRecord
         ];
     }
 
+    public static function getTeachers()
+    {
+        $teachers = (new \yii\db\Query())
+        ->select([
+            'id' => 't.id',
+            'name' => 't.name'
+        ])
+        ->from(['t' => 'calc_teacher'])
+        ->where([
+            't.visible' => 1,
+            't.old' => 0
+        ])
+        ->orderBy(['t.name' => SORT_ASC])
+        ->all();
+
+        return $teachers;
+    }
+
     /* Метод возвращает список действующих преподавателей в виде одномерного массива */
     public static function getTeachersInUserListSimple()
     {
         $teachers = [];
+        $tmp_teachers = static::getTeachers();
 
-        $tmp_teachers = (new \yii\db\Query())
-        ->select('ct.id as id, ct.name as name')
-        ->from('calc_teacher ct')
-        ->where('ct.visible=:vis and ct.old=:old', [':vis'=> 1,':old'=>0])
-        ->orderBy(['ct.name'=>SORT_ASC])
-        ->all();
-        
-        if(!empty($tmp_teachers)) {
+        if(
+            !empty($tmp_teachers)
+        ) {
             foreach($tmp_teachers as $t){
                 $teachers[$t['id']] = $t['name'];
             }
         }
 
         return $teachers;
+    }
+
+    public static function getTeachersByAccruals($params = null)
+    {
+        $teachers = (new \yii\db\Query())
+        ->select([
+            'id' => 't.id',
+            'name' => 't.name'
+        ])
+        ->from(['t' => 'calc_teacher'])
+        ->innerJoin(['acc' => 'calc_accrualteacher'], 'acc.calc_teacher = t.id')
+        ->where([
+            'acc.visible' => 1,
+            't.visible' => 1,
+            't.old' => 0
+        ])
+        ->andFilterWhere(['<=', 'acc.data', isset($params['end']) ? $params['end'] : null])
+        ->andFilterWhere(['>=', 'acc.data', isset($params['start']) ? $params['start'] : null])
+        ->andFilterWhere(['t.id' => isset($params['id']) ? $params['id'] : null]);
+
+        // делаем клон запроса
+        $countQuery = clone $teachers;
+        // получаем данные для паджинации
+        $pages = new Pagination(['totalCount' => $countQuery->count()]);
+
+        if (isset($params['limit'])) {
+            $teachers = $teachers->limit($params['limit']);
+        }
+
+        if (isset($params['offset'])) {
+            $teachers = $teachers->offset($params['offset']);
+        }
+
+        $teachers = $teachers->orderBy(['t.name' => SORT_ASC])
+        ->all();
+
+        return [
+            'total' => $pages->totalCount,
+            'rows' => $teachers
+        ];
     }
 }
