@@ -68,16 +68,35 @@ class ServiceController extends Controller
                 case 'actual': $after = date('Y-m-d'); break;
             }
 
+            // по умолчанию поиск по имени
+            // если в строке целое число, то поиск по идентификатору
+            $tss_condition = ['like', 'cs.name', $url_params['TSS']];
+            if ((int)$url_params['TSS'] > 0) {
+              $tss_condition = ['cs.id' => (int)$url_params['TSS']];
+            }
             // пишем запрос
             $services = (new \yii\db\Query()) 
-            ->select('cs.id as sid, cs.name as sname, cs.data as sdate, cs.calc_city as cid, cc.name as cname, cst.id as cstid, cst.name as cstname, cstn.id as cstnid, cstn.value as cstnvalue, ctn.id as ctnid, ctn.name as ctnname')
-            ->from('calc_service cs')
+            ->select([
+                'sid' => 'cs.id',
+                'sname' => 'cs.name',
+                'sdate' => 'cs.data',
+                'cid' => 'cs.calc_city',
+                'cname' => 'cc.name',
+                'cstid' => 'cst.id',
+                'cstname' => 'cst.name',
+                'cstnid' => 'cstn.id',
+                'cstnvalue' => 'cstn.value',
+                'ctnid' => 'ctn.id',
+                'ctnname' => 'ctn.name'
+            ])
+            ->from(['cs' => 'calc_service'])
             ->leftjoin('calc_city cc', 'cc.id=cs.calc_city')
             ->leftjoin('calc_servicetype cst', 'cst.id=cs.calc_servicetype')
             ->leftjoin('calc_studnorm cstn', 'cstn.id=cs.calc_studnorm')
             ->leftjoin('calc_timenorm ctn', 'ctn.id=cs.calc_timenorm')
-            ->where('cs.visible=:one and cstn.id is not null', [':one'=>1])
-            ->andFilterWhere(['cs.id' => $url_params['TSS']])
+            ->where(['cs.visible' => 1])
+            ->andWhere(['not', ['cstn.id' => null]])
+            ->andFilterWhere($tss_condition)
             ->andFilterWhere(['cs.calc_servicetype' => $url_params['STID']])
             ->andFilterWhere(['cs.calc_city' => $url_params['SCID']])
             ->andFilterWhere(['cs.calc_lang' => $url_params['SLID']])
