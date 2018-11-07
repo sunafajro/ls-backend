@@ -72,8 +72,8 @@ if($tab == 3){
             <h4><?= Yii::t('app', 'Actions') ?>:</h4>
             <?php if ((int)Yii::$app->session->get('user.uid') !== 296) : ?>
               <?= Html::a('<span class="fa fa-users" aria-hidden="true"></span> ' . Yii::t('app', 'Add group'), ['groupteacher/create','tid'=>$model->id], ['class' => 'btn btn-default btn-sm btn-block', 'title' => Yii::t('app','Add group')]) ?>
-              <?= Html::a('<span class="fa fa-language" aria-hidden="true"></span> ' . Yii::t('app', 'Add language'), ['langteacher/create','tid'=>$model->id], ['class' => 'btn btn-default btn-sm btn-block', 'title' => Yii::t('app','Add language')]) ?>
             <?php endif; ?>
+            <?= Html::a('<span class="fa fa-language" aria-hidden="true"></span> ' . Yii::t('app', 'Add language'), ['langteacher/create','tid'=>$model->id], ['class' => 'btn btn-default btn-sm btn-block', 'title' => Yii::t('app','Add language')]) ?>
             <?php if ((int)Yii::$app->session->get('user.ustatus') !== 4) : ?>
                 <?= Html::a('<span class="fa fa-money" aria-hidden="true"></span> ' . Yii::t('app', 'Add rate'), ['edunormteacher/create','tid'=>$model->id], ['class' => 'btn btn-default btn-sm btn-block', 'title' => Yii::t('app','Add rate')]) ?>
             <?php endif; ?>
@@ -193,7 +193,11 @@ if($tab == 3){
             echo "<li role='presentation'".(($tab == 1) ? " class='active'" : "").">".Html::a(Yii::t('app','Active groups'),['teacher/view','id'=>$model->id,'tab'=>1])."</li>";
             echo "<li role='presentation'".(($tab == 2) ? " class='active'" : "").">".Html::a(Yii::t('app','Finished groups'),['teacher/view','id'=>$model->id,'tab'=>2])."</li>";
         }
-        if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.uteacher')==$model->id||Yii::$app->session->get('user.ustatus')==8){
+        if(
+          (int)Yii::$app->session->get('user.ustatus') === 3 ||
+          (int)Yii::$app->session->get('user.ustatus') === 8 ||
+          (int)Yii::$app->session->get('user.uteacher') === (int)$model->id ||
+          (int)Yii::$app->session->get('user.uid') === 296){
             echo "<li role='presentation'".(($tab == 3) ? " class='active'" : "").">".Html::a(Yii::t('app','Accruals'),['teacher/view','id'=>$model->id,'tab'=>3])."</li>";
         }
         ?>
