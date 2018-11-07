@@ -1,6 +1,6 @@
 <?php
   $this->title = 'Система учета :: '.Yii::t('app','Reports');
-  $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => 'report/index'];
+  $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => '/report/index'];
   $this->params['breadcrumbs'][] = Yii::t('app','Payments');
 ?>
 
