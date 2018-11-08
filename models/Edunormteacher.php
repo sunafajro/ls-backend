@@ -81,4 +81,20 @@ class Edunormteacher extends \yii\db\ActiveRecord
         
         return $edunorm;
     }
+
+    public static function getTaxes($teachers)
+    {
+        $edunorms = (new \yii\db\Query())
+        ->select([
+            'id' => 'en.id',
+            'entId' => 'ent.id',
+            'name' => 'en.name',
+            'value' => 'en.value'
+        ])
+        ->from(['en' => 'calc_edunorm'])
+        ->innerJoin(['ent' => self::tableName()], 'ent.calc_edunorm = en.id')
+        ->andFilterwhere(['in', 'ent.calc_teacher', $teachers])
+        ->all();
+        return $edunorms;
+    }
 }
