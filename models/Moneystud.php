@@ -83,13 +83,26 @@ class Moneystud extends \yii\db\ActiveRecord
     public static function getPayments($start = null, $end = null, $office = null)
     {
         $payments = (new \yii\db\Query())
-        ->select(['id' => 'ms.id', 'studentId' => 'sn.id', 'student' => 'sn.name', 
-        'manager' => 'u.name','sum' => 'ms.value', 'card' => 'ms.value_card', 'cash' => 'ms.value_cash', 
-        'bank' => 'ms.value_bank', 'date' => 'ms.data', 'receipt' => 'ms.receipt', 
-        'active' => 'ms.visible', 'remain' => 'ms.remain', 'office' => 'ms.calc_office'])
-        ->from('calc_moneystud ms')
-        ->leftjoin('calc_studname sn', 'sn.id=ms.calc_studname')
-        ->leftJoin('user u', 'u.id=ms.user')
+        ->select([
+            'id' => 'ms.id',
+            'studentId' => 'sn.id',
+            'student' => 'sn.name', 
+            'manager' => 'u.name',
+            'sum' => 'ms.value',
+            'card' => 'ms.value_card',
+            'cash' => 'ms.value_cash', 
+            'bank' => 'ms.value_bank',
+            'date' => 'ms.data',
+            'receipt' => 'ms.receipt', 
+            'active' => 'ms.visible',
+            'remain' => 'ms.remain',
+            'officeId' => 'ms.calc_office',
+            'office' => 'o.name'
+        ])
+        ->from(['ms' => static::tableName()])
+        ->innerjoin(['sn' => 'calc_studname'], 'sn.id = ms.calc_studname')
+        ->innerJoin(['u' => 'user'], 'u.id = ms.user')
+        ->innerJoin(['o' => 'calc_office'], 'o.id = ms.calc_office')
         ->andFilterWhere(['ms.calc_office' => $office])
         ->andFilterWhere(['>=', 'ms.data', $start])
         ->andFilterWhere(['<=', 'ms.data', $end])
@@ -105,13 +118,26 @@ class Moneystud extends \yii\db\ActiveRecord
     public static function getStudentPaymentById($sid)
     {
         $payments = (new \yii\db\Query())
-        ->select('cms.id as pid, cms.data as pdate, cms.value as pvalue, u.name as uname, co.name as oname, cms.receipt as receipt, cms.visible as visible, u2.name as editor, cms.data_visible as edit_date, cms.remain as remain')
-        ->from('calc_moneystud cms')
-        ->leftJoin('user u','u.id=cms.user')
-        ->leftJoin('user u2', 'u2.id=cms.user_visible')
-        ->leftJoin('calc_office co','co.id=cms.calc_office')
-        ->where('cms.calc_studname=:id',[':id'=>$sid])
-        ->orderby(['cms.id'=>SORT_DESC])
+        ->select([
+            'pid' => 'ms.id',
+            'pdate' => 'ms.data',
+            'pvalue' => 'ms.value',
+            'uname' => 'u.name',
+            'oname' => 'o.name',
+            'receipt' => 'ms.receipt',
+            'visible' => 'ms.visible',
+            'editor' => 'u2.name',
+            'edit_date' => 'ms.data_visible',
+            'remain' => 'ms.remain'
+        ])
+        ->from(['ms' => self::tableName()])
+        ->innerJoin(['u' => 'user'], 'u.id = ms.user')
+        ->leftJoin(['u2' => 'user'], 'u2.id = ms.user_visible')
+        ->innerJoin(['o' => 'calc_office'], 'o.id = ms.calc_office')
+        ->where([
+            'ms.calc_studname' => $sid
+        ])
+        ->orderby(['ms.id' => SORT_DESC])
         ->all();
 
         return $payments;
@@ -121,10 +147,18 @@ class Moneystud extends \yii\db\ActiveRecord
     public static function getStudentPaymentByIdBrief($sid)
     {
         $payments = (new \yii\db\Query())
-        ->select(['id' => 'm.id', 'date' => 'm.data', 'sum' => 'm.value', 'receipt' => 'm.receipt'])
-        ->from('calc_moneystud m')
-        ->where('m.calc_studname=:id AND m.visible=:one', [':id' => $sid, ':one' => 1])
-        ->orderby(['m.data' => SORT_DESC])
+        ->select([
+            'id' => 'ms.id',
+            'date' => 'ms.data',
+            'sum' => 'ms.value',
+            'receipt' => 'ms.receipt'
+        ])
+        ->from(['ms' => self::tableName()])
+        ->where([
+            'ms.calc_studname' => $sid,
+            'ms.visible' => 1
+        ])
+        ->orderby(['ms.data' => SORT_DESC])
         ->all();
         return $payments;
     }
