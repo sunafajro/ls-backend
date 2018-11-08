@@ -420,5 +420,40 @@ class AccrualTeacher extends \yii\db\ActiveRecord
         ->all();
         
         return $accruals;
-	}
+    }
+    
+    public static function getAccrualsByTeachers($start = null, $end = null, $teachers = null)
+    {
+        $accruals = (new \yii\db\Query())
+        ->select([
+          'id' => 'act.id',
+          'teacherId' => 'act.calc_teacher',
+          'date' => 'act.data',
+          'hours' => 'SUM(tn.value)',
+          'tax' => 'act.calc_edunormteacher',
+          'sum' => 'act.value'
+        ])
+        ->from(['act' => self::tableName()])
+        ->innerJoin(['gt' => 'calc_groupteacher'], 'gt.id = act.calc_groupteacher')
+        ->innerJoin(['s' => 'calc_service'], 's.id = gt.calc_service')
+        ->innerJoin(['tn' => 'calc_timenorm'], 'tn.id = s.calc_timenorm')
+        ->innerJoin(['j' => 'calc_journalgroup'], 'j.calc_accrual = act.id')
+        ->andFilterWhere(['>=', 'act.data', $start])
+        ->andFilterWhere(['<=', 'act.data', $end])
+        ->andFilterWhere(['in', 'act.calc_teacher', $teachers])
+        ->groupBy([
+            'act.id',
+            'act.calc_teacher',
+            'act.data',
+            'act.calc_edunormteacher',
+            'act.value'
+        ])
+        ->orderBy([
+            'act.calc_teacher' => SORT_ASC,
+            'act.data' => SORT_ASC
+        ])
+        ->all();
+
+        return $accruals;
+    }
 }
