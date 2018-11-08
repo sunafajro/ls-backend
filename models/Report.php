@@ -4,6 +4,8 @@ namespace app\models;
 
 use Yii;
 use yii\base\Model;
+use app\models\AccrualTeacher;
+use app\models\Edunormteacher;
 use app\models\Moneystud;
 use app\models\Office;
 use app\models\Teacher;
@@ -75,7 +77,7 @@ class Report extends Model
         }
         if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 8) {
             $items[] = [
-                'id' => 'accruals',
+                'id' => 'salaries',
                 'label' => Yii::t('app','Salaries'),
                 'url' => '/report/salaries'
             ];
@@ -229,12 +231,11 @@ class Report extends Model
     public static function getPaymentsReportRows($start = null, $end = null, $office = null)
     {
         $result = [];
-        $offices = Office::getOfficesListSimple($office);
         $payments = Moneystud::getPayments($start, $end, $office);
         foreach($payments as $p) {
-            if (!isset($result[$p['office']])) {
-                $result[$p['office']] = [
-                    'name' => $offices[$p['office']],
+            if (!isset($result[$p['officeId']])) {
+                $result[$p['officeId']] = [
+                    'name' => $p['office'],
                     'counts' => [
                         'cash' => 0,
                         'card' => 0,
@@ -243,8 +244,8 @@ class Report extends Model
                     ]
                 ];
             }
-            if (!isset($result[$p['office']][$p['date']])) {
-                $result[$p['office']][$p['date']] = [
+            if (!isset($result[$p['officeId']][$p['date']])) {
+                $result[$p['officeId']][$p['date']] = [
                     'counts' => [
                         'cash' => 0,
                         'card' => 0,
@@ -258,29 +259,29 @@ class Report extends Model
             if ($p['card'] != '0.00') {
                 $type = Yii::t('app','Card');
                 if ($p['active'] && !$p['remain']) {
-                    $result[$p['office']]['counts']['card'] += $p['card'];
-                    $result[$p['office']][$p['date']]['counts']['card'] += $p['card'];
+                    $result[$p['officeId']]['counts']['card'] += $p['card'];
+                    $result[$p['officeId']][$p['date']]['counts']['card'] += $p['card'];
                 }
             }
             if ($p['cash'] != '0.00') {
                 $type = Yii::t('app','Cash');
                 if ($p['active'] && !$p['remain']) {
-                    $result[$p['office']]['counts']['cash'] += $p['cash'];
-                    $result[$p['office']][$p['date']]['counts']['cash'] += $p['cash'];
+                    $result[$p['officeId']]['counts']['cash'] += $p['cash'];
+                    $result[$p['officeId']][$p['date']]['counts']['cash'] += $p['cash'];
                 }
             }
             if ($p['bank'] != '0.00') {
                 $type = Yii::t('app','Bank');
                 if ($p['active'] && !$p['remain']) {
-                    $result[$p['office']]['counts']['bank'] += $p['bank'];
-                    $result[$p['office']][$p['date']]['counts']['bank'] += $p['bank'];
+                    $result[$p['officeId']]['counts']['bank'] += $p['bank'];
+                    $result[$p['officeId']][$p['date']]['counts']['bank'] += $p['bank'];
                 }
             }
             if ($p['active'] && !$p['remain']) {
-                $result[$p['office']]['counts']['all'] += $p['sum'];
-                $result[$p['office']][$p['date']]['counts']['all'] += $p['sum'];
+                $result[$p['officeId']]['counts']['all'] += $p['sum'];
+                $result[$p['officeId']][$p['date']]['counts']['all'] += $p['sum'];
             }
-            $result[$p['office']][$p['date']]['rows'][] = [
+            $result[$p['officeId']][$p['date']]['rows'][] = [
                 'id' => $p['id'],
                 'studentId' => $p['studentId'],
                 'student' => $p['student'],
@@ -315,7 +316,7 @@ class Report extends Model
             [
                 'id' => 'teacher',
                 'name' => Yii::t('app', 'Teacher'),
-                'show' => true,
+                'show' => false,
                 'width' => '30%'
             ],
             [
@@ -347,7 +348,52 @@ class Report extends Model
 
     public static function getSalariesReportRows($params = null)
     {
-        $teachers = Teacher::getTeachersByAccruals($params); 
-        return [];
+        $result = [];
+        $teachersKeyVal = [];
+        $teachersKey = [];
+        $teacherTaxes = [];
+        $teachers = Teacher::getTeachersByAccruals($params);
+        foreach($teachers['rows'] as $t) {
+            $teachersKeyVal[$t['id']] = $t['name'];
+            $teachersKey[] = $t['id'];
+        }
+        $teachersKey = array_unique($teachersKey);
+        $taxes = Edunormteacher::getTaxes($teachersKey);
+        foreach($taxes as $t) {
+            $teacherTaxes[$t['entId']] = $t['value'];
+        }
+        $accruals = AccrualTeacher::getAccrualsByTeachers(
+            $params['start'],
+            $params['end'],
+            $teachersKey
+        );
+        foreach($accruals as $a) {
+            if (!isset($result[$a['teacherId']])) {
+                $result[$a['teacherId']] = [
+                    'name' => $teachersKeyVal[$a['teacherId']],
+                    'counts' => [
+                        'all' => 0
+                    ],
+                    'rows' => []
+                ];
+            }
+            if ($a['sum'] != '0.00') {
+                $result[$a['teacherId']]['counts']['all'] += $a['sum'];
+            }
+            $result[$a['teacherId']]['rows'][] = [
+                'id' => $a['id'],
+                'teacherId' => $a['teacherId'],
+                'teacher' => $teachersKeyVal[$a['teacherId']],
+                'date' => $a['date'],
+                'hours' => $a['hours'],
+                'tax' => isset($teacherTaxes[$a['tax']]) ? $teacherTaxes[$a['tax']] : 0,
+                'sum' => $a['sum'],
+            ];
+
+        }
+        return [
+            'rows' => $result,
+            'total' => $teachers['total']
+        ];
     }
 }
