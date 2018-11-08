@@ -114,6 +114,7 @@ class Teacher extends \yii\db\ActiveRecord
             'id' => 't.id',
             'name' => 't.name'
         ])
+        ->distinct()
         ->from(['t' => 'calc_teacher'])
         ->innerJoin(['acc' => 'calc_accrualteacher'], 'acc.calc_teacher = t.id')
         ->where([
