@@ -431,18 +431,20 @@ class ReportController extends Controller
         }
         if (Yii::$app->request->isPost) {
             Yii::$app->response->format = Response::FORMAT_JSON;
+            $salaries = Report::getSalariesReportRows([
+                'end' => $end,
+                'id' => $tid,
+                'limit' => $limit,
+                'offset' => $offset,
+                'start' => $start,
+            ]);
             return [
-                "status" => true,
-                "menuData" => Report::getReportTypes(),
-                "salariesData" => [
-                    "columns" => Report::getSalariesReportColumns(),
-                    "rows" => Report::getSalariesReportRows([
-                        'end' => $end,
-                        'id' => $tid,
-                        'limit' => $limit,
-                        'offset' => $offset,
-                        'start' => $start,
-                    ])
+                'status' => true,
+                'menuData' => Report::getReportTypes(),
+                'salariesData' => [
+                    'columns' => Report::getSalariesReportColumns(),
+                    'rows' => $salaries['rows'],
+                    'total' => $salaries['total']
                 ]
             ];
         } else {
