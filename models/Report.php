@@ -353,43 +353,45 @@ class Report extends Model
         $teachersKey = [];
         $teacherTaxes = [];
         $teachers = Teacher::getTeachersByAccruals($params);
-        foreach($teachers['rows'] as $t) {
-            $teachersKeyVal[$t['id']] = $t['name'];
-            $teachersKey[] = $t['id'];
-        }
-        $teachersKey = array_unique($teachersKey);
-        $taxes = Edunormteacher::getTaxes($teachersKey);
-        foreach($taxes as $t) {
-            $teacherTaxes[$t['entId']] = $t['value'];
-        }
-        $accruals = AccrualTeacher::getAccrualsByTeachers(
-            $params['start'],
-            $params['end'],
-            $teachersKey
-        );
-        foreach($accruals as $a) {
-            if (!isset($result[$a['teacherId']])) {
-                $result[$a['teacherId']] = [
-                    'name' => $teachersKeyVal[$a['teacherId']],
-                    'counts' => [
-                        'all' => 0
-                    ],
-                    'rows' => []
+        if (count($teachers['rows'])) {
+            foreach($teachers['rows'] as $t) {
+                $teachersKeyVal[$t['id']] = $t['name'];
+                $teachersKey[] = $t['id'];
+            }
+            $teachersKey = array_unique($teachersKey);
+            $taxes = Edunormteacher::getTaxes($teachersKey);
+            foreach($taxes as $t) {
+                $teacherTaxes[$t['entId']] = $t['value'];
+            }
+            $accruals = AccrualTeacher::getAccrualsByTeachers(
+                $params['start'],
+                $params['end'],
+                $teachersKey
+            );
+            foreach($accruals as $a) {
+                if (!isset($result[$a['teacherId']])) {
+                    $result[$a['teacherId']] = [
+                        'name' => $teachersKeyVal[$a['teacherId']],
+                        'counts' => [
+                            'all' => 0
+                        ],
+                        'rows' => []
+                    ];
+                }
+                if ($a['sum'] != '0.00') {
+                    $result[$a['teacherId']]['counts']['all'] += $a['sum'];
+                }
+                $result[$a['teacherId']]['rows'][] = [
+                    'id' => $a['id'],
+                    'teacherId' => $a['teacherId'],
+                    'teacher' => $teachersKeyVal[$a['teacherId']],
+                    'date' => $a['date'],
+                    'hours' => $a['hours'],
+                    'tax' => isset($teacherTaxes[$a['tax']]) ? $teacherTaxes[$a['tax']] : 0,
+                    'sum' => $a['sum'],
                 ];
-            }
-            if ($a['sum'] != '0.00') {
-                $result[$a['teacherId']]['counts']['all'] += $a['sum'];
-            }
-            $result[$a['teacherId']]['rows'][] = [
-                'id' => $a['id'],
-                'teacherId' => $a['teacherId'],
-                'teacher' => $teachersKeyVal[$a['teacherId']],
-                'date' => $a['date'],
-                'hours' => $a['hours'],
-                'tax' => isset($teacherTaxes[$a['tax']]) ? $teacherTaxes[$a['tax']] : 0,
-                'sum' => $a['sum'],
-            ];
 
+            }
         }
         return [
             'rows' => $result,
