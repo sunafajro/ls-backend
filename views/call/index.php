@@ -3,29 +3,13 @@
 use yii\helpers\Html;
 use yii\grid\GridView;
 use yii\widgets\ActiveForm;
-/* @var $this yii\web\View */
-/* @var $searchModel app\models\CalcCallSearch */
-/* @var $dataProvider yii\data\ActiveDataProvider */
 
 $this->title = 'Система учета :: '.Yii::t('app','Calls');
 $this->params['breadcrumbs'][] = Yii::t('app','Calls');
-
 ?>
 <div class="row row-offcanvas row-offcanvas-left call-index">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
-        <div class="well well-sm small">
-            <span class="font-weight-bold"><?= Yii::$app->session->get('user.uname') ?></span>
-            <?php if(Yii::$app->session->get('user.uteacher')) { ?>
-                <?= Html::a('', ['teacher/view', 'id'=>Yii::$app->session->get('user.uteacher')], ['class'=>'fa fa-user btn btn-default btn-xs']); ?>                   
-            <?php } ?>               
-            <br />
-            <?= Yii::$app->session->get('user.stname') ?>
-            <?php if(Yii::$app->session->get('user.ustatus')==4) { ?>
-                <br />
-                <?= Yii::$app->session->get('user.uoffice') ?>
-            <?php } ?>
-        </div>
-
+        <?= $userInfoBlock ?>
         <h4><?= Yii::t('app', 'Actions') ?></h4>
         <?= Html::a('<span class="fa fa-plus" aria-hidden="true"></span> ' . Yii::t('app', 'Add'), ['create'], ['class' => 'btn btn-success btn-sm btn-block']) ?>
         <h4><?= Yii::t('app', 'Filters') ?></h4>

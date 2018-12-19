@@ -3,13 +3,14 @@
 namespace app\controllers;
 
 use Yii;
+use yii\db\Query;
+use yii\filters\AccessControl;
+use yii\filters\VerbFilter;
 use app\models\Call;
 use app\models\Student;
+use app\models\User;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
-use yii\filters\AccessControl;
-use yii\db\Query;
 
 /**
  * CallController implements the CRUD actions for CalcCall model.
@@ -209,7 +210,8 @@ class CallController extends Controller
         'offices' => $offices,
         'ages' => $ages,
         'months' => $months,
-        'filter' => $filter
+        'filter' => $filter,
+        'userInfoBlock' => User::getUserInfoBlock()
         ]);
     }
 
@@ -232,9 +234,6 @@ class CallController extends Controller
      */
     public function actionCreate()
     {
-        // подключаем боковое меню
-        $this->layout = "column2";
-
         $model = new Call();
         // если звонок создается для уже имеющегося в базе клиента
         if(Yii::$app->request->get('sid')){
@@ -251,7 +250,6 @@ class CallController extends Controller
                 $model->calc_studname = $client->id;
             }
         }
-
 
         $ways = (new \yii\db\Query())
         ->select(['id'=>'id', 'name'=>'name'])
@@ -437,8 +435,7 @@ class CallController extends Controller
                 'age' => $age,
                 'eduform' => $eduform,
                 'office' => $office,
-                //'student' => $student,
-				//'studdata'=>$studdata,
+                'userInfoBlock' => User::getUserInfoBlock()
             ]);
         }
     }
@@ -451,9 +448,6 @@ class CallController extends Controller
      */
     public function actionUpdate($id)
     {
-        // подключаем боковое меню
-        $this->layout = "column2";
-        
         $model = $this->findModel($id);
 
         $ways = (new \yii\db\Query())
@@ -620,6 +614,7 @@ class CallController extends Controller
                 'office' => $office,
                 'student' => $student,
                 'service'=>$service,
+                'userInfoBlock' => User::getUserInfoBlock()
             ]);
         }
     }
