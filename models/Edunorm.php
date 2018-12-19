@@ -51,7 +51,7 @@ class Edunorm extends \yii\db\ActiveRecord
         ];
     }
 
-    public function getPaynorms()
+    public static function getPaynorms()
     {
         $teachpaynorm = (new \yii\db\Query())
         ->select(['id'=>'id', 'name'=>'name', 'value' => 'value'])
