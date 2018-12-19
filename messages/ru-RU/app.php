@@ -38,6 +38,7 @@ return array(
 'Add lesson'=>'Добавить занятие',
 'Add lesson to journal of group'=>'Добавить занятие в журнал группы',
 'Add new' => 'Добавить нового',
+'Add news' => 'Добавить новость',
 'Add phone'=> 'Добавить телефон',
 'Add premium' => 'Добавить надбавку',
 'Add rate' => 'Добавить ставку',
