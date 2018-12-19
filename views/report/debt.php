@@ -80,40 +80,44 @@ $this->params['breadcrumbs'][] = Yii::t('app','Debt report');
 			</div>
 		<?php } ?>
 
-    <?php
-		// первый элемент страницы 
-		$start = 1;
-		// последний элемент страницы
-		$end = 20;
-		// следующая страница
-		$nextpage = 2;
-		// предыдущая страница
-		$prevpage = 0;
-		// проверяем не задан ли номер страницы
-		if(Yii::$app->request->get('page')){
-			if(Yii::$app->request->get('page')>1){
-			// считаем номер первой строки с учетом страницы
-				$start = (20 * (Yii::$app->request->get('page') - 1) + 1);
-			// считаем номер последней строки с учетом страницы
-				$end = $start + 19;
-			// если страничка последняя подменяем номер последнего элемента
-			if($end>=$pages->totalCount){
-				$end = $pages->totalCount;
+		<?php
+			// первый элемент страницы 
+			$start = 1;
+			// последний элемент страницы
+			$end = 20;
+			// следующая страница
+			$nextpage = 2;
+			// предыдущая страница
+			$prevpage = 0;
+			// проверяем не задан ли номер страницы
+			if(Yii::$app->request->get('page')){
+				if(Yii::$app->request->get('page')>1){
+				// считаем номер первой строки с учетом страницы
+					$start = (20 * (Yii::$app->request->get('page') - 1) + 1);
+				// считаем номер последней строки с учетом страницы
+					$end = $start + 19;
+				// если страничка последняя подменяем номер последнего элемента
+				if($end>=$pages->totalCount){
+					$end = $pages->totalCount;
+				}
+				// считаем номер следующей страницы
+					$prevpage = Yii::$app->request->get('page') - 1;
+				// считаем номер предыдущей страницы
+					$nextpage = Yii::$app->request->get('page') + 1;
+				}
 			}
-			// считаем номер следующей страницы
-				$prevpage = Yii::$app->request->get('page') - 1;
-			// считаем номер предыдущей страницы
-				$nextpage = Yii::$app->request->get('page') + 1;
-			}
-		}
-    ?>
-	    <p class="text-right">Показано <?= $start ?> - <?= $end >= $pages->totalCount ? $pages->totalCount : $end ?> из <?= $pages->totalCount ?></p>
-        <nav>
-            <ul class="pager">
-                <li class="previous"><?= (($prevpage > 0) ? Html::a('Предыдущий',['report/debt','page'=>$prevpage,'TSS'=>$tss,'OID'=>$oid,'SIGN'=>$sign,'STATE'=>$state]) : '') ?></li>
-                <li class="next"><?= (($end < $pages->totalCount) ? Html::a('Следующий',['report/debt','page'=>$nextpage,'TSS'=>$tss,'OID'=>$oid,'SIGN'=>$sign,'STATE'=>$state]) : '') ?></li>
-            </ul>
-        </nav>
+		?>
+		<div class="row" style="margin-bottom: 0.5rem">
+            <div class="col-xs-12 col-sm-3 text-left">
+                <?= (($prevpage > 0) ? Html::a('Предыдущий',['report/debt','page'=>$prevpage,'TSS'=>$tss,'OID'=>$oid,'SIGN'=>$sign,'STATE'=>$state], ['class' => 'btn btn-default']) : '') ?>
+            </div>
+            <div class="col-xs-12 col-sm-6 text-center">
+                <p style="margin-top: 1rem; margin-bottom: 0.5rem">Показано <?= $start ?> - <?= $end >= $pages->totalCount ? $pages->totalCount : $end ?> из <?= $pages->totalCount ?></p>
+            </div>
+            <div class="col-xs-12 col-sm-3 text-right">
+                <?= (($end < $pages->totalCount) ? Html::a('Следующий',['report/debt','page'=>$nextpage,'TSS'=>$tss,'OID'=>$oid,'SIGN'=>$sign,'STATE'=>$state], ['class' => 'btn btn-default']) : '') ?>
+            </div>
+        </div>
         <?php foreach ($stds as $st) : ?>
 	        <div class="<?= $st['debt'] >= 0 ? 'bg-success text-success' : 'bg-danger text-danger' ?>" style="padding: 15px">
                 <div style="float: left"><strong><?= Html::a("#".$st['id']." ".$st['name']." →", ['studname/view', 'id'=>$st['id']]) ?></strong></div>
@@ -142,11 +146,16 @@ $this->params['breadcrumbs'][] = Yii::t('app','Debt report');
             </table>
 
 		<?php endforeach; ?>
-        <nav>
-            <ul class="pager">
-                <li class="previous"><?= (($prevpage > 0) ? Html::a('Предыдущий',['report/debt','page'=>$prevpage,'TSS'=>$tss,'OID'=>$oid,'SIGN'=>$sign,'STATE'=>$state]) : '') ?></li>
-                <li class="next"><?= (($end < $pages->totalCount) ? Html::a('Следующий',['report/debt','page'=>$nextpage,'TSS'=>$tss,'OID'=>$oid,'SIGN'=>$sign,'STATE'=>$state]) : '') ?></li>
-            </ul>
-        </nav>
+		<div class="row" style="margin-bottom: 0.5rem">
+            <div class="col-xs-12 col-sm-3 text-left">
+                <?= (($prevpage > 0) ? Html::a('Предыдущий',['report/debt','page'=>$prevpage,'TSS'=>$tss,'OID'=>$oid,'SIGN'=>$sign,'STATE'=>$state], ['class' => 'btn btn-default']) : '') ?>
+            </div>
+            <div class="col-xs-12 col-sm-6 text-center">
+                <p style="margin-top: 1rem; margin-bottom: 0.5rem">Показано <?= $start ?> - <?= $end >= $pages->totalCount ? $pages->totalCount : $end ?> из <?= $pages->totalCount ?></p>
+            </div>
+            <div class="col-xs-12 col-sm-3 text-right">
+                <?= (($end < $pages->totalCount) ? Html::a('Следующий',['report/debt','page'=>$nextpage,'TSS'=>$tss,'OID'=>$oid,'SIGN'=>$sign,'STATE'=>$state], ['class' => 'btn btn-default']) : '') ?>
+            </div>
+        </div>
     </div>
 </div>
