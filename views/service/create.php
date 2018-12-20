@@ -2,13 +2,9 @@
 
 use yii\helpers\Html;
 
-
-/* @var $this yii\web\View */
-/* @var $model app\models\CalcService */
-
-$this->title = 'Добавить услугу';
+$this->title = 'Система учета :: ' . Yii::t('app', 'Add service');
 $this->params['breadcrumbs'][] = ['label' => 'Услуги', 'url' => ['index']];
-$this->params['breadcrumbs'][] = $this->title;
+$this->params['breadcrumbs'][] = Yii::t('app', 'Add service');
 
 ?>
 <div class="row row-offcanvas row-offcanvas-left service-create">

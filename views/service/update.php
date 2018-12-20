@@ -2,12 +2,10 @@
 
 use yii\helpers\Html;
 
-/* @var $this yii\web\View */
-/* @var $model app\models\CalcService */
-
-$this->title = 'Обновить услугу';
+$this->title = 'Система учета :: ' . Yii::t('app', 'Update service') . ': ' . $model->name;
 $this->params['breadcrumbs'][] = ['label' => 'Услуги', 'url' => ['index']];
-$this->params['breadcrumbs'][] = Yii::t('app','Update');
+$this->params['breadcrumbs'][] = $model->name;
+$this->params['breadcrumbs'][] = Yii::t('app', 'Update');
 ?>
 
 <div class="row row-offcanvas row-offcanvas-left service-update">
@@ -27,11 +25,11 @@ $this->params['breadcrumbs'][] = Yii::t('app','Update');
         'costs' => $studnorms,
 		'city'=>$cities,
     ]) ?>
-<?php foreach($servicechanges as $change): ?>
-    <div class="well">Дата изменения: <?= $change['date'] ?><br />
-        Предыдущее значение: <?= $change['value'] ?> р.<br />
-        Кем изменено: <?= $change['user'] ?>
-    </div>
-<?php endforeach; ?>
+	<?php foreach($servicechanges as $change): ?>
+		<div class="well">Дата изменения: <?= $change['date'] ?><br />
+			Предыдущее значение: <?= $change['value'] ?> р.<br />
+			Кем изменено: <?= $change['user'] ?>
+		</div>
+	<?php endforeach; ?>
 	</div>
 </div>
