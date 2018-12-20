@@ -240,41 +240,43 @@ class UserController extends Controller
         $user = $this->findModel($id);
 
         if(!empty($user)){
-        // создаем новую модель загрузки
-        $model = new UploadForm();
+            // создаем новую модель загрузки
+            $model = new UploadForm();
 
-        if (Yii::$app->request->isPost) {
-            $model->file = UploadedFile::getInstance($model, 'file');
+            if (Yii::$app->request->isPost) {
+                $model->file = UploadedFile::getInstance($model, 'file');
 
-            if ($model->file && $model->validate()) {
-                //задаем адрес папки с файлами для поиска
-                $spath = "uploads/user/";
-                //задаем адрес папки для загрузки файла
-                $filepath = "uploads/user/".$id."/logo/";
-                //задаем имя файла
-                $filename = "calc-language-school-ru-".$id.".".$model->file->extension;
-                //проверяем наличие файла и папки
-                $filesearch = FileHelper::findFiles($spath,['only'=>[$filename]]);
-                // если нет
-                if(empty($filesearch)){
-                    // создаем папку по идентификатору пользователя
-                    FileHelper::createDirectory($spath.$id."/");
-                    // в ней создаем папку logo
-                    FileHelper::createDirectory($spath.$id."/logo/");
+                if ($model->file && $model->validate()) {
+                    //задаем адрес папки с файлами для поиска
+                    $spath = "uploads/user/";
+                    //задаем адрес папки для загрузки файла
+                    $filepath = "uploads/user/".$id."/logo/";
+                    //задаем имя файла
+                    $filename = "calc-language-school-ru-".$id.".".$model->file->extension;
+                    //проверяем наличие файла и папки
+                    $filesearch = FileHelper::findFiles($spath,['only'=>[$filename]]);
+                    // если нет
+                    if(empty($filesearch)){
+                        // создаем папку по идентификатору пользователя
+                        FileHelper::createDirectory($spath.$id."/");
+                        // в ней создаем папку logo
+                        FileHelper::createDirectory($spath.$id."/logo/");
+                    }
+                    $model->file->saveAs($filepath.$filename);
+                    $logoname = 'calc-language-school-ru-'.$id.'.'.$model->file->extension;
+                    $db = (new \yii\db\Query())
+                    ->createCommand()
+                    ->update('user', ['logo' => $logoname], ['id'=>$id])
+                    ->execute();
+                    return $this->redirect(['user/upload','id'=>$id]);
                 }
-                $model->file->saveAs($filepath.$filename);
-                $logoname = 'calc-language-school-ru-'.$id.'.'.$model->file->extension;
-                $db = (new \yii\db\Query())
-                ->createCommand()
-                ->update('user', ['logo' => $logoname], ['id'=>$id])
-                ->execute();
-                return $this->redirect(['user/upload','id'=>$id]);
             }
-        }
-
-        return $this->render('upload', ['model' => $model,'user'=>$user]);
-        }
-        else{
+            return $this->render('upload', [
+                'model' => $model,
+                'user' => $user,
+                'userInfoBlock' => User::getUserInfoBlock()
+            ]);
+        } else{
             return $this->redirect(['user/index']);
         }
     }
@@ -305,7 +307,10 @@ class UserController extends Controller
                 return $this->redirect(['changepass','id'=>$id]);
             }
         }
-        return $this->render('changepass', ['model' => $model]);
+        return $this->render('changepass', [
+            'model' => $model,
+            'userInfoBlock' => User::getUserInfoBlock()
+        ]);
     }
 
     public function actionGetInfo()

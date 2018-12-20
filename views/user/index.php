@@ -3,10 +3,7 @@
 use yii\helpers\Html;
 use yii\grid\GridView;
 use yii\widgets\ActiveForm;
-/* @var $this yii\web\View */
-/* @var $searchModel app\models\UserSearch */
-/* @var $dataProvider yii\data\ActiveDataProvider */
-/* @var $userlist */
+
 $this->title = 'Система учета :: '.Yii::t('app','Users');
 $this->params['breadcrumbs'][] = Yii::t('app','Users');
 ?>
