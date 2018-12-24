@@ -380,20 +380,20 @@ class TeacherController extends Controller
 
 			// выбираем данные по группам из базы
 			$teacherdata = (new \Yii\db\Query())
-			->select(['gid'=>'cgt.id', 'visible'=>'cgt.visible', 'level'=>'cel.name', 'service'=>'cs.name', 'sid'=>'cs.id', 'eduform'=>'cs.calc_eduform', 'office'=>'co.name', 'start_date'=>'cgt.data', 'creator'=>'u.name', 'duration'=>'ctn.value', 'direction' => 'cgt.company','ltch'=>$subQuery1, 'htacc'=>$subQuery2, 'vless'=>$subQuery3])
+			->select(['gid'=>'cgt.id', 'visible'=>'cgt.visible', 'level'=>'cel.name', 'service'=>'cs.name', 'sid'=>'cs.id', 'eduform'=>'cs.calc_eduform', 'office'=>'co.name', 'start_date'=>'cgt.data', 'creator'=>'u.name', 'duration'=>'ctn.value', 'corp' => 'cgt.corp', 'direction' => 'cgt.company','ltch'=>$subQuery1, 'htacc'=>$subQuery2, 'vless'=>$subQuery3])
 			->from('calc_teachergroup ctg')
 			->leftJoin('calc_groupteacher cgt', 'ctg.calc_groupteacher=cgt.id')
-		        ->leftJoin('calc_edulevel cel', 'cel.id=cgt.calc_edulevel')
+		    ->leftJoin('calc_edulevel cel', 'cel.id=cgt.calc_edulevel')
 			->leftJoin('calc_service cs', 'cs.id=cgt.calc_service')
 			->leftJoin('calc_office co', 'co.id=cgt.calc_office')
 			->leftJoin('user u', 'u.id=cgt.user')
 			->leftJoin('calc_timenorm ctn', 'ctn.id=cs.calc_timenorm');
-                        if($active==1) {
-			    $teacherdata = $teacherdata->where('ctg.calc_teacher=:id and cgt.visible=:one and ctg.visible=:one', [':id'=>$id, ':one'=>1]);
+            if ((int)$active === 1) {
+			    $teacherdata = $teacherdata->where('ctg.calc_teacher=:id and cgt.visible=:one and ctg.visible=:one', [':id' => $id, ':one' => 1]);
 			} else {
-                            $teacherdata = $teacherdata->where('ctg.calc_teacher=:id and (cgt.visible=:zero or (cgt.visible=:one and ctg.visible=:zero))', [':id'=>$id, ':zero'=>0, ':one'=>1]);
-                        }
-                        $teacherdata = $teacherdata->andFilterWhere(['year(cgt.data)'=>$year])
+                $teacherdata = $teacherdata->where('ctg.calc_teacher=:id and (cgt.visible=:zero or (cgt.visible=:one and ctg.visible=:zero))', [':id'=>$id, ':zero'=>0, ':one'=>1]);
+            }
+            $teacherdata = $teacherdata->andFilterWhere(['year(cgt.data)'=>$year])
 			->orderby(['cgt.data'=>SORT_DESC])
 			->all();
 			unset($subQuery1);
