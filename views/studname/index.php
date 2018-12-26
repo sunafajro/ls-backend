@@ -20,14 +20,14 @@ $this->registerJs($js);
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
         <?= $userInfoBlock ?>
         <h4><?= Yii::t('app', 'Filters') ?>:</h4>
-        <?php 
+        <?php
             $form = ActiveForm::begin([
                 'method' => 'get',
                 'action' => ['studname/index'],
                 ]);
         ?>
         <div class="form-group">
-            <input type="text" class="form-control input-sm" placeholder="Найти..." name="TSS" value="<?= $tss != '' ? $tss : '' ?>">
+            <input type="text" class="form-control input-sm" placeholder="имя или телефон..." name="TSS" value="<?= $tss != '' ? $tss : '' ?>">
         </div>
         <div class="form-group">
             <select class="form-control input-sm" name="STATE">

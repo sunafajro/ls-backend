@@ -59,17 +59,25 @@ class StudnameController extends Controller
 			return false;
 		}
 	}
-    
+
     /**
      * Lists all CalcStudname models.
      * @return mixed
      */
     public function actionIndex()
     {
-        $tss = NULL;
+        // $tss = NULL;
         // проверяем GET запрос на наличие переменной TSS (фильтр по имени)
-        if (Yii::$app->request->get('TSS')) {
-            $tss = Yii::$app->request->get('TSS');
+        //if (Yii::$app->request->get('TSS')) {
+        //    $tss = Yii::$app->request->get('TSS');
+        //}
+
+        // по умолчанию поиск по имени
+        $tss = Yii::$app->request->get('TSS') ? Yii::$app->request->get('TSS') : NULL;
+        $tss_condition = ['like', 's.name', $tss];
+        // если в строке целое число, то поиск по идентификатору
+        if ((int)$tss > 0) {
+           $tss_condition = ['like', 's.phone', $tss];
         }
 
         $oid = NULL;
@@ -83,9 +91,9 @@ class StudnameController extends Controller
         } else {
             if ((int)Yii::$app->session->get('user.ustatus') === 4) {
                 $oid = (int)Yii::$app->session->get('user.uoffice_id');
-            }            
+            }
         }
-        
+
         $state = 1;
         $state_id = 1;
         // проверяем GET запрос на наличие переменной STATE (фильтр по состоянию клиента)
@@ -95,7 +103,7 @@ class StudnameController extends Controller
                     // студент со статусом "С НАМИ"
                     case 1: $state_id = 1; break;
                     // студент со статусом "НЕ С НАМИ"
-                    case 2: $state_id = 0; break;            
+                    case 2: $state_id = 0; break;
                 }
                 $state = (int)Yii::$app->request->get('STATE');
             } else {
@@ -103,7 +111,7 @@ class StudnameController extends Controller
                 $state_id = NULL;
             }
         }
-        
+
         // для руководителя и менеджера выводим полный список студентов
         if ((int)Yii::$app->session->get('user.ustatus') === 3 ||
         (int)Yii::$app->session->get('user.ustatus') === 4 ||
@@ -117,9 +125,9 @@ class StudnameController extends Controller
                 'stphone' => 's.phone',
                 'description' => 's.description',
                 'stinvoice' => 's.invoice',
-                'stmoney' => 's.money', 
-                'debt' => 's.debt', 
-                'stsex' => 's.calc_sex', 
+                'stmoney' => 's.money',
+                'debt' => 's.debt',
+                'stsex' => 's.calc_sex',
                 'active' => 's.active'
             ])
             ->from(['s' => 'calc_studname']);
@@ -128,7 +136,7 @@ class StudnameController extends Controller
             }
             $students = $students->where(['s.visible' => 1])
             ->andFilterWhere(['s.active' => $state_id])
-            ->andFilterWhere(['like', 's.name', $tss]);
+            ->andFilterWhere($tss_condition);
             if ($oid) {
                 $students = $students->andFilterWhere(['so.office_id' => $oid]);
             }
@@ -156,7 +164,7 @@ class StudnameController extends Controller
             ->leftjoin('calc_teachergroup tg', 'tg.calc_groupteacher=sg.calc_groupteacher')
             ->where('cst.visible=:vis and tg.calc_teacher=:tid', [':vis'=> 1, ':tid'=>Yii::$app->session->get('user.uteacher')])
             ->andFilterWhere(['cst.active'=>$state_id])
-            ->andFilterWhere(['like','cst.name',$tss]);
+            ->andFilterWhere([$tss_condition]);
             // делаем клон запроса
             $countQuery = clone $students;
             // получаем данные для паджинации
@@ -196,7 +204,7 @@ class StudnameController extends Controller
             ->distinct()
             ->from('calc_service s')
             ->leftjoin('calc_invoicestud is', 'is.calc_service=s.id')
-            ->where('is.remain=:rem and is.visible=:vis', [':rem'=>0, ':vis'=>1])                
+            ->where('is.remain=:rem and is.visible=:vis', [':rem'=>0, ':vis'=>1])
             ->andWhere(['in','is.calc_studname',$studentids])
             ->groupby(['is.calc_studname','s.id'])
             ->orderby(['s.id'=>SORT_ASC])
@@ -237,8 +245,8 @@ class StudnameController extends Controller
         ->where('visible=1')
         ->all();
         // получаем список офисов
-        
-        // выводим данные в представление	
+
+        // выводим данные в представление
         return $this->render('index', [
             'students' => $students,
             'services' => $services,
