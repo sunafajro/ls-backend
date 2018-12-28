@@ -95,7 +95,7 @@ class InvoiceController extends Controller
 
             $hints = [
                 'Счет помечается "остаточным", если необходимо указать какие то занятия, которые были проведены, на момент ввода остатков и Студент школе за них должен.',
-                'Если необходимо использовать скидку, то перед выставлением счета эту скидку нужно заранее добавить студенту (кроме постоянной.).'
+                'Если необходимо использовать скидку, то перед выставлением счета эту скидку нужно заранее добавить студенту (кроме постоянной).'
             ];
 
             $sales = Salestud::getClientSalesSplited($sid);
@@ -110,6 +110,7 @@ class InvoiceController extends Controller
                 'permsale' => Yii::t('app', 'Permament sale'),
                 'num' => Yii::t('app', 'Lesson count'),
                 'remain' => Yii::t('app', 'Remain'),
+                'corp' => Yii::t('app', 'Corporative'),
                 'office' => Yii::t('app', 'Office'),
                 'calculate' => Yii::t('app', 'Calculate'),
                 'addsale' => Yii::t('app', 'Add'),
