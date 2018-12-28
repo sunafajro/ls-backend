@@ -56,13 +56,16 @@ if(Yii::$app->request->get('tab')){
                 <?= Html::a('<i class="fa fa-gift" aria-hidden="true"></i> ' . Yii::t('app', 'Sale'), ['salestud/create', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
                 <?php if(!$clientaccess): ?>
                     <?= Html::a('<i class="fa fa-user-plus" aria-hidden="true"></i> ' . Yii::t('app', 'Account'), ['clientaccess/create', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
-				<?php else: ?>
+		<?php else: ?>
                     <?= Html::a('<i class="fa fa-user" aria-hidden="true"></i> ' . Yii::t('app', 'Account'), ['clientaccess/update', 'id'=>$clientaccess->id,'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
-				<?php endif; ?>
-                <?= Html::a('<i class="fa fa-mobile" aria-hidden="true"></i> ' . Yii::t('app', 'Phone'), ['studphone/create', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
+		<?php endif; ?>
+                <?php if ((int)Yii::$app->session->get('user.ustatus') === 3) : ?>
+                    <?= Html::a('<i class="fa fa-mobile" aria-hidden="true"></i> ' . Yii::t('app', 'Phone'), ['studphone/create', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
+                <?php endif; ?>
             <?php else: ?>
                 <?= Html::a('<i class="fa fa-check" aria-hidden="true"></i> ' . Yii::t('app', 'To active'), ['studname/active', 'id' => $model->id], ['class' => 'btn btn-success btn-sm btn-block']) ?>
             <?php endif; ?>
+            <?= Html::a('<i class="fa fa-refresh" aria-hidden="true"></i> ' . Yii::t('app', 'Update balance'), ['studname/update-debt', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
             <?= Html::a('<i class="fa fa-pencil" aria-hidden="true"></i> ' . Yii::t('app', 'Edit'), ['studname/update', 'id' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
             <?php if(Yii::$app->session->get('user.ustatus') == 3): ?>
                 <?= Html::a('<i class="fa fa-compress" aria-hidden="true"></i> ' . Yii::t('app', 'Merge'), ['studname/merge', 'id' => $model->id], ['class' => 'btn btn-info btn-sm btn-block']) ?>

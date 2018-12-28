@@ -31,15 +31,15 @@ class StudnameController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['index', 'view', 'create', 'update', 'delete', 'detail', 'active', 'inactive', 'merge', 'change-office'],
+                'only' => ['index', 'view', 'create', 'update', 'delete', 'detail', 'active', 'inactive', 'merge', 'change-office', 'update-debt'],
                 'rules' => [
                     [
-                        'actions' => ['index', 'view', 'create', 'update', 'delete', 'detail', 'active', 'inactive', 'merge', 'change-office'],
+                        'actions' => ['index', 'view', 'create', 'update', 'delete', 'detail', 'active', 'inactive', 'merge', 'change-office', 'update-debt'],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index', 'view', 'create', 'update', 'delete', 'detail', 'active', 'inactive', 'merge', 'change-office'],
+                        'actions' => ['index', 'view', 'create', 'update', 'delete', 'detail', 'active', 'inactive', 'merge', 'change-office', 'update-debt'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -712,6 +712,17 @@ class StudnameController extends Controller
         } else {
             return $this->redirect(Yii::$app->request->referrer);
         }
+    }
+
+    public function actionUpdateDebt($sid)
+    {
+        $result = Student::updateInvMonDebt($sid);
+        if ($result) {
+          Yii::$app->session->setFlash('success', 'Баланс студента пересчитан успешно!');
+        } else {
+          Yii::$app->session->setFlash('error', 'Не удалось пересчитать баланс клиента!');
+        }
+        $this->redirect(['studname/view', 'id' => $sid]);
     }
 
     //public function actionCalculate($id)
