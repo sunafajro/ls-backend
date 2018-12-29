@@ -103,7 +103,7 @@ class Invoicestud extends \yii\db\ActiveRecord
     public static function getStudentInvoiceById($sid = null)
     {
         $invoices = (new \yii\db\Query())
-        ->select('cis.id as iid, cis.visible as ivisible, uv.name as uvisible, cis.data_visible as dvisible, cis.done as idone, ud.name as udone, cis.data_done as ddone, cs.id as sid, cs.name as sname, cis.data as idate, cis.num as inum, cis.value as ivalue, u.name as uname, co.name as oname, s3.name as perm_sale, s2.name as rub_sale, s1.name as proc_sale, cis.remain as remain')
+        ->select('cis.id as iid, cis.visible as ivisible, uv.name as uvisible, cis.data_visible as dvisible, cis.done as idone, ud.name as udone, cis.data_done as ddone, cs.id as sid, cs.name as sname, cis.data as idate, cis.num as inum, cis.value as ivalue, u.name as uname, co.id as oid, co.name as oname, s3.name as perm_sale, s2.name as rub_sale, s1.name as proc_sale, cis.remain as remain')
         ->from('calc_invoicestud cis')
         ->leftJoin('calc_service cs','cis.calc_service=cs.id')
         ->leftJoin('user u','u.id=cis.user')

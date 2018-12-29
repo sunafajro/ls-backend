@@ -37,31 +37,32 @@ use yii\helpers\Html;
 					// распечатывааем счета - В работе
 					if ($i == 1 && $invoice['idone'] == 0 && $invoice['ivisible'] == 1) {
 						echo "<li class='list-group-item list-group-item-warning'>";
-                        echo $invoice['remain'] ? ' (остаточный) ' : '';
+                                                echo $invoice['remain'] ? ' (остаточный) ' : '';
 						echo $invoice['sname']." (услуга#".$invoice['sid']." от ".date('d.m.y', strtotime($invoice['idate'])).") ".$invoice['inum']." зан. на сумму ".$invoice['ivalue']." р.<br />";
 						// если к счету была применена ссылка, выводим информацию о ней
 						if($invoice['perm_sale']||$invoice['rub_sale']||$invoice['proc_sale']) {
 							echo "<small><em>Учтены скидки: ";
 							$sales = "";
-							if($invoice['perm_sale']) { 
-								$sales .= $invoice['perm_sale']; 
+							if($invoice['perm_sale']) {
+								$sales .= $invoice['perm_sale'];
 							}
-							if($invoice['rub_sale']) { 
+							if($invoice['rub_sale']) {
 								$sales .= ($invoice['perm_sale'] ? ", " : "");
-								$sales .= $invoice['rub_sale']; 
+								$sales .= $invoice['rub_sale'];
 							}
 							if($invoice['proc_sale']) {
-								$sales .= (($invoice['perm_sale']||$invoice['rub_sale']) ? ", " : ""); 
-								$sales .= $invoice['proc_sale']; 
+								$sales .= (($invoice['perm_sale']||$invoice['rub_sale']) ? ", " : "");
+								$sales .= $invoice['proc_sale'];
 							}
 							echo $sales;
 							unset($sales);
 							echo "</em></small><br />";
 						}
-						echo Html::a("Аннулировать",['invoice/disable','id'=>$invoice['iid']]);
+						echo Html::a('Аннулировать', ['invoice/disable', 'id' => $invoice['iid']]);
 						echo $invoice['remain'] ? ' | ' . Html::a("Установить как Обычный",['invoice/unremain', 'id'=>$invoice['iid']]) : ' | ' . Html::a("Установить как Остаточный",['invoice/remain', 'id'=>$invoice['iid']]);
-						echo ' | ' . Html::a("Отработан",['invoice/done','id'=>$invoice['iid']]);
-						echo "<br /><small>";			   
+                                                echo ' | ' . Html::a((int)$invoice['oid'] !== 6 ? Yii::t('app', 'Make corporative') : Yii::t('app', 'Make normal'), ['invoice/corp', 'id' => $invoice['iid']]);
+						echo ' | ' . Html::a('Отработан', ['invoice/done', 'id' => $invoice['iid']]);
+						echo "<br /><small>";
 						echo "офис: ".$invoice['oname']."<br />";
 						echo "кем выдан счёт: ".$invoice['uname'];
 						echo "</small></li>";
