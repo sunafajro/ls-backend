@@ -481,18 +481,19 @@ class TeacherController extends Controller
     ->where('calc_teacher=:tid and done!=:one and visible=:one', [':tid'=>$id, ':one'=>1])
     ->one();
 
+	$acc = AccrualTeacher::calculateFullTeacherAccrual($id);
     return $this->render('view', [
         'model' => $model,
-        'teachertax'=>$teachertax,
-        'teacherschedule'=>$teacherschedule,
-        'viewedlessons' => AccrualTeacher::calculateFullTeacherAccrual($id)['lessons'],
-        'teacherdata'=>$teacherdata,
-        'lestocheck'=>$lestocheck,
-        'hourstoaccrual'=>$hourstoaccrual,
-        'unviewedlessons'=>$unviewedlessons,
-        'efm'=>$efm,
-	    'sumaccrual' => AccrualTeacher::calculateFullTeacherAccrual($id)['accrual'],
-		'sum2pay'=>$sum2pay,
+        'teachertax'=> $teachertax,
+        'teacherschedule'=> $teacherschedule,
+        'viewedlessons' => $acc['lessons'],
+        'teacherdata'=> $teacherdata,
+        'lestocheck'=> $lestocheck,
+        'hourstoaccrual'=> $hourstoaccrual,
+        'unviewedlessons'=> $unviewedlessons,
+        'efm'=> $efm,
+	    'sumaccrual' => $acc['accrual'],
+		'sum2pay'=> $sum2pay,
 		'userInfoBlock' => User::getUserInfoBlock(),
         'jobPlace' => [ 1 => 'ШИЯ', 2 => 'СРР' ]
     ]);
