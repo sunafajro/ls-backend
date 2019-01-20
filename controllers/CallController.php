@@ -665,16 +665,22 @@ class CallController extends Controller
                 $student->money = 0;
 
                 // сохраняем модель клиента
-                if($student->save()){
-                    // формируем связь студента с офисом
-                    $db = (new \yii\db\Query())
-                    ->createCommand()
-                    ->insert('calc_student_office',
-                    [
-                        'student_id' => $student->id,
-                        'office_id' => (int)Yii::$app->session->get('user.ustatus') === 4 ? Yii::$app->session->get('user.uoffice_id') : $call->calc_office,
-                    ])
-                    ->execute();
+                if ($student->save()) {
+                    $office_id = (int)$call->calc_office;
+                    if ((int)Yii::$app->session->get('user.ustatus') === 4) {
+                        $office_id = (int)Yii::$app->session->get('user.uoffice_id');
+                    }
+                    if ($office_id > 0) {
+                        // формируем связь студента с офисом
+                        $db = (new \yii\db\Query())
+                        ->createCommand()
+                        ->insert('calc_student_office',
+                        [
+                            'student_id' => $student->id,
+                            'office_id' => $office_id,
+                        ])
+                        ->execute();
+                    }
                     // обновляем данные записи звонка
                     $call->calc_studname = $student->id;
                     // указываем что запись о звонке трансформирована в карточку клиента
