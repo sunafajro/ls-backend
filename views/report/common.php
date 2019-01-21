@@ -35,7 +35,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Common report');
 	        <select name="week" class="form-control input-sm">
 		        <option value="all"><?php echo Yii::t('app', '-all weeks-') ?></option>
 		    	<?php foreach($weeks as $key => $value): ?>
-		            <option value="<?= $key ?>">#<?= $value ?></option>
+		            <option value="<?= $key ?>" <?php echo ($key==$week) ? ' selected' : ''; ?>>#<?= $value ?></option>
 		        <?php endforeach; ?>
 	        </select>
         </div>
