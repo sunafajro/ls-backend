@@ -207,6 +207,7 @@ class AccrualTeacher extends \yii\db\ActiveRecord
                     $lessons[$i]['koef'] = $result['koef'];
                     $lessons[$i]['tax'] = $norm;
                     $lessons[$i]['accrual'] = $result['accrual'];
+                    $lessons[$i]['value_corp'] = $lesson['corp'] > 0 ? $edunorm['corp'] : 0;
                     $i++;
                 }
                 /* возвращаем результат */
