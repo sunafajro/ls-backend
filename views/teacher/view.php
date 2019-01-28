@@ -171,7 +171,7 @@ if($tab == 3){
             echo "<br />";
             echo date('d.m.y', strtotime($viewed['jdate']))." (".Yii::t('app', date('l', strtotime($viewed['jdate'])))."), ".$viewed['office'].", ";
             echo "коэф.: " . $viewed['koef'] . ", к начислению: " . $viewed['accrual'];
-            echo ' р. <i>(ставка ' . $viewed['tax'] . 'р.)</i></span></small>';
+            echo ' р. <i>(ставка ' . $viewed['tax'] . 'р.' . ($viewed['corp'] > 0 ? (' + ' . $viewed['value_corp'] . 'р.') : '') . ')</i></span></small>';
             echo "</div>";
             echo "</div>";
 	    }}

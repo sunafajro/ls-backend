@@ -189,23 +189,25 @@ class AccrualTeacher extends \yii\db\ActiveRecord
                 $i = 0;
                 $lp = 0;
                 foreach ($lessons as $lesson) {
+                    $norm = isset($edunorm['norm'][$lesson['tjplace']]) ? $edunorm['norm'][$lesson['tjplace']] : 0;
                     /* 
                      * вызываем функцию расчета стоимости начисления за урок 
                      * и считаем суммарное начисление по всем урокам
                      */
                     $result = self::calculateLessonAccrual(
                         $lesson, 
-                        isset($edunorm['norm'][$lesson['tjplace']]) ? $edunorm['norm'][$lesson['tjplace']] : 0, 
+                        $norm, 
                         $edunorm['corp'],
                         isset($langprem['prem'][$lesson['lang_id']]) ? $langprem['prem'][$lesson['lang_id']] : 0
                     );
                     $accrual += $result['accrual'];
                     $lids[] = $lesson['jid'];
                     $lp = $result['prem'];
-                    /* формируем доп данные для возвраат в список уроков ожидающих проверки */
+                    /* формируем доп данные для возврата в список уроков ожидающих проверки */
                     $lessons[$i]['koef'] = $result['koef'];
-                    $lessons[$i]['tax'] = isset($edunorm['norm'][$lesson['tjplace']]) ? $edunorm['norm'][$lesson['tjplace']] : 0;
+                    $lessons[$i]['tax'] = $norm;
                     $lessons[$i]['accrual'] = $result['accrual'];
+                    $lessons[$i]['value_corp'] = $lesson['corp'] > 0 ? $edunorm['corp'] : 0;
                     $i++;
                 }
                 /* возвращаем результат */
