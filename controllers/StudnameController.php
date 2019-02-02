@@ -77,7 +77,7 @@ class StudnameController extends Controller
         $tss_condition = ['like', 's.name', $tss];
         // если в строке целое число, то поиск по идентификатору
         if ((int)$tss > 0) {
-           $tss_condition = ['like', 's.phone', $tss];
+            $tss_condition = ['like', 's.phone', $tss];
         }
 
         $oid = NULL;
