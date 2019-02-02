@@ -5,7 +5,6 @@ use yii\widgets\ActiveForm;
 
 $this->title = 'Система учета :: ' . Yii::t('app','Teacher hours');
 $this->params['breadcrumbs'][] = Yii::t('app','Teacher hours');
-
 ?>
 
 <div class="row row-offcanvas row-offcanvas-left schedule-index">

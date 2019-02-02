@@ -3,9 +3,9 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
 $this->title = 'Система учета :: ' . Yii::t('app', 'News');
-
 $this->params['breadcrumbs'][] = Yii::t('app', 'News');
 ?>
+
 <div class="row row-offcanvas row-offcanvas-left student-view">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
         <?= $userInfoBlock ?>

@@ -5,8 +5,8 @@ use yii\helpers\Html;
 $this->title = 'Система учета :: ' . Yii::t('app','Add lesson');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Schedule'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = Yii::t('app','Add lesson');
-
 ?>
+
 <div class="row row-offcanvas row-offcanvas-left schedule-create">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
         <?= $userInfoBlock ?>
