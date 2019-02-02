@@ -314,8 +314,8 @@ class GroupteacherController extends Controller
     }
 
     /**
-	 * функция добавления преподавателя в учебную группу
-	 */
+     * функция добавления преподавателя в учебную группу
+     */
     public function actionAddteacher($gid)
 	{
         $params['gid'] = $gid;
@@ -397,8 +397,8 @@ class GroupteacherController extends Controller
     }
 	
     /**
-	 * функция исключения преподавателя из учебной группы
-	 */
+     * функция исключения преподавателя из учебной группы
+     */
     public function actionDelteacher($gid, $tid)
 	{
         /* проверяем права доступа (! переделать в поведения !) */
@@ -436,8 +436,8 @@ class GroupteacherController extends Controller
     }
 
     /** 
-	 * функция восстановления преподавателя в учебную группу
-	 */
+     * функция восстановления преподавателя в учебную группу
+     */
     public function actionRestoreteacher($gid, $tid)
     {
         /* проверяем права доступа (! переделать в поведения !) */
@@ -467,9 +467,9 @@ class GroupteacherController extends Controller
 		return $this->redirect(Yii::$app->request->referrer);
     }
 	
-	/**
-	 * функция добавления студента в учебную группу
-	 */
+    /**
+     * функция добавления студента в учебную группу
+     */
     public function actionAddstudent($gid)
     {
         $params['gid'] = $gid;
@@ -547,9 +547,9 @@ class GroupteacherController extends Controller
 		}
 	}
 
-	/**
-	 *  функция исключения студента из учебной группы
-	 */
+    /**
+     *  функция исключения студента из учебной группы
+     */
 	public function actionDelstudent($gid, $sid)
 	{
         /* проверяем права доступа (! переделать в поведения !) */
@@ -567,9 +567,9 @@ class GroupteacherController extends Controller
 		return $this->redirect(Yii::$app->request->referrer);
     }
 	
-	/** 
-	 *  функция восстановления студента в учебную группу
-	 */
+    /** 
+     *  функция восстановления студента в учебную группу
+     */
 	public function actionRestorestudent($gid, $sid)
 	{
         /* проверяем права доступа (! переделать в поведения !) */
