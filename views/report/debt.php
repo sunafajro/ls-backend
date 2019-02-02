@@ -119,7 +119,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Debt report');
                 <div style="float: left"><strong><?= Html::a("#".$st['id']." ".$st['name']." →", ['studname/view', 'id'=>$st['id']]) ?></strong></div>
                 <div class="text-right"><strong>(баланс: <?= $st['debt'] ?> р.)</strong></div>
             </div>
-            <table class="table table-bordered table-stripped table-hover table-condensed">
+            <table class="table table-bordered table-stripped table-hover table-condensed" style="margin-bottom: 0.5rem">
                 <tbody>
                 <?php foreach ($students as $s) : ?>
     	            <?php if ($s['stid']==$st['id']) : ?>
