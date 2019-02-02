@@ -718,9 +718,9 @@ class StudnameController extends Controller
     {
         $result = Student::updateInvMonDebt($sid);
         if ($result) {
-          Yii::$app->session->setFlash('success', 'Баланс студента пересчитан успешно!');
+            Yii::$app->session->setFlash('success', 'Баланс студента пересчитан успешно!');
         } else {
-          Yii::$app->session->setFlash('error', 'Не удалось пересчитать баланс клиента!');
+            Yii::$app->session->setFlash('error', 'Не удалось пересчитать баланс клиента!');
         }
         $this->redirect(['studname/view', 'id' => $sid]);
     }
