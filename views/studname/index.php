@@ -92,16 +92,17 @@ $this->registerJs($js);
             }
         ?>
     <?php if(!empty($students)) { ?>
-    
-        <p class="text-right">Показано <?= $start ?> - <?= ($end>=$pages->totalCount) ? $pages->totalCount : $end ?> из <?= $pages->totalCount ?></p>
-
-    
-	<nav>
-        <ul class="pager">
-            <li class="previous"><?= (($prevpage>0) ? Html::a(Yii::t('app', 'Previous'),['studname/index','page'=>$prevpage,'TSS'=>$tss,'STATE'=>$state, 'OID'=>$oid]) : '') ?></li>
-            <li class="next"><?= (($end<$pages->totalCount) ? Html::a(Yii::t('app', 'Next'),['studname/index','page'=>$nextpage,'TSS'=>$tss,'STATE'=>$state, 'OID'=>$oid]) : '') ?></li>
-        </ul>
-    </nav>
+	<div class="row" style="margin-bottom: 0.5rem">
+      <div class="col-xs-12 col-sm-3 text-left">
+        <?= (($prevpage>0) ? Html::a(Yii::t('app', 'Previous'),['studname/index','page'=>$prevpage,'TSS'=>$tss,'STATE'=>$state, 'OID'=>$oid], ['class' => 'btn btn-default']) : '') ?>
+      </div>
+      <div class="col-xs-12 col-sm-6 text-center">
+        <p style="margin-top: 1rem; margin-bottom: 0.5rem">Показано <?= $start ?> - <?= ($end>=$pages->totalCount) ? $pages->totalCount : $end ?> из <?= $pages->totalCount ?></p>
+      </div>
+      <div class="col-xs-12 col-sm-3 text-right">
+        <?= (($end<$pages->totalCount) ? Html::a(Yii::t('app', 'Next'),['studname/index','page'=>$nextpage,'TSS'=>$tss,'STATE'=>$state, 'OID'=>$oid], ['class' => 'btn btn-default']) : '') ?>
+      </div>
+    </div>
 
     <table class="table table-striped table-bordered table-hover table-condensed small">
         <thead>
