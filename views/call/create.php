@@ -20,15 +20,15 @@ $this->params['breadcrumbs'][] = $this->title;
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
 		</p>
-    <?= $this->render('_form', [
-        'model' => $model,
-        'way' => $way,
-        'servicetype' => $servicetype,
-        'language' => $language,
-        'level' => $level,
-        'age' => $age,
-        'eduform' => $eduform,
-        'office' => $office,
+        <?= $this->render('_form', [
+            'model' => $model,
+            'way' => $way,
+            'servicetype' => $servicetype,
+            'language' => $language,
+            'level' => $level,
+            'age' => $age,
+            'eduform' => $eduform,
+            'office' => $office,
         ]) ?>
 	</div>
 </div>
