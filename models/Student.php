@@ -135,7 +135,6 @@ class Student extends \yii\db\ActiveRecord
         if ($student->save()) {
             return true;
         } else {
-            var_dump($student->getErrors());die();
             return false;
         }
     }
