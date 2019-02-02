@@ -45,7 +45,7 @@ if (Yii::$app->request->get('type')) {
                 'method' => 'get',
                 'action' => ['service/index'],
                 ]);
-                ?>
+        ?>
         <div class="form-group">
             <input type="text" class="form-control input-sm" placeholder="id или название..." name="TSS" value="<?= ($url_params['TSS'] != '') ? $url_params['TSS'] : '' ?>">
         </div>
