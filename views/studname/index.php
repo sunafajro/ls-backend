@@ -2,11 +2,8 @@
 
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
-/* @var $this yii\web\View */
-/* @var $students */
-/* @var $services */
 
-$this->title = 'Система учета :: '.Yii::t('app','Clients');
+$this->title = 'Система учета :: ' . Yii::t('app','Clients');
 $this->params['breadcrumbs'][] = Yii::t('app','Clients');
 
 $js = <<< 'SCRIPT'
