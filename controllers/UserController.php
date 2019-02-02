@@ -276,7 +276,7 @@ class UserController extends Controller
                 'user' => $user,
                 'userInfoBlock' => User::getUserInfoBlock()
             ]);
-        } else{
+        } else {
             return $this->redirect(['user/index']);
         }
     }
