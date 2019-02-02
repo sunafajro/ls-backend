@@ -3,13 +3,6 @@
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
-/* @var $this yii\web\View */
-/* @var $searchModel app\models\CalcScheduleSearch */
-/* @var $dataProvider yii\data\ActiveDataProvider */
-
-// задаем переменные по умолчанию
-
-
 // задаем тайтл страницы
 if($day >= 1 && $day <= 7) {
     $this->title = 'Система учета :: ' . Yii::t('app','Schedule') . ' - ' . $days[$day];
