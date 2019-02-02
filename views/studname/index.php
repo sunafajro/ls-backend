@@ -91,7 +91,7 @@ $this->registerJs($js);
                     }
             }
         ?>
-    <?php if(!empty($students)) { ?>
+    <?php if(!empty($students)) : ?>
 	<div class="row" style="margin-bottom: 0.5rem">
       <div class="col-xs-12 col-sm-3 text-left">
         <?= (($prevpage>0) ? Html::a(Yii::t('app', 'Previous'),['studname/index','page'=>$prevpage,'TSS'=>$tss,'STATE'=>$state, 'OID'=>$oid], ['class' => 'btn btn-default']) : '') ?>
@@ -104,7 +104,7 @@ $this->registerJs($js);
       </div>
     </div>
 
-    <table class="table table-striped table-bordered table-hover table-condensed small">
+    <table class="table table-striped table-bordered table-hover table-condensed small" style="margin-bottom: 0.5rem">
         <thead>
             <tr>
                 <th class="text-center">Пол</th>
@@ -183,20 +183,18 @@ $this->registerJs($js);
         }
         echo "</tr>";
     }
-    echo "</table>";
-    }
     ?>
     </table>
-    <div class="row" style="margin-bottom: 0.5rem">
-    <div class="col-sm-3 text-left">
+	<div class="row" style="margin-bottom: 0.5rem">
+      <div class="col-sm-3 text-left">
         <?= (($prevpage>0) ? Html::a(Yii::t('app', 'Previous'),['studname/index','page'=>$prevpage,'TSS'=>$tss,'STATE'=>$state, 'OID'=>$oid], ['class' => 'btn btn-default']) : '') ?>
-    </div>
-    <div class="col-sm-6 text-center">
+      </div>
+      <div class="col-sm-6 text-center">
         <p style="margin-top: 1rem; margin-bottom: 0.5rem">Показано <?= $start ?> - <?= ($end>=$pages->totalCount) ? $pages->totalCount : $end ?> из <?= $pages->totalCount ?></p>
-    </div>
-    <div class="col-sm-3 text-right">
+      </div>
+      <div class="col-sm-3 text-right">
         <?= (($end<$pages->totalCount) ? Html::a(Yii::t('app', 'Next'),['studname/index','page'=>$nextpage,'TSS'=>$tss,'STATE'=>$state, 'OID'=>$oid], ['class' => 'btn btn-default']) : '') ?>
-    </div>
+      </div>
     </div>
     <?php else : ?>
         <p class="text-center"><img src="/images/404-not-found.jpg" class="rounded" alt="По вашему запросу ничего не найдено..."></p>
