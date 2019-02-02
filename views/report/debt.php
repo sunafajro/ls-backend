@@ -28,7 +28,6 @@ $this->params['breadcrumbs'][] = Yii::t('app','Debt report');
                 'action' => ['report/debt'],
                 ]);
         ?>
-		
 		<div class="form-group">
 		    <input type="text" class="form-control input-sm" placeholder="Найти..." name="TSS" value="<?= $tss != '' ? $tss : '' ?>">
 		</div>
