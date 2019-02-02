@@ -310,7 +310,7 @@ class GroupteacherController extends Controller
             $model->data_visible = date('Y-m-d');
             $model->save();
         }
-        return $this->redirect(['teacher/view','id' => $lid]);
+        return $this->redirect(['teacher/view', 'id' => $lid]);
     }
 
     /**
