@@ -164,7 +164,7 @@ class StudnameController extends Controller
             ->leftjoin('calc_teachergroup tg', 'tg.calc_groupteacher=sg.calc_groupteacher')
             ->where('cst.visible=:vis and tg.calc_teacher=:tid', [':vis'=> 1, ':tid'=>Yii::$app->session->get('user.uteacher')])
             ->andFilterWhere(['cst.active'=>$state_id])
-            ->andFilterWhere([$tss_condition]);
+            ->andFilterWhere($tss_condition);
             // делаем клон запроса
             $countQuery = clone $students;
             // получаем данные для паджинации
