@@ -587,7 +587,7 @@ class GroupteacherController extends Controller
 		// возвращаемся обратно
 		return $this->redirect(Yii::$app->request->referrer);
     }
-    
+
     /**
      * Функция для изменения состояния группы
      */
