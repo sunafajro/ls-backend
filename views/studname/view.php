@@ -56,9 +56,9 @@ if(Yii::$app->request->get('tab')){
                 <?= Html::a('<i class="fa fa-gift" aria-hidden="true"></i> ' . Yii::t('app', 'Sale'), ['salestud/create', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
                 <?php if(!$clientaccess): ?>
                     <?= Html::a('<i class="fa fa-user-plus" aria-hidden="true"></i> ' . Yii::t('app', 'Account'), ['clientaccess/create', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
-		<?php else: ?>
+		        <?php else: ?>
                     <?= Html::a('<i class="fa fa-user" aria-hidden="true"></i> ' . Yii::t('app', 'Account'), ['clientaccess/update', 'id'=>$clientaccess->id,'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
-		<?php endif; ?>
+		        <?php endif; ?>
                 <?php if ((int)Yii::$app->session->get('user.ustatus') === 3) : ?>
                     <?= Html::a('<i class="fa fa-mobile" aria-hidden="true"></i> ' . Yii::t('app', 'Phone'), ['studphone/create', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
                 <?php endif; ?>
