@@ -2,10 +2,6 @@
 
 use yii\helpers\Html;
 
-
-/* @var $this yii\web\View */
-/* @var $model app\models\CalcSchedule */
-
 $this->title = 'Система учета :: ' . Yii::t('app','Add lesson');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Schedule'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = Yii::t('app','Add lesson');
