@@ -81,4 +81,3 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'News');
         <?php endif; ?>
     </div>
 </div>
-
