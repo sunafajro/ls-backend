@@ -41,65 +41,65 @@ if (Yii::$app->request->get('type')) {
         <?php endif; ?>
         <h4><?= Yii::t('app', 'Filters') ?></h4>
         <?php 
-                $form = ActiveForm::begin([
-                    'method' => 'get',
-                    'action' => ['service/index'],
-                    ]);
-                    ?>
-            <div class="form-group">
-                <input type="text" class="form-control input-sm" placeholder="id или название..." name="TSS" value="<?= ($url_params['TSS'] != '') ? $url_params['TSS'] : '' ?>">
-            </div>
-            <div class="form-group">
-                <select class="form-control input-sm" name="type">
-                    <?php foreach($types as $key => $value): ?>
-                    <option value="<?= $key ?>"<?= ($key === $t) ? ' selected' : '' ?>><?= mb_substr($value, 0, 13, 'UTF-8') ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="form-group">
-                <select class="form-control input-sm" name="SCID">
-                    <option value="all"><?= Yii::t('app', '-all cities-') ?></option>
-                    <?php foreach($cities as $key => $value): ?>
-                    <option value="<?= $key ?>"<?= ($key==Yii::$app->request->get('SCID')) ? ' selected' : '' ?>><?= mb_substr($value, 0, 13, 'UTF-8') ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="form-group">
-                <select class="form-control input-sm" name="STID">
-                    <option value="all"><?= Yii::t('app', '-all types-') ?></option>
-                    <?php foreach($servicetypes as $key => $value): ?>
-                    <option value="<?= $key ?>"<?= ($key==Yii::$app->request->get('STID')) ? ' selected' : '' ?>><?= mb_substr($value, 0, 13,'UTF-8') ?> </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="form-group">
-                <select class="form-control input-sm" name="SLID">
-                    <option value="all"><?= Yii::t('app', '-all languages-') ?></option>
-                    <?php foreach($languages as $key => $value): ?>
-                    <option value="<?= $key ?>"<?= ($key==Yii::$app->request->get('SLID')) ? ' selected' : '' ?>><?= mb_substr($value, 0, 13,'UTF-8') ?> </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="form-group">
-                <select class="form-control input-sm" name="SAID">
-                    <option value="all"><?= Yii::t('app', '-all ages-') ?></option>
-                    <?php foreach($eduages as $key => $value): ?>
-                    <option value="<?= $key ?>"<?= ($key==Yii::$app->request->get('SAID')) ? ' selected' : '' ?>><?= mb_substr($value, 0, 13,'UTF-8') ?> </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="form-group">
-                <select class="form-control input-sm" name="SFID">
-                    <option value="all"><?= Yii::t('app', '-all forms-') ?></option>
-                    <?php foreach($eduforms as $key => $value): ?>
-                    <option value="<?= $key ?>"<?= ($key==Yii::$app->request->get('SFID')) ? ' selected' : '' ?>><?= mb_substr($value, 0, 13,'UTF-8') ?> </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="form-group">
-                <?= Html::submitButton('<span class="fa fa-filter" aria-hidden="true"></span> ' . Yii::t('app', 'Apply'), ['class' => 'btn btn-info btn-sm btn-block']) ?>
-            </div>
-          <?php ActiveForm::end(); ?>
+            $form = ActiveForm::begin([
+                'method' => 'get',
+                'action' => ['service/index'],
+                ]);
+                ?>
+        <div class="form-group">
+            <input type="text" class="form-control input-sm" placeholder="id или название..." name="TSS" value="<?= ($url_params['TSS'] != '') ? $url_params['TSS'] : '' ?>">
+        </div>
+        <div class="form-group">
+            <select class="form-control input-sm" name="type">
+                <?php foreach($types as $key => $value): ?>
+                <option value="<?= $key ?>"<?= ($key === $t) ? ' selected' : '' ?>><?= mb_substr($value, 0, 13, 'UTF-8') ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="form-group">
+            <select class="form-control input-sm" name="SCID">
+                <option value="all"><?= Yii::t('app', '-all cities-') ?></option>
+                <?php foreach($cities as $key => $value): ?>
+                <option value="<?= $key ?>"<?= ($key==Yii::$app->request->get('SCID')) ? ' selected' : '' ?>><?= mb_substr($value, 0, 13, 'UTF-8') ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="form-group">
+            <select class="form-control input-sm" name="STID">
+                <option value="all"><?= Yii::t('app', '-all types-') ?></option>
+                <?php foreach($servicetypes as $key => $value): ?>
+                <option value="<?= $key ?>"<?= ($key==Yii::$app->request->get('STID')) ? ' selected' : '' ?>><?= mb_substr($value, 0, 13,'UTF-8') ?> </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="form-group">
+            <select class="form-control input-sm" name="SLID">
+                <option value="all"><?= Yii::t('app', '-all languages-') ?></option>
+                <?php foreach($languages as $key => $value): ?>
+                <option value="<?= $key ?>"<?= ($key==Yii::$app->request->get('SLID')) ? ' selected' : '' ?>><?= mb_substr($value, 0, 13,'UTF-8') ?> </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="form-group">
+            <select class="form-control input-sm" name="SAID">
+                <option value="all"><?= Yii::t('app', '-all ages-') ?></option>
+                <?php foreach($eduages as $key => $value): ?>
+                <option value="<?= $key ?>"<?= ($key==Yii::$app->request->get('SAID')) ? ' selected' : '' ?>><?= mb_substr($value, 0, 13,'UTF-8') ?> </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="form-group">
+            <select class="form-control input-sm" name="SFID">
+                <option value="all"><?= Yii::t('app', '-all forms-') ?></option>
+                <?php foreach($eduforms as $key => $value): ?>
+                <option value="<?= $key ?>"<?= ($key==Yii::$app->request->get('SFID')) ? ' selected' : '' ?>><?= mb_substr($value, 0, 13,'UTF-8') ?> </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="form-group">
+            <?= Html::submitButton('<span class="fa fa-filter" aria-hidden="true"></span> ' . Yii::t('app', 'Apply'), ['class' => 'btn btn-info btn-sm btn-block']) ?>
+        </div>
+        <?php ActiveForm::end(); ?>
     </div>
     <div id="content" class="col-sm-10">
         <p class="pull-left visible-xs">
