@@ -302,8 +302,8 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
                     }
                 } else if ($action === 'delete') {
                     switch(Yii::$app->session->get('user.ustatus')) {
-                      case 3: $result = true; break;
-                      default: $result = false;
+                        case 3: $result = true; break;
+                        default: $result = false;
                     }
                 } else {
                     $result = false;
