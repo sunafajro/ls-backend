@@ -34,7 +34,7 @@ use yii\helpers\Html;
 			}
 			echo "<ul class='list-group'>";
 				foreach ($invoices as $invoice) {
-					// распечатывааем счета - В работе
+					// распечатываем счета - В работе
 					if ($i == 1 && $invoice['idone'] == 0 && $invoice['ivisible'] == 1) {
 						echo "<li class='list-group-item list-group-item-warning'>";
                                                 echo $invoice['remain'] ? ' (остаточный) ' : '';
@@ -60,7 +60,7 @@ use yii\helpers\Html;
 						}
 						echo Html::a('Аннулировать', ['invoice/disable', 'id' => $invoice['iid']]);
 						echo $invoice['remain'] ? ' | ' . Html::a("Установить как Обычный",['invoice/unremain', 'id'=>$invoice['iid']]) : ' | ' . Html::a("Установить как Остаточный",['invoice/remain', 'id'=>$invoice['iid']]);
-                                                echo ' | ' . Html::a((int)$invoice['oid'] !== 6 ? Yii::t('app', 'Make corporative') : Yii::t('app', 'Make normal'), ['invoice/corp', 'id' => $invoice['iid']]);
+                        echo ' | ' . Html::a((int)$invoice['oid'] !== 6 ? Yii::t('app', 'Make corporative') : Yii::t('app', 'Make normal'), ['invoice/corp', 'id' => $invoice['iid']]);
 						echo ' | ' . Html::a('Отработан', ['invoice/done', 'id' => $invoice['iid']]);
 						echo "<br /><small>";
 						echo "офис: ".$invoice['oname']."<br />";
