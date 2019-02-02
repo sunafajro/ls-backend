@@ -253,9 +253,10 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     }
 
     /* Метод проверки ролей пользователей на доступ к ресурсам */
-	public static function checkAccess($controller, $action) {
-            $result = true;
-            switch($controller) {
+    public static function checkAccess($controller, $action) 
+    {
+        $result = true;
+        switch($controller) {
             /* раздел Клиенты */
             case 'studname':
                 if ($action === 'view' || $action === 'index') {
