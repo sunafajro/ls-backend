@@ -144,7 +144,6 @@ $this->params['breadcrumbs'][] = Yii::t('app','Debt report');
 				<?php endforeach; ?>
                 </tbody>
             </table>
-
 		<?php endforeach; ?>
 		<div class="row" style="margin-bottom: 0.5rem">
             <div class="col-xs-12 col-sm-3 text-left">
