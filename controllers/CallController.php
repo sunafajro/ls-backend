@@ -204,14 +204,14 @@ class CallController extends Controller
 			
         // передаем все во вьюз
         return $this->render('index', [
-		'calls' => $calls,
-		'languages' => $languages,
-		'servicetypes' => $servicetypes,
-        'offices' => $offices,
-        'ages' => $ages,
-        'months' => $months,
-        'filter' => $filter,
-        'userInfoBlock' => User::getUserInfoBlock()
+            'calls' => $calls,
+            'languages' => $languages,
+            'servicetypes' => $servicetypes,
+            'offices' => $offices,
+            'ages' => $ages,
+            'months' => $months,
+            'filter' => $filter,
+            'userInfoBlock' => User::getUserInfoBlock()
         ]);
     }
 
