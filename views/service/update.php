@@ -20,16 +20,16 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Update');
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
 		</p>
-    <?= $this->render('_form', [
-        'model' => $model,
-        'costs' => $studnorms,
-		'city'=>$cities,
-    ]) ?>
-	<?php foreach($servicechanges as $change): ?>
-		<div class="well">Дата изменения: <?= $change['date'] ?><br />
-			Предыдущее значение: <?= $change['value'] ?> р.<br />
-			Кем изменено: <?= $change['user'] ?>
-		</div>
-	<?php endforeach; ?>
+		<?= $this->render('_form', [
+			'model' => $model,
+			'costs' => $studnorms,
+			'city'=>$cities,
+		]) ?>
+		<?php foreach($servicechanges as $change): ?>
+			<div class="well">Дата изменения: <?= $change['date'] ?><br />
+				Предыдущее значение: <?= $change['value'] ?> р.<br />
+				Кем изменено: <?= $change['user'] ?>
+			</div>
+		<?php endforeach; ?>
 	</div>
 </div>
