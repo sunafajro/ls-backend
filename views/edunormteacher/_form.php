@@ -1,11 +1,6 @@
 <?php
-
-use yii\helpers\Html;
-use yii\widgets\ActiveForm;
-
-/* @var $this yii\web\View */
-/* @var $model app\models\Edunormteacher */
-/* @var $form yii\widgets\ActiveForm */
+    use yii\helpers\Html;
+    use yii\widgets\ActiveForm;
 ?>
 
 <div class="edunormteacher-form">
@@ -24,6 +19,8 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'calc_edunorm')->dropDownList($items=$norms, ['prompt'=>Yii::t('app', '-select-')]) ?>
 
+    <?= $form->field($model, 'calc_edunorm_day')->dropDownList($items=$norms, ['prompt'=>Yii::t('app', '-select-')]) ?>
+
     <?= $form->field($model, 'company')->dropDownList($items=$jobPlace, ['prompt'=>Yii::t('app', '-select-')]) ?>
 
     <div class="form-group">
@@ -35,7 +32,8 @@ use yii\widgets\ActiveForm;
     <table class="table table-stripped table-bordered table-condensed small">
         <thead>
             <tr>
-                <th><?= Yii::t('app', 'Tax') ?></th>
+                <th><?= Yii::t('app', 'Hourly tax') ?></th>
+                <th><?= Yii::t('app', 'Daily tax') ?></th>
                 <th class="text-center"><?= Yii::t('app', 'Assign date') ?></th>
                 <th class="text-center"><?= Yii::t('app', 'Job place') ?></th>
                 <th class="text-center"><?= Yii::t('app', 'Active') ?></th>
@@ -46,6 +44,7 @@ use yii\widgets\ActiveForm;
         <?php foreach($tnorms as $tn) : ?>
             <tr>
                 <td><?= $tn['nname'] ?></td>
+                <td><?= $tn['ndname'] ?></td>
                 <td class="text-center"><?= $tn['ndate'] ?></td>
                 <td class="text-center">
                     <span class="label <?= (int)$tn['tjplace'] === 1 ? 'label-success' : 'label-info' ?>">
