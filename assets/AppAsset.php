@@ -13,7 +13,7 @@
                 'fa/css/font-awesome.min.css',
                 'https://cdnjs.cloudflare.com/ajax/libs/noty/3.1.4/noty.min.css',
                 'https://cdn.jsdelivr.net/npm/suggestions-jquery@17.10.1/dist/css/suggestions.min.css',
-                'css/site.css',
+                'css/site_bitrix.css',
             ];
             public $js = [
                 'js/offcanvas.js',
@@ -38,7 +38,7 @@
                 'fa/css/font-awesome.min.css',
                 'https://cdnjs.cloudflare.com/ajax/libs/noty/3.1.4/noty.min.css',
                 'https://cdn.jsdelivr.net/npm/suggestions-jquery@17.10.1/dist/css/suggestions.min.css',
-                'css/site.css',
+                'css/site_standalone.css',
             ];
             public $js = [
                 'js/offcanvas.js',
