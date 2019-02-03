@@ -1,9 +1,9 @@
 <?php
 	use yii\helpers\Html;
-	$this->title = Yii::t('app', 'Add tax');
+	$this->title = 'Система учета :: ' . Yii::t('app', 'Add tax');
 	$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Teachers'), 'url' => ['teacher/index']];
 	$this->params['breadcrumbs'][] = ['label' => $teacher->name, 'url' => ['teacher/view', 'id'=>$teacher->id]];
-	$this->params['breadcrumbs'][] = $this->title;
+	$this->params['breadcrumbs'][] = Yii::t('app', 'Add tax');
 ?>
 
 <div class="row row-offcanvas row-offcanvas-left edunorm-teacher-create">
