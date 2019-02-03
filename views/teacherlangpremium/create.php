@@ -1,15 +1,11 @@
 <?php
-
-use yii\helpers\Html;
-
-/* @var $this yii\web\View */
-/* @var $model app\models\Edunormteacher */
-
-$this->title = Yii::t('app', 'Add language premium');
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Teachers'), 'url' => ['teacher/index']];
-$this->params['breadcrumbs'][] = ['label' => $teacher->name, 'url' => ['teacher/view', 'id'=>$teacher->id]];
-$this->params['breadcrumbs'][] = $this->title;
+	use yii\helpers\Html;
+	$this->title = 'Система учета :: ' . Yii::t('app', 'Add language premium');
+	$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Teachers'), 'url' => ['teacher/index']];
+	$this->params['breadcrumbs'][] = ['label' => $teacher->name, 'url' => ['teacher/view', 'id'=>$teacher->id]];
+	$this->params['breadcrumbs'][] = Yii::t('app', 'Add language premium');
 ?>
+
 <div class="row row-offcanvas row-offcanvas-left edunorm-teacher-create">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
 		<?= $userInfoBlock ?>

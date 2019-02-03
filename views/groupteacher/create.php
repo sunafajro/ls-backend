@@ -1,17 +1,11 @@
 <?php
-
-use yii\helpers\Html;
-
-
-/* @var $this yii\web\View */
-/* @var $model app\models\CalcGroupteacher */
-
-$this->title = 'Система учета :: '.Yii::t('app', 'Add group');
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Teachers'), 'url' => ['teacher/index']];
-$this->params['breadcrumbs'][] = ['label' => $teacher['name'], 'url' => ['teacher/view','id'=>$teacher['id']]];
-$this->params['breadcrumbs'][] = Yii::t('app', 'Add group');
-
+    use yii\helpers\Html;
+    $this->title = 'Система учета :: '.Yii::t('app', 'Add group');
+    $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Teachers'), 'url' => ['teacher/index']];
+    $this->params['breadcrumbs'][] = ['label' => $teacher['name'], 'url' => ['teacher/view','id'=>$teacher['id']]];
+    $this->params['breadcrumbs'][] = Yii::t('app', 'Add group');
 ?>
+
 <div class="row row-offcanvas row-offcanvas-left group-create">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
         <?= $userInfoBlock ?>
