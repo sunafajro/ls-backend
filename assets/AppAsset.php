@@ -9,7 +9,7 @@
             public $basePath = '@webroot';
             public $baseUrl = '@web';
             public $css = [
-                'css/offcanvas.css',
+                'css/offcanvas_bitrix.css',
                 'fa/css/font-awesome.min.css',
                 'https://cdnjs.cloudflare.com/ajax/libs/noty/3.1.4/noty.min.css',
                 'https://cdn.jsdelivr.net/npm/suggestions-jquery@17.10.1/dist/css/suggestions.min.css',
@@ -34,7 +34,7 @@
             public $basePath = '@webroot';
             public $baseUrl = '@web';
             public $css = [
-                'css/offcanvas.css',
+                'css/offcanvas_standalone.css',
                 'fa/css/font-awesome.min.css',
                 'https://cdnjs.cloudflare.com/ajax/libs/noty/3.1.4/noty.min.css',
                 'https://cdn.jsdelivr.net/npm/suggestions-jquery@17.10.1/dist/css/suggestions.min.css',
