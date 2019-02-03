@@ -1,39 +1,36 @@
 <?php
-
-use yii\helpers\Html;
-use yii\widgets\ActiveForm;
-
-$this->title = 'Система учета :: '.Yii::t('app','Services');
-$this->params['breadcrumbs'][] = Yii::t('app','Services');
-// определяем первый и последний элемент списка
-if(Yii::$app->request->get('page')&&Yii::$app->request->get('page') > 0){
-  $fitem = (25 * Yii::$app->request->get('page')) - 24;
-  if(Yii::$app->request->get('page') == (ceil($pages->totalCount/25))){
-    $litem = $pages->totalCount;
-  }
-  else {
-    $litem = 25 * Yii::$app->request->get('page');
-  }
-}
-else {
-  $fitem = 1;
-  if($pages->totalCount < 25){
-    $litem = $pages->totalCount;
+    use yii\helpers\Html;
+    use yii\widgets\ActiveForm;
+    use yii\widgets\Breadcrumbs;
+    $this->title = 'Система учета :: '.Yii::t('app','Services');
+    $this->params['breadcrumbs'][] = Yii::t('app','Services');
+    // определяем первый и последний элемент списка
+    if (Yii::$app->request->get('page') && Yii::$app->request->get('page') > 0) {
+        $fitem = (25 * Yii::$app->request->get('page')) - 24;
+        if (Yii::$app->request->get('page') == (ceil($pages->totalCount/25))){
+            $litem = $pages->totalCount;
+        } else {
+            $litem = 25 * Yii::$app->request->get('page');
+        }
+    } else {
+        $fitem = 1;
+        if ($pages->totalCount < 25) {
+            $litem = $pages->totalCount;
+        } else {
+            $litem = 25;
+        }
     }
-  else {
-  $litem = 25;
-  }
-}
-
-$t = 'actual';
-
-if (Yii::$app->request->get('type')) {
-    $t = Yii::$app->request->get('type');
-}
-
+    $t = 'actual';
+    if (Yii::$app->request->get('type')) {
+        $t = Yii::$app->request->get('type');
+    }
 ?>
+
 <div class="row row-offcanvas row-offcanvas-left service-index">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <div id="main-menu"></div>
+        <?php endif; ?>
         <?= $userInfoBlock ?>
         <?php if ((int)Yii::$app->session->get('user.ustatus') === 3) : ?>
             <h4><?= Yii::t('app', 'Actions') ?></h4>
@@ -102,10 +99,14 @@ if (Yii::$app->request->get('type')) {
         <?php ActiveForm::end(); ?>
     </div>
     <div id="content" class="col-sm-10">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <?= Breadcrumbs::widget([
+            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+        ]); ?>
+        <?php endif; ?>
         <p class="pull-left visible-xs">
             <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
-
         <?php if (Yii::$app->session->getFlash('success')) : ?>
             <div class='alert alert-success' role='alert'>
                 <?= Yii::$app->session->getFlash('success') ?>

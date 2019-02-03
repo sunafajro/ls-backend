@@ -1,20 +1,16 @@
 <?php
-
-use yii\helpers\Html;
-use yii\widgets\ActiveForm;
-
-$this->title = 'Система учета :: ' . Yii::t('app','Clients');
-$this->params['breadcrumbs'][] = Yii::t('app','Clients');
-
-$js = <<< 'SCRIPT'
-$(function () {
-    $("[data-toggle='tooltip']").tooltip();
-});
-SCRIPT;
-$this->registerJs($js);
+    use yii\helpers\Html;
+    use yii\widgets\ActiveForm;
+    use yii\widgets\Breadcrumbs;
+    $this->title = 'Система учета :: ' . Yii::t('app','Clients');
+    $this->params['breadcrumbs'][] = Yii::t('app','Clients');
 ?>
+
 <div class="row row-offcanvas row-offcanvas-left schedule-index">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <div id="main-menu"></div>
+        <?php endif; ?>
         <?= $userInfoBlock ?>
         <h4><?= Yii::t('app', 'Filters') ?>:</h4>
         <?php
@@ -48,10 +44,14 @@ $this->registerJs($js);
 
     </div>
     <div id="content" class="col-sm-10">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <?= Breadcrumbs::widget([
+            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+        ]); ?>
+        <?php endif; ?>
         <p class="pull-left visible-xs">
             <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
-
         <?php if(Yii::$app->session->hasFlash('error')) { ?>
         <div class="alert alert-danger" role="alert">
             <?= Yii::$app->session->getFlash('error') ?>
@@ -201,3 +201,12 @@ $this->registerJs($js);
     <?php endif; ?>
     </div>
 </div>
+
+<?php
+$js = <<< 'SCRIPT'
+$(function () {
+    $("[data-toggle='tooltip']").tooltip();
+});
+SCRIPT;
+$this->registerJs($js);
+?>

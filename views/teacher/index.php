@@ -1,39 +1,39 @@
 <?php
-
-use yii\helpers\Html;
-use yii\widgets\ActiveForm;
-
-$this->title = 'Система учета :: '.Yii::t('app','Teachers');
-$this->params['breadcrumbs'][] = Yii::t('app','Teachers');
-
-//составляем список языков для селектов
-foreach($teacherlangs as $lang){
-    $templangs[$lang['lid']]=$lang['lname'];
-}
-$slangs = array_unique($templangs);
-unset($templangs);
-unset($lang);
-
-//составляем список офисов для селектов
-foreach($teacheroffices as $office){
-    $tempoffices[$office['oid']]=$office['oname'];
-}
-$soffices = array_unique($tempoffices);
-unset($tempoffices);
-unset($office);
-unset($teacheroffices);
-
-//составляем список форм трудоустройства для селектов
-foreach($teacherjobstates as $jobstate){
-    $tempjobstates[$jobstate['fid']]=$jobstate['fname'];
-}
-$sjobstates = array_unique($tempjobstates);
-unset($tempjobstates);
-unset($jobstate);
-unset($teacherjobstates);
+    use yii\helpers\Html;
+    use yii\widgets\ActiveForm;
+    use yii\widgets\Breadcrumbs;
+    $this->title = 'Система учета :: '.Yii::t('app','Teachers');
+    $this->params['breadcrumbs'][] = Yii::t('app','Teachers');
+    //составляем список языков для селектов
+    foreach ($teacherlangs as $lang) {
+        $templangs[$lang['lid']]=$lang['lname'];
+    }
+    $slangs = array_unique($templangs);
+    unset($templangs);
+    unset($lang);
+    //составляем список офисов для селектов
+    foreach ($teacheroffices as $office) {
+        $tempoffices[$office['oid']]=$office['oname'];
+    }
+    $soffices = array_unique($tempoffices);
+    unset($tempoffices);
+    unset($office);
+    unset($teacheroffices);
+    //составляем список форм трудоустройства для селектов
+    foreach ($teacherjobstates as $jobstate) {
+        $tempjobstates[$jobstate['fid']]=$jobstate['fname'];
+    }
+    $sjobstates = array_unique($tempjobstates);
+    unset($tempjobstates);
+    unset($jobstate);
+    unset($teacherjobstates);
 ?>
+
 <div class="row row-offcanvas row-offcanvas-left schedule-index">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <div id="main-menu"></div>
+        <?php endif; ?>
         <?= $userInfoBlock ?>
         <?php
             // прячем кнопку добавления преподавателя от всех кроме руководителей
@@ -98,10 +98,14 @@ unset($teacherjobstates);
 	    <?php ActiveForm::end(); ?>
     </div>
     <div id="content" class="col-sm-10">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <?= Breadcrumbs::widget([
+            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+        ]); ?>
+        <?php endif; ?>
         <p class="pull-left visible-xs">
             <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
-
         <?php if(Yii::$app->session->hasFlash('error')) { ?>
         <div class="alert alert-danger" role="alert">
             <?= Yii::$app->session->getFlash('error') ?>

@@ -1,44 +1,27 @@
 <?php
-
-use yii\helpers\Html;
-
-$this->title = 'Система учета :: '.Yii::t('app', 'Students').' :: ' . $model->name;
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Clients'), 'url' => ['index']];
-$this->params['breadcrumbs'][] = $model->name;
-
-$balance = <<< 'SCRIPT'
-$(function () { 
-        $('#balance').click(
-            function () {
-                if($('#fullbalance').is(':visible')) {
-                   $("#fullbalance").hide();
-                } else {
-                   $("#fullbalance").show();
-                } 
-            }
-        );
-	$('[data-toggle="popover"]').popover(); 
-	$('[data-toggle="tooltip"]').tooltip();
-});
-SCRIPT;
-$this->registerJs($balance);
-
-// проверяем какие данные выводить в карочку преподавателя: 1 - активные группы, 2 - завершенные группы, 3 - счета; 4 - оплаты
-if(Yii::$app->request->get('tab')){
-		$tab = Yii::$app->request->get('tab');
-} else {
-	// для менеджеров и руководителей по умолчанию раздел счетов
-	if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4){
-		$tab = 3;
-	} else {
-		// всем остальным раздел активных групп
-		$tab = 1;
-	}
-}
-
+    use yii\helpers\Html;
+    use yii\widgets\Breadcrumbs;
+    $this->title = 'Система учета :: '.Yii::t('app', 'Students').' :: ' . $model->name;
+    $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Clients'), 'url' => ['index']];
+    $this->params['breadcrumbs'][] = $model->name;
+    // проверяем какие данные выводить в карочку преподавателя: 1 - активные группы, 2 - завершенные группы, 3 - счета; 4 - оплаты
+    if(Yii::$app->request->get('tab')){
+            $tab = Yii::$app->request->get('tab');
+    } else {
+        // для менеджеров и руководителей по умолчанию раздел счетов
+        if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4){
+            $tab = 3;
+        } else {
+            // всем остальным раздел активных групп
+            $tab = 1;
+        }
+    }
 ?>
 <div class="row row-offcanvas row-offcanvas-left student-view">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <div id="main-menu"></div>
+        <?php endif; ?>
         <?= $userInfoBlock ?>
         <?php if((int)Yii::$app->session->get('user.ustatus') == 3 || (int)Yii::$app->session->get('user.ustatus') === 4): ?>
             <h4><?= Yii::t('app', 'Actions') ?>:</h4>
@@ -111,6 +94,11 @@ if(Yii::$app->request->get('tab')){
         <?php endif; ?>
     </div>
     <div id="content" class="col-sm-10">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <?= Breadcrumbs::widget([
+            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+        ]); ?>
+        <?php endif; ?>
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle</button>
 		</p>
@@ -280,3 +268,22 @@ if(Yii::$app->request->get('tab')){
         } ?>
     </div>
 </div>
+
+<?php
+$balance = <<< 'SCRIPT'
+$(function () { 
+        $('#balance').click(
+            function () {
+                if($('#fullbalance').is(':visible')) {
+                   $("#fullbalance").hide();
+                } else {
+                   $("#fullbalance").show();
+                } 
+            }
+        );
+	$('[data-toggle="popover"]').popover(); 
+	$('[data-toggle="tooltip"]').tooltip();
+});
+SCRIPT;
+$this->registerJs($balance);
+?>
