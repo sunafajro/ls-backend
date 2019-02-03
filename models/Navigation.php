@@ -47,15 +47,17 @@ class Navigation extends Model
                 'title' => Yii::t('app', 'Reports'),
                 'hasBadge' => false
             ];
-            /* ссылка на раздел Расходы*/
-            $menu[] = [
-                'id' => 'expenses',
-                'url' => '/kaslibro/index',
-                'classes' => 'fa fa-money',
-                'title' => Yii::t('app', 'Expenses'),
-                'hasBadge' => true,
-                'cnt' => Kaslibro::getExpensesCount()
-            ];
+            if (Yii::$app->params['appMode'] === 'standalone') {
+                /* ссылка на раздел Расходы*/
+                $menu[] = [
+                    'id' => 'expenses',
+                    'url' => '/kaslibro/index',
+                    'classes' => 'fa fa-money',
+                    'title' => Yii::t('app', 'Expenses'),
+                    'hasBadge' => true,
+                    'cnt' => Kaslibro::getExpensesCount()
+                ];
+            }
         }
 
         if((int)Yii::$app->session->get('user.ustatus') !== 2 &&
@@ -71,16 +73,18 @@ class Navigation extends Model
             ];
         }
 
-        /* ссылка на раздел Задачи */
-        $menu[] = [
-            'id' => 'tasks',
-            'url' => '/ticket/index',
-            'classes' => 'fa fa-tasks',
-            'title' => Yii::t('app', 'Tickets'),
-            'hasBadge' => true,
-            'cnt' => Ticket::getTasksCount()
-        ];
-
+        if (Yii::$app->params['appMode'] === 'standalone') {
+            /* ссылка на раздел Задачи */
+            $menu[] = [
+                'id' => 'tasks',
+                'url' => '/ticket/index',
+                'classes' => 'fa fa-tasks',
+                'title' => Yii::t('app', 'Tickets'),
+                'hasBadge' => true,
+                'cnt' => Ticket::getTasksCount()
+            ];
+        }
+        
         /* ссылка на раздел Сообщения */
         $menu[] = [
             'id' => 'messages',
