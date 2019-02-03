@@ -1,8 +1,5 @@
 <?php
 use yii\helpers\Html;
-use yii\bootstrap\NavBar;
-use yii\bootstrap\Nav;
-use yii\widgets\Menu;
 
 $this->title = $model->name;
 if ((int)Yii::$app->session->get('user.ustatus') !== 5) {

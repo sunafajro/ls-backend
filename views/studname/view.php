@@ -1,11 +1,6 @@
 <?php
 
 use yii\helpers\Html;
-use yii\bootstrap\NavBar;
-use yii\bootstrap\Nav;
-
-/* @var $this yii\web\View */
-/* @var $model app\models\CalcStudname */
 
 $this->title = 'Система учета :: '.Yii::t('app', 'Students').' :: ' . $model->name;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Clients'), 'url' => ['index']];
