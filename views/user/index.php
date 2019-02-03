@@ -2,7 +2,7 @@
     use yii\helpers\Html;
     use yii\widgets\ActiveForm;
     use yii\widgets\Breadcrumbs;
-    $this->title = 'Система учета :: '.Yii::t('app','Users');
+    $this->title = 'Система учета :: ' . Yii::t('app','Users');
     $this->params['breadcrumbs'][] = Yii::t('app','Users');
 ?>
 
