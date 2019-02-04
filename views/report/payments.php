@@ -7,8 +7,8 @@
 <div id="app" data-nullyear="2011"></div>
 
 <?php
-    $this->registerJsFile('/js/reports/vendors.js',
+    $this->registerJsFile('/js/reports/payments/vendors-' . (Yii::$app->params['appMode'] === 'bitrix' ? 'bitrix.js' : 'standalone.js'),
     ['position' => yii\web\View::POS_END]);
-    $this->registerJsFile('/js/reports/app.js',
+    $this->registerJsFile('/js/reports/payments/app-' . (Yii::$app->params['appMode'] === 'bitrix' ? 'bitrix.js' : 'standalone.js'),
     ['position' => yii\web\View::POS_END]);
 ?>
