@@ -14,7 +14,6 @@
         <?= $userInfoBlock ?>
         <div class="dropdown">
             <?= Html::button('<span class="fa fa-book" aria-hidden="true"></span> ' . Yii::t('app', 'Administration') . ' <span class="caret"></span>', ['class' => 'btn btn-default dropdown-toggle btn-sm btn-block', 'type' => 'button', 'id' => 'dropdownMenu', 'data-toggle' => 'dropdown', 'aria-haspopup' => 'true', 'aria-expanded' => 'true']) ?>
-
             <ul class="dropdown-menu" aria-labelledby="dropdownMenu">
               <?php foreach($links as $link) : ?>
                 <li <?= $link['active'] ? 'class="active"' : '' ?>>
@@ -39,8 +38,7 @@
         <div class="alert alert-danger" role="alert">
             <?= Yii::$app->session->getFlash('error') ?>
         </div>
-        <?php endif; ?>
-   
+        <?php endif; ?>   
         <?php if(Yii::$app->session->hasFlash('success')) : ?>
         <div class="alert alert-success" role="alert">
             <?= Yii::$app->session->getFlash('success') ?>
