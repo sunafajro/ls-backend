@@ -85,15 +85,17 @@ class Navigation extends Model
             ];
         }
         
-        /* ссылка на раздел Сообщения */
-        $menu[] = [
-            'id' => 'messages',
-            'url' => '/message/index',
-            'classes' => 'fa fa-envelope',
-            'title' => Yii::t('app', 'Messages'),
-            'hasBadge' => true,
-            'cnt' => Message::getMessagesCount()
-        ];
+        if (Yii::$app->params['appMode'] === 'standalone') {
+            /* ссылка на раздел Сообщения */
+            $menu[] = [
+                'id' => 'messages',
+                'url' => '/message/index',
+                'classes' => 'fa fa-envelope',
+                'title' => Yii::t('app', 'Messages'),
+                'hasBadge' => true,
+                'cnt' => Message::getMessagesCount()
+            ];
+        }
 
         if((int)Yii::$app->session->get('user.ustatus') === 3 ||
            (int)Yii::$app->session->get('user.ustatus') === 4 ||
