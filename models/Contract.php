@@ -55,6 +55,9 @@ class Contract extends \yii\db\ActiveRecord
         $contracts = (new \yii\db\Query())
         ->select(['id' => 'id', 'number' => 'number', 'date' => 'date', 'signer' => 'signer'])
         ->from(['c' => static::tableName()])
+        ->where([
+            'calc_studname' => $sid
+        ])
         ->orderBy(['date' => SORT_DESC])
         ->all();
         return $contracts;
