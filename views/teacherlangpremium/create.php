@@ -27,11 +27,42 @@
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
 		</p>
+		<?php if (Yii::$app->session->hasFlash('error')) : ?>
+        <div class="alert alert-danger" role="alert">
+            <?= Yii::$app->session->getFlash('error') ?>
+        </div>
+		<?php endif; ?>
+		<?php if (Yii::$app->session->hasFlash('success')) : ?>
+			<div class="alert alert-success" role="alert">
+				<?= Yii::$app->session->getFlash('success') ?>
+			</div>
+		<?php endif; ?>
 	    <?= $this->render('_form', [
 	        'model' => $model,
-	        'premiums' => $premiums,
-	        'teacher_premiums' => $teacher_premiums,
-	        'teacher' => $teacher
+	        'premiums' => $premiums
 	    ]) ?>
+		<hr />
+		<table class="table table-stripped table-bordered table-condensed small">
+			<thead>
+				<tr>
+					<th class="text-center"><?= Yii::t('app', 'Language') ?></th>
+					<th class="text-center"><?= Yii::t('app', 'Value') ?></th>
+					<th class="text-center"><?= Yii::t('app', 'Assign date') ?></th>
+					<th class="text-center"><?= Yii::t('app', 'Act.') ?></th>
+				</tr>
+			</thead>
+			<tbody>
+			<?php foreach($teacher_premiums as $tp) : ?>
+				<tr>
+					<td><?= $tp['language'] ?></td>
+					<td class="text-center"><?= $tp['value'] ?></td>
+					<td class="text-center"><?= $tp['created_at'] ?></td>
+					<td class="text-center">
+						<?= Html::a('<i class="fa fa-trash"></i>', ['teacherlangpremium/delete', 'id' => $tp['tlpid'], 'tid' => $teacher->id]) ?>
+					</td>
+				</tr>
+			<?php endforeach; ?>
+			</tbody>
+        </table>
 	</div>
 </div>

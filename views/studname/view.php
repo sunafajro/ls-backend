@@ -37,6 +37,7 @@
 		        <?php else: ?>
                     <?= Html::a('<i class="fa fa-user" aria-hidden="true"></i> ' . Yii::t('app', 'Account'), ['clientaccess/update', 'id'=>$clientaccess->id,'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
 		        <?php endif; ?>
+                <?= Html::a('<i class="fa fa-files-o" aria-hidden="true"></i> ' . Yii::t('app', 'Contracts'), ['contract/create', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
                 <?php if ((int)Yii::$app->session->get('user.ustatus') === 3) : ?>
                     <?= Html::a('<i class="fa fa-mobile" aria-hidden="true"></i> ' . Yii::t('app', 'Phone'), ['studphone/create', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
                 <?php endif; ?>
@@ -125,14 +126,26 @@
 		<?php endif; ?>
         </h3>
 
-        <?php if($model->description !== '' || $model->address !== ''): ?>
-            <div class="well">
-              <?= $model->description ? $model->description : '' ?>
-              <?= $model->description !== '' && $model->address !== '' ? '<br />' : '' ?>
-              <?= $model->address ? '<b>' . Yii::t('app', 'Address') . ':</b> <i>' . $model->address . '</i>' : '' ?>
-            </div>  
-		<?php endif; ?>
-
+        <div class="row">
+          <div class="<?= (($model->description || $model->address) && ($contracts && count($contracts))) ? 'col-sm-6' : 'col-sm-12' ?>">
+            <?php if($model->description || $model->address): ?>
+              <div class="well">
+                <?= $model->description ? $model->description : '' ?>
+                <?= $model->description !== '' && $model->address !== '' ? '<br />' : '' ?>
+                <?= $model->address ? '<b>' . Yii::t('app', 'Address') . ':</b> <i>' . $model->address . '</i>' : '' ?>
+              </div>  
+		    <?php endif; ?>
+          </div>
+          <div class="<?= (($model->description || $model->address) && ($contracts && count($contracts))) ? 'col-sm-6' : 'col-sm-12' ?>">
+            <?php if($contracts && count($contracts)): ?>
+              <div class="well">
+                <?php foreach($contracts as $c) : ?>
+                <span style="display: block">Договор № <?= $c['number'] ?> от <?= date('d.m.y', strtotime($c['date'])) ?> оформлен на <?= $c['signer'] ?></span>
+                <?php endforeach; ?>
+              </div>  
+		    <?php endif; ?>
+          </div>
+        </div>
         <!-- блоки с информацией о скидках учтенных и оплаченных занятиях доступны только руководителям и менеджерам -->
         <?php if(Yii::$app->session->get('user.ustatus') == 3 || Yii::$app->session->get('user.ustatus') == 4): ?>
 		    <?php $temporary_sales = 0; ?>

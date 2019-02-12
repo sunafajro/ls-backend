@@ -13,7 +13,7 @@ use Yii;
  * @property string $date
  * @property string $signer
  */
-class StudentContract extends \yii\db\ActiveRecord
+class Contract extends \yii\db\ActiveRecord
 {
     /**
      * @inheritdoc
@@ -46,7 +46,17 @@ class StudentContract extends \yii\db\ActiveRecord
             'calc_studname' => Yii::t('app', 'Student'),
             'number' => Yii::t('app', 'Contract number'),
             'date' => Yii::t('app', 'Contract date'),
-            'signer' => Yii::t('app', 'Contract signer',
+            'signer' => Yii::t('app', 'Contract signer'),
         ];
+    }
+
+    public static function getClientContracts($sid)
+    {
+        $contracts = (new \yii\db\Query())
+        ->select(['id' => 'id', 'number' => 'number', 'date' => 'date', 'signer' => 'signer'])
+        ->from(['c' => static::tableName()])
+        ->orderBy(['date' => SORT_DESC])
+        ->all();
+        return $contracts;
     }
 }

@@ -1,0 +1,63 @@
+<?php
+    use yii\helpers\Html;
+    use yii\widgets\Breadcrumbs;
+    $this->title = 'Система учета :: ' . Yii::t('app','Client contracts');
+    $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Clients'), 'url' => ['studname/index']];
+    $this->params['breadcrumbs'][] = ['label' => $client->name, 'url' => ['studname/view', 'id' => $client->id]];
+    $this->params['breadcrumbs'][] = Yii::t('app','Client contracts');
+?>
+
+<div class="row row-offcanvas row-offcanvas-left langteacher-create">
+    <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <div id="main-menu"></div>
+        <?php endif; ?>
+        <?= $userInfoBlock ?>
+        <!--<ul>
+            <li>Добавьте преподавателю те языки по которым он ведет обучение</li>
+            <li>Для занятий не связанных с языками (логопед, математика) добавьте пунк «Без привзки к языку»</li>
+        </ul>-->
+    </div>
+    <div id="content" class="col-sm-6">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <?= Breadcrumbs::widget([
+            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+        ]); ?>
+        <?php endif; ?>
+		<p class="pull-left visible-xs">
+			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
+		</p>
+        <?php if(Yii::$app->session->hasFlash('error')): ?>
+		    <div class="alert alert-danger" role="alert"><?= Yii::$app->session->getFlash('error') ?></div>
+        <?php endif; ?>    
+        <?php if(Yii::$app->session->hasFlash('success')): ?>
+		    <div class="alert alert-success" role="alert"><?= Yii::$app->session->getFlash('success'); ?></div>
+        <?php endif; ?> 
+        <?= $this->render('_form', [
+            'model' => $model
+        ]) ?>
+        <hr />
+        <table class="table table-stripped table-bordered table-condensed small">
+			<thead>
+				<tr>
+					<th class="text-center"><?= Yii::t('app', 'Contract number') ?></th>
+					<th class="text-center"><?= Yii::t('app', 'Contract date') ?></th>
+					<th class="text-center"><?= Yii::t('app', 'Contract signer') ?></th>
+					<th class="text-center"><?= Yii::t('app', 'Act.') ?></th>
+				</tr>
+			</thead>
+			<tbody>
+			<?php foreach($contracts as $c) : ?>
+				<tr>
+					<td><?= $c['number'] ?></td>
+					<td class="text-center"><?= date('d.m.y', strtotime($c['date'])) ?></td>
+					<td class="text-center"><?= $c['signer'] ?></td>
+					<td class="text-center">
+						<?= Html::a('<i class="fa fa-trash"></i>', ['contract/delete', 'id' => $c['id']]) ?>
+					</td>
+				</tr>
+			<?php endforeach; ?>
+			</tbody>
+        </table>
+	</div>
+</div>

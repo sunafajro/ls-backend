@@ -3,13 +3,14 @@
 namespace app\controllers;
 
 use Yii;
-use app\models\Student;
+use app\models\Contract;
 use app\models\ClientAccess;
 use app\models\Invoicestud;
 use app\models\Moneystud;
 use app\models\Office;
 use app\models\Salestud;
 use app\models\Schedule;
+use app\models\Student;
 use app\models\StudentMergeForm;
 use app\models\Studphone;
 use app\models\Tool;
@@ -444,8 +445,9 @@ class StudnameController extends Controller
             'userInfoBlock' => $userInfoBlock,
             'offices'       => [
                 'added' => Student::getStudentOffices($id),
-                'all' => Office::getOfficesList(),
-            ]
+                'all'   => Office::getOfficesList(),
+            ],
+            'contracts'     => Contract::getClientContracts($model->id)
             //'debt'=>number_format($this->studentDebt($id), 1, '.', ' '),
         ]);
     }

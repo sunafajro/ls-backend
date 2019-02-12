@@ -461,20 +461,6 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
                 break;
             /* подраздел Языковые надбавки */
             /* раздел Преподаватели */
-
-            case 'admin':
-                switch(Yii::$app->session->get('user.ustatus')) {
-                    case 3: $result = true; break;
-                    default: $result = false;            
-                }
-                break;
-
-            case 'roles':
-                switch(Yii::$app->session->get('user.ustatus')) {
-                    case 3: $result = true; break;
-                    default: $result = false;            
-                }
-                break;
 		}
 		return $result;
 	}
