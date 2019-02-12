@@ -447,7 +447,7 @@ class StudnameController extends Controller
                 'added' => Student::getStudentOffices($id),
                 'all'   => Office::getOfficesList(),
             ],
-            'contracts'     => Contract::getClientContracts($model->id)
+            'contracts'     => Contract::getClientContracts($id)
             //'debt'=>number_format($this->studentDebt($id), 1, '.', ' '),
         ]);
     }
