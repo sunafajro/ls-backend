@@ -110,17 +110,7 @@
 		    <div class="alert alert-success" role="alert"><?= Yii::$app->session->getFlash('success'); ?></div>
         <?php endif; ?> 
         <h3>[#<?= Html::encode($model->id) ?>] <?= Html::encode($model->name) ?> :: 
-		<?php
-		$p = [];
-		foreach($phones as $phone) {
-			$p[] = '<span data-toggle="tooltip" title="' . Html::encode($phone->description) . '">' . Html::encode($phone->phone) . '</span>';
-		}
-		if(count($p)) {
-            echo implode($p, ', ');
-		} else {
-		    echo Html::encode($model->phone);
-		}
-        ?>
+		<?= Html::encode($model->phone) ?>
         <?php if(isset($model->email) && $model->email !== '' && $model->email !== '0'): ?>
 			 :: <?= Html::encode($model->email) ?>
 		<?php endif; ?>
@@ -130,9 +120,9 @@
           <div class="<?= (($model->description || $model->address) && ($contracts && count($contracts))) ? 'col-sm-6' : 'col-sm-12' ?>">
             <?php if($model->description || $model->address): ?>
               <div class="well">
-                <?= $model->description ? $model->description : '' ?>
+                <?= $model->description ? Html::encode($model->description) : '' ?>
                 <?= $model->description !== '' && $model->address !== '' ? '<br />' : '' ?>
-                <?= $model->address ? '<b>' . Yii::t('app', 'Address') . ':</b> <i>' . $model->address . '</i>' : '' ?>
+                <?= $model->address ? '<b>' . Yii::t('app', 'Address') . ':</b> <i>' . Html::encode($model->address) . '</i>' : '' ?>
               </div>  
 		    <?php endif; ?>
           </div>
@@ -140,7 +130,7 @@
             <?php if($contracts && count($contracts)): ?>
               <div class="well">
                 <?php foreach($contracts as $c) : ?>
-                <span style="display: block">Договор № <?= $c['number'] ?> от <?= date('d.m.y', strtotime($c['date'])) ?> оформлен на <?= $c['signer'] ?></span>
+                <span style="display: block; font-style: italic">Договор № <?= Html::encode($c['number']) ?> от <?= date('d.m.y', strtotime($c['date'])) ?> оформлен на <?= Html::encode($c['signer']) ?></span>
                 <?php endforeach; ?>
               </div>  
 		    <?php endif; ?>

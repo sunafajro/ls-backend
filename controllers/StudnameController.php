@@ -195,8 +195,6 @@ class StudnameController extends Controller
 		}
 		// зададим пустой массив для услуг студента
 		$services = [];
-			// задаем пустой массив с телефонами
-			$phones = [];
 		// проверяем что выборка студентов не пустая
 		if(!empty($studentids)){
             // запрашиваем услуги назначенные студенту
@@ -231,13 +229,20 @@ class StudnameController extends Controller
                 unset($service);
                 unset($lessons);
             }
-            // выбираем телефоны клиента
-            $phones = (new \yii\db\Query())
-            ->select('calc_studname as sid, phone as phone, description as description')
-            ->from('calc_studphone')
-            ->where('visible=:vis', [':vis'=>1])
-            ->andWhere(['in','calc_studname', $studentids])
-            ->all();
+            // готовим информацию по договорам и добавляем ее в массив клиентов
+            $contracts = Contract::getClientContracts($studentids);
+            if (!empty($contracts)) {
+                foreach($students as $key => $val) {
+                    foreach($contracts as $c) {
+                        if ((int)$val['stid'] === (int)$c['student']) {
+                            if (!isset($students[$key]['contracts'])) {
+                                $students[$key]['contracts'] = [];
+                            }
+                            $students[$key]['contracts'][] = $c;
+                        }
+                    }
+                }
+            }
         }
         // получаем список офисов
         $offices = (new \yii\db\Query())
@@ -251,7 +256,6 @@ class StudnameController extends Controller
         return $this->render('index', [
             'students' => $students,
             'services' => $services,
-            'phones' => $phones,
             'pages' => $pages,
             'oid' => $oid,
             'tss' => $tss,
@@ -437,7 +441,6 @@ class StudnameController extends Controller
             'studsales'     => $studsales,
             'services'      => $services,
             'schedule'      => $schedule,
-            'phones'        => Studphone::getStudentPhoneById($id),
             'years'         => $years,
             'invcount'      => $invcount,
             'clientaccess'  => ClientAccess::find()->where(['calc_studname'=>$id])->one(),

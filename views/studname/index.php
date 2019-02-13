@@ -119,8 +119,8 @@
         </thead>
         <?php foreach($students as $student) { ?>
             <tr class="<?= $student['debt'] < 0 ? 'danger' : '' ?>">
-                <td class="text-center"><span class="fa <?= $student['stsex']==1 ? 'fa-male' : 'fa-female' ?>" aria-hidden="true"></span></td>
-                <td><?= Html::a('[#'.$student['stid'].'] '.$student['stname'], ['studname/view','id'=>$student['stid']]) ?><br />
+                <td class="text-center"><span class="fa <?= (int)$student['stsex'] === 1 ? 'fa-male' : 'fa-female' ?>" aria-hidden="true"></span></td>
+                <td><?= Html::a('[#'.$student['stid'].'] '.$student['stname'], ['studname/view','id' => $student['stid']]) ?><br />
                 <p class="muted">
                 <?php foreach($services as $service) {
                     if($service['stid']==$student['stid']) {
@@ -129,23 +129,19 @@
                 } ?>
                 </p>
                 </td>
+                <td><?= Html::encode($student['stphone']) ?></td>
                 <td>
-                <?php 
-                $p = 0;
-                foreach($phones as $phone) {
-                    if($phone['sid']==$student['stid']){
-                        echo "<span data-toggle='tooltip' title='".$phone['description']."'>".$phone['phone']."</span><br/>";
-                    $p++;
-                    }
-                }
-                if($p == 0) {
-                    echo $student['stphone'];
-                }
-                unset($phone);
-                unset($p);
-                ?>
+                    <?php if (isset($student['description'])) : ?>
+                    <div><?= Html::encode($student['description']) ?></div>
+                    <?php endif; ?>
+                    <?php if (isset($student['contracts']) && is_array($student['contracts']) && !empty($student['contracts'])) : ?>
+                    <div style="margin-top: 0.5rem">
+                        <?php foreach($student['contracts'] as $c) : ?>
+                        <span style="display: block; font-style: italic; color: chocolate">Договор № <?= Html::encode($c['number']) ?> от <?= date('d.m.y', strtotime($c['date'])) ?> оформлен на <?= Html::encode($c['signer']) ?></span>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
                 </td>
-                <td><?= $student['description'] ?></td>
                 <?php echo "<td class='text-center'>".($student['debt'] < 0 ? "<span class='label label-danger'>" : "<span class='label label-success'>").$student['debt']." р.</span></td>";
 	// выводим ссылки на базовые действия для менеджера и руководителя
 	if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4){

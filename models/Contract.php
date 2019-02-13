@@ -42,22 +42,27 @@ class Contract extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
+            'id'            => 'ID',
             'calc_studname' => Yii::t('app', 'Student'),
-            'number' => Yii::t('app', 'Contract number'),
-            'date' => Yii::t('app', 'Contract date'),
-            'signer' => Yii::t('app', 'Contract signer'),
+            'number'        => Yii::t('app', 'Contract number'),
+            'date'          => Yii::t('app', 'Contract date'),
+            'signer'        => Yii::t('app', 'Contract signer'),
         ];
     }
 
-    public static function getClientContracts($sid)
+    public static function getClientContracts($sid = null)
     {
+        $criteria = is_array($sid) ? ['in', 'calc_studname', $sid] : ['calc_studname' => $sid];
         $contracts = (new \yii\db\Query())
-        ->select(['id' => 'id', 'number' => 'number', 'date' => 'date', 'signer' => 'signer'])
-        ->from(['c' => static::tableName()])
-        ->where([
-            'calc_studname' => $sid
+        ->select([
+            'id'      => 'id',
+            'number'  => 'number',
+            'date'    => 'date',
+            'signer'  => 'signer',
+            'student' => 'calc_studname'
         ])
+        ->from(['c' => static::tableName()])
+        ->where($criteria)
         ->orderBy(['date' => SORT_DESC])
         ->all();
         return $contracts;
