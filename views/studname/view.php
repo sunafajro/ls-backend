@@ -117,7 +117,7 @@
         </h3>
 
         <div class="row">
-          <div class="<?= (($model->description || $model->address) && ($contracts && count($contracts))) ? 'col-sm-6' : 'col-sm-12' ?>">
+          <div class="<?= (($model->description || $model->address) && ($contracts && !empty($contracts))) ? 'col-sm-6' : 'col-sm-12' ?>">
             <?php if($model->description || $model->address): ?>
               <div class="well">
                 <?= $model->description ? Html::encode($model->description) : '' ?>
@@ -126,8 +126,8 @@
               </div>  
 		    <?php endif; ?>
           </div>
-          <div class="<?= (($model->description || $model->address) && ($contracts && count($contracts))) ? 'col-sm-6' : 'col-sm-12' ?>">
-            <?php if($contracts && count($contracts)): ?>
+          <div class="<?= (($model->description || $model->address) && ($contracts && !empty($contracts))) ? 'col-sm-6' : 'col-sm-12' ?>">
+            <?php if($contracts && !empty($contracts)): ?>
               <div class="well">
                 <?php foreach($contracts as $c) : ?>
                 <span style="display: block; font-style: italic">Договор № <?= Html::encode($c['number']) ?> от <?= date('d.m.y', strtotime($c['date'])) ?> оформлен на <?= Html::encode($c['signer']) ?></span>
