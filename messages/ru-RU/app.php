@@ -199,6 +199,7 @@ return array(
 'Job place' => 'Направление',
 'Journal'=>'Журнал',
 'Journals'=>'Журналы',
+'Journals report' => 'Отчет по журналам',
 'Knowledge levels'=>'Уровни знаний',
 'Language'=>'Язык',
 'Languages'=>'Языки',

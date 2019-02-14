@@ -9,6 +9,7 @@ use app\models\Office;
 use app\models\Report;
 use app\models\Sale;
 use app\models\Schedule;
+use app\models\Teacher;
 use app\models\Tool;
 use app\models\User;
 use yii\filters\AccessControl;
@@ -24,15 +25,15 @@ class ReportController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['accrual','common','debt','index','margin','payments','plan','sale','salaries'],
+                'only' => ['accrual', 'common', 'debt', 'index', 'journals', 'margin', 'payments', 'plan', 'sale', 'salaries'],
                 'rules' => [
                     [
-                        'actions' => ['accrual','common','debt','index','margin','plan','payments','sale','salaries'],
+                        'actions' => ['accrual', 'common', 'debt', 'index', 'journals', 'margin', 'plan', 'payments', 'sale', 'salaries'],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['accrual','common','debt','index','margin','plan','payments','sale','salaries'],
+                        'actions' => ['accrual', 'common', 'debt', 'index', 'journals', 'margin', 'plan', 'payments', 'sale', 'salaries'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -1019,6 +1020,9 @@ class ReportController extends Controller
         if($type == 1) {
             return $this->redirect(['report/common']);
         }
+        if($type == 8) {
+            return $this->redirect(['report/journals']);
+        }
 	
         // проверяем get-запрос на наличие информации о годе и задаем переменную $year
         if(\Yii::$app->request->get('year')){
@@ -1419,7 +1423,18 @@ class ReportController extends Controller
                 $ld = NULL;
                 $m = $mon;
                 $y = $year;
-            } else {
+            } else {        return $this->render('debt',[
+                'offices'       => Office::getOfficeInScheduleListSimple(),
+                'oid'           => $oid,
+                'pages'         => $pages,
+                'reportlist'    => Report::getReportTypeList(),
+                'sign'          => $sign,
+                'state'         => $state,
+                'stds'          => $stds,
+                'students'      => $students,
+                'tss'           => $tss,
+                'userInfoBlock' => User::getUserInfoBlock(),
+            ]);
                 $fd = $first_day;
                 $ld = $last_day;
                 $m = NULL;
@@ -1835,20 +1850,33 @@ class ReportController extends Controller
     * метод выборки данных для построения отчета по Журналам 
     */
     
-    protected function reportJournals($tid, $office) 
+    public function actionJournals($corp = 0, $office = NULL, $tid = NULL) 
     {
-    
-        // формируем массив преподавателей для селекта
+        /* всех кроме руководителей, менеджеров редиректим обратно */
+        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+            return $this->redirect(Yii::$app->request->referrer);
+        }
+        // для менеджеров задаем переменную с id офиса
+        if ((int)Yii::$app->session->get('user.ustatus') === 4) {
+            $oid = Yii::$app->session->get('user.uoffice_id');
+            if ($corp) {
+                $oid = NULL;
+            }
+        }
+        // получим массив преподавателей у которых его активные группы
         $teachers = (new \yii\db\Query())
         ->select('t.id as tid, t.name as tname')
         ->distinct()
         ->from('calc_teachergroup tg')
-        ->leftJoin('calc_teacher t', 't.id=tg.calc_teacher')
-        ->leftJoin('calc_groupteacher gt', 'gt.id=tg.calc_groupteacher')
-        ->where('gt.visible=:vis and tg.visible=:vis', [':vis'=>1])
-        ->andFilterWhere(['t.id'=>$tid])
-        ->andFilterWhere(['gt.calc_office'=>$office]);
-            
+        ->innerJoin('calc_teacher t', 't.id=tg.calc_teacher')
+        ->innerJoin('calc_groupteacher gt', 'gt.id=tg.calc_groupteacher')
+        ->where([
+            'gt.visible' => 1,
+            'tg.visible' => 1
+        ])
+        ->andFilterWhere(['t.id' => $tid === 'all' ? NULL : $tid])
+        ->andFilterWhere(['gt.calc_office' => $oid])
+        ->andFilterWhere(['gt.corp' => !$corp ? NULL : $corp]);
         // делаем клон запроса
         $countQuery = clone $teachers;
         // получаем данные для паджинации
@@ -1856,59 +1884,58 @@ class ReportController extends Controller
         $limit = 10;
         $offset = 0;
         if(Yii::$app->request->get('page')){
-            if(Yii::$app->request->get('page')>1&&Yii::$app->request->get('page')<=$pages->totalCount){
+            if(Yii::$app->request->get('page') > 1 && Yii::$app->request->get('page') <= $pages->totalCount){
                 $offset = 10 * (Yii::$app->request->get('page') - 1);
             }
         }
         // доделываем запрос и выполняем
         $teachers = $teachers->orderBy(['t.name'=>SORT_ASC])->limit($limit)->offset($offset)->all();            
-
         $teachersall = $countQuery->orderBy(['t.name'=>SORT_ASC])->all();
-        unset($countQuery);
-        
+
         // зададим пустое значение, оно будет использоваться если фильтр по преподавателю не задан
         $tids = NULL;
-        $tchrs = NULL;
+        $teacher_names = NULL;
         $lcount = [];
         // формируем массив с id преподавателей, для ситуации когда фильтр по преподавателю не задан
-        if(!$tid) {
+        if(!$tid || ($tid && $tid === 'all')) {
             $i = 0;
             foreach($teachers as $t) {
                 // массив id-шников для запроса занятий
                 $tids[$i] = $t['tid'];
                 // массив преподавателей для вьюза
-                $tchrs[$t['tid']] = $t['tname'];
+                $teacher_names[$t['tid']] = $t['tname'];
                 // массив занятий преподавателя
                 $lcount[$t['tid']]['totalCount'] = 0;
                 $i++;
             }
-            unset($i);
-            unset($t);
         } else {
             foreach($teachersall as $t) {
                 if($t['tid']==$tid) {
                     // массив преподавателей для вьюза
-                    $tchrs[$t['tid']] = $t['tname'];
+                    $teacher_names[$t['tid']] = $t['tname'];
                     // массив занятий преподавателя
                     $lcount[$t['tid']]['totalCount'] = 0;
                 }
             }
-            unset($i);
-            unset($t);
         }
 
-        if(!empty($tchrs)) {
+        if(!empty($teacher_names)) {
             // получаем данные по занятиям
             $lessons = (new \yii\db\Query())
             ->select('jg.id as lid, jg.calc_groupteacher as gid, jg.data as date, jg.done as done, jg.calc_teacher as tid, t.name as tname, jg.description as desc, jg.visible as visible')
             ->from('calc_journalgroup jg')
             ->leftJoin('calc_teacher t', 't.id=jg.calc_teacher')
             ->leftJoin('calc_groupteacher gt', 'gt.id=jg.calc_groupteacher')
-            ->where('jg.view!=:vis and jg.visible=:vis and jg.user!=:null', [':vis'=>1, ':null'=>0])
-            ->andFilterWhere(['gt.calc_office'=>$office])
-            ->andFilterWhere(['jg.calc_teacher'=>$tid])
+            ->where([
+                'jg.view' => 0,
+                'jg.visible' => 1
+            ])
+            ->andWhere(['>', 'jg.user', 0])
+            ->andFilterWhere(['gt.calc_office' => $oid])
+            ->andFilterWhere(['jg.calc_teacher' => $tid === 'all' ? NULL : $tid])
             ->andFilterWhere(['in', 'jg.calc_teacher', $tids])
-            ->orderby(['t.name'=>SORT_ASC, 'jg.data'=>SORT_DESC])
+            ->andFilterWhere(['gt.corp' => !$corp ? NULL : $corp])
+            ->orderby(['t.name' => SORT_ASC, 'jg.data' => SORT_DESC])
             ->all();
 
             // выбираем группы преподавателей
@@ -1919,10 +1946,11 @@ class ReportController extends Controller
             ->leftJoin('calc_service s', 's.id=gt.calc_service')
             ->leftJoin('calc_timenorm tn', 'tn.id=s.calc_timenorm')
             ->leftJoin('calc_edulevel el', 'el.id=gt.calc_edulevel')
-            ->where('gt.visible=:vis', [':vis'=>1])
-            ->andFilterWhere(['gt.calc_office'=>$office])
-            ->andFilterWhere(['tg.calc_teacher'=>$tid])
-            ->andFilterWhere(['in', 'tg.calc_teacher', $tids])              
+            ->where(['gt.visible' => 1])
+            ->andFilterWhere(['gt.calc_office' => $oid])
+            ->andFilterWhere(['tg.calc_teacher' => $tid === 'all' ?  NULL : $tid])
+            ->andFilterWhere(['in', 'tg.calc_teacher', $tids])
+            ->andFilterWhere(['gt.corp' => !$corp ? NULL : $corp])
             ->orderby(['tg.id'=>SORT_ASC])
             ->all();
             
@@ -1937,16 +1965,26 @@ class ReportController extends Controller
                 $lcount[$g['tid']][$g['gid']]['totalCount'] = $t;
                 $lcount[$g['tid']]['totalCount'] += $t;
             }
-            unset($t);
-            unset($g);
         } else {
             $lessons = [];
             $groups = [];
         }
         $teachers = $teachersall;
-        unset($teachersall);
-        unset($tids);
-        return array ($teachers, $lessons, $groups, $tchrs, $pages, $lcount);
+
+        return $this->render('journals', [
+            'corp'          => $corp,
+            'groups'        => $groups,
+            'lcount'        => $lcount,
+            'lessons'       => $lessons,
+            'offices'       => Office::getOfficeInScheduleListSimple(),
+            'oid'           => $oid,
+            'pages'         => $pages,
+            'reportlist'    => Report::getReportTypeList(),
+            'teachers'      => Teacher::getTeachersInUserListSimple(),
+            'teacher_names' => $teacher_names,
+            'tid'           => $tid,
+			'userInfoBlock' => User::getUserInfoBlock(),
+        ]);
     }
     
     /*
