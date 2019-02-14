@@ -1850,7 +1850,7 @@ class ReportController extends Controller
     * метод выборки данных для построения отчета по Журналам 
     */
     
-    public function actionJournals($corp = 0, $office = NULL, $tid = NULL) 
+    public function actionJournals($corp = 0, $oid = NULL, $tid = NULL) 
     {
         /* всех кроме руководителей, менеджеров редиректим обратно */
         if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
