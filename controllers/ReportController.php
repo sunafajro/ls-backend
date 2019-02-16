@@ -25,15 +25,15 @@ class ReportController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['accrual', 'common', 'debt', 'index', 'journals', 'margin', 'payments', 'plan', 'sale', 'salaries'],
+                'only' => ['accrual', 'common', 'debt', 'index', 'invoices', 'journals', 'margin', 'payments', 'plan', 'sale', 'salaries'],
                 'rules' => [
                     [
-                        'actions' => ['accrual', 'common', 'debt', 'index', 'journals', 'margin', 'plan', 'payments', 'sale', 'salaries'],
+                        'actions' => ['accrual', 'common', 'debt', 'index', 'invoices', 'journals', 'margin', 'plan', 'payments', 'sale', 'salaries'],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['accrual', 'common', 'debt', 'index', 'journals', 'margin', 'plan', 'payments', 'sale', 'salaries'],
+                        'actions' => ['accrual', 'common', 'debt', 'index', 'invoices', 'journals', 'margin', 'plan', 'payments', 'sale', 'salaries'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -1765,86 +1765,14 @@ class ReportController extends Controller
         ]);
     }
     
-    /* функция расчета долга студента
-    protected function studentDebt($id) {
-        
-        // задаем переменную в которую будет подсчитан долг по занятиям
-        $debt_lessons = 0;
-        // задаем переменную в которую будет подсчитан долг по разнице между счетами и оплатами
-        $debt_common = 0;
-        // полный долг
-        $debt = 0;
-        
-        // получаем информацию по счетам
-        $invoices_sum = (new \yii\db\Query())
-        ->select('sum(value) as money')
-        ->from('calc_invoicestud')
-        ->where('visible=:vis and calc_studname=:sid', [':vis'=>1, ':sid'=>$id])
-        ->one();
-        
-        // получаем информацию по оплатам
-        $payments_sum = (new \yii\db\Query())
-        ->select('sum(value) as money')
-        ->from('calc_moneystud')
-        ->where('visible=:vis and calc_studname=:sid', [':vis'=>1, ':sid'=>$id])
-        ->one();
-        
-        // считаем разницу как базовый долг
-        $debt_common = $payments_sum['money'] - $invoices_sum['money'];
-        
-        // запрашиваем услуги назначенные студенту
-        $services = (new \yii\db\Query())
-        ->select('s.id as sid, s.name as sname, SUM(is.num) as num')
-        ->distinct()
-        ->from('calc_service s')
-        ->leftjoin('calc_invoicestud is', 'is.calc_service=s.id')
-        ->where('is.remain=:rem and is.visible=:vis', [':rem'=>0, ':vis'=>1])
-        ->andWhere(['is.calc_studname'=>$id])
-        ->groupby(['is.calc_studname','s.id'])
-        ->orderby(['s.id'=>SORT_ASC])
-        ->all();
-        
-        // проверяем что у студента есть назначенные услуги
-        if(!empty($services)){
-            $i = 0;
-            // распечатываем массив
-            foreach($services as $service){
-                // запрашиваем из базы колич пройденных уроков
-                $lessons = (new \yii\db\Query())
-                ->select('COUNT(sjg.id) AS cnt')
-                ->from('calc_studjournalgroup sjg')
-                ->leftjoin('calc_groupteacher gt', 'sjg.calc_groupteacher=gt.id')
-                ->leftjoin('calc_journalgroup jg', 'sjg.calc_journalgroup=jg.id')
-                ->where('jg.view=:vis and jg.visible=:vis and (sjg.calc_statusjournal=:vis or sjg.calc_statusjournal=:stat) and gt.calc_service=:sid and sjg.calc_studname=:stid', [':vis'=>1, 'stat'=>3, ':sid'=>$service['sid'], ':stid'=>$id])
-                ->one();
-
-                // считаем остаток уроков
-                $services[$i]['num'] = $services[$i]['num'] - $lessons['cnt'];
-                $i++;
-            }
-            // уничтожаем переменные
-            unset($service);
-            unset($lessons);
-            
-            foreach($services as $s) {
-                if($s['num'] < 0){
-                        $lesson_cost = (new \yii\db\Query())
-                        ->select('(value/num) as money')
-                        ->from('calc_invoicestud')
-                        ->where('visible=:vis and calc_studname=:stid and calc_service=:sid', [':vis'=>1, ':stid'=>$id, ':sid'=>$s['sid']])
-                        ->orderby(['id'=>SORT_DESC])
-                        ->one();
-                        
-                        $debt_lessons = $debt_lessons + $s['num'] * $lesson_cost['money'];
-                }               
-            }
+    public function actionInvoices($start = null, $end = null) {
+        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+            return $this->redirect(Yii::$app->request->referrer);
         }
-        unset($services);
-        $debt = $debt_common + $debt_lessons;
-        $debt = number_format($debt, 1, '.', ' ');
-        return $debt;
+        return $this->render('invoices', [
+            'userInfoBlock' => User::getUserInfoBlock(),
+        ]);
     }
-    */
     
     /*
     * метод выборки данных для построения отчета по Журналам 
