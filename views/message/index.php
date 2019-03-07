@@ -1,34 +1,18 @@
 <?php
-
-use yii\helpers\Html;
-use yii\widgets\ActiveForm;
-use yii\bootstrap\NavBar;
-use yii\bootstrap\Nav;
-use yii\widgets\Menu;
-
-$this->title = 'Система учета :: '.Yii::t('app','Messages');
-$this->params['breadcrumbs'][] = Yii::t('app','Messages');
+  use yii\helpers\Html;
+  use yii\widgets\ActiveForm;
+  use yii\bootstrap\NavBar;
+  use yii\bootstrap\Nav;
+  use yii\widgets\Menu;
+  $this->title = 'Система учета :: '.Yii::t('app','Messages');
+  $this->params['breadcrumbs'][] = Yii::t('app','Messages');
 
 $js = <<< 'SCRIPT'
 $(function () {
     $("[data-toggle='popover']").popover();
 });
 SCRIPT;
-// Register tooltip/popover initialization javascript
 $this->registerJs($js);
-
-if(Yii::$app->request->get('mon')){
-    if(Yii::$app->request->get('mon')>=1&&Yii::$app->request->get('mon')<=12) {$mon = Yii::$app->request->get('mon');}
-    else{$mon = NULL;}
-    }
-else{$mon = date('n');}
-
-if(Yii::$app->request->get('year')){
-    if(Yii::$app->request->get('year')>=2012&&Yii::$app->request->get('year')<=date('Y')) {$year = Yii::$app->request->get('year');}
-    else{$year = date('Y');}
-    }
-else{$year = date('Y');}
-
 ?>
 
 <div class="row row-offcanvas row-offcanvas-left message-create">
@@ -38,7 +22,9 @@ else{$year = date('Y');}
         <?php endif; ?>
         <?= $userInfoBlock ?>
         <h4><?= Yii::t('app', 'Actions') ?></h4>
-        <?= Html::a('<span class="fa fa-plus" aria-hidden="true"></span> ' . Yii::t('app', 'Add'), ['create'], ['class' => 'btn btn-success btn-sm btn-block']) ?>
+        <?=
+          Html::a('<span class="fa fa-plus" aria-hidden="true"></span> ' . Yii::t('app', 'Add'), ['create'],
+          ['class' => 'btn btn-success btn-sm btn-block']) ?>
         <h4><?= Yii::t('app', 'Filters') ?></h4>
         <?php $form = ActiveForm::begin([
             'method' => 'get',
@@ -50,12 +36,14 @@ else{$year = date('Y');}
                 <option value="all">-все месяцы-</option>
                 <?php
                     for ($i = 1; $i <= 12; $i++) {
-                        $months[date('n',strtotime("$i month"))] = date('F', strtotime("$i month"));
+                        $month_num = date('n', strtotime("$i month"));
+                        $month_num = $month_num < 10 ? '0' . $month_num : $month_num;
+                        $months[$month_num] = date('F', strtotime("$i month"));
                     }
                     ksort($months);
                 ?>
-                <?php  foreach ($months as $mkey => $month) : ?>
-                <option <?= (int)$mkey === (int)$mon ? 'selected' : '' ?> value="<?= $mkey ?>"><?= Yii::t('app', $month) ?></option>
+                <?php  foreach ($months as $key => $value) : ?>
+                <option <?= (int)$key === (int)$month ? 'selected' : '' ?> value="<?= $key ?>"><?= Yii::t('app', $value) ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
@@ -97,70 +85,99 @@ else{$year = date('Y');}
         <table class="table table-stripped table-bordered table-hover table-condensed">
             <thead>
                 <tr>
+                    <th class="text-center"><i class="fa fa-inbox" aria-hidden="true"></i></th>
                     <th>Сообщение</th>
-                    <th>От кого/когда</th>
-                    <?php if(Yii::$app->request->get('type') && Yii::$app->request->get('type')=='out'): ?>
+                    <th>Отправитель/когда</th>
+                    <th>Получатель</th>
                     <th>Отчет</th>
-                    <th width="10%">Действия 
-                    <button type="button" class="btn btn-xs btn-default" data-container="body" data-toggle="popover" data-placement="top" data-content="После добавления сообщения, вы можете его отредактировать, удалить или прикрепить картинку. После отправки ни одно из этих действий доступно уже не будет.">?</button></th>
-                    <?php endif ?>
+                    <th width="10%">
+                        Действия
+                        <button
+                          type="button"
+                          class="btn btn-xs btn-default"
+                          data-container="body"
+                          data-toggle="popover"
+                          data-placement="top"
+                          data-content="После добавления сообщения, вы можете его отредактировать, удалить или прикрепить картинку. После отправки ни одно из этих действий доступно уже не будет."
+                        >
+                          ?
+                        </button>
+                    </th>
                 </tr>
             </thead>
             <tbody>
             <?php foreach($messages as $message): ?>
-                <?php if (!empty($messid) && in_array($message['mid'], $messid)) : ?>
+                <?php if (!empty($unreaded) && in_array($message['id'], $unreaded)) : ?>
                 <tr class="danger">
-                <?php elseif ($message['msend'] !== NULL && (int)$message['msend'] === 0) : ?>
+                <?php elseif ($message['sended'] !== NULL && (int)$message['sended'] === 0) : ?>
                 <tr class="warning">
                 <?php else : ?>
                 <tr>
                 <?php endif; ?>
+                    <td class="text-center">
+                        <i
+                          class="fa fa-<?= $message['direction'] === 'out' ? 'upload' : 'download' ?>"
+                          title="<?= $message['direction'] === 'out' ? Yii::t('app','Outcoming message') : Yii::t('app','Incoming message') ?>"
+                          aria-hidden="true"
+                        ></i>
+                    </td>
                     <td>
-                        <?= Html::a($message['mtitle'], ['message/view', 'id' => $message['mid']]) ?>
+                        <?= Html::a($message['title'], ['message/view', 'id' => $message['id']]) ?>
                     </td>
                     <td>
                         <p class="small">
-                        <?php if ((int)$message['mgroupid'] === 100) : ?>
-                            <?= $message['mstsname'] ?>
-                        <?php elseif ((int)$message['mgroupid'] === 13 || (int)$message['mgroupid'] === 5) : ?>
-                            <?= $message['musname'] ?>
+                        <?php if ((int)$message['destination_id'] === 100) : ?>
+                            <?= $message['sender_stn_name'] ?>
                         <?php else : ?>
-                            <?= $message['musname'] ?>
+                            <?= $message['sender_emp_name'] ?>
                         <?php endif; ?>
                             <br />
                             <span class="inblocktext">
-                                <?= date('d.m.y H:i:s', strtotime($message['mdate'])) ?>
+                                <?= date('d.m.Y', strtotime($message['date'])) ?>
                             </span>
                         </p>
                     </td>
-                    <?php if(Yii::$app->request->get('type') && Yii::$app->request->get('type') === 'out') :?>
                     <td>
+                        <p class="small">
+                        <?php if ((int)$message['destination_id'] === 100 || (int)$message['destination_id'] === 5) : ?>
+                            <?= $message['receiver_emp_name'] ?>
+                        <?php elseif ((int)$message['destination_id'] === 13) : ?>
+                            <?= $message['receiver_stn_name'] ?>
+                        <?php else : ?>
+                            <?= $message['destination_name'] ?>
+                        <?php endif; ?>
+                        </p>
+                    </td>
+                    <td>
+                    <?php if ($message['direction'] === 'out') : ?>
                     <?php
                     $key = 0;
-                    foreach($reprsp as $rsp) {
-                        if ((int)$rsp['mid'] === (int)$message['mid']) {
-                            echo $rsp['num'] . '/';
+                    foreach($messages_readed as $r) {
+                        if ((int)$r['id'] === (int)$message['id']) {
+                            echo $r['num'] . '/';
                             $key += 1;
                         }
                     }
                     echo ($key==0) ? "0/" : "";
                     $key = 0;
-                    foreach ($repall as $rall) {
-                        if ((int)$rall['mid'] === (int)$message['mid']) {
-                            echo $rall['num'];
+                    foreach ($messages_all as $r) {
+                        if ((int)$r['id'] === (int)$message['id']) {
+                            echo $r['num'];
                             $key += 1;
                         }
                     }
                     echo (int)$key === 0 ? "0" : "";
                     ?>
+                    <?php endif; ?>
                     </td>
                     <td width="10%">
-                        <?= (int)$message['msend'] ===0 ? Html::a('', ['message/update', 'id' => $message['mid']], ['class' => 'glyphicon glyphicon-pencil', 'title' => Yii::t('app', 'Edit')]) . ' ' : '' ?>
-                        <?= (int)$message['msend'] ===0 ? Html::a('', ['message/upload', 'id' => $message['mid']], ['class' => 'glyphicon glyphicon-picture', 'title' => Yii::t('app', 'Add image')]) . ' ' : '' ?>
-                        <?= (int)$message['msend'] ===0 ? Html::a('', ['message/send', 'id' => $message['mid']], ['class' => 'glyphicon glyphicon-envelope', 'title' => Yii::t('app', 'Send')]) . ' ' : '' ?>
-                        <?= (int)$message['msend'] ===0 ? Html::a('', ['message/disable', 'id' => $message['mid']], ['class' => 'glyphicon glyphicon-trash', 'title' => Yii::t('app', 'Delete')]) . ' ' : '' ?>
+                        <?php if ($message['direction'] === 'out') : ?>
+                        <?= (int)$message['msend'] ===0 ? Html::a('', ['message/update', 'id' => $message['id']], ['class' => 'glyphicon glyphicon-pencil', 'title' => Yii::t('app', 'Edit')]) . ' ' : '' ?>
+                        <?= (int)$message['msend'] ===0 ? Html::a('', ['message/upload', 'id' => $message['id']], ['class' => 'glyphicon glyphicon-picture', 'title' => Yii::t('app', 'Add image')]) . ' ' : '' ?>
+                        <?= (int)$message['msend'] ===0 ? Html::a('', ['message/send', 'id' => $message['id']], ['class' => 'glyphicon glyphicon-envelope', 'title' => Yii::t('app', 'Send')]) . ' ' : '' ?>
+                        <?= (int)$message['msend'] ===0 ? Html::a('', ['message/disable', 'id' => $message['id']], ['class' => 'glyphicon glyphicon-trash', 'title' => Yii::t('app', 'Delete')]) . ' ' : '' ?>
+                        <?php endif; ?>
                     </td>
-                <?php endif; ?>
                 </tr>
             <?php endforeach; ?>
             </tbody>
