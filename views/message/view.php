@@ -67,28 +67,35 @@
         <?php if ((int)$message['sended'] === 0) : ?>
           <div class="alert alert-warning">Сообщение ожидает отправки!</div>
         <?php endif; ?>
-        
-        <p>
+
+        <div>
+            <strong>Дата:</strong> <?= date('d.m.Y', strtotime($message['date'])) ?>
+        </div>
+        <div>
+            <strong>От кого:</strong>
+            <span class="text-primary">
+                <?= $message['sender'] ?>
+            </span>
+        </div>
+        <div>
             <strong>Кому:</strong>
             <span class="text-primary">
                 <?= $message['receiver'] ?>
             </span>
-        </p>
-        
-        <p>
+        </div>
+        <div>
             <strong>Текст:</strong>
             <?= $message['text'] ?>
-        </p>
-        
+        </div>
         <?php if ($message['files'] !== NULL && $message['files'] !== '0') : ?>
             <?php $link = explode('|', $message['files']) ?>
-            <p>
+            <div>
                 <strong>Файл:</strong><br />
                 <?=
                   Html::img('@web/uploads/calc_message/' . $message['id'] . '/fls/' . $link[0],
                   ['width' => '200px', 'alt' => 'Image', 'class' => 'img-thumbnail'])
                 ?>
-            </p>
+            </div>
         <?php endif; ?>
         
         <?php if ($message['response']) : ?>
