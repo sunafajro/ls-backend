@@ -4,12 +4,42 @@
   $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Messages'), 'url' => ['index']];
   $this->params['breadcrumbs'][] = $message['title'];
 ?>
-<div class="row row-offcanvas row-offcanvas-left schedule-index">
+
+<div class="row row-offcanvas row-offcanvas-left message-view">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
         <div id="main-menu"></div>
         <?php endif; ?>
         <?= $userInfoBlock ?>
+        <?php if ((int)$message['sended'] === 0) : ?>
+        <h4><?= Yii::t('app', 'Actions') ?>:</h4>
+        <?=
+          Html::a('<i class="fa fa-edit" aria-hidden="true"></i> ' . Yii::t('app', 'Edit'),
+          ['message/update', 'id' => $message['id']],
+          ['class' => 'btn btn-sm btn-warning btn-block'])
+        ?>
+        <?=
+          Html::a('<i class="fa fa-image" aria-hidden="true"></i> ' . Yii::t('app', 'Add image'),
+          ['message/upload', 'id' => $message['id']],
+          ['class' => 'btn btn-sm btn-info btn-block'])
+        ?>
+        <?=
+          Html::a('<i class="fa fa-envelope" aria-hidden="true"></i> ' . Yii::t('app', 'Send'),
+          ['message/send', 'id' => $message['id']],
+          ['class' => 'btn btn-sm btn-success btn-block'])
+        ?>
+        <?=
+          Html::a('<i class="fa fa-thrash" aria-hidden="true"></i> ' . Yii::t('app', 'Delete'),
+          ['message/disable', 'id' => $message['id']],
+          ['class' => 'btn btn-sm btn-danger btn-block'])
+        ?>
+        <?php endif; ?>
+        <div style="margin-top: 1rem">
+            <h4><?= Yii::t('app', 'Hints') ?>:</h4>
+            <ul>
+                <li>Редактирование, добавление фото и удаление сообщения доступны только до его отправки!</li>
+		    </ul>
+        </div>
     </div>
     <div id="content" class="col-sm-10">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
@@ -60,13 +90,6 @@
                 ?>
             </p>
         <?php endif; ?>
-        
-        <?=
-          (int)$message['sended'] === 0 ?
-          Html::a('<i class="fa fa-envelope" aria-hidden="true"></i> Отправить',
-          ['message/send', 'id' => $message['id']],
-          ['class' => 'btn btn-success']) : ''
-        ?> 
         
         <?php if ($message['response']) : ?>
             <?=
