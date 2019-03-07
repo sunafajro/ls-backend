@@ -3,14 +3,14 @@
 namespace app\controllers;
 
 use Yii;
-use yii\db\Query;
-use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
+use yii\filters\VerbFilter;
 use yii\helpers\FileHelper;
-use yii\helpers\Html;
 use app\models\Message;
 use app\models\UploadForm;
+use app\models\User;
 use yii\web\Controller;
+use yii\web\BadRequestHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 use yii\web\UploadedFile;
@@ -50,7 +50,6 @@ class MessageController extends Controller
                 'class' => VerbFilter::className(),
                 'actions' => [
                     'delete' => ['post'],
-                    'response' => ['post'],
                     'ajaxgroup' => ['post'],
                     'ajaxmess' => ['post'],
                 ],
@@ -202,7 +201,8 @@ class MessageController extends Controller
     public function actionView($id)
     {
         return $this->render('view', [
-            'model' => $this->findModel($id),
+            'message' => Message::getMessageById($id),
+            'userInfoBlock' => User::getUserInfoBlock()
         ]);
     }
 
@@ -360,34 +360,53 @@ class MessageController extends Controller
      * и помечает его прочитанным.
      * @param integer $id
      */
-    public function actionResponse()
+    public function actionResponse($rid = NULL)
     {
-        /* включаем формат ответа JSON */
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        $id = (int)Yii::$app->request->post('id');
-        if ($id) {
-            /* проверяем что сообщение не прочитано и получаем его id */
-            $message = Message::getUnreadMessageIdByReportId($id, Yii::$app->session->get('user.uid'));
+        if (Yii::$app->request->isPost) {
+            /* включаем формат ответа JSON */
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            $id = (int)Yii::$app->request->post('id');
+            if ($id) {
+                /* проверяем что сообщение не прочитано и получаем его id */
+                $message = Message::getUnreadMessageIdByReportId($id, Yii::$app->session->get('user.uid'));
 
-            /* если есть непрочитанное сообщение меняем его статус на прочитанное */
-            if(!empty($message)){
-                $db = (new \yii\db\Query())
-                ->createCommand()
-                ->update('calc_messreport', ['ok' => '1'], ['id'=>$message['id']])
-                ->execute();
+                /* если есть непрочитанное сообщение меняем его статус на прочитанное */
+                if(!empty($message)){
+                    $db = (new \yii\db\Query())
+                    ->createCommand()
+                    ->update('calc_messreport', ['ok' => '1'], ['id'=>$message['id']])
+                    ->execute();
 
-                return [ 'result' => true ];
+                    return [ 'result' => true ];
+                } else {
+                    return [
+                        'result' => false,
+                        'errMessage' => 'Сообщение №' . $id . ' не найдено.'
+                    ];
+                }
             } else {
                 return [
                     'result' => false,
-                    'errMessage' => 'Сообщение №' . $id . ' не найдено.'
+                    'errMessage' => 'Идентификатор сообщения не задан.'
                 ];
             }
         } else {
-            return [
-                'result' => false,
-                'errMessage' => 'Идентификатор сообщения не задан.'
-            ];
+            if ($rid) {
+                /* проверяем что сообщение не прочитано и получаем его id */
+                $message = Message::getUnreadMessageIdByReportId($rid, Yii::$app->session->get('user.uid'));
+                /* если есть непрочитанное сообщение меняем его статус на прочитанное */
+                if (!empty($message)) {
+                    $db = (new \yii\db\Query())
+                    ->createCommand()
+                    ->update('calc_messreport', ['ok' => '1'], ['id' => $message['id']])
+                    ->execute();
+                    return $this->redirect(['message/index']);
+                } else {
+                    throw new NotFoundHttpException(Yii::t('yii', 'The requested page does not exist.'));    
+                }
+            } else {
+                throw new BadRequestHttpException(Yii::t('yii', 'Missing required arguments: { rid }'));
+            }
         }
     }
     
