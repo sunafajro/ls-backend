@@ -177,10 +177,10 @@ class Message extends \yii\db\ActiveRecord
 
     public static function getUserMessages($start = NULL, $end = NULL, $direction = 'in')
     {
-        $messages = (new \yii\db\Query()) 
+        $messages = (new \yii\db\Query())
         ->select([
             'id' => 'm.id',
-            'title' => 'm.name', 
+            'title' => 'm.name',
             'text' => 'm.description',
             'files' => 'm.files',
             'sender_id' => 'm.user',
@@ -206,7 +206,7 @@ class Message extends \yii\db\ActiveRecord
                 'mr.user' => Yii::$app->session->get('user.uid'),
                 'm.visible' => 1
             ]);
-        } 
+        }
         if($direction === 'out') {
             if((int)Yii::$app->session->get('user.ustatus') === 3) {
                 $messages = $messages->where([
@@ -226,10 +226,9 @@ class Message extends \yii\db\ActiveRecord
                 ]);
             }
         }
-        $messages = $messages->andFilterWhere(['>=', 'm.data', $start]);
-        $messages = $messages->andFilterWhere(['<=', 'm.data', $end]);
-        $messages = $messages->andFilterWhere(['in', 'm.id', $unreaded]);
-        $messages = $messages->all();
+        $messages = $messages->andFilterWhere(['>=', 'm.data', $start])
+        ->andFilterWhere(['<=', 'm.data', $end])
+        ->all();
         return $messages;
     }
 
