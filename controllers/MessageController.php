@@ -190,6 +190,7 @@ class MessageController extends Controller
             'reprsp'=>$reprsp,
             'repall'=>$repall,
             'messid'=>$messid,
+            'userInfoBlock' => User::getUserInfoBlock()
         ]);
     }
 
@@ -213,49 +214,23 @@ class MessageController extends Controller
      */
     public function actionCreate()
     {
-        // подключаем боковое меню
-        $this->layout = "column2";
-
-        $mtypes = [1=>1, 2=>2, 3=>3, 4=>4, 5=>5, 6=>12, 7=>13];
-
-        // создаем пустой обьект
+        $permitted_types = [1=>1, 2=>2, 3=>3, 4=>4, 5=>5, 6=>12, 7=>13];
+        $types = Message::getMessageDirectionsArray($permitted_types);
         $model = new Message();
-        // если роль == преподаватель
-        if(Yii::$app->session->get('user.ustatus')==5){
-            $cmwts = [5 => Yii::t('app','To one user')];
-        } else {
-            //для остальных выбираем список всех типов сообщений
-            $cmwts = (new \yii\db\Query())
-            ->select('id as tid, name as tname')
-            ->from('calc_messwhomtype')
-            ->where('visible=:vis',[':vis'=>1])
-            ->andWhere(['in','id',$mtypes])
-            ->orderby(['id'=>SORT_ASC])
-            ->all();
-    }
-        // если модель загружена и сохранена
         if ($model->load(Yii::$app->request->post())) {
-            // добавляем служебные параметры в модель
-            // тип сообщения по дефолту обычное, для чего был нужен longmess никто не знает
             $model->longmess = 0;
-            // указываем автора сообщения
             $model->user = Yii::$app->session->get('user.uid');
-            // указываем дату и время создания
             $model->data = date('Y-m-d H:i:s');
-            // по дефолтку сообщение не отправлено
             $model->send = 0;
-            // поле файлов по дефолту ноль, файл крепится после создания сообщения, но до отправки
             $model->files = '0';
-            // помечаем сообщение как действующее
             $model->visible = 1;
-            // сохраняем модель
             $model->save();
-            // возвращаем в список исходящих сообщений пользователя
-            return $this->redirect(['index','type'=>'out']);
+            return $this->redirect(['index']);
         } else {
             return $this->render('create', [
                 'model' => $model,
-            'cmwts' => $cmwts,
+                'types' => $types,
+                'userInfoBlock' => User::getUserInfoBlock()
             ]);
         }
     }
@@ -268,60 +243,17 @@ class MessageController extends Controller
      */
     public function actionUpdate($id)
     {
-        // подключаем боковое меню
-    $this->layout = "column2";
+        $permitted_types = [1=>1, 2=>2, 3=>3, 4=>4, 5=>5, 6=>12, 7=>13];
         $model = $this->findModel($id);
-    
-        $mtypes = [1=>1, 2=>2, 3=>3, 4=>4, 5=>5, 6=>12, 7=>13];
-
-        // если роль == преподаватель
-        if(Yii::$app->session->get('user.ustatus')==5){
-            $cmwts = [5 => Yii::t('app','To one user')];
-        } else {
-            // для остальных выбираем список всех типов сообщений
-            $cmwts = (new \yii\db\Query())
-            ->select('id as tid, name as tname')
-            ->from('calc_messwhomtype')
-            ->where('visible=:vis',[':vis'=>1])
-            ->andWhere(['in','id',$mtypes])
-            ->orderby(['id'=>SORT_ASC])
-            ->all();
-        }
-        // если сообщение предназначено сотруднику
-        if($model->calc_messwhomtype==5) {
-            $table = 'user';
-            $sender = Yii::$app->session->get('user.uid');
-        }
-    // если сообщение предназначено студенту
-    elseif($model->calc_messwhomtype==13) {
-            $table = 'calc_studname';
-            $sender = NULL;
-        } else {
-            $table = 'user';
-            $sender = NULL;
-        }
-        $reciever = [];
-        
-        $recievers = (new \yii\db\Query())
-        ->select('id as id, name as name')
-        ->from($table)
-        ->where('visible=:vis', [':vis'=>1])
-        ->andFilterWhere(['!=','id',$sender])
-        ->all();
-
-        foreach($recievers as $r){
-            $reciever[$r['id']] = $r['name'];
-        }
-        unset($recievers);
+        $types = Message::getMessageDirectionsArray($permitted_types);
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            // возвращаем в список исходящих сообщений пользователя
-            return $this->redirect(['index','type'=>'out']);
+            return $this->redirect(['index']);
         } else {
             return $this->render('update', [
                 'model' => $model,
-        'cmwts' => $cmwts,
-                'reciever' => $reciever,
+                'types' => $types,
+                'userInfoBlock' => User::getUserInfoBlock()
             ]);
         }
     }
@@ -335,24 +267,7 @@ class MessageController extends Controller
     public function actionDelete($id)
     {
         $this->findModel($id)->delete();
-
         return $this->redirect(['index']);
-    }
-
-    /**
-     * Finds the CalcMessage model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
-     * @param integer $id
-     * @return CalcMessage the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    protected function findModel($id)
-    {
-        if (($model = Message::findOne($id)) !== null) {
-            return $model;
-        } else {
-            throw new NotFoundHttpException('The requested page does not exist.');
-        }
     }
 
     /**
@@ -412,11 +327,9 @@ class MessageController extends Controller
     
     public function actionUpload($id)
     {
-        $this->layout = 'column2';
-        if(Yii::$app->request->get('id')) {
+        if (Yii::$app->request->get('id')) {
             $message = $this->findModel($id);
-            if(!empty($message)) {
-
+            if (!empty($message)) {
                 $file = (new \yii\db\Query())
                 ->select('id as mid, name as mname, files as mfile, data as mdate')
                 ->from('calc_message')
@@ -425,36 +338,39 @@ class MessageController extends Controller
 
                 $model = new UploadForm();
 
-                if(Yii::$app->request->isPost) {
+                if (Yii::$app->request->isPost) {
                     $model->file = UploadedFile::getInstance($model, 'file');
-
-                    if($model->file && $model->validate()) {
-                //задаем адрес папки с файлами для поиска
-                $spath = "uploads/calc_message/";
-                //задаем адрес папки для загрузки файла
-                $filepath = "uploads/calc_message/".$id."/fls/";
-                //задаем имя файла
-                $filename = "file-".$id.".".$model->file->extension;
-                //проверяем наличие файла и папки
-                $filesearch = FileHelper::findFiles($spath,['only'=>[$filename]]);
-                if(empty($filesearch)){
-                    FileHelper::createDirectory($spath.$id."/");
-                FileHelper::createDirectory($spath.$id."/fls/");
+                    if ($model->file && $model->validate()) {
+                        //задаем адрес папки с файлами для поиска
+                        $spath = "uploads/calc_message/";
+                        //задаем адрес папки для загрузки файла
+                        $filepath = "uploads/calc_message/".$id."/fls/";
+                        //задаем имя файла
+                        $filename = "file-".$id.".".$model->file->extension;
+                        //проверяем наличие файла и папки
+                        $filesearch = FileHelper::findFiles($spath,['only'=>[$filename]]);
+                        if (empty($filesearch)) {
+                            FileHelper::createDirectory($spath.$id."/");
+                            FileHelper::createDirectory($spath.$id."/fls/");
+                        }
+                        $model->file->saveAs($filepath.$filename);
+                        $db = (new \yii\db\Query())
+                        ->createCommand()
+                        ->update('calc_message', ['files' => $filename,'data'=>$file['mdate']], ['id'=>$id])
+                        ->execute();
+                        return $this->redirect(['message/upload','id'=>$id]);
+                    }
                 }
-                $model->file->saveAs($filepath.$filename);
-                $db = (new \yii\db\Query())
-                ->createCommand()
-                ->update('calc_message', ['files' => $filename,'data'=>$file['mdate']], ['id'=>$id])
-                ->execute();
-                return $this->redirect(['message/upload','id'=>$id]);
-                }
-                }
-                return $this->render('upload', ['model' => $model,'file'=>$file]);
+                return $this->render('upload', [
+                    'model' => $model,
+                    'file' => $file,
+                    'userInfoBlock' => User::getUserInfoBlock()
+                ]);
             } else {
-                return $this->redirect(['message/index']);
-        }
+                throw new NotFoundHttpException(Yii::t('yii', 'The requested page does not exist.'));
+            }
         } else {
-        return $this->redirect(['message/index']);
+            throw new BadRequestHttpException(Yii::t('yii', 'Missing required arguments: { id }'));
         }
     }
     
@@ -573,14 +489,29 @@ class MessageController extends Controller
 
     public function actionDisable($id)
     {
-    // получаем информацию по пользователю
-    $model=$this->findModel($id);
-    //проверяем текущее состояние
-    if($model->visible==1){
-        $model->visible = 0;
-        $model->save();
-    }
-    return $this->redirect(['index']);
+        // получаем информацию по пользователю
+        $model=$this->findModel($id);
+        //проверяем текущее состояние
+        if($model->visible==1){
+            $model->visible = 0;
+            $model->save();
+        }
+        return $this->redirect(['index']);
     }
 
+    /**
+     * Finds the CalcMessage model based on its primary key value.
+     * If the model is not found, a 404 HTTP exception will be thrown.
+     * @param integer $id
+     * @return CalcMessage the loaded model
+     * @throws NotFoundHttpException if the model cannot be found
+     */
+    protected function findModel($id)
+    {
+        if (($model = Message::findOne($id)) !== null) {
+            return $model;
+        } else {
+            throw new NotFoundHttpException('The requested page does not exist.');
+        }
+    }
 }
