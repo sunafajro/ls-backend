@@ -51,16 +51,82 @@ class Message extends \yii\db\ActiveRecord
         return [
             'id' => 'ID',
             'longmess' => 'Longmess',
-            'name' => \Yii::t('app','Message title'),
-            'description' => \Yii::t('app','Message text'),
+            'name' => Yii::t('app','Message title'),
+            'description' => Yii::t('app','Message text'),
             'files' => 'Files',
             'user' => 'User',
             'data' => 'Data',
             'send' => 'Send',
-            'calc_messwhomtype' => \Yii::t('app','For whom'),
+            'calc_messwhomtype' => Yii::t('app','For whom'),
             'refinement' => 'Refinement',
-            'refinement_id' => \Yii::t('app','Reciever'),
+            'refinement_id' => Yii::t('app','Reciever'),
         ];
+    }
+
+    public static function getMessageById($id)
+    {
+        $message = (new \yii\db\Query())
+        ->select([
+            'id' => 'm.id',
+            'title' => 'm.name',
+            'text' => 'm.description',
+            'destination_type' => 'm.calc_messwhomtype',
+            'reciever_id' => 'm.refinement_id',
+            'files' => 'm.files',
+            'sended' => 'm.send'
+        ])
+        ->from(['m' => 'calc_message'])
+        ->where([
+            'm.id' => $id
+        ])
+        ->one();
+        if ($message !== null) {
+            $receiver = null;
+            if (
+                (int)$message['destination_type'] === 5
+                || (int)$message['destination_type'] === 100
+            ) {
+                $receiver = (new \yii\db\Query())
+                ->select(['id' => 'id', 'name' => 'name'])
+                ->from(['u' => 'user'])
+                ->where([
+                    'id' => $message['reciever_id']
+                ])
+                ->one();
+            } else if ((int)$message['destination_type'] === 13) {
+                $receiver = (new \yii\db\Query())
+                ->select(['id' => 'id', 'name' => 'name'])
+                ->from(['s' => 'calc_studname'])
+                ->where([
+                    'id' => $message['reciever_id']
+                ])
+                ->one();
+            } else {
+                $receiver = (new \yii\db\Query())
+                ->select(['id' => 'id', 'name' => 'name'])
+                ->from(['mwt' => 'calc_messwhomtype'])
+                ->where([
+                    'id' => $message['destination_type']
+                ])
+                ->one();
+            }
+            if ($receiver !== null) {
+                $message['receiver'] = $receiver['name'];
+            }
+            $response = (new \yii\db\Query())
+            ->select(['id' => 'id'])
+            ->from(['mr' => 'calc_messreport'])
+            ->where([
+                'calc_message' => $message['id'],
+                'ok' => 0,
+                'user' => Yii::$app->session->get('user.uid')
+            ])
+            ->one();
+            if ($response !== null) {
+                $message['response'] = $response['id'];
+            }
+        }
+        return $message;
     }
 
     /* Метод отдает количество непрочитанных сообщений пользователя */
