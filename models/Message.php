@@ -70,7 +70,9 @@ class Message extends \yii\db\ActiveRecord
             'id' => 'm.id',
             'title' => 'm.name',
             'text' => 'm.description',
+            'date' => 'm.data',
             'destination_type' => 'm.calc_messwhomtype',
+            'sender_id' => 'm.user',
             'reciever_id' => 'm.refinement_id',
             'files' => 'm.files',
             'sended' => 'm.send'
@@ -80,8 +82,9 @@ class Message extends \yii\db\ActiveRecord
             'm.id' => $id
         ])
         ->one();
-        if ($message !== null) {
-            $receiver = null;
+        if ($message) {
+            $receiver = NULL;
+            $sender = NULL;
             if (
                 (int)$message['destination_type'] === 5
                 || (int)$message['destination_type'] === 100
@@ -110,8 +113,30 @@ class Message extends \yii\db\ActiveRecord
                 ])
                 ->one();
             }
+            if (
+                (int)$message['destination_type'] === 100
+            ) {
+                $sender = (new \yii\db\Query())
+                ->select(['id' => 'id', 'name' => 'name'])
+                ->from(['s' => 'calc_studname'])
+                ->where([
+                    'id' => $message['sender_id']
+                ])
+                ->one();
+            } else {
+                $sender = (new \yii\db\Query())
+                ->select(['id' => 'id', 'name' => 'name'])
+                ->from(['u' => 'user'])
+                ->where([
+                    'id' => $message['sender_id']
+                ])
+                ->one();
+            }
             if ($receiver !== null) {
                 $message['receiver'] = $receiver['name'];
+            }
+            if ($sender !== null) {
+                $message['sender'] = $sender['name'];
             }
             $response = (new \yii\db\Query())
             ->select(['id' => 'id'])
@@ -129,6 +154,85 @@ class Message extends \yii\db\ActiveRecord
         return $message;
     }
 
+    public static function getUnreadedMessagesIds()
+    {
+        $unreaded = (new \yii\db\Query())
+        ->select(['id' => 'mr.calc_message', 'response_id' => 'mr.id'])
+        ->from(['mr' => 'calc_messreport'])
+        ->innerJoin(['m' => 'calc_message'], 'mr.calc_message = m.id')
+        ->where([
+            'mr.send' => 1,
+            'm.send' => 1,
+            'mr.user' => Yii::$app->session->get('user.uid'),
+            'mr.ok' => 0,
+            'm.visible' => 1
+        ])
+        ->all();
+        $messages_ids = [];
+        foreach ($unreaded as $nrd) {
+            $messages_ids[$nrd['response_id']] = $nrd['id'];
+        }
+        return $messages_ids;
+    }
+
+    public static function getUserMessages($start = NULL, $end = NULL, $direction = 'in')
+    {
+        $messages = (new \yii\db\Query()) 
+        ->select([
+            'id' => 'm.id',
+            'title' => 'm.name', 
+            'text' => 'm.description',
+            'files' => 'm.files',
+            'sender_id' => 'm.user',
+            'sender_emp_name' => 'u1.name',
+            'sender_stn_name' => 'sn1.name',
+            'date' => 'm.data',
+            'sended' => 'm.send',
+            'destination_id' => 'm.calc_messwhomtype',
+            'destination_name' => 'mwt.name',
+            'receiver_id' => 'm.refinement_id',
+            'receiver_emp_name' => 'u2.name',
+            'receiver_stn_name' => 'sn2.name'
+        ])
+        ->from(['m' => 'calc_message'])
+        ->leftJoin(['u1' => 'user'], 'u1.id = m.user')
+        ->leftJoin(['sn1' => 'calc_studname'], 'sn1.id = m.user')
+        ->leftJoin(['u2' => 'user'], 'u2.id = m.refinement_id')
+        ->leftJoin(['sn2' => 'calc_studname'], 'sn2.id = m.refinement_id')
+        ->innerJoin(['mwt' => 'calc_messwhomtype'], 'mwt.id = m.calc_messwhomtype');
+        if($direction === 'in') {
+            $messages = $messages->innerJoin(['mr' => 'calc_messreport'], 'mr.calc_message = m.id');
+            $messages = $messages->where([
+                'mr.user' => Yii::$app->session->get('user.uid'),
+                'm.visible' => 1
+            ]);
+        } 
+        if($direction === 'out') {
+            if((int)Yii::$app->session->get('user.ustatus') === 3) {
+                $messages = $messages->where([
+                    'm.visible' => 1
+                ])
+                ->andWhere([
+                    'not', [
+                        'and',
+                        ['m.calc_messwhomtype' => 5],
+                        ['m.refinement_id' => Yii::$app->session->get('user.uid')]
+                    ]
+                ]);
+            } else {
+                $messages = $messages->where([
+                    'm.user' => Yii::$app->session->get('user.uid'),
+                    'm.visible' => 1
+                ]);
+            }
+        }
+        $messages = $messages->andFilterWhere(['>=', 'm.data', $start]);
+        $messages = $messages->andFilterWhere(['<=', 'm.data', $end]);
+        $messages = $messages->andFilterWhere(['in', 'm.id', $unreaded]);
+        $messages = $messages->all();
+        return $messages;
+    }
+
     /* Метод отдает количество непрочитанных сообщений пользователя */
     public static function getMessagesCount() 
     {
@@ -141,6 +245,20 @@ class Message extends \yii\db\ActiveRecord
         ->one();
 
         return (!empty($mess)) ? $mess['cnt'] : 0;
+    }
+
+    public static function getMessagesReadStatus($ids = NULL, $type = NULL)
+    {
+        $result = (new \yii\db\Query())
+        ->select(['num' => 'count(mr.id)', 'id' => 'm.id'])
+        ->from(['mr' => 'calc_messreport'])
+        ->innerJoin(['m' => 'calc_message'], 'm.id = mr.calc_message')
+        ->where(['mr.send' => 1, 'm.send' => 1])
+        ->andFilterWhere(['mr.ok' => $type])
+        ->andFilterWhere(['in', 'm.id', $ids])
+        ->groupBy(['m.id'])
+        ->all();
+        return $result;
     }
 
     /* Метод отдает информацию по последнему непрочитанному сообщению */
