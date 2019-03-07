@@ -206,6 +206,37 @@ class Message extends \yii\db\ActiveRecord
         return $message;
     }
 
+    public static function getMessageDirections($permitted_types = NULL)
+    {
+        $cmwts = (new \yii\db\Query())
+        ->select(['id' => 'id', 'name' => 'name'])
+        ->from(['mwt' => 'calc_messwhomtype'])
+        ->where(['visible' => 1])
+        ->andFilterWhere(['in', 'id', $permitted_types])
+        ->orderby(['id' => SORT_ASC])
+        ->all();
+
+        return $cmwts;
+    }
+
+    public static function getMessageDirectionsArray($permitted_types = NULL)
+    {
+        $cmwts = static::getMessageDirections($permitted_types);
+        $types = [];
+        if (is_array($cmwts) && !empty($cmwts)) {
+            foreach ($cmwts as $cmwt) {
+                if ((int)Yii::$app->session->get('user.ustatus') === 5) {
+                    if ((int)$cmwt['id'] === 5 || (int)$cmwt['id'] === 13) {
+                        $types[$cmwt['id']] = $cmwt['name'];
+                    }
+                } else {
+                    $types[$cmwt['id']] = $cmwt['name'];
+                }
+            }
+        }
+        return $types;
+    }
+
     /**
      * Метод подменяет в строках идентификатор одного студента на идентификатор другого
      */
