@@ -315,11 +315,14 @@ class Message extends \yii\db\ActiveRecord
     public static function getUnreadMessageIdByReportId($id, $user) 
     {
         $message = (new \yii\db\Query())
-        ->select('id as id')
+        ->select(['id' => 'id'])
         ->from('calc_messreport')
-        ->where('id=:id and user=:uid and ok=:zero',[':id' => $id,':uid' => $user, ':zero' => 0])
+        ->where([
+            'id' => $id,
+            'user' => $user,
+            'ok' => 0
+        ])
         ->one();
-
         return $message;
     }
 
