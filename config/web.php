@@ -10,7 +10,7 @@ $config = [
     'components' => [
         'request' => [
             'enableCsrfValidation' => false,
-            'cookieValidationKey' => '<insert-your-key-here!!!>',
+            'cookieValidationKey' => 'secret random string goes here',
             'parsers' => [
                 'application/json' => 'yii\web\JsonParser',
             ]
@@ -47,6 +47,9 @@ $config = [
             		],
         	    ],
         ],
+        // 'session' => [
+        //     'class' => 'yii\web\DbSession',
+        // ],
         'urlManager' => [
             'class' => 'yii\web\UrlManager',
             'showScriptName' => false,
@@ -62,9 +65,9 @@ if (YII_ENV_DEV) {
     $config['modules']['debug']['class'] = 'yii\debug\Module';
     $config['modules']['debug']['allowedIPs'] = ['127.0.0.1','::1'];
 
-    $config['bootstrap'][] = 'gii';
-    $config['modules']['gii']['class'] = 'yii\gii\Module';
-    $config['modules']['gii']['allowedIPs'] = ['127.0.0.1','::1'];
+    // $config['bootstrap'][] = 'gii';
+    // $config['modules']['gii']['class'] = 'yii\gii\Module';
+    // $config['modules']['gii']['allowedIPs'] = ['127.0.0.1','::1'];
 }
 
 return $config;
