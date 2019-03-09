@@ -14,11 +14,11 @@ return [
 ```
 Update your vendor packages
 ```
-docker-compose run --rm php composer update --prefer-dist
+docker-compose run --rm web composer update --prefer-dist
 ```
 Run the installation triggers (creating cookie validation code)
 ```
-docker-compose run --rm php composer install    
+docker-compose run --rm web composer install    
 ```
 Запуск контейнера
 ```
