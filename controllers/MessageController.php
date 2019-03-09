@@ -137,11 +137,6 @@ class MessageController extends Controller
         }
     }
 
-    /**
-     * Creates a new CalcMessage model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return mixed
-     */
     public function actionCreate()
     {
         $permitted_types = [1=>1, 2=>2, 3=>3, 4=>4, 5=>5, 6=>12, 7=>13];
@@ -154,8 +149,12 @@ class MessageController extends Controller
             $model->send = 0;
             $model->files = '0';
             $model->visible = 1;
-            $model->save();
-            return $this->redirect(['index']);
+            if ($model->save()) {
+                Yii::$app->session->setFlash('success', Yii::t('app', 'Message successfully created!'));
+            } else {
+                Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to create message!'));
+            }
+            return $this->redirect(['view', 'id' => $model->id]);
         } else {
             return $this->render('create', [
                 'model' => $model,
@@ -165,26 +164,32 @@ class MessageController extends Controller
         }
     }
 
-    /**
-     * Updates an existing CalcMessage model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param integer $id
-     * @return mixed
-     */
     public function actionUpdate($id)
     {
-        $permitted_types = [1=>1, 2=>2, 3=>3, 4=>4, 5=>5, 6=>12, 7=>13];
         $model = $this->findModel($id);
-        $types = Message::getMessageDirectionsArray($permitted_types);
+        if (
+            (int)$message->user === (int)Yii::$app->session->get('user.uid')
+            || (int)Yii::$app->session->get('user.ustatus') === 3
+        ) {
+            $permitted_types = [1=>1, 2=>2, 3=>3, 4=>4, 5=>5, 6=>12, 7=>13];
+            $types = Message::getMessageDirectionsArray($permitted_types);
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['index']);
+            if ($model->load(Yii::$app->request->post())) {
+                if ($model->save()) {
+                    Yii::$app->session->setFlash('success', Yii::t('app', 'Message successfully updated!'));
+                } else {
+                    Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to update message!'));
+                }
+                return $this->redirect(['view', 'id' => $model->id]);
+            } else {
+                return $this->render('update', [
+                    'model' => $model,
+                    'types' => $types,
+                    'userInfoBlock' => User::getUserInfoBlock()
+                ]);
+            }
         } else {
-            return $this->render('update', [
-                'model' => $model,
-                'types' => $types,
-                'userInfoBlock' => User::getUserInfoBlock()
-            ]);
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
     }
 
@@ -216,12 +221,11 @@ class MessageController extends Controller
                 $message = Message::getUnreadMessageIdByReportId($id, Yii::$app->session->get('user.uid'));
 
                 /* если есть непрочитанное сообщение меняем его статус на прочитанное */
-                if(!empty($message)){
+                if (!empty($message)) {
                     $db = (new \yii\db\Query())
                     ->createCommand()
                     ->update('calc_messreport', ['ok' => '1'], ['id'=>$message['id']])
                     ->execute();
-
                     return [ 'result' => true ];
                 } else {
                     return [
@@ -263,7 +267,10 @@ class MessageController extends Controller
                 $file = (new \yii\db\Query())
                 ->select('id as mid, name as mname, files as mfile, data as mdate')
                 ->from('calc_message')
-                ->where('id=:id and send!=:send', [':id'=>\Yii::$app->request->get('id'),':send'=>1])
+                ->where([
+                    'id' => Yii::$app->request->get('id'),
+                    'send' => 0
+                ])
                 ->one();
 
                 $model = new UploadForm();
@@ -286,9 +293,14 @@ class MessageController extends Controller
                         $model->file->saveAs($filepath.$filename);
                         $db = (new \yii\db\Query())
                         ->createCommand()
-                        ->update('calc_message', ['files' => $filename,'data'=>$file['mdate']], ['id'=>$id])
+                        ->update('calc_message', [
+                            'files' => $filename,
+                            'data' => $file['mdate']
+                        ], [
+                            'id' => $id
+                        ])
                         ->execute();
-                        return $this->redirect(['message/upload','id'=>$id]);
+                        return $this->redirect(['message/upload', 'id' => $id]);
                     }
                 }
                 return $this->render('upload', [
@@ -380,7 +392,7 @@ class MessageController extends Controller
             ->update('calc_message', ['send' => 1], ['id'=>$id])
             ->execute();
         }
-        return $this->redirect(['message/index','type'=>'out']);
+        return $this->redirect(['index']);
     }
 
     public function actionAjaxgroup() 
