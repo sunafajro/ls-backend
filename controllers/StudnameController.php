@@ -569,7 +569,11 @@ class StudnameController extends Controller
                 $model->name .= " ".$model->mname;
             }
 
-            $model->save();
+            if ($model->save()) {
+                Yii::$app->session->setFlash('success', Yii::t('app', 'Student data successfully updated!'));
+            } else {
+                Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to update student data!'));
+            }
             return $this->redirect(['view', 'id' => $model->id]);
         } else {
             return $this->render('update', [
