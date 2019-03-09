@@ -1,17 +1,17 @@
 <?php
-
-use yii\helpers\Html;
-
-/* @var $this yii\web\View */
-/* @var $model app\models\Edunormteacher */
-
-$this->title = Yii::t('app', 'Add language premium');
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Teachers'), 'url' => ['teacher/index']];
-$this->params['breadcrumbs'][] = ['label' => $teacher->name, 'url' => ['teacher/view', 'id'=>$teacher->id]];
-$this->params['breadcrumbs'][] = $this->title;
+	use yii\helpers\Html;
+	use yii\widgets\Breadcrumbs;
+	$this->title = 'Система учета :: ' . Yii::t('app', 'Add language premium');
+	$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Teachers'), 'url' => ['teacher/index']];
+	$this->params['breadcrumbs'][] = ['label' => $teacher->name, 'url' => ['teacher/view', 'id'=>$teacher->id]];
+	$this->params['breadcrumbs'][] = Yii::t('app', 'Add language premium');
 ?>
+
 <div class="row row-offcanvas row-offcanvas-left edunorm-teacher-create">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
+		<?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <div id="main-menu"></div>
+        <?php endif; ?>
 		<?= $userInfoBlock ?>
 		<ul>
 			<li>Выберите из выпадающего списка надбавку и нажмите кнопку добавить.</li>
@@ -19,14 +19,50 @@ $this->params['breadcrumbs'][] = $this->title;
 		</ul>
 	</div>
 	<div id="content" class="col-sm-6">
+		<?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <?= Breadcrumbs::widget([
+            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+        ]); ?>
+        <?php endif; ?>
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
 		</p>
+		<?php if (Yii::$app->session->hasFlash('error')) : ?>
+        <div class="alert alert-danger" role="alert">
+            <?= Yii::$app->session->getFlash('error') ?>
+        </div>
+		<?php endif; ?>
+		<?php if (Yii::$app->session->hasFlash('success')) : ?>
+			<div class="alert alert-success" role="alert">
+				<?= Yii::$app->session->getFlash('success') ?>
+			</div>
+		<?php endif; ?>
 	    <?= $this->render('_form', [
 	        'model' => $model,
-	        'premiums' => $premiums,
-	        'teacher_premiums' => $teacher_premiums,
-	        'teacher' => $teacher
+	        'premiums' => $premiums
 	    ]) ?>
+		<hr />
+		<table class="table table-stripped table-bordered table-condensed small">
+			<thead>
+				<tr>
+					<th class="text-center"><?= Yii::t('app', 'Language') ?></th>
+					<th class="text-center"><?= Yii::t('app', 'Value') ?></th>
+					<th class="text-center"><?= Yii::t('app', 'Assign date') ?></th>
+					<th class="text-center"><?= Yii::t('app', 'Act.') ?></th>
+				</tr>
+			</thead>
+			<tbody>
+			<?php foreach($teacher_premiums as $tp) : ?>
+				<tr>
+					<td><?= $tp['language'] ?></td>
+					<td class="text-center"><?= $tp['value'] ?></td>
+					<td class="text-center"><?= $tp['created_at'] ?></td>
+					<td class="text-center">
+						<?= Html::a('<i class="fa fa-trash"></i>', ['teacherlangpremium/delete', 'id' => $tp['tlpid'], 'tid' => $teacher->id]) ?>
+					</td>
+				</tr>
+			<?php endforeach; ?>
+			</tbody>
+        </table>
 	</div>
 </div>

@@ -119,7 +119,7 @@ if(\Yii::$app->request->get('TSS')){
                 ['label' => Yii::t('app','Payments'), 'url' => ['report/payments']],
                 ['label' => Yii::t('app','Invoices'), 'url' => ['report/index','type'=>5]],
                 ['label' => Yii::t('app','Debts'), 'url' => ['report/debt']],
-                ['label' => Yii::t('app','Journals'), 'url' => ['report/index','type'=>8]],
+                ['label' => Yii::t('app','Journals'), 'url' => ['report/journals']],
                 ['label' => Yii::t('app', 'Accruals'), 'url' => ['report/accrual']],
                 ['label' => \Yii::t('app', 'Salaries'), 'url' => ['report/salaries']],
                 ['label' => Yii::t('app', 'Office plan'), 'url' => ['report/plan']]
@@ -131,7 +131,7 @@ if(\Yii::$app->request->get('TSS')){
             ['label' => Yii::t('app','Payments'), 'url' => ['report/payments']],
             ['label' => Yii::t('app','Invoices'), 'url' => ['report/index','type'=>5]],
             ['label' => Yii::t('app','Debts'), 'url' => ['report/debt']],
-            ['label' => Yii::t('app','Journals'), 'url' => ['report/index','type'=>8]]
+            ['label' => Yii::t('app','Journals'), 'url' => ['report/journals']]
         ]];
     }
     // формируем выпадающий список с типами отчетов для бухгатера

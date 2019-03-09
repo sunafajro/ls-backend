@@ -253,10 +253,10 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     }
 
     /* Метод проверки ролей пользователей на доступ к ресурсам */
-	public static function checkAccess($controller, $action) {
-		$result = true;
-		switch($controller) {
-
+    public static function checkAccess($controller, $action) 
+    {
+        $result = true;
+        switch($controller) {
             /* раздел Клиенты */
             case 'studname':
                 if ($action === 'view' || $action === 'index') {
@@ -265,41 +265,50 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
                         case 4: $result = true; break;
                         case 5: $result = true; break;
                         case 6: $result = true; break;
-                        default: $result = false;        
+                        default: $result = false;
                     }
-                } else if ($action === 'update' || $action === 'active' || $action === 'inactive' || $action === 'detail' || $action === 'change-office') {
+                } else if ($action === 'update' || $action === 'active' || $action === 'inactive' || $action === 'detail' || $action === 'change-office' || $action === 'update-debt') {
                     switch(Yii::$app->session->get('user.ustatus')) {
                         case 3: $result = true; break;
                         case 4: $result = true; break;
-                        default: $result = false; 
+                        default: $result = false;
                     }
                 } else if ($action === 'merge' || $action === 'delete') {
                     switch(Yii::$app->session->get('user.ustatus')) {
                         case 3: $result = true; break;
-                        default: $result = false; 
+                        default: $result = false;
                     }
                 } else {
                     $result = false;
                 }
-                break;
-
+                return $result;
             /* подраздел счета клиента */
             case 'invoice':
-                if ($action === 'index' || $action === 'create' || $action === 'enable' || $action === 'disable' || $action === 'done' || $action === 'undone' || $action === 'remain' || $action === 'unremain' || $action === 'get-data') {
+                if (
+                    $action === 'index' ||
+                    $action === 'create' ||
+                    $action === 'enable' ||
+                    $action === 'disable' ||
+                    $action === 'done' ||
+                    $action === 'undone' ||
+                    $action === 'remain' ||
+                    $action === 'unremain' ||
+                    $action === 'get-data' ||
+                    $action === 'corp') {
                     switch(Yii::$app->session->get('user.ustatus')) {
                         case 3: $result = true; break;
                         case 4: $result = true; break;
-                        default: $result = false;        
+                        default: $result = false;
                     }
                 } else if ($action === 'delete') {
                     switch(Yii::$app->session->get('user.ustatus')) {
                         case 3: $result = true; break;
-                        default: $result = false;        
+                        default: $result = false;
                     }
                 } else {
                     $result = false;
                 }
-                break;
+                return $result;
             /* подраздел счета клиента */
 
             /* подраздел скидки клиента */
@@ -316,30 +325,29 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
                         default:$result = false;
                     }
                 } else {
-                    $result = false;  
+                    $result = false;
                 }
                 break;
             /* подраздел скидки клиента */
             /* раздел Клиенты */
-            
             /* раздел Переводы */
             case 'langtranslator':
                 switch(Yii::$app->session->get('user.ustatus')) {
                     case 3: $result = true; break;
                     case 9: $result = true; break;
-                    default:$result = false;        
+                    default:$result = false;
                 }
                 break;
-			case 'translate':
-				switch(Yii::$app->session->get('user.ustatus')) {
-					case 3: $result = true; break;
+            case 'translate':
+                switch(Yii::$app->session->get('user.ustatus')) {
+                    case 3: $result = true; break;
                     case 9: $result = true; break;
-                    default: $result = false;		
-				}
-				break;
-			case 'translation':
-				switch(Yii::$app->session->get('user.ustatus')) {
-					case 3: $result = true; break;
+                    default: $result = false;
+                }
+                break;
+            case 'translation':
+                switch(Yii::$app->session->get('user.ustatus')) {
+                    case 3: $result = true; break;
                     case 9: $result = true; break;
                     default: $result = false;		
 				}
@@ -379,13 +387,13 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
                 if ($action === 'create' || $action === 'update' || $action === 'delete') {
                     switch(Yii::$app->session->get('user.ustatus')) {
                         case 3: $result = true; break;
-                        default: $result = false;        
+                        default: $result = false;
                     }
                 } else if($action === 'index' || $action === 'getsales') {
                     switch(Yii::$app->session->get('user.ustatus')) {
                         case 3: $result = true; break;
                         case 4: $result = true; break;
-                        default: $result = false;        
+                        default: $result = false;
                     }
                 } else {
                     $result = false;
@@ -453,20 +461,6 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
                 break;
             /* подраздел Языковые надбавки */
             /* раздел Преподаватели */
-
-            case 'admin':
-                switch(Yii::$app->session->get('user.ustatus')) {
-                    case 3: $result = true; break;
-                    default: $result = false;            
-                }
-                break;
-
-            case 'roles':
-                switch(Yii::$app->session->get('user.ustatus')) {
-                    case 3: $result = true; break;
-                    default: $result = false;            
-                }
-                break;
 		}
 		return $result;
 	}

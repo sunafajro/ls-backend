@@ -56,7 +56,7 @@ class Student extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'visible', 'history', 'phone', 'calc_sex','active'], 'required'],
+            [['name', 'visible', 'history', 'calc_sex','active'], 'required'],
             [['name', 'fname', 'lname', 'mname', 'email', 'phone', 'address', 'description'], 'string'],
             [['visible', 'history', 'calc_sex', 'calc_cumulativediscount', 'active', 'calc_way'], 'integer'],
             [['debt', 'debt2', 'invoice', 'money'], 'number']

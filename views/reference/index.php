@@ -1,13 +1,12 @@
 <?php
-$this->title = 'Система учета :: ' . Yii::t('app','References');
-$this->params['breadcrumbs'][] = Yii::t('app','References');
+    $this->title = 'Система учета :: ' . Yii::t('app','References');
 ?>
 
-<div id="references" class="reference-main-block">
-  <router-view :links="links" :notify="notify" />
-</div>
+<div id="app"></div>
 
 <?php
-    $this->registerJsFile('/js/references/bundle.js',
+    $this->registerJsFile('/js/references/vendors-' . (Yii::$app->params['appMode'] === 'bitrix' ? 'bitrix.js' : 'standalone.js'),
+    ['position' => yii\web\View::POS_END]);
+    $this->registerJsFile('/js/references/app-' . (Yii::$app->params['appMode'] === 'bitrix' ? 'bitrix.js' : 'standalone.js'),
     ['position' => yii\web\View::POS_END]);
 ?>

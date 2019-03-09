@@ -65,7 +65,7 @@ class Report extends Model
             $items[] = [
                 'id' => 'journals',
                 'label' => Yii::t('app','Journals'),
-                'url' => '/report/index?type=8'
+                'url' => '/report/journals'
             ];
         }
         if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 8) {

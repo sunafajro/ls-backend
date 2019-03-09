@@ -1,65 +1,66 @@
 <?php
-use yii\helpers\Html;
-use yii\bootstrap\NavBar;
-use yii\bootstrap\Nav;
-use yii\widgets\Menu;
-
-$this->title = $model->name;
-if ((int)Yii::$app->session->get('user.ustatus') !== 5) {
-    $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Teachers'), 'url' => ['index']];
-} else {
-$this->params['breadcrumbs'][] = Yii::t('app','Teachers');
-}
-$this->params['breadcrumbs'][] = $this->title;
-
-//формируем массив со списком названий дней недели
-for($i=0; $i<7; $i++){
-    $days[date('N', strtotime('+'.$i.' day'))]=date('D', strtotime('+'.$i.' day'));
-}
-ksort($days);
-// формируем список дней в которые есть занятия по расписанию
-$i = 0;
-foreach($teacherschedule as $sched){
-    $sscheddays[$i]=$sched['day'];
-    $i++;
-}
-//если нет занятий в расписании, создаем пустой массив
-if(empty($sscheddays)){
-    $sscheddays[0] = 0;
-}
-// оставляем только уникальные значения
-$scheddays = array_unique($sscheddays);
-// сортируем по порядку
-ksort($scheddays);
-// проверяем какие данные выводить в карочку преподавателя: 1/2 - группы, 3 - начисления; 4 - выплаты фонда
-if(Yii::$app->request->get('tab')){
-	$tab = Yii::$app->request->get('tab');
-} else {
-    if(Yii::$app->session->get('user.ustatus')==8) {
-        $tab = 3;
+    use yii\helpers\Html;
+    use yii\widgets\Breadcrumbs;
+    $this->title = 'Система учета :: ' . $model->name;
+    if ((int)Yii::$app->session->get('user.ustatus') !== 5) {
+        $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Teachers'), 'url' => ['index']];
     } else {
-        $tab = 1;
-    }	
-}
-// выбираем даты начислений
-if($tab == 3){
-    if(!empty($teacherdata)){
-	$i = 0;
-	foreach($teacherdata as $accrual){
-			$saccrualdates[$i]=$accrual['date'];
-			$i++;
-	}
-	// оставляем только уникальные значения
-	$accrualdates = array_unique($saccrualdates);
-	// сортируем в обратном порядке
-	rsort($accrualdates);
-	}
-}
+        $this->params['breadcrumbs'][] = Yii::t('app','Teachers');
+    }
+    $this->params['breadcrumbs'][] = $model->name;
+
+    //формируем массив со списком названий дней недели
+    for($i=0; $i<7; $i++){
+        $days[date('N', strtotime('+'.$i.' day'))] = date('D', strtotime('+'.$i.' day'));
+    }
+    ksort($days);
+    // формируем список дней в которые есть занятия по расписанию
+    $i = 0;
+    foreach ($teacherschedule as $sched)    {
+        $sscheddays[$i] = $sched['day'];
+        $i++;
+    }
+    //если нет занятий в расписании, создаем пустой массив
+    if (empty($sscheddays)) {
+        $sscheddays[0] = 0;
+    }
+    // оставляем только уникальные значения
+    $scheddays = array_unique($sscheddays);
+    // сортируем по порядку
+    ksort($scheddays);
+    // проверяем какие данные выводить в карочку преподавателя: 1/2 - группы, 3 - начисления; 4 - выплаты фонда
+    if (Yii::$app->request->get('tab')) {
+        $tab = Yii::$app->request->get('tab');
+    } else {
+        if (Yii::$app->session->get('user.ustatus') == 8) {
+            $tab = 3;
+        } else {
+            $tab = 1;
+        }	
+    }
+    // выбираем даты начислений
+    if($tab == 3){
+        if(!empty($teacherdata)){
+        $i = 0;
+        foreach ($teacherdata as $accrual) {
+                $saccrualdates[$i]=$accrual['date'];
+                $i++;
+        }
+        // оставляем только уникальные значения
+        $accrualdates = array_unique($saccrualdates);
+        // сортируем в обратном порядке
+        rsort($accrualdates);
+        }
+    }
 ?>
+
 <!-- начало контент области -->
 <div class="row row-offcanvas row-offcanvas-left teacher-view">
     <!-- левая боковая панель -->
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <div id="main-menu"></div>
+        <?php endif; ?>
         <?= $userInfoBlock ?>
         <?php if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4 || (int)Yii::$app->session->get('user.uid') === 296) : ?>
             <h4><?= Yii::t('app', 'Actions') ?>:</h4>
@@ -82,6 +83,11 @@ if($tab == 3){
     <!-- левая боковая панель -->
     <!-- центральная область -->
     <div id="content" class="col-sm-8">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <?= Breadcrumbs::widget([
+            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+        ]); ?>
+        <?php endif; ?>
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
 		</p>
@@ -171,7 +177,7 @@ if($tab == 3){
             echo "<br />";
             echo date('d.m.y', strtotime($viewed['jdate']))." (".Yii::t('app', date('l', strtotime($viewed['jdate'])))."), ".$viewed['office'].", ";
             echo "коэф.: " . $viewed['koef'] . ", к начислению: " . $viewed['accrual'];
-            echo ' р. <i>(ставка ' . $viewed['tax'] . 'р.)</i></span></small>';
+            echo ' р. <i>(ставка ' . $viewed['tax'] . 'р.' . ($viewed['corp'] > 0 ? (' + ' . $viewed['value_corp'] . 'р.') : '') . ')</i></span></small>';
             echo "</div>";
             echo "</div>";
 	    }}

@@ -1,18 +1,17 @@
 <?php
-
-use yii\helpers\Html;
-use yii\widgets\ActiveForm;
-/* @var $this yii\web\View */
-/* @var $students */
-/* @var $services */
-
-$this->title = 'Система учета :: '.Yii::t('app','Debt report');
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
-$this->params['breadcrumbs'][] = Yii::t('app','Debt report');
+	use yii\helpers\Html;
+	use yii\widgets\ActiveForm;
+	use yii\widgets\Breadcrumbs;
+	$this->title = 'Система учета :: '.Yii::t('app','Debt report');
+	$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
+	$this->params['breadcrumbs'][] = Yii::t('app','Debt report');
 ?>
 
 <div class="row row-offcanvas row-offcanvas-left report-debt">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
+		<?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <div id="main-menu"></div>
+        <?php endif; ?>	
         <?= $userInfoBlock ?>
         <?php if(!empty($reportlist)): ?>
         <div class="dropdown">
@@ -31,7 +30,6 @@ $this->params['breadcrumbs'][] = Yii::t('app','Debt report');
                 'action' => ['report/debt'],
                 ]);
         ?>
-		
 		<div class="form-group">
 		    <input type="text" class="form-control input-sm" placeholder="Найти..." name="TSS" value="<?= $tss != '' ? $tss : '' ?>">
 		</div>
@@ -65,6 +63,11 @@ $this->params['breadcrumbs'][] = Yii::t('app','Debt report');
         <?php ActiveForm::end(); ?>
 	</div>
 	<div class="col-sm-10">
+		<?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <?= Breadcrumbs::widget([
+            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+        ]); ?>
+        <?php endif; ?>
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
 		</p>
@@ -123,7 +126,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Debt report');
                 <div style="float: left"><strong><?= Html::a("#".$st['id']." ".$st['name']." →", ['studname/view', 'id'=>$st['id']]) ?></strong></div>
                 <div class="text-right"><strong>(баланс: <?= $st['debt'] ?> р.)</strong></div>
             </div>
-            <table class="table table-bordered table-stripped table-hover table-condensed">
+            <table class="table table-bordered table-stripped table-hover table-condensed" style="margin-bottom: 0.5rem">
                 <tbody>
                 <?php foreach ($students as $s) : ?>
     	            <?php if ($s['stid']==$st['id']) : ?>
@@ -144,7 +147,6 @@ $this->params['breadcrumbs'][] = Yii::t('app','Debt report');
 				<?php endforeach; ?>
                 </tbody>
             </table>
-
 		<?php endforeach; ?>
 		<div class="row" style="margin-bottom: 0.5rem">
             <div class="col-xs-12 col-sm-3 text-left">

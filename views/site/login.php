@@ -9,11 +9,9 @@ $this->params['breadcrumbs'][] = Yii::t('app','Login');
     <div class="col-sm-12">
         <div class="col-sm-2"></div>
         <div class="col-sm-8">
-            <center>
-                <?php 
-                    echo Html::img('@web/images/flowers/'.rand(0,100).'.jpg', ['alt'=>'Цветочки', 'class'=>'thumbnail']); 
-                ?>
-            </center>
+            <?php
+                echo Html::img('@web/images/flowers/'.rand(0,100).'.jpg', ['alt'=>'Цветочки', 'class'=>'thumbnail', 'style' => 'margin: 0 auto']); 
+            ?>
         </div>
         <div class="col-sm-2"></div>
     </div>
@@ -36,7 +34,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Login');
                     <?= Html::submitButton(Yii::t('app','Login'), ['class' => 'btn btn-primary', 'name' => 'login-button']) ?>
                 </div>
             </div>
-        <?php ActiveForm::end(); ?>
+            <?php ActiveForm::end(); ?>
         </div>
         <div class="col-sm-2"></div>
     </div>

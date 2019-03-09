@@ -425,77 +425,78 @@ class TeacherController extends Controller
 					$i++;
 				}           
 			}
-    }
-    // выбираем подробную информацию по начислениям
-    if($tab == 3) {
-        // пишем подзапрос для выборки доп данных о начислениях
-        $subQuery = (new \Yii\db\Query())
-        ->select('sum(ctn.value)')
-        ->from('calc_journalgroup cjg')
-        ->leftJoin('calc_groupteacher cgt', 'cgt.id=cjg.calc_groupteacher')
-        ->leftJoin('calc_service cs', 'cgt.calc_service=cs.id')
-        ->leftJoin('calc_timenorm ctn', 'ctn.id=cs.calc_timenorm')
-        ->where('cjg.calc_accrual=cat.id');
-        // выбираем данные из базы
-        $teacherdata = (new \Yii\db\Query())
-        ->select(['aid'=>'cat.id', 'date'=>'cat.data', 'gid'=>'cat.calc_groupteacher', 'tax'=>'cen.value', 'value'=>'cat.value', 'creator'=>'u1.name', 'create_date'=>'cat.data', 'done'=>'cat.done', 'finisher'=>'u2.name', 'finish_date'=>'cat.data_done', 'hours'=>$subQuery])
-        ->from('calc_accrualteacher cat')
-        ->leftJoin('calc_edunormteacher cent', 'cat.calc_edunormteacher=cent.id')
-        ->leftJoin('calc_edunorm cen', 'cen.id=cent.calc_edunorm')
-        ->leftJoin('user u1', 'u1.id=cat.user')
-        ->leftJoin('user u2', 'u2.id=cat.user_done')
-        ->where('cat.visible=:vis and cat.calc_teacher=:id', [':vis'=>1, ':id'=>$id])
-        ->andFilterWhere(['year(cat.data)'=>$year])
-        ->orderby(['cat.data'=>SORT_DESC])
-        ->all();
-        unset($subQuery);
-    }
-    // выбираем подробную информацию по отчислениям в фонд
-    if($tab == 4) {
-        $teacherdata = [];
-    }
-    // выбираем базовые данные по преподавателю
-    $model = $this->findModel($id);
+		}
+		// выбираем подробную информацию по начислениям
+		if($tab == 3) {
+			// пишем подзапрос для выборки доп данных о начислениях
+			$subQuery = (new \Yii\db\Query())
+			->select('sum(ctn.value)')
+			->from('calc_journalgroup cjg')
+			->leftJoin('calc_groupteacher cgt', 'cgt.id=cjg.calc_groupteacher')
+			->leftJoin('calc_service cs', 'cgt.calc_service=cs.id')
+			->leftJoin('calc_timenorm ctn', 'ctn.id=cs.calc_timenorm')
+			->where('cjg.calc_accrual=cat.id');
+			// выбираем данные из базы
+			$teacherdata = (new \Yii\db\Query())
+			->select(['aid'=>'cat.id', 'date'=>'cat.data', 'gid'=>'cat.calc_groupteacher', 'tax'=>'cen.value', 'value'=>'cat.value', 'creator'=>'u1.name', 'create_date'=>'cat.data', 'done'=>'cat.done', 'finisher'=>'u2.name', 'finish_date'=>'cat.data_done', 'hours'=>$subQuery])
+			->from('calc_accrualteacher cat')
+			->leftJoin('calc_edunormteacher cent', 'cat.calc_edunormteacher=cent.id')
+			->leftJoin('calc_edunorm cen', 'cen.id=cent.calc_edunorm')
+			->leftJoin('user u1', 'u1.id=cat.user')
+			->leftJoin('user u2', 'u2.id=cat.user_done')
+			->where('cat.visible=:vis and cat.calc_teacher=:id', [':vis'=>1, ':id'=>$id])
+			->andFilterWhere(['year(cat.data)'=>$year])
+			->orderby(['cat.data'=>SORT_DESC])
+			->all();
+			unset($subQuery);
+		}
+		// выбираем подробную информацию по отчислениям в фонд
+		if($tab == 4) {
+			$teacherdata = [];
+		}
+		// выбираем базовые данные по преподавателю
+		$model = $this->findModel($id);
 
-    // выбираем колич занятий на проверке
-    $lestocheck = (new \yii\db\Query())
-    ->select('count(id) as cnt')
-    ->from('calc_journalgroup')
-    ->where('visible=:vis and calc_teacher=:teacher and view=:view and user!=:zero', [':vis'=>1, ':teacher'=>$id, ':view'=>0, ':zero'=>0])
-    ->one();
+		// выбираем колич занятий на проверке
+		$lestocheck = (new \yii\db\Query())
+		->select('count(id) as cnt')
+		->from('calc_journalgroup')
+		->where('visible=:vis and calc_teacher=:teacher and view=:view and user!=:zero', [':vis'=>1, ':teacher'=>$id, ':view'=>0, ':zero'=>0])
+		->one();
 
-    // выбираем колич часов доступных для начисления
-    $hourstoaccrual = (new \yii\db\Query())
-    ->select('sum(tn.value) as sm')
-    ->from('calc_journalgroup jg')
-    ->leftJoin('calc_groupteacher gt', 'gt.id=jg.calc_groupteacher')
-    ->leftJoin('calc_service s', 's.id=gt.calc_service')
-    ->leftJoin('calc_timenorm tn', 'tn.id=s.calc_timenorm')
-    ->where('jg.visible=:vis and jg.calc_teacher=:id and jg.view=:view and jg.done=:done', [':vis'=>1, ':id'=>$id, ':view'=>1, ':done'=>0])
-    ->one();
+		// выбираем колич часов доступных для начисления
+		$hourstoaccrual = (new \yii\db\Query())
+		->select('sum(tn.value) as sm')
+		->from('calc_journalgroup jg')
+		->leftJoin('calc_groupteacher gt', 'gt.id=jg.calc_groupteacher')
+		->leftJoin('calc_service s', 's.id=gt.calc_service')
+		->leftJoin('calc_timenorm tn', 'tn.id=s.calc_timenorm')
+		->where('jg.visible=:vis and jg.calc_teacher=:id and jg.view=:view and jg.done=:done', [':vis'=>1, ':id'=>$id, ':view'=>1, ':done'=>0])
+		->one();
 
-    // выбираем сумму средств доступных для выплаты
-    $sum2pay = (new \yii\db\Query())
-    ->select('sum(value) as money')
-    ->from('calc_accrualteacher')
-    ->where('calc_teacher=:tid and done!=:one and visible=:one', [':tid'=>$id, ':one'=>1])
-    ->one();
+		// выбираем сумму средств доступных для выплаты
+		$sum2pay = (new \yii\db\Query())
+		->select('sum(value) as money')
+		->from('calc_accrualteacher')
+		->where('calc_teacher=:tid and done!=:one and visible=:one', [':tid'=>$id, ':one'=>1])
+		->one();
 
-    return $this->render('view', [
-        'model' => $model,
-        'teachertax'=>$teachertax,
-        'teacherschedule'=>$teacherschedule,
-        'viewedlessons' => AccrualTeacher::calculateFullTeacherAccrual($id)['lessons'],
-        'teacherdata'=>$teacherdata,
-        'lestocheck'=>$lestocheck,
-        'hourstoaccrual'=>$hourstoaccrual,
-        'unviewedlessons'=>$unviewedlessons,
-        'efm'=>$efm,
-	    'sumaccrual' => AccrualTeacher::calculateFullTeacherAccrual($id)['accrual'],
-		'sum2pay'=>$sum2pay,
-		'userInfoBlock' => User::getUserInfoBlock(),
-        'jobPlace' => [ 1 => 'ШИЯ', 2 => 'СРР' ]
-    ]);
+		$acc = AccrualTeacher::calculateFullTeacherAccrual($id);
+		return $this->render('view', [
+			'model' => $model,
+			'teachertax'=> $teachertax,
+			'teacherschedule'=> $teacherschedule,
+			'viewedlessons' => $acc['lessons'],
+			'teacherdata'=> $teacherdata,
+			'lestocheck'=> $lestocheck,
+			'hourstoaccrual'=> $hourstoaccrual,
+			'unviewedlessons'=> $unviewedlessons,
+			'efm'=> $efm,
+			'sumaccrual' => $acc['accrual'],
+			'sum2pay'=> $sum2pay,
+			'userInfoBlock' => User::getUserInfoBlock(),
+			'jobPlace' => [ 1 => 'ШИЯ', 2 => 'СРР' ]
+		]);
     }
 
     /**

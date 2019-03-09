@@ -4,6 +4,7 @@ namespace app\controllers;
 
 use Yii;
 use app\models\Langteacher;
+use app\models\User;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -97,6 +98,7 @@ class LangteacherController extends Controller
 				'slangs' => $slangs,
 				'tlangs' => $tlangs,
 				'teacher' => $teacher,
+                                'userInfoBlock' => User::getUserInfoBlock(),
 			]);
 		} else {
             Yii::$app->session->setFlash('error', Yii::t('app','Не удалось найти преподавателя!'));

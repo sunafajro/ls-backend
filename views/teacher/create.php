@@ -1,23 +1,20 @@
 <?php
-
-use yii\helpers\Html;
-
-
-/* @var $this yii\web\View */
-/* @var $model app\models\CalcTeacher */
-
-$this->title = Yii::t('app', 'Add teacher');
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Teachers'), 'url' => ['index']];
-$this->params['breadcrumbs'][] = $this->title;
-
-foreach($statusjob as $stjob){
-  $sjob[$stjob['id']] = $stjob['name'];
-}
-$statusjobs = array_unique($sjob);
-
+	use yii\helpers\Html;
+	use yii\widgets\Breadcrumbs;
+	$this->title = Yii::t('app', 'Add teacher');
+	$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Teachers'), 'url' => ['index']];
+	$this->params['breadcrumbs'][] = $this->title;
+	foreach ($statusjob as $stjob) {
+		$sjob[$stjob['id']] = $stjob['name'];
+	}
+	$statusjobs = array_unique($sjob);
 ?>
+
 <div class="row row-offcanvas row-offcanvas-left teacher-create">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
+		<?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <div id="main-menu"></div>
+        <?php endif; ?>
 		<?= $userInfoBlock ?>
 		<ul>
 			<li>Кнопка <b>"Добавить нового"</b> автоматически создает также пользователя в разделе Пользователи и связывает его с преподавателем.</li>
@@ -25,10 +22,14 @@ $statusjobs = array_unique($sjob);
 		</ul>
 	</div>
 	<div id="content" class="col-sm-6">
+		<?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <?= Breadcrumbs::widget([
+            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+        ]); ?>
+        <?php endif; ?>
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
 		</p>
-
 	    <?= $this->render('_form', [
 	        'model' => $model,
 	        'statusjobs' => $statusjobs
