@@ -48,14 +48,14 @@ class Navigation extends Model
                 'hasBadge' => false
             ];
             /* ссылка на раздел Расходы*/
-            $menu[] = [
-                'id' => 'expenses',
-                'url' => '/kaslibro/index',
-                'classes' => 'fa fa-money',
-                'title' => Yii::t('app', 'Expenses'),
-                'hasBadge' => true,
-                'cnt' => Kaslibro::getExpensesCount()
-            ];
+            // $menu[] = [
+            //     'id' => 'expenses',
+            //     'url' => '/kaslibro/index',
+            //     'classes' => 'fa fa-money',
+            //     'title' => Yii::t('app', 'Expenses'),
+            //     'hasBadge' => true,
+            //     'cnt' => Kaslibro::getExpensesCount()
+            // ];
         }
 
         if((int)Yii::$app->session->get('user.ustatus') !== 2 &&
@@ -72,14 +72,14 @@ class Navigation extends Model
         }
 
         /* ссылка на раздел Задачи */
-        $menu[] = [
-            'id' => 'tasks',
-            'url' => '/ticket/index',
-            'classes' => 'fa fa-tasks',
-            'title' => Yii::t('app', 'Tickets'),
-            'hasBadge' => true,
-            'cnt' => Ticket::getTasksCount()
-        ];
+        // $menu[] = [
+        //     'id' => 'tasks',
+        //     'url' => '/ticket/index',
+        //     'classes' => 'fa fa-tasks',
+        //     'title' => Yii::t('app', 'Tickets'),
+        //     'hasBadge' => true,
+        //     'cnt' => Ticket::getTasksCount()
+        // ];
 
         /* ссылка на раздел Сообщения */
         $menu[] = [
