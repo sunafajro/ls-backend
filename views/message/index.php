@@ -1,11 +1,8 @@
 <?php
-  use yii\helpers\Html;
-  use yii\widgets\ActiveForm;
-  use yii\bootstrap\NavBar;
-  use yii\bootstrap\Nav;
-  use yii\widgets\Menu;
-  $this->title = 'Система учета :: '.Yii::t('app','Messages');
-  $this->params['breadcrumbs'][] = Yii::t('app','Messages');
+use yii\helpers\Html;
+use yii\widgets\ActiveForm;
+$this->title = 'Система учета :: '.Yii::t('app','Messages');
+$this->params['breadcrumbs'][] = Yii::t('app','Messages');
 
 $js = <<< 'SCRIPT'
 $(function () {
@@ -13,6 +10,13 @@ $(function () {
 });
 SCRIPT;
 $this->registerJs($js);
+
+for ($i = 1; $i <= 12; $i++) {
+    $month_num = date('n', strtotime("$i month"));
+    $month_num = $month_num < 10 ? '0' . $month_num : $month_num;
+    $months[$month_num] = date('F', strtotime("$i month"));
+}
+ksort($months);
 ?>
 
 <div class="row row-offcanvas row-offcanvas-left message-create">
@@ -22,8 +26,8 @@ $this->registerJs($js);
         <?php endif; ?>
         <?= $userInfoBlock ?>
         <h4><?= Yii::t('app', 'Actions') ?></h4>
-        <?=
-          Html::a('<span class="fa fa-plus" aria-hidden="true"></span> ' . Yii::t('app', 'Add'), ['create'],
+        <?= Html::a('<span class="fa fa-plus" aria-hidden="true"></span> ' . Yii::t('app', 'Add'),
+          ['create'],
           ['class' => 'btn btn-success btn-sm btn-block']) ?>
         <h4><?= Yii::t('app', 'Filters') ?></h4>
         <?php $form = ActiveForm::begin([
@@ -34,14 +38,6 @@ $this->registerJs($js);
         <div class="form-group">
             <select class="form-control input-sm" name="mon">
                 <option value="all">-все месяцы-</option>
-                <?php
-                    for ($i = 1; $i <= 12; $i++) {
-                        $month_num = date('n', strtotime("$i month"));
-                        $month_num = $month_num < 10 ? '0' . $month_num : $month_num;
-                        $months[$month_num] = date('F', strtotime("$i month"));
-                    }
-                    ksort($months);
-                ?>
                 <?php  foreach ($months as $key => $value) : ?>
                 <option <?= (int)$key === (int)$month ? 'selected' : '' ?> value="<?= $key ?>"><?= Yii::t('app', $value) ?></option>
                 <?php endforeach; ?>
@@ -106,7 +102,7 @@ $this->registerJs($js);
                 </tr>
             </thead>
             <tbody>
-            <?php foreach($messages as $message): ?>
+            <?php foreach ($messages as $message) : ?>
                 <?php if (!empty($unreaded) && in_array($message['id'], $unreaded)) : ?>
                 <tr class="danger">
                 <?php elseif ($message['sended'] !== NULL && (int)$message['sended'] === 0) : ?>
@@ -152,7 +148,7 @@ $this->registerJs($js);
                     <?php if ($message['direction'] === 'out') : ?>
                     <?php
                     $key = 0;
-                    foreach($messages_readed as $r) {
+                    foreach ($messages_readed as $r) {
                         if ((int)$r['id'] === (int)$message['id']) {
                             echo $r['num'] . '/';
                             $key += 1;
