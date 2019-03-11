@@ -24,5 +24,12 @@ docker-compose run --rm web composer install
 ```
 docker-compose up -d
 ```
+
+Если не находит vendor/bower
+```
+docker exec -it web /bin/bash
+composer global require "fxp/composer-asset-plugin:~1.4.4"
+composer install
+```
 Приложение доступно по адресу:
 http://127.0.0.1:8000
