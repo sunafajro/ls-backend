@@ -1,6 +1,7 @@
 <?php
   use yii\helpers\Html;
   use yii\widgets\ActiveForm;
+  use yii\widgets\Breadcrumbs;
   $this->title = 'Система учета :: ' . Yii::t('app', 'Upload image');
   $this->params['breadcrumbs'][] = ['label' => \Yii::t('app','Messages'), 'url' => ['index']];
   $this->params['breadcrumbs'][] = ['label' => $file['mname'], 'url' => ['view', 'id' => $file['mid']]];

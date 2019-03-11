@@ -1,5 +1,6 @@
 <?php
   use yii\helpers\Html;
+  use yii\widgets\Breadcrumbs;
   $this->title = 'Система учета :: ' . Yii::t('app', 'Messages');
   $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Messages'), 'url' => ['index']];
   $this->params['breadcrumbs'][] = $message['title'];

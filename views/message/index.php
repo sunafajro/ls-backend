@@ -1,6 +1,7 @@
 <?php
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
+use yii\widgets\Breadcrumbs;
 $this->title = 'Система учета :: '.Yii::t('app','Messages');
 $this->params['breadcrumbs'][] = Yii::t('app','Messages');
 
