@@ -87,18 +87,18 @@ class MessageController extends Controller
             $start = $year . '-' . $month . '-01';
             $end = date('Y-m-t', strtotime($start));
         }
-        
+
         $incoming = Message::getUserMessages($start, $end, 'in');
         $outcoming = Message::getUserMessages($start, $end, 'out');
 
         $outcoming_ids = !empty($outcoming) ? [] : NULL;
         foreach ($outcoming as &$out) {
             $outcoming_ids[] = $out['id'];
-            $out['direction'] = 'out'; 
+            $out['direction'] = 'out';
         }
         unset($out);
         $messages = array_merge($incoming, $outcoming);
-        
+
         $messages_readed = !empty($outcoming_ids) ? Message::getMessagesReadStatus($outcoming_ids, 1) : [];
         $messages_all = !empty($outcoming_ids) ? Message::getMessagesReadStatus($outcoming_ids, NULL) : [];
 
@@ -168,7 +168,7 @@ class MessageController extends Controller
     {
         $model = $this->findModel($id);
         if (
-            (int)$message->user === (int)Yii::$app->session->get('user.uid')
+            (int)$model->user === (int)Yii::$app->session->get('user.uid')
             || (int)Yii::$app->session->get('user.ustatus') === 3
         ) {
             $permitted_types = [1=>1, 2=>2, 3=>3, 4=>4, 5=>5, 6=>12, 7=>13];
