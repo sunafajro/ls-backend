@@ -47,6 +47,7 @@ class Navigation extends Model
                 'title' => Yii::t('app', 'Reports'),
                 'hasBadge' => false
             ];
+            /* ссылка на раздел Расходы*/
             // DEPRECATED
             // if (Yii::$app->params['appMode'] === 'standalone') {
             //     $menu[] = [
@@ -73,6 +74,7 @@ class Navigation extends Model
             ];
         }
 
+        /* ссылка на раздел Задачи */
         // DEPRECATED
         // if (Yii::$app->params['appMode'] === 'standalone') {
         //     $menu[] = [
