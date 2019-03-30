@@ -329,6 +329,27 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
                 }
                 break;
             /* подраздел скидки клиента */
+
+            /* подраздел аттестации клиента */
+            case 'student-grade':
+                if ($action === 'index') {
+                    switch(Yii::$app->session->get('user.ustatus')) {
+                        case 3: $result = true; break;
+                        case 4: $result = true; break;
+                        case 5: $result = true; break;
+                        default: $result = false;
+                    }
+                }
+                if ($action === 'create' || $action === 'delete') {
+                    switch(Yii::$app->session->get('user.ustatus')) {
+                        case 3: $result = true; break;
+                        case 4: $result = true; break;
+                        default: $result = false;
+                    }
+                }
+                break;
+            /* подраздел аттестации клиента */
+
             /* раздел Клиенты */
             /* раздел Переводы */
             case 'langtranslator':
