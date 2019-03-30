@@ -1,12 +1,21 @@
 <?php
-    use yii\helpers\Html;
-    use yii\widgets\ActiveForm;
-    use yii\widgets\Breadcrumbs;
-    $this->title = 'Система учета :: ' . Yii::t('app','Teacher hours');
-    $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Schedule'), 'url' => ['index']];
-    $this->params['breadcrumbs'][] = Yii::t('app','Teacher hours');
+/**
+ * @var $this     yii\web\View
+ * @var $form     yii\widgets\ActiveForm
+ * @var $params
+ * @var $teachers
+ * @var $languages
+ * @var $lessons
+ * @var $offices
+ * @var $userInfoBlock
+ */
+use yii\helpers\Html;
+use yii\widgets\ActiveForm;
+use yii\widgets\Breadcrumbs;
+$this->title = 'Система учета :: ' . Yii::t('app','Teacher hours');
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Schedule'), 'url' => ['index']];
+$this->params['breadcrumbs'][] = Yii::t('app','Teacher hours');
 ?>
-
 <div class="row row-offcanvas row-offcanvas-left schedule-index">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>

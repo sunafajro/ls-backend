@@ -1,16 +1,34 @@
 <?php
-    use yii\helpers\Html;
-    use yii\widgets\ActiveForm;
-    use yii\widgets\Breadcrumbs;
-    // задаем тайтл страницы
-    if($day >= 1 && $day <= 7) {
-        $this->title = 'Система учета :: ' . Yii::t('app','Schedule') . ' - ' . $days[$day];
-    } else {
-        $this->title = 'Система учета :: ' . Yii::t('app','Schedule') . ' - ' . Yii::t('app', 'For week');
-    }
-    $this->params['breadcrumbs'][] = Yii::t('app','Schedule');
+/**
+ * @var $this     yii\web\View
+ * @var $form     yii\widgets\ActiveForm
+ * @var $lessons
+ * @var $offices
+ * @var $soffices
+ * @var $slangs
+ * @var $eduforms
+ * @var $ages
+ * @var $teachers
+ * @var $oid
+ * @var $lid
+ * @var $eid
+ * @var $aid
+ * @var $tid
+ * @var $day
+ * @var $days
+ * @var $userInfoBlock
+ */
+use yii\helpers\Html;
+use yii\widgets\ActiveForm;
+use yii\widgets\Breadcrumbs;
+// задаем тайтл страницы
+if($day >= 1 && $day <= 7) {
+    $this->title = 'Система учета :: ' . Yii::t('app','Schedule') . ' - ' . $days[$day];
+} else {
+    $this->title = 'Система учета :: ' . Yii::t('app','Schedule') . ' - ' . Yii::t('app', 'For week');
+}
+$this->params['breadcrumbs'][] = Yii::t('app','Schedule');
 ?>
-
 <div class="row row-offcanvas row-offcanvas-left schedule-index">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
@@ -234,15 +252,5 @@
     <?php } else { ?>
         <p class="text-center"><img src="/images/404-not-found.jpg" class="rounded" alt="По вашему запросу ничего не найдено..."></p>
     <?php } ?>
-
-<div id="app" class="row">
-  <c-sidebar :user="user"></c-sidebar>
-  <c-content></c-content>
+	</div>
 </div>
-
-<?php
-    $this->registerCssFile('/css/schedule/vendors.css');
-    $this->registerCssFile('/css/schedule/app.css');
-    $this->registerJsFile('/js/schedule/vendors.js');
-    $this->registerJsFile('/js/schedule/app.js');
-?>
