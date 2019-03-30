@@ -1,35 +1,26 @@
 <?php
-
-use yii\helpers\Html;
-use yii\widgets\ActiveForm;
-/* @var $this yii\web\View */
-/* @var $students */
-/* @var $services */
-
-$this->title = 'Система учета :: '.Yii::t('app','Clients');
-$this->params['breadcrumbs'][] = Yii::t('app','Clients');
-
-$js = <<< 'SCRIPT'
-$(function () {
-    $("[data-toggle='tooltip']").tooltip();
-});
-SCRIPT;
-$this->registerJs($js);
-
-
+    use yii\helpers\Html;
+    use yii\widgets\ActiveForm;
+    use yii\widgets\Breadcrumbs;
+    $this->title = 'Система учета :: ' . Yii::t('app','Clients');
+    $this->params['breadcrumbs'][] = Yii::t('app','Clients');
 ?>
+
 <div class="row row-offcanvas row-offcanvas-left schedule-index">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <div id="main-menu"></div>
+        <?php endif; ?>
         <?= $userInfoBlock ?>
         <h4><?= Yii::t('app', 'Filters') ?>:</h4>
-        <?php 
+        <?php
             $form = ActiveForm::begin([
                 'method' => 'get',
                 'action' => ['studname/index'],
                 ]);
         ?>
         <div class="form-group">
-            <input type="text" class="form-control input-sm" placeholder="Найти..." name="TSS" value="<?= $tss != '' ? $tss : '' ?>">
+            <input type="text" class="form-control input-sm" placeholder="имя или телефон..." name="TSS" value="<?= $tss != '' ? $tss : '' ?>">
         </div>
         <div class="form-group">
             <select class="form-control input-sm" name="STATE">
@@ -53,10 +44,14 @@ $this->registerJs($js);
 
     </div>
     <div id="content" class="col-sm-10">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <?= Breadcrumbs::widget([
+            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+        ]); ?>
+        <?php endif; ?>
         <p class="pull-left visible-xs">
             <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
-
         <?php if(Yii::$app->session->hasFlash('error')) { ?>
         <div class="alert alert-danger" role="alert">
             <?= Yii::$app->session->getFlash('error') ?>
@@ -96,19 +91,20 @@ $this->registerJs($js);
                     }
             }
         ?>
-    <?php if(!empty($students)) { ?>
-    
-        <p class="text-right">Показано <?= $start ?> - <?= ($end>=$pages->totalCount) ? $pages->totalCount : $end ?> из <?= $pages->totalCount ?></p>
+    <?php if(!empty($students)) : ?>
+	<div class="row" style="margin-bottom: 0.5rem">
+      <div class="col-xs-12 col-sm-3 text-left">
+        <?= (($prevpage>0) ? Html::a(Yii::t('app', 'Previous'),['studname/index','page'=>$prevpage,'TSS'=>$tss,'STATE'=>$state, 'OID'=>$oid], ['class' => 'btn btn-default']) : '') ?>
+      </div>
+      <div class="col-xs-12 col-sm-6 text-center">
+        <p style="margin-top: 1rem; margin-bottom: 0.5rem">Показано <?= $start ?> - <?= ($end>=$pages->totalCount) ? $pages->totalCount : $end ?> из <?= $pages->totalCount ?></p>
+      </div>
+      <div class="col-xs-12 col-sm-3 text-right">
+        <?= (($end<$pages->totalCount) ? Html::a(Yii::t('app', 'Next'),['studname/index','page'=>$nextpage,'TSS'=>$tss,'STATE'=>$state, 'OID'=>$oid], ['class' => 'btn btn-default']) : '') ?>
+      </div>
+    </div>
 
-    
-	<nav>
-        <ul class="pager">
-            <li class="previous"><?= (($prevpage>0) ? Html::a(Yii::t('app', 'Previous'),['studname/index','page'=>$prevpage,'TSS'=>$tss,'STATE'=>$state, 'OID'=>$oid]) : '') ?></li>
-            <li class="next"><?= (($end<$pages->totalCount) ? Html::a(Yii::t('app', 'Next'),['studname/index','page'=>$nextpage,'TSS'=>$tss,'STATE'=>$state, 'OID'=>$oid]) : '') ?></li>
-        </ul>
-    </nav>
-
-    <table class="table table-striped table-bordered table-hover table-condensed small">
+    <table class="table table-striped table-bordered table-hover table-condensed small" style="margin-bottom: 0.5rem">
         <thead>
             <tr>
                 <th class="text-center">Пол</th>
@@ -123,8 +119,8 @@ $this->registerJs($js);
         </thead>
         <?php foreach($students as $student) { ?>
             <tr class="<?= $student['debt'] < 0 ? 'danger' : '' ?>">
-                <td class="text-center"><span class="fa <?= $student['stsex']==1 ? 'fa-male' : 'fa-female' ?>" aria-hidden="true"></span></td>
-                <td><?= Html::a('[#'.$student['stid'].'] '.$student['stname'], ['studname/view','id'=>$student['stid']]) ?><br />
+                <td class="text-center"><span class="fa <?= (int)$student['stsex'] === 1 ? 'fa-male' : 'fa-female' ?>" aria-hidden="true"></span></td>
+                <td><?= Html::a('[#'.$student['stid'].'] '.$student['stname'], ['studname/view','id' => $student['stid']]) ?><br />
                 <p class="muted">
                 <?php foreach($services as $service) {
                     if($service['stid']==$student['stid']) {
@@ -133,23 +129,19 @@ $this->registerJs($js);
                 } ?>
                 </p>
                 </td>
+                <td><?= Html::encode($student['stphone']) ?></td>
                 <td>
-                <?php 
-                $p = 0;
-                foreach($phones as $phone) {
-                    if($phone['sid']==$student['stid']){
-                        echo "<span data-toggle='tooltip' title='".$phone['description']."'>".$phone['phone']."</span><br/>";
-                    $p++;
-                    }
-                }
-                if($p == 0) {
-                    echo $student['stphone'];
-                }
-                unset($phone);
-                unset($p);
-                ?>
+                    <?php if (isset($student['description'])) : ?>
+                    <div><?= Html::encode($student['description']) ?></div>
+                    <?php endif; ?>
+                    <?php if (isset($student['contracts']) && is_array($student['contracts']) && !empty($student['contracts'])) : ?>
+                    <div style="margin-top: 0.5rem">
+                        <?php foreach($student['contracts'] as $c) : ?>
+                        <span style="display: block; font-style: italic; color: chocolate">Договор № <?= Html::encode($c['number']) ?> от <?= date('d.m.y', strtotime($c['date'])) ?> оформлен на <?= Html::encode($c['signer']) ?></span>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
                 </td>
-                <td><?= $student['description'] ?></td>
                 <?php echo "<td class='text-center'>".($student['debt'] < 0 ? "<span class='label label-danger'>" : "<span class='label label-success'>").$student['debt']." р.</span></td>";
 	// выводим ссылки на базовые действия для менеджера и руководителя
 	if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4){
@@ -187,16 +179,30 @@ $this->registerJs($js);
         }
         echo "</tr>";
     }
-    echo "</table>";
-?>
-    <nav>
-        <ul class="pager">
-            <li class="previous"><?= (($prevpage>0) ? Html::a(Yii::t('app', 'Previous'),['studname/index','page'=>$prevpage,'TSS'=>$tss,'STATE'=>$state, 'OID'=>$oid]) : '') ?></li>
-            <li class="next"><?= (($end<$pages->totalCount) ? Html::a(Yii::t('app', 'Next'),['studname/index','page'=>$nextpage,'TSS'=>$tss,'STATE'=>$state, 'OID'=>$oid]) : '') ?></li>
-        </ul>
-    </nav>
-        <?php } else { ?>
-            <p class="text-center"><img src="/images/404-not-found.jpg" class="rounded" alt="По вашему запросу ничего не найдено..."></p>
-        <?php } ?>
+    ?>
+    </table>
+	<div class="row" style="margin-bottom: 0.5rem">
+      <div class="col-sm-3 text-left">
+        <?= (($prevpage>0) ? Html::a(Yii::t('app', 'Previous'),['studname/index','page'=>$prevpage,'TSS'=>$tss,'STATE'=>$state, 'OID'=>$oid], ['class' => 'btn btn-default']) : '') ?>
+      </div>
+      <div class="col-sm-6 text-center">
+        <p style="margin-top: 1rem; margin-bottom: 0.5rem">Показано <?= $start ?> - <?= ($end>=$pages->totalCount) ? $pages->totalCount : $end ?> из <?= $pages->totalCount ?></p>
+      </div>
+      <div class="col-sm-3 text-right">
+        <?= (($end<$pages->totalCount) ? Html::a(Yii::t('app', 'Next'),['studname/index','page'=>$nextpage,'TSS'=>$tss,'STATE'=>$state, 'OID'=>$oid], ['class' => 'btn btn-default']) : '') ?>
+      </div>
+    </div>
+    <?php else : ?>
+        <p class="text-center"><img src="/images/404-not-found.jpg" class="rounded" alt="По вашему запросу ничего не найдено..."></p>
+    <?php endif; ?>
     </div>
 </div>
+
+<?php
+$js = <<< 'SCRIPT'
+$(function () {
+    $("[data-toggle='tooltip']").tooltip();
+});
+SCRIPT;
+$this->registerJs($js);
+?>

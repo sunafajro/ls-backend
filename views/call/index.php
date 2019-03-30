@@ -1,31 +1,17 @@
 <?php
-
-use yii\helpers\Html;
-use yii\grid\GridView;
-use yii\widgets\ActiveForm;
-/* @var $this yii\web\View */
-/* @var $searchModel app\models\CalcCallSearch */
-/* @var $dataProvider yii\data\ActiveDataProvider */
-
-$this->title = 'Система учета :: '.Yii::t('app','Calls');
-$this->params['breadcrumbs'][] = Yii::t('app','Calls');
-
+    use yii\helpers\Html;
+    use yii\widgets\ActiveForm;
+    use yii\widgets\Breadcrumbs;
+    $this->title = 'Система учета :: '.Yii::t('app','Calls');
+    $this->params['breadcrumbs'][] = Yii::t('app','Calls');
 ?>
+
 <div class="row row-offcanvas row-offcanvas-left call-index">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
-        <div class="well well-sm small">
-            <span class="font-weight-bold"><?= Yii::$app->session->get('user.uname') ?></span>
-            <?php if(Yii::$app->session->get('user.uteacher')) { ?>
-                <?= Html::a('', ['teacher/view', 'id'=>Yii::$app->session->get('user.uteacher')], ['class'=>'fa fa-user btn btn-default btn-xs']); ?>                   
-            <?php } ?>               
-            <br />
-            <?= Yii::$app->session->get('user.stname') ?>
-            <?php if(Yii::$app->session->get('user.ustatus')==4) { ?>
-                <br />
-                <?= Yii::$app->session->get('user.uoffice') ?>
-            <?php } ?>
-        </div>
-
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <div id="main-menu"></div>
+        <?php endif; ?>
+        <?= $userInfoBlock ?>
         <h4><?= Yii::t('app', 'Actions') ?></h4>
         <?= Html::a('<span class="fa fa-plus" aria-hidden="true"></span> ' . Yii::t('app', 'Add'), ['create'], ['class' => 'btn btn-success btn-sm btn-block']) ?>
         <h4><?= Yii::t('app', 'Filters') ?></h4>
@@ -104,10 +90,14 @@ $this->params['breadcrumbs'][] = Yii::t('app','Calls');
         <?php ActiveForm::end(); ?>
     </div>
     <div id="content" class="col-sm-10">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <?= Breadcrumbs::widget([
+            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+        ]); ?>
+        <?php endif; ?>
         <p class="pull-left visible-xs">
             <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
-
         <?php 
             if(Yii::$app->session->getFlash('success')){
                 echo "<div class='alert alert-success' role='alert'>";

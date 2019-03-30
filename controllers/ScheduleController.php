@@ -140,7 +140,7 @@ class ScheduleController extends Controller
 		
         // пишем исходный кусок запроса    
     	$lessons = (new \yii\db\Query()) 
-        ->select('csch.id lessonid, co.name as office, cko.name as room, ctch.id as tid, ctch.name as teacher, cgt.id as gid, cdn.name as day, csch.calc_denned as day_id, csch.time_begin as start, csch.time_end as end, cs.name as service, csch.visible as visible')
+        ->select('csch.id lessonid, co.name as office, cko.name as room, ctch.id as tid, ctch.name as teacher, cgt.id as gid, cdn.name as day, csch.calc_denned as day_id, csch.time_begin as start, csch.time_end as end, cs.name as service, csch.visible as visible, csch.notes as notes')
         ->from('calc_schedule csch')
         ->leftJoin('calc_office co', 'co.id=csch.calc_office')
         ->leftJoin('calc_cabinetoffice cko', 'cko.id=csch.calc_cabinetoffice')

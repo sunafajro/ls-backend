@@ -95,10 +95,10 @@ class Groupteacher extends \yii\db\ActiveRecord
             'url' => ['groupteacherbook/create','gid' => $id],
             'options' => ['class' => 'btn btn-block' . (('groupteacherbook/create' == $request) ? ' btn-primary' : ' btn-default')],         
         ];
-        
+
         return $items;
     }
-    
+
     public static function getTeacherListSimple($id)
     {
     	$teachers = (new \yii\db\Query())
@@ -111,40 +111,54 @@ class Groupteacher extends \yii\db\ActiveRecord
 		->where('gt.id=:group AND t.old=:old AND tg.id is null', [':group' => $id, ':old' => 0])
 		->orderby(['t.name' => SORT_ASC])
 		->all();
-        
+
         if(!empty($teachers)) {
             foreach($teachers as $teacher){
                 $tmpTeachers[$teacher['id']] = $teacher['name'];
             }
             $teachers = array_unique($tmpTeachers);
         }
-        
+
         return $teachers;
     }
-    
+
     public static function getStudentListSimple($id)
     {
-		$students = (new \yii\db\Query())
-		->select('s.id as id, s.name')
-		->from('calc_studname s')
-		->leftJoin('calc_invoicestud i', 'i.calc_studname=s.id')
-		->leftJoin('calc_groupteacher gt', 'gt.calc_service=i.calc_service')
-		->leftJoin('calc_studgroup sg', 's.id=sg.calc_studname and gt.id=sg.calc_groupteacher')	
-		->where('gt.id=:gid and s.visible=:visible and s.active=:visible and i.done=:done and i.visible=:visible and sg.id is null', [':gid' => $id, ':visible' => 1, ':done' => 0])
-		->orderby(['s.name'=>SORT_ASC])
-		->all();
-        
+        $oid = (int)Yii::$app->session->get('user.ustatus') === 4 ? Yii::$app->session->get('user.uoffice_id') : NULL;
+        $students = (new \yii\db\Query())
+        ->select(['id' => 's.id', 'name' => 's.name'])
+        ->from(['s' => 'calc_studname'])
+        ->innerJoin('calc_invoicestud i', 'i.calc_studname=s.id')
+        ->innerJoin('calc_groupteacher gt', 'gt.calc_service=i.calc_service')
+        ->leftJoin('calc_studgroup sg', 's.id=sg.calc_studname and gt.id=sg.calc_groupteacher');
+        if ((int)Yii::$app->session->get('user.ustatus') === 4) {
+          $students = $students->innerJoin('calc_student_office so', 's.id=so.student_id');
+        }
+        $students = $students->where([
+            'gt.id' => $id,
+            's.visible' => 1,
+            's.active' => 1,
+            'i.done' => 0,
+            'i.visible' => 1,
+            'sg.id' =>  NULL
+        ]);
+        if ((int)Yii::$app->session->get('user.ustatus') === 4) {
+          $students = $students->andWhere(['so.office_id' => $oid ]);
+        }
+        $students = $students->orderby(['s.name' => SORT_ASC])
+        ->all();
+
         if(!empty($students)) {
             foreach($students as $student){
                 $tmpStudents[$student['id']] = $student['name'];
             }
             $students = array_unique($tmpStudents);
         }
-        
+
         return $students;
     }
-	
-	public static function getGroupInfoById($id)
+
+    public static function getGroupInfoById($id)
 	{
 		$jobPlace = [ 1 => 'ШИЯ', 2 => 'СРР' ];
         // получаем информацию о группе

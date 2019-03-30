@@ -49,34 +49,6 @@ class Office extends \yii\db\ActiveRecord
         ];
     }
 
-    /* список офисов кроме помеченных удаленными. многомерный массив. */
-    public static function getOfficesList()
-    {
-        /* получаем список доступных офисов */
-        $offices = (new \yii\db\Query())
-        ->select('co.id as id, co.name as name')
-        ->from('calc_office co')
-        ->where('co.visible=:vis', [':vis'=>1])
-        ->orderBy(['co.name' => SORT_ASC])
-        ->all();
-        /* получаем список доступных офисов */
-    
-        return $offices;
-    }
-
-    // возвращает список офисов по которым есть занятия в расписании
-    public static function getOfficeBySchedule()
-    {
-        $offices = (new \yii\db\Query())
-        ->select('o.id as id, o.name as name')
-        ->distinct()
-        ->from('calc_office o')
-        ->innerJoin('calc_schedule sch', 'sch.calc_office=o.id')
-        ->where('o.visible=:one', [':one' => 1])
-        ->all();
-        return $offices;
-    }
-
     /* список офисов кроме помеченных удаленными, по которым есть занятия в расписании. одномерный массив. */
     public static function getOfficeInScheduleListSimple()
     {
@@ -94,11 +66,23 @@ class Office extends \yii\db\ActiveRecord
         return $offices;
     }
 
+    /* возвращает список действующих офисов */
+    public static function getOfficesList($id = null)
+    {
+        $offices = (new \yii\db\Query())
+        ->select('co.id as id, co.name as name')
+        ->from('calc_office co')
+        ->where('co.visible=:vis', [':vis'=>1])
+        ->andFilterWhere(['id' => $id])
+        ->orderBy(['co.name' => SORT_ASC])
+        ->all();
+    
+        return $offices;
+    }
 
-    /* список офисов кроме помеченных удаленными, с привязкой к городам. многомерный массив. */
+    /* возвращает список действующих офисов с привязкой к городу */
     public static function getOfficesWithCitiesList()
     {
-        /* получаем список доступных офисов с привязкой к городу */ 
         $offices = (new \yii\db\Query())
         ->select(['id' => 'co.id', 'name' => 'co.name', 'city_id' => 'c.id', 'city' => 'c.name', 'num' => 'co.num'])
         ->from('calc_office co')
@@ -106,7 +90,6 @@ class Office extends \yii\db\ActiveRecord
         ->where('co.visible=:vis', [':vis'=>1])
         ->orderBy(['c.name' => SORT_ASC, 'co.id' => SORT_ASC])
         ->all();
-        /* получаем список доступных офисов */
     
         return [
             'columns' => [
@@ -140,11 +123,15 @@ class Office extends \yii\db\ActiveRecord
         ];
     }
 
-    /* список офисов кроме помеченных удаленными. одномерный массив. */
-    public static function getOfficesListSimple()
+    /**
+     *  Метод возвращает список действующих офисов в виде одномерного массива
+     */
+    public static function getOfficesListSimple($id = null)
     {
-        $tmp_offices = static::getOfficesList();
         $offices = [];
+
+        $tmp_offices = static::getOfficesList($id);
+        
         /* если массив не пустой, формируем из него простой одномерный */
         if(!empty($tmp_offices)) {
             foreach($tmp_offices as $o) {

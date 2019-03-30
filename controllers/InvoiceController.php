@@ -27,15 +27,15 @@ class InvoiceController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['index'.'create','delete','enable','disable','done','undone','remain','unremain','get-data'],
+                'only' => ['index','create','delete','enable','disable','done','undone','remain','unremain','get-data','corp'],
                 'rules' => [
                     [
-                        'actions' => ['index'.'create','delete','enable','disable','done','undone','remain','unremain','get-data'],
+                        'actions' => ['index','create','delete','enable','disable','done','undone','remain','unremain','get-data','corp'],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index'.'create','delete','enable','disable','done','undone','remain','unremain','get-data'],
+                        'actions' => ['index','create','delete','enable','disable','done','undone','remain','unremain','get-data','corp'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -95,7 +95,7 @@ class InvoiceController extends Controller
 
             $hints = [
                 'Счет помечается "остаточным", если необходимо указать какие то занятия, которые были проведены, на момент ввода остатков и Студент школе за них должен.',
-                'Если необходимо использовать скидку, то перед выставлением счета эту скидку нужно заранее добавить студенту (кроме постоянной.).'
+                'Если необходимо использовать скидку, то перед выставлением счета эту скидку нужно заранее добавить студенту (кроме постоянной).'
             ];
 
             $sales = Salestud::getClientSalesSplited($sid);
@@ -110,6 +110,7 @@ class InvoiceController extends Controller
                 'permsale' => Yii::t('app', 'Permament sale'),
                 'num' => Yii::t('app', 'Lesson count'),
                 'remain' => Yii::t('app', 'Remain'),
+                'corp' => Yii::t('app', 'Corporative'),
                 'office' => Yii::t('app', 'Office'),
                 'calculate' => Yii::t('app', 'Calculate'),
                 'addsale' => Yii::t('app', 'Add'),
@@ -411,57 +412,29 @@ class InvoiceController extends Controller
         return $this->redirect(Yii::$app->request->referrer);
     }
 
-    // public function actionGetsale() {
-    //     /* включаем формат ответа JSON */
-    //     Yii::$app->response->format = Response::FORMAT_JSON;
-    //     $data = Yii::$app->request->post('data');
-    //     if ($data) {
-    //         $rub = $data['rub'];
-    //         $proc = $data['proc'];
-    //         $perm = $data['perm'];
-    //         $service = $data['serv'];
-    //         $num = $data['num'];
-    //         if($rub || $proc) {
-    //             $sales_id = [];
-    //             /* заполняем массив указанными скидками */
-    //             if ($rub) {
-    //                 $sales_id[] = $rub;
-    //             }
-    //             if ($proc) {
-    //                 $sales_id[] = $proc;
-    //             }
-    //             $lessonsum = Service::getServiceValue($service);
-    //             $totalsum  = $lessonsum * $num;
-    //             /* считаем сумму скидки */
-    //             $salesum = Salestud::calculateInvoiceSale($sales_id, $perm, $totalsum);
-
-    //             return [
-    //                 'response' => 'success',
-    //                 'sale' => $salesum['type'],
-    //                 'message' => Yii::t('app', 'Sale was successfully calculated.'),
-    //             ];
-    //         } else if($perm) {
-    //             return [
-    //                 'response' => 'success',
-    //                 'sale' => 'perm',
-    //                 'message' => Yii::t('app', 'Sale was successfully calculated.'),
-    //             ];
-    //         } else {
-    //             return [
-    //                 'response' => 'error',
-    //                 'sale' => null,
-    //                 'message' => Yii::t('app', 'Failed to calculate Sale.'),
-    //             ];
-    //         }
-
-    //     } else {
-    //         Yii::$app->response->statusCode = 404;
-    //         return [
-    //             'response' => 'not_found',
-    //             'message' => Yii::t('yii', 'The requested sale does not exist.')
-    //         ];
-    //     }
-    // }
+    public function actionCorp($id)
+    {
+        $model = $this->findModel($id);
+        if ($model === NULL) {
+          return $this->redirect(Yii::$app->request->referrer);
+        }
+        if ((int)$model->calc_office !== 6) {
+          $model->calc_office = 6;
+        } else {
+          if ((int)Yii::$app->session->get('user.ustatus') === 4) {
+            $model->calc_office = Yii::$app->session->get('user.uoffice_id');
+          } else {
+            Yii::$app->session->setFlash('error', 'Возврат счета в обычное состояние доступен только менеджерам!');
+            return $this->redirect(['studname/view', 'id' => $model->calc_studname]);
+          }
+        }
+        if($model->save()) {
+          Yii::$app->session->setFlash('success', 'Счет успешно изменен!');
+        } else {
+          Yii::$app->session->setFlash('error', 'Не удалось изменить счет!');
+        }
+        return $this->redirect(['studname/view', 'id' => $model->calc_studname]);
+    }
 
     /**
      * Finds the CalcInvoicestud model based on its primary key value.
@@ -478,87 +451,4 @@ class InvoiceController extends Controller
             throw new NotFoundHttpException('The requested page does not exist.');
         }
     }
-	
-	/*
-	* Метод высчитывает долг клиента и возвращает значение
- 	*/
-	
-	// protected function studentDebt($id) {
-		
-	// 	// задаем переменную в которую будет подсчитан долг по занятиям
-	// 	$debt_lessons = 0;
-	// 	// задаем переменную в которую будет подсчитан долг по разнице между счетами и оплатами
-	// 	$debt_common = 0;
-	// 	// полный долг
-	// 	$debt = 0;
-		
-	// 	// получаем информацию по счетам
-	// 	$invoices_sum = (new \yii\db\Query())
- //        ->select('sum(value) as money')
- //        ->from('calc_invoicestud')
-	// 	->where('visible=:vis and calc_studname=:sid', [':vis'=>1, ':sid'=>$id])
- //        ->one();
-		
-	// 	// получаем информацию по оплатам
-	// 	$payments_sum = (new \yii\db\Query())
- //        ->select('sum(value) as money')
- //        ->from('calc_moneystud')
-	// 	->where('visible=:vis and calc_studname=:sid', [':vis'=>1, ':sid'=>$id])
- //        ->one();
-		
-	// 	// считаем разницу как базовый долг
-	// 	$debt_common = $payments_sum['money'] - $invoices_sum['money'];
-		
-	// 	// запрашиваем услуги назначенные студенту
-	// 	$services = (new \yii\db\Query())
-	// 	->select('s.id as sid, s.name as sname, SUM(is.num) as num')
-	// 	->distinct()
-	// 	->from('calc_service s')
-	// 	->leftjoin('calc_invoicestud is', 'is.calc_service=s.id')
-	// 	->where('is.remain=:rem and is.visible=:vis', [':rem'=>0, ':vis'=>1])
-	// 	->andWhere(['is.calc_studname'=>$id])
-	// 	->groupby(['is.calc_studname','s.id'])
-	// 	->orderby(['s.id'=>SORT_ASC])
-	// 	->all();
-		
-	// 	// проверяем что у студента есть назначенные услуги
-	// 	if(!empty($services)){
-	// 		$i = 0;
-	// 		// распечатываем массив
-	// 		foreach($services as $service){
-	// 			// запрашиваем из базы колич пройденных уроков
-	// 			$lessons = (new \yii\db\Query())
-	// 			->select('COUNT(sjg.id) AS cnt')
-	// 			->from('calc_studjournalgroup sjg')
-	// 			->leftjoin('calc_groupteacher gt', 'sjg.calc_groupteacher=gt.id')
-	// 			->leftjoin('calc_journalgroup jg', 'sjg.calc_journalgroup=jg.id')
-	// 			->where('jg.view=:vis and jg.visible=:vis and (sjg.calc_statusjournal=:vis or sjg.calc_statusjournal=:stat) and gt.calc_service=:sid and sjg.calc_studname=:stid', [':vis'=>1, 'stat'=>3, ':sid'=>$service['sid'], ':stid'=>$id])
-	// 			->one();
-
-	// 			// считаем остаток уроков
-	// 			$services[$i]['num'] = $services[$i]['num'] - $lessons['cnt'];
-	// 			$i++;
-	// 		}
-	// 		// уничтожаем переменные
-	// 		unset($service);
-	// 		unset($lessons);
-			
-	// 		foreach($services as $s) {
- //                if($s['num'] < 0){
-	// 					$lesson_cost = (new \yii\db\Query())
-	// 					->select('(value/num) as money')
-	// 					->from('calc_invoicestud')
-	// 					->where('visible=:vis and calc_studname=:stid and calc_service=:sid', [':vis'=>1, ':stid'=>$id, ':sid'=>$s['sid']])
-	// 					->orderby(['id'=>SORT_DESC])
-	// 					->one();
-						
-	// 					$debt_lessons = $debt_lessons + $s['num'] * $lesson_cost['money'];
-	// 			}				
-	// 		}
-	// 	}
-	// 	unset($services);
-	// 	$debt = $debt_common + $debt_lessons;
-	// 	//$debt = number_format($debt, 1, '.', ' ');
-	// 	return (int)$debt;
-	// }
 }

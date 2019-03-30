@@ -3,13 +3,14 @@
 namespace app\controllers;
 
 use Yii;
+use yii\db\Query;
+use yii\filters\AccessControl;
+use yii\filters\VerbFilter;
 use app\models\Call;
 use app\models\Student;
+use app\models\User;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
-use yii\filters\AccessControl;
-use yii\db\Query;
 
 /**
  * CallController implements the CRUD actions for CalcCall model.
@@ -203,13 +204,14 @@ class CallController extends Controller
 			
         // передаем все во вьюз
         return $this->render('index', [
-		'calls' => $calls,
-		'languages' => $languages,
-		'servicetypes' => $servicetypes,
-        'offices' => $offices,
-        'ages' => $ages,
-        'months' => $months,
-        'filter' => $filter
+            'calls' => $calls,
+            'languages' => $languages,
+            'servicetypes' => $servicetypes,
+            'offices' => $offices,
+            'ages' => $ages,
+            'months' => $months,
+            'filter' => $filter,
+            'userInfoBlock' => User::getUserInfoBlock()
         ]);
     }
 
@@ -232,9 +234,6 @@ class CallController extends Controller
      */
     public function actionCreate()
     {
-        // подключаем боковое меню
-        $this->layout = "column2";
-
         $model = new Call();
         // если звонок создается для уже имеющегося в базе клиента
         if(Yii::$app->request->get('sid')){
@@ -251,7 +250,6 @@ class CallController extends Controller
                 $model->calc_studname = $client->id;
             }
         }
-
 
         $ways = (new \yii\db\Query())
         ->select(['id'=>'id', 'name'=>'name'])
@@ -437,8 +435,7 @@ class CallController extends Controller
                 'age' => $age,
                 'eduform' => $eduform,
                 'office' => $office,
-                //'student' => $student,
-				//'studdata'=>$studdata,
+                'userInfoBlock' => User::getUserInfoBlock()
             ]);
         }
     }
@@ -451,9 +448,6 @@ class CallController extends Controller
      */
     public function actionUpdate($id)
     {
-        // подключаем боковое меню
-        $this->layout = "column2";
-        
         $model = $this->findModel($id);
 
         $ways = (new \yii\db\Query())
@@ -620,6 +614,7 @@ class CallController extends Controller
                 'office' => $office,
                 'student' => $student,
                 'service'=>$service,
+                'userInfoBlock' => User::getUserInfoBlock()
             ]);
         }
     }
@@ -664,14 +659,28 @@ class CallController extends Controller
                 $student->history = 0;
                 $student->visible = 1;
                 $student->active = 1;
-				$student->debt = 0;
-				$student->debt2 = 0;
-				$student->invoice = 0;
-				$student->money = 0;
-                
-                // сохраняем модель клиента               
-                if($student->save()){
+                $student->debt = 0;
+                $student->debt2 = 0;
+                $student->invoice = 0;
+                $student->money = 0;
 
+                // сохраняем модель клиента
+                if ($student->save()) {
+                    $office_id = (int)$call->calc_office;
+                    if ((int)Yii::$app->session->get('user.ustatus') === 4) {
+                        $office_id = (int)Yii::$app->session->get('user.uoffice_id');
+                    }
+                    if ($office_id > 0) {
+                        // формируем связь студента с офисом
+                        $db = (new \yii\db\Query())
+                        ->createCommand()
+                        ->insert('calc_student_office',
+                        [
+                            'student_id' => $student->id,
+                            'office_id' => $office_id,
+                        ])
+                        ->execute();
+                    }
                     // обновляем данные записи звонка
                     $call->calc_studname = $student->id;
                     // указываем что запись о звонке трансформирована в карточку клиента
@@ -680,7 +689,6 @@ class CallController extends Controller
                     $call->user_transform = Yii::$app->session->get('user.uid');
                     // указываем дату создания
                     $call->data_transform = date('Y-m-d H:i:s');
-
                     // сохраняем измененные данные
                     $call->save();
                 }

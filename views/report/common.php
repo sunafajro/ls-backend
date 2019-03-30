@@ -1,18 +1,17 @@
 <?php
-
-use yii\helpers\Html;
-use yii\widgets\ActiveForm;
-/* @var $this yii\web\View */
-/* @var $students */
-/* @var $services */
-
-$this->title = 'Система учета :: '.Yii::t('app','Common report');
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
-$this->params['breadcrumbs'][] = Yii::t('app','Common report');
+	use yii\helpers\Html;
+	use yii\widgets\ActiveForm;
+	use yii\widgets\Breadcrumbs;
+	$this->title = 'Система учета :: '.Yii::t('app','Common report');
+	$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
+	$this->params['breadcrumbs'][] = Yii::t('app','Common report');
 ?>
 
 <div class="row row-offcanvas row-offcanvas-left report-common">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
+		<?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <div id="main-menu"></div>
+        <?php endif; ?>
         <?= $userInfoBlock ?>
         <?php if(!empty($reportlist)): ?>
         <div class="dropdown">
@@ -35,7 +34,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Common report');
 	        <select name="week" class="form-control input-sm">
 		        <option value="all"><?php echo Yii::t('app', '-all weeks-') ?></option>
 		    	<?php foreach($weeks as $key => $value): ?>
-		            <option value="<?= $key ?>">#<?= $value ?></option>
+		            <option value="<?= $key ?>" <?php echo ($key==$week) ? ' selected' : ''; ?>>#<?= $value ?></option>
 		        <?php endforeach; ?>
 	        </select>
         </div>
@@ -62,6 +61,11 @@ $this->params['breadcrumbs'][] = Yii::t('app','Common report');
         <?php ActiveForm::end(); ?>
 	</div>
 	<div class="col-sm-10">
+		<?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <?= Breadcrumbs::widget([
+            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+        ]); ?>
+        <?php endif; ?>
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
 		</p>

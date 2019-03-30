@@ -1,18 +1,17 @@
 <?php
-
-use yii\helpers\Html;
-use yii\widgets\ActiveForm;
-/* @var $this yii\web\View */
-/* @var $students */
-/* @var $services */
-
-$this->title = 'Система учета :: '.Yii::t('app','Debt report');
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
-$this->params['breadcrumbs'][] = Yii::t('app','Debt report');
+	use yii\helpers\Html;
+	use yii\widgets\ActiveForm;
+	use yii\widgets\Breadcrumbs;
+	$this->title = 'Система учета :: '.Yii::t('app','Debt report');
+	$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
+	$this->params['breadcrumbs'][] = Yii::t('app','Debt report');
 ?>
 
 <div class="row row-offcanvas row-offcanvas-left report-debt">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
+		<?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <div id="main-menu"></div>
+        <?php endif; ?>	
         <?= $userInfoBlock ?>
         <?php if(!empty($reportlist)): ?>
         <div class="dropdown">
@@ -31,7 +30,6 @@ $this->params['breadcrumbs'][] = Yii::t('app','Debt report');
                 'action' => ['report/debt'],
                 ]);
         ?>
-		
 		<div class="form-group">
 		    <input type="text" class="form-control input-sm" placeholder="Найти..." name="TSS" value="<?= $tss != '' ? $tss : '' ?>">
 		</div>
@@ -65,6 +63,11 @@ $this->params['breadcrumbs'][] = Yii::t('app','Debt report');
         <?php ActiveForm::end(); ?>
 	</div>
 	<div class="col-sm-10">
+		<?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <?= Breadcrumbs::widget([
+            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+        ]); ?>
+        <?php endif; ?>
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
 		</p>
@@ -80,46 +83,50 @@ $this->params['breadcrumbs'][] = Yii::t('app','Debt report');
 			</div>
 		<?php } ?>
 
-    <?php
-		// первый элемент страницы 
-		$start = 1;
-		// последний элемент страницы
-		$end = 20;
-		// следующая страница
-		$nextpage = 2;
-		// предыдущая страница
-		$prevpage = 0;
-		// проверяем не задан ли номер страницы
-		if(Yii::$app->request->get('page')){
-			if(Yii::$app->request->get('page')>1){
-			// считаем номер первой строки с учетом страницы
-				$start = (20 * (Yii::$app->request->get('page') - 1) + 1);
-			// считаем номер последней строки с учетом страницы
-				$end = $start + 19;
-			// если страничка последняя подменяем номер последнего элемента
-			if($end>=$pages->totalCount){
-				$end = $pages->totalCount;
+		<?php
+			// первый элемент страницы 
+			$start = 1;
+			// последний элемент страницы
+			$end = 20;
+			// следующая страница
+			$nextpage = 2;
+			// предыдущая страница
+			$prevpage = 0;
+			// проверяем не задан ли номер страницы
+			if(Yii::$app->request->get('page')){
+				if(Yii::$app->request->get('page')>1){
+				// считаем номер первой строки с учетом страницы
+					$start = (20 * (Yii::$app->request->get('page') - 1) + 1);
+				// считаем номер последней строки с учетом страницы
+					$end = $start + 19;
+				// если страничка последняя подменяем номер последнего элемента
+				if($end>=$pages->totalCount){
+					$end = $pages->totalCount;
+				}
+				// считаем номер следующей страницы
+					$prevpage = Yii::$app->request->get('page') - 1;
+				// считаем номер предыдущей страницы
+					$nextpage = Yii::$app->request->get('page') + 1;
+				}
 			}
-			// считаем номер следующей страницы
-				$prevpage = Yii::$app->request->get('page') - 1;
-			// считаем номер предыдущей страницы
-				$nextpage = Yii::$app->request->get('page') + 1;
-			}
-		}
-    ?>
-	    <p class="text-right">Показано <?= $start ?> - <?= $end >= $pages->totalCount ? $pages->totalCount : $end ?> из <?= $pages->totalCount ?></p>
-        <nav>
-            <ul class="pager">
-                <li class="previous"><?= (($prevpage > 0) ? Html::a('Предыдущий',['report/debt','page'=>$prevpage,'TSS'=>$tss,'OID'=>$oid,'SIGN'=>$sign,'STATE'=>$state]) : '') ?></li>
-                <li class="next"><?= (($end < $pages->totalCount) ? Html::a('Следующий',['report/debt','page'=>$nextpage,'TSS'=>$tss,'OID'=>$oid,'SIGN'=>$sign,'STATE'=>$state]) : '') ?></li>
-            </ul>
-        </nav>
+		?>
+		<div class="row" style="margin-bottom: 0.5rem">
+            <div class="col-xs-12 col-sm-3 text-left">
+                <?= (($prevpage > 0) ? Html::a('Предыдущий',['report/debt','page'=>$prevpage,'TSS'=>$tss,'OID'=>$oid,'SIGN'=>$sign,'STATE'=>$state], ['class' => 'btn btn-default']) : '') ?>
+            </div>
+            <div class="col-xs-12 col-sm-6 text-center">
+                <p style="margin-top: 1rem; margin-bottom: 0.5rem">Показано <?= $start ?> - <?= $end >= $pages->totalCount ? $pages->totalCount : $end ?> из <?= $pages->totalCount ?></p>
+            </div>
+            <div class="col-xs-12 col-sm-3 text-right">
+                <?= (($end < $pages->totalCount) ? Html::a('Следующий',['report/debt','page'=>$nextpage,'TSS'=>$tss,'OID'=>$oid,'SIGN'=>$sign,'STATE'=>$state], ['class' => 'btn btn-default']) : '') ?>
+            </div>
+        </div>
         <?php foreach ($stds as $st) : ?>
 	        <div class="<?= $st['debt'] >= 0 ? 'bg-success text-success' : 'bg-danger text-danger' ?>" style="padding: 15px">
                 <div style="float: left"><strong><?= Html::a("#".$st['id']." ".$st['name']." →", ['studname/view', 'id'=>$st['id']]) ?></strong></div>
                 <div class="text-right"><strong>(баланс: <?= $st['debt'] ?> р.)</strong></div>
             </div>
-            <table class="table table-bordered table-stripped table-hover table-condensed">
+            <table class="table table-bordered table-stripped table-hover table-condensed" style="margin-bottom: 0.5rem">
                 <tbody>
                 <?php foreach ($students as $s) : ?>
     	            <?php if ($s['stid']==$st['id']) : ?>
@@ -140,13 +147,17 @@ $this->params['breadcrumbs'][] = Yii::t('app','Debt report');
 				<?php endforeach; ?>
                 </tbody>
             </table>
-
 		<?php endforeach; ?>
-        <nav>
-            <ul class="pager">
-                <li class="previous"><?= (($prevpage > 0) ? Html::a('Предыдущий',['report/debt','page'=>$prevpage,'TSS'=>$tss,'OID'=>$oid,'SIGN'=>$sign,'STATE'=>$state]) : '') ?></li>
-                <li class="next"><?= (($end < $pages->totalCount) ? Html::a('Следующий',['report/debt','page'=>$nextpage,'TSS'=>$tss,'OID'=>$oid,'SIGN'=>$sign,'STATE'=>$state]) : '') ?></li>
-            </ul>
-        </nav>
+		<div class="row" style="margin-bottom: 0.5rem">
+            <div class="col-xs-12 col-sm-3 text-left">
+                <?= (($prevpage > 0) ? Html::a('Предыдущий',['report/debt','page'=>$prevpage,'TSS'=>$tss,'OID'=>$oid,'SIGN'=>$sign,'STATE'=>$state], ['class' => 'btn btn-default']) : '') ?>
+            </div>
+            <div class="col-xs-12 col-sm-6 text-center">
+                <p style="margin-top: 1rem; margin-bottom: 0.5rem">Показано <?= $start ?> - <?= $end >= $pages->totalCount ? $pages->totalCount : $end ?> из <?= $pages->totalCount ?></p>
+            </div>
+            <div class="col-xs-12 col-sm-3 text-right">
+                <?= (($end < $pages->totalCount) ? Html::a('Следующий',['report/debt','page'=>$nextpage,'TSS'=>$tss,'OID'=>$oid,'SIGN'=>$sign,'STATE'=>$state], ['class' => 'btn btn-default']) : '') ?>
+            </div>
+        </div>
     </div>
 </div>

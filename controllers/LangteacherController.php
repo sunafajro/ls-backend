@@ -4,6 +4,7 @@ namespace app\controllers;
 
 use Yii;
 use app\models\Langteacher;
+use app\models\User;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -49,8 +50,8 @@ class LangteacherController extends Controller
 
     public function actionCreate($tid)
     {
-        if(Yii::$app->session->get('user.ustatus')!=3 && Yii::$app->session->get('user.ustatus') != 4){
-            return $this->redirect(Yii::$app->request->referrer);            
+        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4 && (int)Yii::$app->session->get('user.uid') !== 296){
+            return $this->redirect(Yii::$app->request->referrer);
         }
 		//указываем двухколоночный дизайн
 		$this->layout = 'column2';
@@ -97,6 +98,7 @@ class LangteacherController extends Controller
 				'slangs' => $slangs,
 				'tlangs' => $tlangs,
 				'teacher' => $teacher,
+                                'userInfoBlock' => User::getUserInfoBlock(),
 			]);
 		} else {
             Yii::$app->session->setFlash('error', Yii::t('app','Не удалось найти преподавателя!'));
@@ -106,7 +108,7 @@ class LangteacherController extends Controller
 
     public function actionDisable($id)
     {
-        if(Yii::$app->session->get('user.ustatus')!=3 && Yii::$app->session->get('user.ustatus') != 4){
+        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4 && (int)Yii::$app->session->get('user.uid') !== 296){
             return $this->redirect(Yii::$app->request->referrer);            
         }
         // получаем информацию по пользователю

@@ -1,26 +1,32 @@
-version: '2'
+version: '3'
+
+networks:
+  calcnet:
+    driver: bridge
 
 services:
   web:
-    image: apache/php
+    image: yiisoftware/yii2-php:7.1-apache
     container_name: web
-    restart: always
-    environment:
-      "$PWD": /var/www/calc2/web
     volumes:
-     - /opt/calc2:/var/www/calc2
-     - /opt/apache2:/etc/apache2/sites-enabled
+      - ~/.composer-docker/cache:/root/.composer/cache:delegated
+      - ./:/app:delegated
     ports:
-     - 127.0.0.1:8080:80
+      - '8080:80'
+    networks:
+     - calcnet
   db:
-    image: mysql:5.6
+    image: mysql:8
+    command: --default-authentication-plugin=mysql_native_password
     container_name: db
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: langschool
     volumes:
-     - /opt/mysql/data:/var/lib/mysql
+     - d:/dev/mysql/conf:/etc/mysql/conf.d
+     - d:/dev/mysql/data:/var/lib/mysql
     ports:
      - 127.0.0.1:3306:3306
-
+    networks:
+     - calcnet

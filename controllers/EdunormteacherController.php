@@ -96,10 +96,23 @@ class EdunormteacherController extends Controller
         unset($temp_norms);
 
         $tnorms = (new \yii\db\Query())
-        ->select('ent.id as enid, en.id as nid, en.name as nname, ent.data as ndate, ent.active as active, ent.company as tjplace')
-        ->from('calc_edunormteacher ent')
-        ->leftjoin('calc_edunorm en', 'en.id=ent.calc_edunorm')
-        ->where('ent.visible=:vis and ent.calc_teacher=:tid', [':vis'=>1, ':tid'=>$tid])
+        ->select([
+            'enid' => 'ent.id',
+            'nid' => 'en1.id',
+            'nname' => 'en1.name',
+            'ndid' => 'en2.name',
+            'ndname' => 'en2.name',
+            'ndate' => 'ent.data',
+            'active' => 'ent.active',
+            'tjplace' => 'ent.company'
+        ])
+        ->from(['ent' => 'calc_edunormteacher'])
+        ->innerjoin(['en1' => 'calc_edunorm'], 'en1.id = ent.calc_edunorm')
+        ->leftjoin(['en2' => 'calc_edunorm'], 'en2.id = ent.calc_edunorm_day')
+        ->where([
+            'ent.visible' => 1,
+            'ent.calc_teacher' => $tid
+        ])
         ->orderby(['ent.id'=>SORT_DESC])
         ->all();
 

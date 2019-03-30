@@ -60,20 +60,6 @@ class Tool extends Model
         return $years;
     }
 
-    public static function prepareForBootstrapSelect($data)
-    {
-        $result = [];
-        if(!empty($data)) {
-            foreach ($data as $d) {
-                $result[] = [
-                    'value' => $d['id'],
-                    'text' => $d['name']
-                ];
-            }
-        }
-        return $result;
-    }
-
     public static function methodNotAllowed() {
         return [
             'code'   => 405,

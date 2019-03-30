@@ -68,29 +68,48 @@ class ServiceController extends Controller
                 case 'actual': $after = date('Y-m-d'); break;
             }
 
+            // по умолчанию поиск по имени
+            // если в строке целое число, то поиск по идентификатору
+            $tss_condition = ['like', 's.name', $url_params['TSS']];
+            if ((int)$url_params['TSS'] > 0) {
+              $tss_condition = ['s.id' => (int)$url_params['TSS']];
+            }
             // пишем запрос
             $services = (new \yii\db\Query()) 
-            ->select('cs.id as sid, cs.name as sname, cs.data as sdate, cs.calc_city as cid, cc.name as cname, cst.id as cstid, cst.name as cstname, cstn.id as cstnid, cstn.value as cstnvalue, ctn.id as ctnid, ctn.name as ctnname')
-            ->from('calc_service cs')
-            ->leftjoin('calc_city cc', 'cc.id=cs.calc_city')
-            ->leftjoin('calc_servicetype cst', 'cst.id=cs.calc_servicetype')
-            ->leftjoin('calc_studnorm cstn', 'cstn.id=cs.calc_studnorm')
-            ->leftjoin('calc_timenorm ctn', 'ctn.id=cs.calc_timenorm')
-            ->where('cs.visible=:one and cstn.id is not null', [':one'=>1])
-            ->andFilterWhere(['cs.id' => $url_params['TSS']])
-            ->andFilterWhere(['cs.calc_servicetype' => $url_params['STID']])
-            ->andFilterWhere(['cs.calc_city' => $url_params['SCID']])
-            ->andFilterWhere(['cs.calc_lang' => $url_params['SLID']])
-            ->andFilterWhere(['cs.calc_eduage' => $url_params['SAID']])
-            ->andFilterWhere(['cs.calc_eduform' => $url_params['SFID']])
-            ->andFilterWhere(['<', 'cs.data', $before])
-            ->andFilterWhere(['>', 'cs.data', $after]);
+            ->select([
+                'sid' => 's.id',
+                'sname' => 's.name',
+                'sdate' => 's.data',
+                'cid' => 'c.id',
+                'cname' => 'c.name',
+                'cstid' => 'st.id',
+                'cstname' => 'st.name',
+                'cstnid' => 'sn.id',
+                'cstnvalue' => 'sn.value',
+                'ctnid' => 'tn.id',
+                'ctnname' => 'tn.name'
+            ])
+            ->from(['s' => 'calc_service'])
+            ->leftjoin(['c' => 'calc_city'], 'c.id = s.calc_city')
+            ->leftjoin(['st' => 'calc_servicetype'], 'st.id = s.calc_servicetype')
+            ->leftjoin(['sn' => 'calc_studnorm'], 'sn.id = s.calc_studnorm')
+            ->leftjoin(['tn' => 'calc_timenorm'], 'tn.id = s.calc_timenorm')
+            ->where(['s.visible' => 1])
+            ->andWhere(['not', ['sn.id' => null]])
+            ->andFilterWhere($tss_condition)
+            ->andFilterWhere(['s.calc_servicetype' => $url_params['STID']])
+            ->andFilterWhere(['s.calc_city' => $url_params['SCID']])
+            ->andFilterWhere(['s.calc_lang' => $url_params['SLID']])
+            ->andFilterWhere(['s.calc_eduage' => $url_params['SAID']])
+            ->andFilterWhere(['s.calc_eduform' => $url_params['SFID']])
+            ->andFilterWhere(['<', 's.data', $before])
+            ->andFilterWhere(['>', 's.data', $after]);
             // делаем клон запроса
             $countQuery = clone $services;
             // получаем данные для паджинации
             $pages = new Pagination(['totalCount' => $countQuery->count()]);
             // добавляем условия сортировки
-            $services = $services->orderby(['cc.id'=>SORT_ASC, 'cs.data'=>SORT_DESC, 'cs.id'=>SORT_ASC]);
+            $services = $services->orderby(['c.id' => SORT_ASC, 's.data' => SORT_DESC, 's.id' => SORT_ASC]);
             // отрабатываем запрос с с ограничениями на колич строк
             if($url_params['page']){
                 $offset = 25 * (Yii::$app->request->get('page') - 1);

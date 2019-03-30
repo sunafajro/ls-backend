@@ -1,82 +1,78 @@
 <?php
-
-use yii\helpers\Html;
-use yii\bootstrap\NavBar;
-use yii\bootstrap\Nav;
-use yii\widgets\Menu;
-
-/* @var $this yii\web\View */
-/* @var $model app\models\CalcTeacher */
-/* @var $teachertax */
-/* @var $teacherschedule */
-/* @var $teacherdata */
-
-$this->title = $model->name;
-if ((int)Yii::$app->session->get('user.ustatus') !== 5) {
-    $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Teachers'), 'url' => ['index']];
-} else {
-$this->params['breadcrumbs'][] = Yii::t('app','Teachers');
-}
-$this->params['breadcrumbs'][] = $this->title;
-
-//формируем массив со списком названий дней недели
-for($i=0; $i<7; $i++){
-    $days[date('N', strtotime('+'.$i.' day'))]=date('D', strtotime('+'.$i.' day'));
-}
-ksort($days);
-// формируем список дней в которые есть занятия по расписанию
-$i = 0;
-foreach($teacherschedule as $sched){
-    $sscheddays[$i]=$sched['day'];
-    $i++;
-}
-//если нет занятий в расписании, создаем пустой массив
-if(empty($sscheddays)){
-    $sscheddays[0] = 0;
-}
-// оставляем только уникальные значения
-$scheddays = array_unique($sscheddays);
-// сортируем по порядку
-ksort($scheddays);
-// проверяем какие данные выводить в карочку преподавателя: 1/2 - группы, 3 - начисления; 4 - выплаты фонда
-if(Yii::$app->request->get('tab')){
-	$tab = Yii::$app->request->get('tab');
-} else {
-    if(Yii::$app->session->get('user.ustatus')==8) {
-        $tab = 3;
+    use yii\helpers\Html;
+    use yii\widgets\Breadcrumbs;
+    $this->title = 'Система учета :: ' . $model->name;
+    if ((int)Yii::$app->session->get('user.ustatus') !== 5) {
+        $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Teachers'), 'url' => ['index']];
     } else {
-        $tab = 1;
-    }	
-}
-// выбираем даты начислений
-if($tab == 3){
-    if(!empty($teacherdata)){
-	$i = 0;
-	foreach($teacherdata as $accrual){
-			$saccrualdates[$i]=$accrual['date'];
-			$i++;
-	}
-	// оставляем только уникальные значения
-	$accrualdates = array_unique($saccrualdates);
-	// сортируем в обратном порядке
-	rsort($accrualdates);
-	}
-}
+        $this->params['breadcrumbs'][] = Yii::t('app','Teachers');
+    }
+    $this->params['breadcrumbs'][] = $model->name;
+
+    //формируем массив со списком названий дней недели
+    for($i=0; $i<7; $i++){
+        $days[date('N', strtotime('+'.$i.' day'))] = date('D', strtotime('+'.$i.' day'));
+    }
+    ksort($days);
+    // формируем список дней в которые есть занятия по расписанию
+    $i = 0;
+    foreach ($teacherschedule as $sched)    {
+        $sscheddays[$i] = $sched['day'];
+        $i++;
+    }
+    //если нет занятий в расписании, создаем пустой массив
+    if (empty($sscheddays)) {
+        $sscheddays[0] = 0;
+    }
+    // оставляем только уникальные значения
+    $scheddays = array_unique($sscheddays);
+    // сортируем по порядку
+    ksort($scheddays);
+    // проверяем какие данные выводить в карочку преподавателя: 1/2 - группы, 3 - начисления; 4 - выплаты фонда
+    if (Yii::$app->request->get('tab')) {
+        $tab = Yii::$app->request->get('tab');
+    } else {
+        if (Yii::$app->session->get('user.ustatus') == 8) {
+            $tab = 3;
+        } else {
+            $tab = 1;
+        }	
+    }
+    // выбираем даты начислений
+    if($tab == 3){
+        if(!empty($teacherdata)){
+        $i = 0;
+        foreach ($teacherdata as $accrual) {
+                $saccrualdates[$i]=$accrual['date'];
+                $i++;
+        }
+        // оставляем только уникальные значения
+        $accrualdates = array_unique($saccrualdates);
+        // сортируем в обратном порядке
+        rsort($accrualdates);
+        }
+    }
 ?>
+
 <!-- начало контент области -->
 <div class="row row-offcanvas row-offcanvas-left teacher-view">
     <!-- левая боковая панель -->
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <div id="main-menu"></div>
+        <?php endif; ?>
         <?= $userInfoBlock ?>
         <?php if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4 || (int)Yii::$app->session->get('user.uid') === 296) : ?>
             <h4><?= Yii::t('app', 'Actions') ?>:</h4>
             <?php if ((int)Yii::$app->session->get('user.uid') !== 296) : ?>
               <?= Html::a('<span class="fa fa-users" aria-hidden="true"></span> ' . Yii::t('app', 'Add group'), ['groupteacher/create','tid'=>$model->id], ['class' => 'btn btn-default btn-sm btn-block', 'title' => Yii::t('app','Add group')]) ?>
-              <?= Html::a('<span class="fa fa-language" aria-hidden="true"></span> ' . Yii::t('app', 'Add language'), ['langteacher/create','tid'=>$model->id], ['class' => 'btn btn-default btn-sm btn-block', 'title' => Yii::t('app','Add language')]) ?>
+            <?php endif; ?>
+            <?= Html::a('<span class="fa fa-language" aria-hidden="true"></span> ' . Yii::t('app', 'Add language'), ['langteacher/create','tid'=>$model->id], ['class' => 'btn btn-default btn-sm btn-block', 'title' => Yii::t('app','Add language')]) ?>
+            <?php if ((int)Yii::$app->session->get('user.ustatus') !== 4) : ?>
+                <?= Html::a('<span class="fa fa-money" aria-hidden="true"></span> ' . Yii::t('app', 'Add rate'), ['edunormteacher/create','tid'=>$model->id], ['class' => 'btn btn-default btn-sm btn-block', 'title' => Yii::t('app','Add rate')]) ?>
             <?php endif; ?>
             <?php if ((int)Yii::$app->session->get('user.uid') !== 296 && (int)Yii::$app->session->get('user.ustatus') !== 4) : ?>
-                <?= Html::a('<span class="fa fa-money" aria-hidden="true"></span> ' . Yii::t('app', 'Add rate'), ['edunormteacher/create','tid'=>$model->id], ['class' => 'btn btn-default btn-sm btn-block', 'title' => Yii::t('app','Add rate')]) ?>
-                <?= Html::a('<span class="fa fa-gift" aria-hidden="true"></span> ' . Yii::t('app', 'Add premium'), ['teacherlangpremium/create','tid'=>$model->id], ['class' => 'btn btn-default btn-sm btn-block', 'title' => Yii::t('app','Add premium')]) ?>
+            <?= Html::a('<span class="fa fa-gift" aria-hidden="true"></span> ' . Yii::t('app', 'Add premium'), ['teacherlangpremium/create','tid'=>$model->id], ['class' => 'btn btn-default btn-sm btn-block', 'title' => Yii::t('app','Add premium')]) ?>
             <?php endif; ?>
             <?= Html::a('<span class="fa fa-pencil" aria-hidden="true"></span> ' . Yii::t('app', 'Edit'), ['teacher/update','id'=>$model->id], ['class' => 'btn btn-warning btn-sm btn-block', 'title' => Yii::t('app','Edit teacher')]) ?>
             <?php if ((int)Yii::$app->session->get('user.uid') !== 296 && (int)Yii::$app->session->get('user.ustatus') !== 4) : ?>
@@ -87,6 +83,11 @@ if($tab == 3){
     <!-- левая боковая панель -->
     <!-- центральная область -->
     <div id="content" class="col-sm-8">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <?= Breadcrumbs::widget([
+            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+        ]); ?>
+        <?php endif; ?>
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
 		</p>
@@ -176,7 +177,7 @@ if($tab == 3){
             echo "<br />";
             echo date('d.m.y', strtotime($viewed['jdate']))." (".Yii::t('app', date('l', strtotime($viewed['jdate'])))."), ".$viewed['office'].", ";
             echo "коэф.: " . $viewed['koef'] . ", к начислению: " . $viewed['accrual'];
-            echo ' р. <i>(ставка ' . $viewed['tax'] . 'р.)</i></span></small>';
+            echo ' р. <i>(ставка ' . $viewed['tax'] . 'р.' . ($viewed['corp'] > 0 ? (' + ' . $viewed['value_corp'] . 'р.') : '') . ')</i></span></small>';
             echo "</div>";
             echo "</div>";
 	    }}
@@ -186,21 +187,27 @@ if($tab == 3){
         <?php endif; ?>
         <p></p>
         <!-- блок с табами -->
-        <ul class="nav nav-tabs">
-        <?php if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.uteacher')==$model->id||Yii::$app->session->get('user.ustatus')==4||Yii::$app->session->get('user.ustatus')==6){
-            echo "<li role='presentation'".(($tab == 1) ? " class='active'" : "").">".Html::a(Yii::t('app','Active groups'),['teacher/view','id'=>$model->id,'tab'=>1])."</li>";
-            echo "<li role='presentation'".(($tab == 2) ? " class='active'" : "").">".Html::a(Yii::t('app','Finished groups'),['teacher/view','id'=>$model->id,'tab'=>2])."</li>";
-        }
-        if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.uteacher')==$model->id||Yii::$app->session->get('user.ustatus')==8){
-            echo "<li role='presentation'".(($tab == 3) ? " class='active'" : "").">".Html::a(Yii::t('app','Accruals'),['teacher/view','id'=>$model->id,'tab'=>3])."</li>";
-        }
-        ?>
+        <ul class="nav nav-tabs" style="margin-bottom: 1rem">
+        <?php if (
+            (int)Yii::$app->session->get('user.ustatus') === 3 ||
+            (int)Yii::$app->session->get('user.uteacher') === (int)$model->id ||
+            (int)Yii::$app->session->get('user.ustatus') === 4 ||
+            (int)Yii::$app->session->get('user.ustatus') === 6) : ?>
+            <li role="presentation" class="<?= ((int)$tab === 1 ? 'active' : '') ?>"><?= Html::a(Yii::t('app','Active groups'), ['teacher/view', 'id' => $model->id, 'tab' => 1]) ?></li>
+            <li role="presentation" class="<?= ((int)$tab === 2 ? 'active' : '') ?>"><?= Html::a(Yii::t('app','Finished groups'), ['teacher/view', 'id' => $model->id, 'tab' => 2]) ?></li>
+        <?php endif; ?>
+        <?php if (
+          (int)Yii::$app->session->get('user.ustatus') === 3 ||
+          (int)Yii::$app->session->get('user.ustatus') === 8 ||
+          (int)Yii::$app->session->get('user.uteacher') === (int)$model->id ||
+          (int)Yii::$app->session->get('user.uid') === 296) : ?>
+            <li role="presentation" class="<?= ((int)$tab === 3 ? 'active' : '') ?>"><?= Html::a(Yii::t('app','Accruals'), ['teacher/view', 'id' => $model->id, 'tab' => 3]) ?></li>
+        <?php endif; ?>
 	    </ul>
         <!-- блок с табами -->
        <?php
         // выводим информаию о группах
         if($tab == 1 || $tab == 2) {
-        echo "<p></p>";
         // задаем форму обучения. 1 - индивидуальные, 2 - группа, 3 - минигруппа, 4 - без привязки
         $eduform = [0, 1, 3, 2, 4];
         // делаем цикл в три шага для вывода групп по формам обучения
@@ -233,16 +240,11 @@ if($tab == 3){
                     // прячем кнопки от всех кроме руководителей
                     if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4){
                         echo "&nbsp;&nbsp;&nbsp;";
-                        // для активной группы выводим ссылку на завершение
-                        if($groupact['visible']==1){
-                            echo Html::a(Yii::t('app','Finish'),['groupteacher/disable', 'id'=>$groupact['gid'], 'lid'=>$model->id]);
-                        }
-                        // для завершенной группы выводим ссылку на возобновление 
-                        else {
-                            echo Html::a(Yii::t('app','To active'),['groupteacher/enable', 'id'=>$groupact['gid'], 'lid'=>$model->id]);
-                        }
+                        // выводим ссылку на завершение
+                        echo Html::a((int)$groupact['visible'] == 1 ? Yii::t('app','Finish') : Yii::t('app','To active'), ['groupteacher/status', 'id' => $groupact['gid'], 'lid' => $model->id]);
                         echo "&nbsp;&nbsp;&nbsp;";
-                        echo "Установить как Корп.";
+                        // выводим ссылку на изменение типа группы
+                        echo Html::a((int)$groupact['corp'] == 1 ? Yii::t('app','Make normal') : Yii::t('app','Make corporative'), ['groupteacher/corp', 'id' => $groupact['gid'], 'lid' => $model->id]);
                         echo "&nbsp;&nbsp;&nbsp;";
                         echo "Удалить";
                     }
@@ -289,7 +291,6 @@ if($tab == 3){
         }
         // выводим информацию по начислениям
         if($tab == 3) {
-        echo "<p></p>";
         if(!empty($accrualdates)){
         foreach($accrualdates as $key=>$accrualdate) {
             echo "<a href='#collapse-teacheraccruals-".$key."' role='button' data-toggle='collapse' aria-expanded='false' aria-controls='collapse-teacheraccruals-".$key."' class='text-warning'>Начисление от ".date('d.m.y', strtotime($accrualdate))."</a><br />";

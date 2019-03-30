@@ -25,15 +25,15 @@ class GroupteacherController extends Controller
         return [
 	        'access' => [
                 'class' => AccessControl::className(),
-                'only' => [/* 'index', */'view','create','update','enable','disable','addteacher','delteacher','restoreteacher', 'addstudent', 'delstudent','restorestudent'],
+                'only' => ['view', 'create', 'update', 'status', 'addteacher', 'delteacher', 'restoreteacher', 'addstudent', 'delstudent', 'restorestudent', 'corp'],
                 'rules' => [
                     [
-                        'actions' => [/*'index',*/'view','create','update','enable','disable','addteacher','delteacher','restoreteacher', 'addstudent', 'delstudent','restorestudent',],
+                        'actions' => ['view', 'create', 'update', 'status', 'addteacher', 'delteacher', 'restoreteacher', 'addstudent', 'delstudent', 'restorestudent', 'corp'],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => [/*'index',*/'view','create','update','enable','disable','addteacher','delteacher','restoreteacher', 'addstudent', 'delstudent','restorestudent'],
+                        'actions' => ['view', 'create', 'update', 'status', 'addteacher', 'delteacher', 'restoreteacher', 'addstudent', 'delstudent', 'restorestudent', 'corp'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -274,8 +274,8 @@ class GroupteacherController extends Controller
                 Yii::$app->session->setFlash('error', "Не удалось создать группу!");
             }
             return $this->redirect(['teacher/view', 'id' => $tid, 'tab'=>1]);
-        } // если нет данных, выводим переменные в вьюз создания группы
-	    else {
+        } else {
+            // если нет данных, выводим переменные в вьюз создания группы
             return $this->render('create', [
                 'model' => $model,
 				'teacher' => $teacher,
@@ -288,58 +288,36 @@ class GroupteacherController extends Controller
         }
     }
 
-    /*
-    * Функция для возврата группы в активное состояние.
-    */
-    public function actionEnable($id, $lid)
+    /**
+     * Функция для изменения состояния группы
+     */
+    public function actionStatus($id, $lid)
     {
-        /* проверяем права доступа (! переделать в поведения !) */
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+        if ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
-
         // получаем информацию по пользователю
-        $model=$this->findModel($id);
+        $model = $this->findModel($id);
         //проверяем текущее состояние
-        if($model->visible==0){
+        if ((int)$model->visible === 0) {
             $model->visible = 1;
             $model->user_visible = 0;
             $model->data_visible = '0000-00-00';
             $model->save();
-        }
-
-        return $this->redirect(['teacher/view','id'=>$lid]);
-    }
-    /*
-    * Функция для завершения группы.
-    */
-    public function actionDisable($id, $lid)
-    {
-        /* проверяем права доступа (! переделать в поведения !) */
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
-        }
-
-        // получаем информацию по пользователю
-        $model=$this->findModel($id);
-        //проверяем текущее состояние
-        if($model->visible==1){
+        } else {
             $model->visible = 0;
             $model->user_visible = Yii::$app->session->get('user.uid');
             $model->data_visible = date('Y-m-d');
             $model->save();
         }
-    return $this->redirect(['teacher/view','id'=>$lid]);
+        return $this->redirect(['teacher/view', 'id' => $lid]);
     }
 
-	
     /**
-	* функция добавления преподавателя в учебную группу
-	**/
-	
+     * функция добавления преподавателя в учебную группу
+     */
     public function actionAddteacher($gid)
 	{
-
         $params['gid'] = $gid;
         $params['active'] = Groupteacher::getGroupStateById($gid);
         
@@ -419,9 +397,8 @@ class GroupteacherController extends Controller
     }
 	
     /**
-	* функция исключения преподавателя из учебной группы
-	**/
-	
+     * функция исключения преподавателя из учебной группы
+     */
     public function actionDelteacher($gid, $tid)
 	{
         /* проверяем права доступа (! переделать в поведения !) */
@@ -459,9 +436,8 @@ class GroupteacherController extends Controller
     }
 
     /** 
-	* функция восстановления преподавателя в учебную группу
-	**/
-	
+     * функция восстановления преподавателя в учебную группу
+     */
     public function actionRestoreteacher($gid, $tid)
     {
         /* проверяем права доступа (! переделать в поведения !) */
@@ -491,10 +467,9 @@ class GroupteacherController extends Controller
 		return $this->redirect(Yii::$app->request->referrer);
     }
 	
-	/**
-	* функция добавления студента в учебную группу
-	**/
-	
+    /**
+     * функция добавления студента в учебную группу
+     */
     public function actionAddstudent($gid)
     {
         $params['gid'] = $gid;
@@ -572,9 +547,9 @@ class GroupteacherController extends Controller
 		}
 	}
 
-	/**
-	 *  функция исключения студента из учебной группы
-	 **/	
+    /**
+     *  функция исключения студента из учебной группы
+     */
 	public function actionDelstudent($gid, $sid)
 	{
         /* проверяем права доступа (! переделать в поведения !) */
@@ -592,9 +567,9 @@ class GroupteacherController extends Controller
 		return $this->redirect(Yii::$app->request->referrer);
     }
 	
-	/** 
-	 *  функция восстановления студента в учебную группу
-	 **/	
+    /** 
+     *  функция восстановления студента в учебную группу
+     */
 	public function actionRestorestudent($gid, $sid)
 	{
         /* проверяем права доступа (! переделать в поведения !) */
@@ -611,7 +586,28 @@ class GroupteacherController extends Controller
 		->execute();
 		// возвращаемся обратно
 		return $this->redirect(Yii::$app->request->referrer);
-	}
+    }
+
+    /**
+     * Функция для изменения состояния группы
+     */
+    public function actionCorp($id, $lid)
+    {
+        if ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        }
+        // получаем информацию по пользователю
+        $model = $this->findModel($id);
+        //проверяем текущее состояние
+        if ((int)$model->corp === 0) {
+            $model->corp = 1;
+            $model->save();
+        } else {
+            $model->corp = 0;
+            $model->save();
+        }
+        return $this->redirect(['teacher/view','id' => $lid]);
+    }
 
     /**
      * Finds the CalcGroupteacher model based on its primary key value.

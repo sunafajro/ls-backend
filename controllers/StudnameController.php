@@ -3,12 +3,14 @@
 namespace app\controllers;
 
 use Yii;
-use app\models\Student;
+use app\models\Contract;
 use app\models\ClientAccess;
 use app\models\Invoicestud;
 use app\models\Moneystud;
+use app\models\Office;
 use app\models\Salestud;
 use app\models\Schedule;
+use app\models\Student;
 use app\models\StudentMergeForm;
 use app\models\Studphone;
 use app\models\Tool;
@@ -30,15 +32,15 @@ class StudnameController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['index','view','create','update','delete','detail','active', 'inactive','merge'],
+                'only' => ['index', 'view', 'create', 'update', 'delete', 'detail', 'active', 'inactive', 'merge', 'change-office', 'update-debt'],
                 'rules' => [
                     [
-                        'actions' => ['index','view','create','update','delete','detail','active','inactive','merge'],
+                        'actions' => ['index', 'view', 'create', 'update', 'delete', 'detail', 'active', 'inactive', 'merge', 'change-office', 'update-debt'],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index','view','create','update','delete','detail','active','inactive','merge'],
+                        'actions' => ['index', 'view', 'create', 'update', 'delete', 'detail', 'active', 'inactive', 'merge', 'change-office', 'update-debt'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -58,24 +60,30 @@ class StudnameController extends Controller
 			return false;
 		}
 	}
-    
+
     /**
      * Lists all CalcStudname models.
      * @return mixed
      */
     public function actionIndex()
     {
-        $userInfoBlock = User::getUserInfoBlock();
-
-        $tss = NULL;
+        // $tss = NULL;
         // проверяем GET запрос на наличие переменной TSS (фильтр по имени)
-        if(Yii::$app->request->get('TSS')){
-            $tss = Yii::$app->request->get('TSS');
+        //if (Yii::$app->request->get('TSS')) {
+        //    $tss = Yii::$app->request->get('TSS');
+        //}
+
+        // по умолчанию поиск по имени
+        $tss = Yii::$app->request->get('TSS') ? Yii::$app->request->get('TSS') : NULL;
+        $tss_condition = ['like', 's.name', $tss];
+        // если в строке целое число, то поиск по идентификатору
+        if ((int)$tss > 0) {
+            $tss_condition = ['like', 's.phone', $tss];
         }
 
         $oid = NULL;
         // проверяем GET запрос на наличие переменной OID (фильтр по имени)
-        if(Yii::$app->request->get('OID')){
+        if (Yii::$app->request->get('OID')) {
             if(Yii::$app->request->get('OID')=='all'){
                 $oid = NULL;
             } else {
@@ -84,19 +92,19 @@ class StudnameController extends Controller
         } else {
             if ((int)Yii::$app->session->get('user.ustatus') === 4) {
                 $oid = (int)Yii::$app->session->get('user.uoffice_id');
-            }            
+            }
         }
-        
+
         $state = 1;
         $state_id = 1;
         // проверяем GET запрос на наличие переменной STATE (фильтр по состоянию клиента)
-        if(Yii::$app->request->get('STATE')){
-            if(Yii::$app->request->get('STATE')!='all'){
+        if (Yii::$app->request->get('STATE')) {
+            if (Yii::$app->request->get('STATE')!='all') {
                 switch(Yii::$app->request->get('STATE')){
                     // студент со статусом "С НАМИ"
                     case 1: $state_id = 1; break;
                     // студент со статусом "НЕ С НАМИ"
-                    case 2: $state_id = 0; break;            
+                    case 2: $state_id = 0; break;
                 }
                 $state = (int)Yii::$app->request->get('STATE');
             } else {
@@ -104,20 +112,35 @@ class StudnameController extends Controller
                 $state_id = NULL;
             }
         }
-        
+
         // для руководителя и менеджера выводим полный список студентов
-        if((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4 || (int)Yii::$app->session->get('user.uid') === 296){
+        if ((int)Yii::$app->session->get('user.ustatus') === 3 ||
+        (int)Yii::$app->session->get('user.ustatus') === 4 ||
+        (int)Yii::$app->session->get('user.uid') === 296) {
             // формируем запрос
             $students = (new \yii\db\Query())
-            ->select('cst.id as stid, cst.name as stname, cst.visible as visible, cst.phone as stphone, cst.description as description, cst.invoice as stinvoice, cst.money as stmoney, cst.debt as debt, cst.calc_sex as stsex, cst.active as active')
-            ->distinct()
-            ->from('calc_studname cst')
-            ->leftJoin('calc_studgroup sg', 'sg.calc_studname=cst.id')
-            ->leftJoin('calc_groupteacher gt', 'gt.id=sg.calc_groupteacher')
-            ->where('cst.visible=:vis', [':vis'=> 1])
-            ->andFilterWhere(['cst.active'=>$state_id])
-            ->andFilterWhere(['like','cst.name',$tss])
-            ->andFilterWhere(['gt.calc_office'=>$oid]);
+            ->select([
+                'stid' => 's.id',
+                'stname' => 's.name',
+                'visible' => 's.visible',
+                'stphone' => 's.phone',
+                'description' => 's.description',
+                'stinvoice' => 's.invoice',
+                'stmoney' => 's.money',
+                'debt' => 's.debt',
+                'stsex' => 's.calc_sex',
+                'active' => 's.active'
+            ])
+            ->from(['s' => 'calc_studname']);
+            if ($oid) {
+                $students = $students->innerJoin('calc_student_office so', 'so.student_id=s.id');
+            }
+            $students = $students->where(['s.visible' => 1])
+            ->andFilterWhere(['s.active' => $state_id])
+            ->andFilterWhere($tss_condition);
+            if ($oid) {
+                $students = $students->andFilterWhere(['so.office_id' => $oid]);
+            }
             // делаем клон запроса
             $countQuery = clone $students;
             // получаем данные для паджинации
@@ -126,12 +149,12 @@ class StudnameController extends Controller
             $limit = 20;
             $offset = 0;
             if(Yii::$app->request->get('page')){
-                if(Yii::$app->request->get('page')>1&&Yii::$app->request->get('page')<=$pages->totalCount){
+                if(Yii::$app->request->get('page') > 1 && Yii::$app->request->get('page') <= $pages->totalCount){
                     $offset = 20 * (Yii::$app->request->get('page') - 1);
                 }
             }
             // доделываем запрос и выполняем
-            $students = $students->orderBy(['cst.active'=>SORT_DESC, 'cst.name'=>SORT_ASC])->limit($limit)->offset($offset)->all();
+            $students = $students->orderBy(['s.active' => SORT_DESC, 's.name' => SORT_ASC])->limit($limit)->offset($offset)->all();
         } else {
             // формируем запрос
             $students = (new \yii\db\Query())
@@ -142,7 +165,7 @@ class StudnameController extends Controller
             ->leftjoin('calc_teachergroup tg', 'tg.calc_groupteacher=sg.calc_groupteacher')
             ->where('cst.visible=:vis and tg.calc_teacher=:tid', [':vis'=> 1, ':tid'=>Yii::$app->session->get('user.uteacher')])
             ->andFilterWhere(['cst.active'=>$state_id])
-            ->andFilterWhere(['like','cst.name',$tss]);
+            ->andFilterWhere($tss_condition);
             // делаем клон запроса
             $countQuery = clone $students;
             // получаем данные для паджинации
@@ -172,8 +195,6 @@ class StudnameController extends Controller
 		}
 		// зададим пустой массив для услуг студента
 		$services = [];
-			// задаем пустой массив с телефонами
-			$phones = [];
 		// проверяем что выборка студентов не пустая
 		if(!empty($studentids)){
             // запрашиваем услуги назначенные студенту
@@ -182,7 +203,7 @@ class StudnameController extends Controller
             ->distinct()
             ->from('calc_service s')
             ->leftjoin('calc_invoicestud is', 'is.calc_service=s.id')
-            ->where('is.remain=:rem and is.visible=:vis', [':rem'=>0, ':vis'=>1])                
+            ->where('is.remain=:rem and is.visible=:vis', [':rem'=>0, ':vis'=>1])
             ->andWhere(['in','is.calc_studname',$studentids])
             ->groupby(['is.calc_studname','s.id'])
             ->orderby(['s.id'=>SORT_ASC])
@@ -208,13 +229,20 @@ class StudnameController extends Controller
                 unset($service);
                 unset($lessons);
             }
-            // выбираем телефоны клиента
-            $phones = (new \yii\db\Query())
-            ->select('calc_studname as sid, phone as phone, description as description')
-            ->from('calc_studphone')
-            ->where('visible=:vis', [':vis'=>1])
-            ->andWhere(['in','calc_studname', $studentids])
-            ->all();
+            // готовим информацию по договорам и добавляем ее в массив клиентов
+            $contracts = Contract::getClientContracts($studentids);
+            if (!empty($contracts)) {
+                foreach($students as $key => $val) {
+                    foreach($contracts as $c) {
+                        if ((int)$val['stid'] === (int)$c['student']) {
+                            if (!isset($students[$key]['contracts'])) {
+                                $students[$key]['contracts'] = [];
+                            }
+                            $students[$key]['contracts'][] = $c;
+                        }
+                    }
+                }
+            }
         }
         // получаем список офисов
         $offices = (new \yii\db\Query())
@@ -223,18 +251,17 @@ class StudnameController extends Controller
         ->where('visible=1')
         ->all();
         // получаем список офисов
-        
-        // выводим данные в представление	
+
+        // выводим данные в представление
         return $this->render('index', [
             'students' => $students,
             'services' => $services,
-            'phones' => $phones,
             'pages' => $pages,
             'oid' => $oid,
             'tss' => $tss,
             'state' => $state,
             'offices' => $offices,
-            'userInfoBlock' => $userInfoBlock
+            'userInfoBlock' => User::getUserInfoBlock()
         ]);
     }
 
@@ -268,12 +295,13 @@ class StudnameController extends Controller
         
         /* данные по назначенным скидкам и по колич оплаченных занятий видны только менеджерам и руководителям */
         if((int)Yii::$app->session->get('user.ustatus') === 3|| (int)Yii::$app->session->get('user.ustatus') === 4) {
-            /* получаем список скидкок клиента */
+            // список скидок клиента
             $studsales = Salestud::getAllClientSales($id);
 				
-			/* определяем постоянную скидку студента */
+			// постоянная скидка студента
 			$permsale = Salestud::getClientPermamentSale($id);
 
+            // расписание студента
             $schedule = Schedule::getStudentSchedule($id);
 
             // запрашиваем услуги назначенные студенту
@@ -413,12 +441,16 @@ class StudnameController extends Controller
             'studsales'     => $studsales,
             'services'      => $services,
             'schedule'      => $schedule,
-            'phones'        => Studphone::getStudentPhoneById($id),
             'years'         => $years,
             'invcount'      => $invcount,
             'clientaccess'  => ClientAccess::find()->where(['calc_studname'=>$id])->one(),
             'permsale'      => $permsale,
-            'userInfoBlock' => $userInfoBlock
+            'userInfoBlock' => $userInfoBlock,
+            'offices'       => [
+                'added' => Student::getStudentOffices($id),
+                'all'   => Office::getOfficesList(),
+            ],
+            'contracts'     => Contract::getClientContracts($id)
             //'debt'=>number_format($this->studentDebt($id), 1, '.', ' '),
         ]);
     }
@@ -537,7 +569,11 @@ class StudnameController extends Controller
                 $model->name .= " ".$model->mname;
             }
 
-            $model->save();
+            if ($model->save()) {
+                Yii::$app->session->setFlash('success', Yii::t('app', 'Student data successfully updated!'));
+            } else {
+                Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to update student data!'));
+            }
             return $this->redirect(['view', 'id' => $model->id]);
         } else {
             return $this->render('update', [
@@ -661,6 +697,41 @@ class StudnameController extends Controller
             'model' => $model,
             'userInfoBlock' => $userInfoBlock
         ]);
+    }
+
+    public function actionChangeOffice($sid, $oid = 0, $action)
+    {
+        if (Yii::$app->request->isPost) {
+            if ($action === 'add') {
+                $db = (new \yii\db\Query())
+                ->createCommand()
+                ->insert('calc_student_office',
+                [
+                    'student_id' => $sid,
+                    'office_id' => Yii::$app->request->post('office'),
+                ])
+                ->execute();
+                $this->redirect(['studname/view', 'id' => $sid]);
+            } else if ($action === 'delete') {
+                $db = (new \yii\db\Query())
+                ->createCommand()
+                ->delete('calc_student_office', 'student_id=:sid AND office_id=:oid', [':sid' => $sid, ':oid' => $oid])->execute();
+                $this->redirect(['studname/view', 'id' => $sid]);
+            }
+        } else {
+            return $this->redirect(Yii::$app->request->referrer);
+        }
+    }
+
+    public function actionUpdateDebt($sid)
+    {
+        $result = Student::updateInvMonDebt($sid);
+        if ($result) {
+            Yii::$app->session->setFlash('success', 'Баланс студента пересчитан успешно!');
+        } else {
+            Yii::$app->session->setFlash('error', 'Не удалось пересчитать баланс клиента!');
+        }
+        $this->redirect(['studname/view', 'id' => $sid]);
     }
 
     //public function actionCalculate($id)

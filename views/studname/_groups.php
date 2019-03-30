@@ -1,7 +1,5 @@
 <?php
-
-use yii\helpers\Html;
-
+	use yii\helpers\Html;
 ?>
 
 <?php foreach($groups as $group) : ?>

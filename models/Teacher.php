@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use \yii\data\Pagination;
 
 /**
  * This is the model class for table "calc_teacher".
@@ -71,58 +72,78 @@ class Teacher extends \yii\db\ActiveRecord
         ];
     }
 
-    /* возвращает список действующих преподавателей. многомерный массив. */
     public static function getTeachers()
     {
         $teachers = (new \yii\db\Query())
-        ->select('ct.id as id, ct.name as name')
-        ->from(static::tableName() . ' ct')
-        ->where('ct.visible=:vis and ct.old=:old', [':vis'=> 1,':old'=>0])
-        ->orderBy(['ct.name' => SORT_ASC])
-        ->all();        
+        ->select([
+            'id' => 't.id',
+            'name' => 't.name'
+        ])
+        ->from(['t' => 'calc_teacher'])
+        ->where([
+            't.visible' => 1,
+            't.old' => 0
+        ])
+        ->orderBy(['t.name' => SORT_ASC])
+        ->all();
+
         return $teachers;
     }
 
-    /* возвращает список действующих преподавателей. одномерный массив. */
-    public static function getTeacherListSimple()
+    /* Метод возвращает список действующих преподавателей в виде одномерного массива */
+    public static function getTeachersInUserListSimple()
     {
-        $tmp_teachers = static::getTeachers();
         $teachers = [];
-        if(!empty($tmp_teachers)) {
-            foreach ($tmp_teachers as $t) {
+        $tmp_teachers = static::getTeachers();
+
+        if(
+            !empty($tmp_teachers)
+        ) {
+            foreach($tmp_teachers as $t){
                 $teachers[$t['id']] = $t['name'];
             }
         }
         return $teachers;
     }
 
-    /* возвращает список преподавателей имеющих активные группы */
-    public static function getTeachersWithActiveGroups($tid = null)
+    public static function getTeachersByAccruals($params = null)
     {
         $teachers = (new \yii\db\Query())
-        ->select('ctch.id as id, ctch.name as name')
+        ->select([
+            'id' => 't.id',
+            'name' => 't.name'
+        ])
         ->distinct()
-        ->from('calc_teacher ctch')
-        ->leftjoin('calc_teachergroup tg', 'tg.calc_teacher=ctch.id')
-        ->leftJoin('calc_groupteacher cgt','cgt.id=tg.calc_groupteacher')
-        ->where('ctch.visible=:vis and ctch.old=:old and cgt.visible=:vis', [':vis' => 1, ':old' => 0])
-        ->andFilterWhere(['ctch.id' => $tid])
-        ->orderBy(['ctch.name' => SORT_ASC])
-        ->all();
-        return $teachers;
-    }
+        ->from(['t' => 'calc_teacher'])
+        ->innerJoin(['acc' => 'calc_accrualteacher'], 'acc.calc_teacher = t.id')
+        ->where([
+            'acc.visible' => 1,
+            't.visible' => 1,
+            't.old' => 0
+        ])
+        ->andFilterWhere(['<=', 'acc.data', isset($params['end']) ? $params['end'] : null])
+        ->andFilterWhere(['>=', 'acc.data', isset($params['start']) ? $params['start'] : null])
+        ->andFilterWhere(['t.id' => isset($params['id']) ? $params['id'] : null]);
 
-    /* возвращает список активных групп преподавателя */
-    public static function getActiveTeacherGroups($tid = null)
-    {
-        $groups = (new \yii\db\Query())
-        ->select('gt.id as id, s.name as name')
-        ->from('calc_teachergroup tg')
-        ->innerJoin('calc_groupteacher gt', 'tg.calc_groupteacher=gt.id')
-        ->innerJoin('calc_service s','s.id=gt.calc_service')
-        ->where('gt.visible=:vis and tg.calc_teacher=:tid', [':vis' => 1, ':tid' => $tid])
-        ->orderBy(['s.name' => SORT_ASC])
+        // делаем клон запроса
+        $countQuery = clone $teachers;
+        // получаем данные для паджинации
+        $pages = new Pagination(['totalCount' => $countQuery->count()]);
+
+        if (isset($params['limit'])) {
+            $teachers = $teachers->limit($params['limit']);
+        }
+
+        if (isset($params['offset'])) {
+            $teachers = $teachers->offset($params['offset']);
+        }
+
+        $teachers = $teachers->orderBy(['t.name' => SORT_ASC])
         ->all();
-        return $groups;
+
+        return [
+            'total' => $pages->totalCount,
+            'rows' => $teachers
+        ];
     }
 }

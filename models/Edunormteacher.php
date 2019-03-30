@@ -10,6 +10,7 @@ use Yii;
  * @property integer $id
  * @property integer $calc_teacher
  * @property integer $calc_edunorm
+ * @property integer $calc_edunorm_day
  * @property string $data
  * @property integer $visible
  * @property integer $active
@@ -32,7 +33,7 @@ class Edunormteacher extends \yii\db\ActiveRecord
     {
         return [
             [['calc_teacher', 'calc_edunorm', 'data', 'visible', 'active', 'company'], 'required'],
-            [['calc_teacher', 'calc_edunorm', 'visible', 'active', 'company'], 'integer'],
+            [['calc_teacher', 'calc_edunorm', 'calc_edunorm_day', 'visible', 'active', 'company'], 'integer'],
             [['data'], 'safe'],
         ];
     }
@@ -45,7 +46,8 @@ class Edunormteacher extends \yii\db\ActiveRecord
         return [
             'id' => 'ID',
             'calc_teacher' => 'Calc Teacher',
-            'calc_edunorm' => Yii::t('app', 'Tax'),
+            'calc_edunorm' => Yii::t('app', 'Hourly tax'),
+            'calc_edunorm_day' => Yii::t('app', 'Daily tax'),
             'data' => 'Data',
             'visible' => 'Visible',
             'active' => 'Active',
@@ -80,5 +82,21 @@ class Edunormteacher extends \yii\db\ActiveRecord
         }
         
         return $edunorm;
+    }
+
+    public static function getTaxes($teachers)
+    {
+        $edunorms = (new \yii\db\Query())
+        ->select([
+            'id' => 'en.id',
+            'entId' => 'ent.id',
+            'name' => 'en.name',
+            'value' => 'en.value'
+        ])
+        ->from(['en' => 'calc_edunorm'])
+        ->innerJoin(['ent' => self::tableName()], 'ent.calc_edunorm = en.id')
+        ->andFilterwhere(['in', 'ent.calc_teacher', $teachers])
+        ->all();
+        return $edunorms;
     }
 }

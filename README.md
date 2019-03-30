@@ -1,9 +1,35 @@
 # Система учета для школы языков
-Установка:
+
+Задайте cookie validation key в файле config/web.php, в виде строки из случайных символов:
 ```
-calc2$ sudo docker build -t apache/php .
-calc2$ sudo docker-compose -f docker-compose.yml up -d
-calc2$ sudo docker exec -it web /bin/bash
-calc2# composer.phar install
-calc2# composer.phar require "yiisoft/yii2:~2.0.15" --update-with-dependencies
+'request' => [
+    'cookieValidationKey' => '<secret random string goes here>',
+]
 ```
+Параметр режима работы в файле config/params.php, standalone или bitrix:
+```
+return [
+    'appMode' => 'standalone',
+]
+```
+Update your vendor packages
+```
+docker-compose run --rm web composer update --prefer-dist
+```
+Run the installation triggers (creating cookie validation code)
+```
+docker-compose run --rm web composer install    
+```
+Запуск контейнера
+```
+docker-compose up -d
+```
+
+Если не находит vendor/bower
+```
+docker exec -it web /bin/bash
+composer global require "fxp/composer-asset-plugin:~1.4.4"
+composer install
+```
+Приложение доступно по адресу:
+http://127.0.0.1:8000

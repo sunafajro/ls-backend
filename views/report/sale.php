@@ -1,15 +1,17 @@
 <?php
-
-use yii\helpers\Html;
-use yii\widgets\ActiveForm;
-
-$this->title = 'Система учета :: ' . Yii::t('app','Sale report');
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
-$this->params['breadcrumbs'][] = Yii::t('app','Sale report');
-
+    use yii\helpers\Html;
+    use yii\widgets\ActiveForm;
+    use yii\widgets\Breadcrumbs;
+    $this->title = 'Система учета :: ' . Yii::t('app','Sale report');
+    $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
+    $this->params['breadcrumbs'][] = Yii::t('app','Sale report');
 ?>
+
 <div class="row row-offcanvas row-offcanvas-left report-margin">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <div id="main-menu"></div>
+        <?php endif; ?>
         <?= $userInfoBlock ?>
         <?php if(!empty($reportlist)): ?>
         <div class="dropdown">
@@ -23,6 +25,11 @@ $this->params['breadcrumbs'][] = Yii::t('app','Sale report');
         <?php endif; ?>
     </div>
     <div id="content" class="col-sm-10">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <?= Breadcrumbs::widget([
+            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+        ]); ?>
+        <?php endif; ?>
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
 		</p>

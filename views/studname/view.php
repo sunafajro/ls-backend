@@ -1,72 +1,54 @@
 <?php
-
-use yii\helpers\Html;
-use yii\bootstrap\NavBar;
-use yii\bootstrap\Nav;
-
-/* @var $this yii\web\View */
-/* @var $model app\models\CalcStudname */
-
-$this->title = 'Система учета :: '.Yii::t('app', 'Students').' :: ' . $model->name;
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Clients'), 'url' => ['index']];
-$this->params['breadcrumbs'][] = $model->name;
-
-$js = <<< 'SCRIPT'
-$(function () { 
-        $('#balance').click(
-            function () {
-                if($('#fullbalance').is(':visible')) {
-                   $("#fullbalance").hide();
-                } else {
-                   $("#fullbalance").show();
-                } 
-            }
-        );
-	$('[data-toggle="popover"]').popover(); 
-	$('[data-toggle="tooltip"]').tooltip();
-});
-SCRIPT;
-$this->registerJs($js);
-
-// проверяем какие данные выводить в карочку преподавателя: 1 - активные группы, 2 - завершенные группы, 3 - счета; 4 - оплаты
-if(Yii::$app->request->get('tab')){
-		$tab = Yii::$app->request->get('tab');
-} else {
-	// для менеджеров и руководителей по умолчанию раздел счетов
-	if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4){
-		$tab = 3;
-	} else {
-		// всем остальным раздел активных групп
-		$tab = 1;
-	}
-}
-
+    use yii\helpers\Html;
+    use yii\widgets\Breadcrumbs;
+    $this->title = 'Система учета :: '.Yii::t('app', 'Students').' :: ' . $model->name;
+    $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Clients'), 'url' => ['index']];
+    $this->params['breadcrumbs'][] = $model->name;
+    // проверяем какие данные выводить в карочку преподавателя: 1 - активные группы, 2 - завершенные группы, 3 - счета; 4 - оплаты
+    if(Yii::$app->request->get('tab')){
+            $tab = Yii::$app->request->get('tab');
+    } else {
+        // для менеджеров и руководителей по умолчанию раздел счетов
+        if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4){
+            $tab = 3;
+        } else {
+            // всем остальным раздел активных групп
+            $tab = 1;
+        }
+    }
 ?>
 <div class="row row-offcanvas row-offcanvas-left student-view">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <div id="main-menu"></div>
+        <?php endif; ?>
         <?= $userInfoBlock ?>
-        <?php if(Yii::$app->session->get('user.ustatus') == 3 || Yii::$app->session->get('user.ustatus') == 4): ?>
+        <?php if((int)Yii::$app->session->get('user.ustatus') == 3 || (int)Yii::$app->session->get('user.ustatus') === 4): ?>
             <h4><?= Yii::t('app', 'Actions') ?>:</h4>
             <?php if($model->active==1): ?>
-                <?= Html::a('<span class="fa fa-phone" aria-hidden="true"></span> ' . Yii::t('app', 'Call'), ['call/create', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
-                <?= Html::a('<span class="fa fa-times" aria-hidden="true"></span> ' . Yii::t('app', 'To inactive'), ['studname/inactive', 'id' => $model->id], ['class' => 'btn btn-warning btn-sm btn-block']) ?>
-                <?= Html::a('<span class="fa fa-file" aria-hidden="true"></span> ' . Yii::t('app', 'Invoice'), ['invoice/index', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
-                <?= Html::a('<span class="fa fa-rub" aria-hidden="true"></span> ' . Yii::t('app', 'Payment'), ['moneystud/create', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
-                <?= Html::a('<span class="fa fa-list" aria-hidden="true"></span> ' . Yii::t('app', 'Detail'), ['studname/detail', 'id' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
-                <?= Html::a('<span class="fa fa-gift" aria-hidden="true"></span> ' . Yii::t('app', 'Sale'), ['salestud/create', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
+                <?= Html::a('<i class="fa fa-phone" aria-hidden="true"></i> ' . Yii::t('app', 'Call'), ['call/create', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
+                <?= Html::a('<i class="fa fa-times" aria-hidden="true"></i> ' . Yii::t('app', 'To inactive'), ['studname/inactive', 'id' => $model->id], ['class' => 'btn btn-warning btn-sm btn-block']) ?>
+                <?= Html::a('<i class="fa fa-file" aria-hidden="true"></i> ' . Yii::t('app', 'Invoice'), ['invoice/index', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
+                <?= Html::a('<i class="fa fa-rub" aria-hidden="true"></i> ' . Yii::t('app', 'Payment'), ['moneystud/create', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
+                <?= Html::a('<i class="fa fa-list" aria-hidden="true"></i> ' . Yii::t('app', 'Detail'), ['studname/detail', 'id' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
+                <?= Html::a('<i class="fa fa-gift" aria-hidden="true"></i> ' . Yii::t('app', 'Sale'), ['salestud/create', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
                 <?php if(!$clientaccess): ?>
-                    <?= Html::a('<span class="fa fa-user-plus" aria-hidden="true"></span> ' . Yii::t('app', 'Account'), ['clientaccess/create', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
-				<?php else: ?>
-                    <?= Html::a('<span class="fa fa-user" aria-hidden="true"></span> ' . Yii::t('app', 'Account'), ['clientaccess/update', 'id'=>$clientaccess->id,'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
-				<?php endif; ?>
-                <?= Html::a('<span class="fa fa-mobile" aria-hidden="true"></span> ' . Yii::t('app', 'Phone'), ['studphone/create', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
+                    <?= Html::a('<i class="fa fa-user-plus" aria-hidden="true"></i> ' . Yii::t('app', 'Account'), ['clientaccess/create', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
+		        <?php else: ?>
+                    <?= Html::a('<i class="fa fa-user" aria-hidden="true"></i> ' . Yii::t('app', 'Account'), ['clientaccess/update', 'id'=>$clientaccess->id,'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
+		        <?php endif; ?>
+                <?= Html::a('<i class="fa fa-files-o" aria-hidden="true"></i> ' . Yii::t('app', 'Contracts'), ['contract/create', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
+                <?php if ((int)Yii::$app->session->get('user.ustatus') === 3) : ?>
+                    <?= Html::a('<i class="fa fa-mobile" aria-hidden="true"></i> ' . Yii::t('app', 'Phone'), ['studphone/create', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
+                <?php endif; ?>
             <?php else: ?>
-                <?= Html::a('<span class="fa fa-check" aria-hidden="true"></span> ' . Yii::t('app', 'To active'), ['studname/active', 'id' => $model->id], ['class' => 'btn btn-success btn-sm btn-block']) ?>
+                <?= Html::a('<i class="fa fa-check" aria-hidden="true"></i> ' . Yii::t('app', 'To active'), ['studname/active', 'id' => $model->id], ['class' => 'btn btn-success btn-sm btn-block']) ?>
             <?php endif; ?>
-            <?= Html::a('<span class="fa fa-pencil" aria-hidden="true"></span> ' . Yii::t('app', 'Edit'), ['studname/update', 'id' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
+            <?= Html::a('<i class="fa fa-refresh" aria-hidden="true"></i> ' . Yii::t('app', 'Update balance'), ['studname/update-debt', 'sid' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
+            <?= Html::a('<i class="fa fa-pencil" aria-hidden="true"></i> ' . Yii::t('app', 'Edit'), ['studname/update', 'id' => $model->id], ['class' => 'btn btn-default btn-sm btn-block']) ?>
             <?php if(Yii::$app->session->get('user.ustatus') == 3): ?>
-                <?= Html::a('<span class="fa fa-compress" aria-hidden="true"></span> ' . Yii::t('app', 'Merge'), ['studname/merge', 'id' => $model->id], ['class' => 'btn btn-info btn-sm btn-block']) ?>
-                <?= Html::a('<span class="fa fa-trash" aria-hidden="true"></span> ' . Yii::t('app', 'Delete'), 
+                <?= Html::a('<i class="fa fa-compress" aria-hidden="true"></i> ' . Yii::t('app', 'Merge'), ['studname/merge', 'id' => $model->id], ['class' => 'btn btn-info btn-sm btn-block']) ?>
+                <?= Html::a('<i class="fa fa-trash" aria-hidden="true"></i> ' . Yii::t('app', 'Delete'), 
                 ['studname/delete', 'id' => $model->id], 
                 [
                     'class' => 'btn btn-danger btn-sm btn-block',
@@ -76,9 +58,48 @@ if(Yii::$app->request->get('tab')){
                     ],
                 ]) ?>
             <?php endif; ?>
+            <h4>Закреплен за офисом:</h4>
+            <?php
+                $filtered_offices = []; 
+                if (isset($offices) && isset($offices['added']) && count($offices['added'])) : ?>
+                <ul class="list-group" style="margin-bottom: 10px">
+                <?php
+                    foreach($offices['added'] as $o) : ?>
+                    <li class="list-group-item list-group-item-warning">
+                      <?php if ((int)$model->active === 1) : ?>
+                        <?= Html::a('<i class="fa fa-trash" aria-hidden="true"></i>', ['studname/change-office', 'sid' => $model->id, 'oid' => $o['id'], 'action' => 'delete'], ['data' => ['method' => 'post']]) ?>
+                      <?php endif; ?>
+                      <?= $o['name'] ?>
+                    </li>
+                    <?php $filtered_offices[] = $o['id'] ?>
+                <?php endforeach; ?>
+              </ul>
+            <?php endif; ?>
+            <?php if ((int)$model->active === 1) : ?>
+              <form method="post" action="/studname/change-office?sid=<?= $model->id?>&action=add">
+                <div style="margin-bottom: 10px">
+                  <select class="form-control input-sm" name="office">
+                    <option value="-all-">-выбрать-</option>
+                    <?php if (isset($offices) && isset($offices['all']) && count($offices['all'])) : ?>
+                      <?php foreach($offices['all'] as $o) : ?>
+                        <?php if (!in_array($o['id'], $filtered_offices)) : ?>
+                          <option value="<?= $o['id']?>"><?= $o['name'] ?></option>
+                        <?php endif; ?>
+                      <?php endforeach; ?>
+                    <?php endif; ?>
+                  </select>
+                </div>
+                <button class="btn btn-success btn-sm btn-block" type="submit">Добавить</button>
+              </form>
+            <?php endif; ?>
         <?php endif; ?>
     </div>
     <div id="content" class="col-sm-10">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <?= Breadcrumbs::widget([
+            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+        ]); ?>
+        <?php endif; ?>
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle</button>
 		</p>
@@ -89,30 +110,32 @@ if(Yii::$app->request->get('tab')){
 		    <div class="alert alert-success" role="alert"><?= Yii::$app->session->getFlash('success'); ?></div>
         <?php endif; ?> 
         <h3>[#<?= Html::encode($model->id) ?>] <?= Html::encode($model->name) ?> :: 
-		<?php
-		$p = [];
-		foreach($phones as $phone) {
-			$p[] = '<span data-toggle="tooltip" title="' . Html::encode($phone->description) . '">' . Html::encode($phone->phone) . '</span>';
-		}
-		if(count($p)) {
-            echo implode($p, ', ');
-		} else {
-		    echo Html::encode($model->phone);
-		}
-        ?>
+		<?= Html::encode($model->phone) ?>
         <?php if(isset($model->email) && $model->email !== '' && $model->email !== '0'): ?>
 			 :: <?= Html::encode($model->email) ?>
 		<?php endif; ?>
         </h3>
 
-        <?php if($model->description !== '' || $model->address !== ''): ?>
-            <div class="well">
-              <?= $model->description ? $model->description : '' ?>
-              <?= $model->description !== '' && $model->address !== '' ? '<br />' : '' ?>
-              <?= $model->address ? '<b>' . Yii::t('app', 'Address') . ':</b> <i>' . $model->address . '</i>' : '' ?>
-            </div>  
-		<?php endif; ?>
-
+        <div class="row">
+          <div class="<?= (($model->description || $model->address) && ($contracts && !empty($contracts))) ? 'col-sm-6' : 'col-sm-12' ?>">
+            <?php if($model->description || $model->address): ?>
+              <div class="well">
+                <?= $model->description ? Html::encode($model->description) : '' ?>
+                <?= $model->description !== '' && $model->address !== '' ? '<br />' : '' ?>
+                <?= $model->address ? '<b>' . Yii::t('app', 'Address') . ':</b> <i>' . Html::encode($model->address) . '</i>' : '' ?>
+              </div>  
+		    <?php endif; ?>
+          </div>
+          <div class="<?= (($model->description || $model->address) && ($contracts && !empty($contracts))) ? 'col-sm-6' : 'col-sm-12' ?>">
+            <?php if($contracts && !empty($contracts)): ?>
+              <div class="well">
+                <?php foreach($contracts as $c) : ?>
+                <span style="display: block; font-style: italic">Договор № <?= Html::encode($c['number']) ?> от <?= date('d.m.y', strtotime($c['date'])) ?> оформлен на <?= Html::encode($c['signer']) ?></span>
+                <?php endforeach; ?>
+              </div>  
+		    <?php endif; ?>
+          </div>
+        </div>
         <!-- блоки с информацией о скидках учтенных и оплаченных занятиях доступны только руководителям и менеджерам -->
         <?php if(Yii::$app->session->get('user.ustatus') == 3 || Yii::$app->session->get('user.ustatus') == 4): ?>
 		    <?php $temporary_sales = 0; ?>
@@ -248,3 +271,22 @@ if(Yii::$app->request->get('tab')){
         } ?>
     </div>
 </div>
+
+<?php
+$balance = <<< 'SCRIPT'
+$(function () { 
+        $('#balance').click(
+            function () {
+                if($('#fullbalance').is(':visible')) {
+                   $("#fullbalance").hide();
+                } else {
+                   $("#fullbalance").show();
+                } 
+            }
+        );
+	$('[data-toggle="popover"]').popover(); 
+	$('[data-toggle="tooltip"]').tooltip();
+});
+SCRIPT;
+$this->registerJs($balance);
+?>

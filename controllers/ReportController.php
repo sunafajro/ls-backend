@@ -9,10 +9,12 @@ use app\models\Office;
 use app\models\Report;
 use app\models\Sale;
 use app\models\Schedule;
+use app\models\Teacher;
 use app\models\Tool;
 use app\models\User;
 use yii\filters\AccessControl;
 use yii\web\Controller;
+use yii\web\Response;
 use yii\filters\VerbFilter;
 use yii\data\Pagination;
 
@@ -23,15 +25,15 @@ class ReportController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['index', 'plan', 'sale', 'margin', 'common', 'accrual', 'debt'],
+                'only' => ['accrual', 'common', 'debt', 'index', 'invoices', 'journals', 'margin', 'payments', 'plan', 'sale', 'salaries'],
                 'rules' => [
                     [
-                        'actions' => ['index', 'plan', 'sale', 'margin', 'common', 'accrual', 'debt'],
+                        'actions' => ['accrual', 'common', 'debt', 'index', 'invoices', 'journals', 'margin', 'plan', 'payments', 'sale', 'salaries'],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index', 'plan', 'sale', 'margin', 'common', 'accrual', 'debt'],
+                        'actions' => ['accrual', 'common', 'debt', 'index', 'invoices', 'journals', 'margin', 'plan', 'payments', 'sale', 'salaries'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -52,107 +54,101 @@ class ReportController extends Controller
             ],
         ];
     }
-
-	public function actionPlan()
-	{
-        /* всех кроме менеджеров и руководителей редиректим обратно */
-        if(Yii::$app->session->get('user.ustatus')!=3 && Yii::$app->session->get('user.ustatus')!=8) {
+    
+        /**
+    * отчет по Начислениям 
+    */
+    public function actionAccrual()
+    {
+        /* всех кроме руководителей редиректим обратно */
+        if(Yii::$app->session->get('user.ustatus')!=3) {
             return $this->redirect(Yii::$app->request->referrer);
         }
-        /* всех кроме менеджеров и руководителей редиректим обратно */
-		
-		$month = date('n');
-		$year = date('Y');
-		$monthname = date('F');
-		
-		// проверяем передан ли id офиса в get
-		if(Yii::$app->request->get('oid')) {
-			$oid = Yii::$app->request->get('oid');
-		} else {
-			// если офис явно не указан, то задаем центральный
-			$oid = 16;
-		}
-		// проверяем передан ли id офиса в get
-		
-		// проверяем передан ли параметр данных отчета (тек. или след. месяц)
-		if(Yii::$app->request->get('next')) {
-			$next = Yii::$app->request->get('next');
-		} else {
-			// если параметр явно не указан, то задаем null
-			$next = NULL;
-		}
-		// проверяем передан ли параметр данных отчета (тек. или след. месяц)
-		
-		// находим информацию по офису
-		$office = Office::findOne($oid);
-		// находим информацию по офису
-		
-		// формируем субзапрос для получения колич учеников в группе
-		$subQuery = (new \yii\db\Query())
-		->select('COUNT(sg.calc_studname) as cnt')
-		->from('calc_studgroup sg')
-		->where('sg.calc_groupteacher=gt.id and sg.visible=:one', [':one' => 1]);
-		// формируем субзапрос для получения колич учеников в группе
-		
-		// получаем данные для таблицы
-		$schedule = (new \yii\db\Query())
-		->select('gt.id as group, sn.value as cost, sch.calc_denned as day, COUNT(sch.id) as cnt')
-		->addSelect(['pupils' => $subQuery])
-		->from('calc_schedule sch')
-		->leftJoin('calc_groupteacher gt', 'gt.id=sch.calc_groupteacher')
-		->leftJoin('calc_service s', 's.id=gt.calc_service')
-		->leftJoin('calc_studnorm sn', 'sn.id=s.calc_studnorm')
-		->where('sch.visible=1 and gt.visible=1 and sch.calc_office=:oid', [':oid' => $oid])
-		->groupby(['gt.id', 'sn.value', 'sch.calc_denned'])
-		->all();
-		// получаем данные для таблицы
-		
+        /* всех кроме руководителей редиректим обратно */
+        
+		/* объявляем переменные */
 		$i = 0;
-		$lessonplan = 0;
-		$moneyplan = 0;
+		$limit = 10;
+		$offset = 0;
+		$pages = NULL;
+		$tid = NULL;
+		$accruals= [];
+		$groups = [];		
+		$list = [];
+		$listteachers = [];
+		$teachers = [];		
+		$teachers_list = [];
 		
-		// если массив не пустой, считаем колич занятий и сумму по плану и дописываем в массив
-		if(!empty($schedule)) {
-			foreach($schedule as $s) {
-				// если необходима инфармация по следующему месяцу, опрелеляем след месяц и год
-				if($next) {
-					$dt = new \DateTime(date('Y-m-d'));
-					$dt->modify('next month');
-					$month = $dt->format('n');
-					$year = $dt->format('Y');
-					$monthname = $dt->format('F');
-				}
-				// если необходима инфармация по следующему месяцу, опрелеляем след месяц и год
-				
-				// обращаемся к внешней функции для рассчета колич дней
-				$totalcount = $s['cnt'] * $this->reportHowdays($s['day'], $month, $year);
-				$lessonplan += $totalcount;
-				$moneyplan += $totalcount * $s['cost'] * $s['pupils'];
-				$schedule[$i]['totalcnt'] = $totalcount;
-				$schedule[$i]['totalcost'] = $totalcount * $s['cost'];
-				$i++;
-			}
-			unset($s);
-		}
-		// если массив не пустой, считаем колич занятий и сумму по плану и дописываем в массив
-		
-        /* выводим данные в вьюз */		
-		return $this->render('plan',[
-			'grouplist' => $schedule,
-			'lessonplan' => $lessonplan,
-			'moneyplan' => $moneyplan,
-			'daynames' => Tool::getDayOfWeekSimple(),
-			'oid' => $oid,
-			'office' => $office,
-			'offices' => Office::getOfficeInScheduleListSimple(),
-			'monthname' => $monthname,
-			'next' => $next,
+		/* задаем переменную для фильтрации результата по id преподавателя */
+        $tid = self::getTeacherID();
+
+        /* получаем список id преподавателей по которым есть занятия для начисления и начисления для выплаты */
+        $listteachers = AccrualTeacher::getTeachersWithViewedLessonsIds();
+
+        /* считаем количество преподавателей */
+        $pages = count($listteachers);
+
+        /* получаем список id и имен преподавателей по которым есть занятия для начисления и начисления для выплаты */
+        $teachers_list = AccrualTeacher::getTeachersWithViewedLessonsList();
+
+        /* высчитываем смещение относительно начала массива */
+        if(Yii::$app->request->get('page')&&(int)Yii::$app->request->get('page')<=ceil($pages/$limit)){
+            $offset = 10 * ((int)Yii::$app->request->get('page') - 1);
+        }
+        
+        /* если преподаватель не задан */
+        if(!$tid || $tid=='all') {
+            /* вырезаем из массива 10 преподавателей с соответствующим смещением */
+            $list = array_slice($listteachers, $offset, $limit);
+        } else {
+            $list[0] = $tid;
+        }
+        
+        /* получаем список преподавателей с доп. информацией */
+        $teachers = AccrualTeacher::getTeachersWithViewedLessonsInfo($list);
+        
+        /* получаем данные по занятиям ожидающим начисление */
+        $order = ['jg.calc_teacher'=>SORT_ASC, 'jg.calc_groupteacher'=>SORT_DESC, 'jg.id'=>SORT_DESC];
+        $lessons = AccrualTeacher::getViewedLessonList($list, $order);
+        
+        /* получаем список доступных начислений по преподавателям */
+        $accruals = AccrualTeacher::getAccrualsByTeacherList($list);
+        
+        // создаем массив с данными по группам и суммарному колич часов
+        foreach($lessons as $lesson){
+            $groups[$lesson['gid']][$lesson['tid']]['tid'] = $lesson['tid'];
+            $groups[$lesson['gid']][$lesson['tid']]['gid'] = $lesson['gid'];
+            $groups[$lesson['gid']][$lesson['tid']]['tjplace'] = $lesson['tjplace'];
+            $groups[$lesson['gid']][$lesson['tid']]['course'] = $lesson['service'];
+            $groups[$lesson['gid']][$lesson['tid']]['level'] = $lesson['level'];
+            $groups[$lesson['gid']][$lesson['tid']]['service'] = $lesson['sid'];
+            $groups[$lesson['gid']][$lesson['tid']]['office'] = $lesson['office'];
+            if(isset($groups[$lesson['gid']][$lesson['tid']]['time'])){
+                $groups[$lesson['gid']][$lesson['tid']]['time'] += $lesson['time'];
+            } else {
+                $groups[$lesson['gid']][$lesson['tid']]['time'] = $lesson['time'];
+            }
+            $lessons[$i]['money'] = round(AccrualTeacher::getLessonFinalCost($teachers, $lesson), 2);
+            $i++;
+        }
+        // получаем данные по посещаемости занятий для рассчета коэффициента
+        
+        /* выводим данные в представление */
+        return $this->render('accrual',[
+            'teachers' => $teachers,
+            'lessons' => $lessons,
+            'groups' => $groups,
+            'pages' => $pages,
+            'teachers_list' => $teachers_list,
+            'tid' => $tid,
+            'accruals' => $accruals,
             'reportlist' => Report::getReportTypeList(),
 			'userInfoBlock' => User::getUserInfoBlock(),
-		]);
-		/* выводим данные в вьюз */
-	}
-	
+			'jobPlace' => [ 1 => 'ШИЯ', 2 => 'СРР' ]
+        ]);
+        /* выводим данные в вьюз */
+    }
+
     public function actionMargin()
     {
         /* всех кроме руководителей и бухгалтеров редиректим обратно */
@@ -302,99 +298,159 @@ class ReportController extends Controller
         /* выводим данные в вьюз */
 
     }
-	
-   /**
-    * отчет по Начислениям 
-    */
-    public function actionAccrual()
+    
+    public function actionPayments ($start = null, $end = null)
     {
-        /* всех кроме руководителей редиректим обратно */
-        if(Yii::$app->session->get('user.ustatus')!=3) {
+        /* всех кроме руководителей, менеджеров и бухгалтеров редиректим обратно */
+        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4 && (int)Yii::$app->session->get('user.ustatus') !== 8) {
             return $this->redirect(Yii::$app->request->referrer);
         }
-        /* всех кроме руководителей редиректим обратно */
-        
-		/* объявляем переменные */
-		$i = 0;
-		$limit = 10;
-		$offset = 0;
-		$pages = NULL;
-		$tid = NULL;
-		$accruals= [];
-		$groups = [];		
-		$list = [];
-		$listteachers = [];
-		$teachers = [];		
-		$teachers_list = [];
-		
-		/* задаем переменную для фильтрации результата по id преподавателя */
-        $tid = self::getTeacherID();
-
-        /* получаем список id преподавателей по которым есть занятия для начисления и начисления для выплаты */
-        $listteachers = AccrualTeacher::getTeachersWithViewedLessonsIds();
-
-        /* считаем количество преподавателей */
-        $pages = count($listteachers);
-
-        /* получаем список id и имен преподавателей по которым есть занятия для начисления и начисления для выплаты */
-        $teachers_list = AccrualTeacher::getTeachersWithViewedLessonsList();
-
-        /* высчитываем смещение относительно начала массива */
-        if(Yii::$app->request->get('page')&&(int)Yii::$app->request->get('page')<=ceil($pages/$limit)){
-            $offset = 10 * ((int)Yii::$app->request->get('page') - 1);
-        }
-        
-        /* если преподаватель не задан */
-        if(!$tid || $tid=='all') {
-            /* вырезаем из массива 10 преподавателей с соответствующим смещением */
-            $list = array_slice($listteachers, $offset, $limit);
-        } else {
-            $list[0] = $tid;
-        }
-        
-        /* получаем список преподавателей с доп. информацией */
-        $teachers = AccrualTeacher::getTeachersWithViewedLessonsInfo($list);
-        
-        /* получаем данные по занятиям ожидающим начисление */
-        $order = ['jg.calc_teacher'=>SORT_ASC, 'jg.calc_groupteacher'=>SORT_DESC, 'jg.id'=>SORT_DESC];
-        $lessons = AccrualTeacher::getViewedLessonList($list, $order);
-        
-        /* получаем список доступных начислений по преподавателям */
-        $accruals = AccrualTeacher::getAccrualsByTeacherList($list);
-        
-        // создаем массив с данными по группам и суммарному колич часов
-        foreach($lessons as $lesson){
-            $groups[$lesson['gid']][$lesson['tid']]['tid'] = $lesson['tid'];
-            $groups[$lesson['gid']][$lesson['tid']]['gid'] = $lesson['gid'];
-            $groups[$lesson['gid']][$lesson['tid']]['tjplace'] = $lesson['tjplace'];
-            $groups[$lesson['gid']][$lesson['tid']]['course'] = $lesson['service'];
-            $groups[$lesson['gid']][$lesson['tid']]['level'] = $lesson['level'];
-            $groups[$lesson['gid']][$lesson['tid']]['service'] = $lesson['sid'];
-            $groups[$lesson['gid']][$lesson['tid']]['office'] = $lesson['office'];
-            if(isset($groups[$lesson['gid']][$lesson['tid']]['time'])){
-                $groups[$lesson['gid']][$lesson['tid']]['time'] += $lesson['time'];
-            } else {
-                $groups[$lesson['gid']][$lesson['tid']]['time'] = $lesson['time'];
+        if (Yii::$app->request->isPost) {
+            $office = null;
+            if ((int)Yii::$app->session->get('user.ustatus') === 4) {
+              $office = (int)Yii::$app->session->get('user.uoffice_id');
             }
-            $lessons[$i]['money'] = round(AccrualTeacher::getLessonFinalCost($teachers, $lesson), 2);
-            $i++;
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return [
+                "status" => true,
+                "menuData" => Report::getReportTypes(),
+                "paymentsData" => [
+                    "columns" => Report::getPaymentsReportColumns(),
+                    "rows" => Report::getPaymentsReportRows($start, $end, $office)
+                ]
+            ];
+        } else {
+            return $this->render('payments');
         }
-        // получаем данные по посещаемости занятий для рассчета коэффициента
-        
-        /* выводим данные в представление */
-        return $this->render('accrual',[
-            'teachers' => $teachers,
-            'lessons' => $lessons,
-            'groups' => $groups,
-            'pages' => $pages,
-            'teachers_list' => $teachers_list,
-            'tid' => $tid,
-            'accruals' => $accruals,
+    }
+
+    public function actionPlan()
+	{
+        /* всех кроме менеджеров и руководителей редиректим обратно */
+        if(Yii::$app->session->get('user.ustatus')!=3 && Yii::$app->session->get('user.ustatus')!=8) {
+            return $this->redirect(Yii::$app->request->referrer);
+        }
+        /* всех кроме менеджеров и руководителей редиректим обратно */
+		
+		$month = date('n');
+		$year = date('Y');
+		$monthname = date('F');
+		
+		// проверяем передан ли id офиса в get
+		if(Yii::$app->request->get('oid')) {
+			$oid = Yii::$app->request->get('oid');
+		} else {
+			// если офис явно не указан, то задаем центральный
+			$oid = 16;
+		}
+		// проверяем передан ли id офиса в get
+		
+		// проверяем передан ли параметр данных отчета (тек. или след. месяц)
+		if(Yii::$app->request->get('next')) {
+			$next = Yii::$app->request->get('next');
+		} else {
+			// если параметр явно не указан, то задаем null
+			$next = NULL;
+		}
+		// проверяем передан ли параметр данных отчета (тек. или след. месяц)
+		
+		// находим информацию по офису
+		$office = Office::findOne($oid);
+		// находим информацию по офису
+		
+		// формируем субзапрос для получения колич учеников в группе
+		$subQuery = (new \yii\db\Query())
+		->select('COUNT(sg.calc_studname) as cnt')
+		->from('calc_studgroup sg')
+		->where('sg.calc_groupteacher=gt.id and sg.visible=:one', [':one' => 1]);
+		// формируем субзапрос для получения колич учеников в группе
+		
+		// получаем данные для таблицы
+		$schedule = (new \yii\db\Query())
+		->select('gt.id as group, sn.value as cost, sch.calc_denned as day, COUNT(sch.id) as cnt')
+		->addSelect(['pupils' => $subQuery])
+		->from('calc_schedule sch')
+		->leftJoin('calc_groupteacher gt', 'gt.id=sch.calc_groupteacher')
+		->leftJoin('calc_service s', 's.id=gt.calc_service')
+		->leftJoin('calc_studnorm sn', 'sn.id=s.calc_studnorm')
+		->where('sch.visible=1 and gt.visible=1 and sch.calc_office=:oid', [':oid' => $oid])
+		->groupby(['gt.id', 'sn.value', 'sch.calc_denned'])
+		->all();
+		// получаем данные для таблицы
+		
+		$i = 0;
+		$lessonplan = 0;
+		$moneyplan = 0;
+		
+		// если массив не пустой, считаем колич занятий и сумму по плану и дописываем в массив
+		if(!empty($schedule)) {
+			foreach($schedule as $s) {
+				// если необходима инфармация по следующему месяцу, опрелеляем след месяц и год
+				if($next) {
+					$dt = new \DateTime(date('Y-m-d'));
+					$dt->modify('next month');
+					$month = $dt->format('n');
+					$year = $dt->format('Y');
+					$monthname = $dt->format('F');
+				}
+				// если необходима инфармация по следующему месяцу, опрелеляем след месяц и год
+				
+				// обращаемся к внешней функции для рассчета колич дней
+				$totalcount = $s['cnt'] * $this->reportHowdays($s['day'], $month, $year);
+				$lessonplan += $totalcount;
+				$moneyplan += $totalcount * $s['cost'] * $s['pupils'];
+				$schedule[$i]['totalcnt'] = $totalcount;
+				$schedule[$i]['totalcost'] = $totalcount * $s['cost'];
+				$i++;
+			}
+			unset($s);
+		}
+		// если массив не пустой, считаем колич занятий и сумму по плану и дописываем в массив
+		
+        /* выводим данные в вьюз */		
+		return $this->render('plan',[
+			'grouplist' => $schedule,
+			'lessonplan' => $lessonplan,
+			'moneyplan' => $moneyplan,
+			'daynames' => Tool::getDayOfWeekSimple(),
+			'oid' => $oid,
+			'office' => $office,
+			'offices' => Office::getOfficeInScheduleListSimple(),
+			'monthname' => $monthname,
+			'next' => $next,
             'reportlist' => Report::getReportTypeList(),
 			'userInfoBlock' => User::getUserInfoBlock(),
-			'jobPlace' => [ 1 => 'ШИЯ', 2 => 'СРР' ]
-        ]);
-        /* выводим данные в вьюз */
+		]);
+		/* выводим данные в вьюз */
+	}
+
+    public function actionSalaries ($end = null, $limit = 10, $offset = 0, $tid = null, $start = null)
+    {
+        /* всех кроме руководителей и бухгалтеров редиректим обратно */
+        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 8) {
+            return $this->redirect(Yii::$app->request->referrer);
+        }
+        if (Yii::$app->request->isPost) {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            $salaries = Report::getSalariesReportRows([
+                'end' => $end,
+                'id' => $tid,
+                'limit' => $limit,
+                'offset' => $offset,
+                'start' => $start,
+            ]);
+            return [
+                'status' => true,
+                'menuData' => Report::getReportTypes(),
+                'salariesData' => [
+                    'columns' => Report::getSalariesReportColumns(),
+                    'rows' => $salaries['rows'],
+                    'total' => $salaries['total']
+                ]
+            ];
+        } else {
+            return $this->render('salaries');
+        }
     }
 
     public function actionSale()
@@ -484,8 +540,8 @@ class ReportController extends Controller
         if(Yii::$app->request->get('week')){
             if(Yii::$app->request->get('week')!='all') {
                 $week = Yii::$app->request->get('week');
-                $first_day = date('Y-m-d', ($week - 1) * 7 * 86400 + strtotime('1/1/' . $year) - date('w', strtotime('1/1/' . $year)) * 86400 + 86400);
-                $last_day = date('Y-m-d', $week * 7 * 86400 + strtotime('1/1/' . $year) - date('w', strtotime('1/1/' . $year)) * 86400);
+                $first_day = date('Y-m-d', $week * 7 * 86400 + strtotime('1/1/' . $year) - date('w', strtotime('1/1/' . $year)) * 86400 + 86400);
+                $last_day = date('Y-m-d', ($week + 1) * 7 * 86400 + strtotime('1/1/' . $year) - date('w', strtotime('1/1/' . $year)) * 86400);
             } else {
                 $week = NULL;
                 $first_day = NULL;
@@ -964,6 +1020,9 @@ class ReportController extends Controller
         if($type == 1) {
             return $this->redirect(['report/common']);
         }
+        if($type == 8) {
+            return $this->redirect(['report/journals']);
+        }
 	
         // проверяем get-запрос на наличие информации о годе и задаем переменную $year
         if(\Yii::$app->request->get('year')){
@@ -1364,7 +1423,18 @@ class ReportController extends Controller
                 $ld = NULL;
                 $m = $mon;
                 $y = $year;
-            } else {
+            } else {        return $this->render('debt',[
+                'offices'       => Office::getOfficeInScheduleListSimple(),
+                'oid'           => $oid,
+                'pages'         => $pages,
+                'reportlist'    => Report::getReportTypeList(),
+                'sign'          => $sign,
+                'state'         => $state,
+                'stds'          => $stds,
+                'students'      => $students,
+                'tss'           => $tss,
+                'userInfoBlock' => User::getUserInfoBlock(),
+            ]);
                 $fd = $first_day;
                 $ld = $last_day;
                 $m = NULL;
@@ -1695,105 +1765,46 @@ class ReportController extends Controller
         ]);
     }
     
-    /* функция расчета долга студента
-    protected function studentDebt($id) {
-        
-        // задаем переменную в которую будет подсчитан долг по занятиям
-        $debt_lessons = 0;
-        // задаем переменную в которую будет подсчитан долг по разнице между счетами и оплатами
-        $debt_common = 0;
-        // полный долг
-        $debt = 0;
-        
-        // получаем информацию по счетам
-        $invoices_sum = (new \yii\db\Query())
-        ->select('sum(value) as money')
-        ->from('calc_invoicestud')
-        ->where('visible=:vis and calc_studname=:sid', [':vis'=>1, ':sid'=>$id])
-        ->one();
-        
-        // получаем информацию по оплатам
-        $payments_sum = (new \yii\db\Query())
-        ->select('sum(value) as money')
-        ->from('calc_moneystud')
-        ->where('visible=:vis and calc_studname=:sid', [':vis'=>1, ':sid'=>$id])
-        ->one();
-        
-        // считаем разницу как базовый долг
-        $debt_common = $payments_sum['money'] - $invoices_sum['money'];
-        
-        // запрашиваем услуги назначенные студенту
-        $services = (new \yii\db\Query())
-        ->select('s.id as sid, s.name as sname, SUM(is.num) as num')
-        ->distinct()
-        ->from('calc_service s')
-        ->leftjoin('calc_invoicestud is', 'is.calc_service=s.id')
-        ->where('is.remain=:rem and is.visible=:vis', [':rem'=>0, ':vis'=>1])
-        ->andWhere(['is.calc_studname'=>$id])
-        ->groupby(['is.calc_studname','s.id'])
-        ->orderby(['s.id'=>SORT_ASC])
-        ->all();
-        
-        // проверяем что у студента есть назначенные услуги
-        if(!empty($services)){
-            $i = 0;
-            // распечатываем массив
-            foreach($services as $service){
-                // запрашиваем из базы колич пройденных уроков
-                $lessons = (new \yii\db\Query())
-                ->select('COUNT(sjg.id) AS cnt')
-                ->from('calc_studjournalgroup sjg')
-                ->leftjoin('calc_groupteacher gt', 'sjg.calc_groupteacher=gt.id')
-                ->leftjoin('calc_journalgroup jg', 'sjg.calc_journalgroup=jg.id')
-                ->where('jg.view=:vis and jg.visible=:vis and (sjg.calc_statusjournal=:vis or sjg.calc_statusjournal=:stat) and gt.calc_service=:sid and sjg.calc_studname=:stid', [':vis'=>1, 'stat'=>3, ':sid'=>$service['sid'], ':stid'=>$id])
-                ->one();
-
-                // считаем остаток уроков
-                $services[$i]['num'] = $services[$i]['num'] - $lessons['cnt'];
-                $i++;
-            }
-            // уничтожаем переменные
-            unset($service);
-            unset($lessons);
-            
-            foreach($services as $s) {
-                if($s['num'] < 0){
-                        $lesson_cost = (new \yii\db\Query())
-                        ->select('(value/num) as money')
-                        ->from('calc_invoicestud')
-                        ->where('visible=:vis and calc_studname=:stid and calc_service=:sid', [':vis'=>1, ':stid'=>$id, ':sid'=>$s['sid']])
-                        ->orderby(['id'=>SORT_DESC])
-                        ->one();
-                        
-                        $debt_lessons = $debt_lessons + $s['num'] * $lesson_cost['money'];
-                }               
-            }
+    public function actionInvoices($start = null, $end = null) {
+        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+            return $this->redirect(Yii::$app->request->referrer);
         }
-        unset($services);
-        $debt = $debt_common + $debt_lessons;
-        $debt = number_format($debt, 1, '.', ' ');
-        return $debt;
+        return $this->render('invoices', [
+            'userInfoBlock' => User::getUserInfoBlock(),
+        ]);
     }
-    */
     
     /*
     * метод выборки данных для построения отчета по Журналам 
     */
     
-    protected function reportJournals($tid, $office) 
+    public function actionJournals($corp = 0, $oid = NULL, $tid = NULL) 
     {
-    
-        // формируем массив преподавателей для селекта
+        /* всех кроме руководителей, менеджеров редиректим обратно */
+        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+            return $this->redirect(Yii::$app->request->referrer);
+        }
+        // для менеджеров задаем переменную с id офиса
+        if ((int)Yii::$app->session->get('user.ustatus') === 4) {
+            $oid = Yii::$app->session->get('user.uoffice_id');
+            if ($corp) {
+                $oid = NULL;
+            }
+        }
+        // получим массив преподавателей у которых его активные группы
         $teachers = (new \yii\db\Query())
         ->select('t.id as tid, t.name as tname')
         ->distinct()
         ->from('calc_teachergroup tg')
-        ->leftJoin('calc_teacher t', 't.id=tg.calc_teacher')
-        ->leftJoin('calc_groupteacher gt', 'gt.id=tg.calc_groupteacher')
-        ->where('gt.visible=:vis and tg.visible=:vis', [':vis'=>1])
-        ->andFilterWhere(['t.id'=>$tid])
-        ->andFilterWhere(['gt.calc_office'=>$office]);
-            
+        ->innerJoin('calc_teacher t', 't.id=tg.calc_teacher')
+        ->innerJoin('calc_groupteacher gt', 'gt.id=tg.calc_groupteacher')
+        ->where([
+            'gt.visible' => 1,
+            'tg.visible' => 1
+        ])
+        ->andFilterWhere(['t.id' => $tid === 'all' ? NULL : $tid])
+        ->andFilterWhere(['gt.calc_office' => $oid])
+        ->andFilterWhere(['gt.corp' => !$corp ? NULL : $corp]);
         // делаем клон запроса
         $countQuery = clone $teachers;
         // получаем данные для паджинации
@@ -1801,59 +1812,58 @@ class ReportController extends Controller
         $limit = 10;
         $offset = 0;
         if(Yii::$app->request->get('page')){
-            if(Yii::$app->request->get('page')>1&&Yii::$app->request->get('page')<=$pages->totalCount){
+            if(Yii::$app->request->get('page') > 1 && Yii::$app->request->get('page') <= $pages->totalCount){
                 $offset = 10 * (Yii::$app->request->get('page') - 1);
             }
         }
         // доделываем запрос и выполняем
         $teachers = $teachers->orderBy(['t.name'=>SORT_ASC])->limit($limit)->offset($offset)->all();            
-
         $teachersall = $countQuery->orderBy(['t.name'=>SORT_ASC])->all();
-        unset($countQuery);
-        
+
         // зададим пустое значение, оно будет использоваться если фильтр по преподавателю не задан
         $tids = NULL;
-        $tchrs = NULL;
+        $teacher_names = NULL;
         $lcount = [];
         // формируем массив с id преподавателей, для ситуации когда фильтр по преподавателю не задан
-        if(!$tid) {
+        if(!$tid || ($tid && $tid === 'all')) {
             $i = 0;
             foreach($teachers as $t) {
                 // массив id-шников для запроса занятий
                 $tids[$i] = $t['tid'];
                 // массив преподавателей для вьюза
-                $tchrs[$t['tid']] = $t['tname'];
+                $teacher_names[$t['tid']] = $t['tname'];
                 // массив занятий преподавателя
                 $lcount[$t['tid']]['totalCount'] = 0;
                 $i++;
             }
-            unset($i);
-            unset($t);
         } else {
             foreach($teachersall as $t) {
                 if($t['tid']==$tid) {
                     // массив преподавателей для вьюза
-                    $tchrs[$t['tid']] = $t['tname'];
+                    $teacher_names[$t['tid']] = $t['tname'];
                     // массив занятий преподавателя
                     $lcount[$t['tid']]['totalCount'] = 0;
                 }
             }
-            unset($i);
-            unset($t);
         }
 
-        if(!empty($tchrs)) {
+        if(!empty($teacher_names)) {
             // получаем данные по занятиям
             $lessons = (new \yii\db\Query())
             ->select('jg.id as lid, jg.calc_groupteacher as gid, jg.data as date, jg.done as done, jg.calc_teacher as tid, t.name as tname, jg.description as desc, jg.visible as visible')
             ->from('calc_journalgroup jg')
             ->leftJoin('calc_teacher t', 't.id=jg.calc_teacher')
             ->leftJoin('calc_groupteacher gt', 'gt.id=jg.calc_groupteacher')
-            ->where('jg.view!=:vis and jg.visible=:vis and jg.user!=:null', [':vis'=>1, ':null'=>0])
-            ->andFilterWhere(['gt.calc_office'=>$office])
-            ->andFilterWhere(['jg.calc_teacher'=>$tid])
+            ->where([
+                'jg.view' => 0,
+                'jg.visible' => 1
+            ])
+            ->andWhere(['>', 'jg.user', 0])
+            ->andFilterWhere(['gt.calc_office' => $oid])
+            ->andFilterWhere(['jg.calc_teacher' => $tid === 'all' ? NULL : $tid])
             ->andFilterWhere(['in', 'jg.calc_teacher', $tids])
-            ->orderby(['t.name'=>SORT_ASC, 'jg.data'=>SORT_DESC])
+            ->andFilterWhere(['gt.corp' => !$corp ? NULL : $corp])
+            ->orderby(['t.name' => SORT_ASC, 'jg.data' => SORT_DESC])
             ->all();
 
             // выбираем группы преподавателей
@@ -1864,10 +1874,11 @@ class ReportController extends Controller
             ->leftJoin('calc_service s', 's.id=gt.calc_service')
             ->leftJoin('calc_timenorm tn', 'tn.id=s.calc_timenorm')
             ->leftJoin('calc_edulevel el', 'el.id=gt.calc_edulevel')
-            ->where('gt.visible=:vis', [':vis'=>1])
-            ->andFilterWhere(['gt.calc_office'=>$office])
-            ->andFilterWhere(['tg.calc_teacher'=>$tid])
-            ->andFilterWhere(['in', 'tg.calc_teacher', $tids])              
+            ->where(['gt.visible' => 1])
+            ->andFilterWhere(['gt.calc_office' => $oid])
+            ->andFilterWhere(['tg.calc_teacher' => $tid === 'all' ?  NULL : $tid])
+            ->andFilterWhere(['in', 'tg.calc_teacher', $tids])
+            ->andFilterWhere(['gt.corp' => !$corp ? NULL : $corp])
             ->orderby(['tg.id'=>SORT_ASC])
             ->all();
             
@@ -1882,16 +1893,26 @@ class ReportController extends Controller
                 $lcount[$g['tid']][$g['gid']]['totalCount'] = $t;
                 $lcount[$g['tid']]['totalCount'] += $t;
             }
-            unset($t);
-            unset($g);
         } else {
             $lessons = [];
             $groups = [];
         }
         $teachers = $teachersall;
-        unset($teachersall);
-        unset($tids);
-        return array ($teachers, $lessons, $groups, $tchrs, $pages, $lcount);
+
+        return $this->render('journals', [
+            'corp'          => $corp,
+            'groups'        => $groups,
+            'lcount'        => $lcount,
+            'lessons'       => $lessons,
+            'offices'       => Office::getOfficeInScheduleListSimple(),
+            'oid'           => $oid,
+            'pages'         => $pages,
+            'reportlist'    => Report::getReportTypeList(),
+            'teachers'      => Teacher::getTeachersInUserListSimple(),
+            'teacher_names' => $teacher_names,
+            'tid'           => $tid,
+			'userInfoBlock' => User::getUserInfoBlock(),
+        ]);
     }
     
     /*

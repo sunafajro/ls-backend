@@ -51,7 +51,7 @@ class Timenorm extends \yii\db\ActiveRecord
         ];
     }
 
-    public function getTimenorms()
+    public static function getTimenorms()
     {
         $timenorm = (new \yii\db\Query())
         ->select(['id'=>'id', 'name'=>'name', 'value' => 'value'])

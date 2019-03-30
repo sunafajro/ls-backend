@@ -189,23 +189,25 @@ class AccrualTeacher extends \yii\db\ActiveRecord
                 $i = 0;
                 $lp = 0;
                 foreach ($lessons as $lesson) {
+                    $norm = isset($edunorm['norm'][$lesson['tjplace']]) ? $edunorm['norm'][$lesson['tjplace']] : 0;
                     /* 
                      * вызываем функцию расчета стоимости начисления за урок 
                      * и считаем суммарное начисление по всем урокам
                      */
                     $result = self::calculateLessonAccrual(
                         $lesson, 
-                        isset($edunorm['norm'][$lesson['tjplace']]) ? $edunorm['norm'][$lesson['tjplace']] : 0, 
+                        $norm, 
                         $edunorm['corp'],
                         isset($langprem['prem'][$lesson['lang_id']]) ? $langprem['prem'][$lesson['lang_id']] : 0
                     );
                     $accrual += $result['accrual'];
                     $lids[] = $lesson['jid'];
                     $lp = $result['prem'];
-                    /* формируем доп данные для возвраат в список уроков ожидающих проверки */
+                    /* формируем доп данные для возврата в список уроков ожидающих проверки */
                     $lessons[$i]['koef'] = $result['koef'];
-                    $lessons[$i]['tax'] = isset($edunorm['norm'][$lesson['tjplace']]) ? $edunorm['norm'][$lesson['tjplace']] : 0;
+                    $lessons[$i]['tax'] = $norm;
                     $lessons[$i]['accrual'] = $result['accrual'];
+                    $lessons[$i]['value_corp'] = $lesson['corp'] > 0 ? $edunorm['corp'] : 0;
                     $i++;
                 }
                 /* возвращаем результат */
@@ -420,5 +422,40 @@ class AccrualTeacher extends \yii\db\ActiveRecord
         ->all();
         
         return $accruals;
-	}
+    }
+    
+    public static function getAccrualsByTeachers($start = null, $end = null, $teachers = null)
+    {
+        $accruals = (new \yii\db\Query())
+        ->select([
+          'id' => 'act.id',
+          'teacherId' => 'act.calc_teacher',
+          'date' => 'act.data',
+          'hours' => 'SUM(tn.value)',
+          'tax' => 'act.calc_edunormteacher',
+          'sum' => 'act.value'
+        ])
+        ->from(['act' => self::tableName()])
+        ->innerJoin(['gt' => 'calc_groupteacher'], 'gt.id = act.calc_groupteacher')
+        ->innerJoin(['s' => 'calc_service'], 's.id = gt.calc_service')
+        ->innerJoin(['tn' => 'calc_timenorm'], 'tn.id = s.calc_timenorm')
+        ->innerJoin(['j' => 'calc_journalgroup'], 'j.calc_accrual = act.id')
+        ->andFilterWhere(['>=', 'act.data', $start])
+        ->andFilterWhere(['<=', 'act.data', $end])
+        ->andFilterWhere(['in', 'act.calc_teacher', $teachers])
+        ->groupBy([
+            'act.id',
+            'act.calc_teacher',
+            'act.data',
+            'act.calc_edunormteacher',
+            'act.value'
+        ])
+        ->orderBy([
+            'act.calc_teacher' => SORT_ASC,
+            'act.data' => SORT_ASC
+        ])
+        ->all();
+
+        return $accruals;
+    }
 }

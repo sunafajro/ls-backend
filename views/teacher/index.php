@@ -1,45 +1,39 @@
 <?php
-
-use yii\helpers\Html;
-use yii\widgets\ActiveForm;
-use yii\bootstrap\NavBar;
-use yii\bootstrap\Nav;
-use yii\widgets\Menu;
-/* @var $this yii\web\View */
-/* @var $searchModel app\models\TeacherSearch */
-/* @var $dataProvider yii\data\ActiveDataProvider */
-
-$this->title = 'Система учета :: '.Yii::t('app','Teachers');
-$this->params['breadcrumbs'][] = Yii::t('app','Teachers');
-
-//составляем список языков для селектов
-foreach($teacherlangs as $lang){
-    $templangs[$lang['lid']]=$lang['lname'];
-}
-$slangs = array_unique($templangs);
-unset($templangs);
-unset($lang);
-
-//составляем список офисов для селектов
-foreach($teacheroffices as $office){
-    $tempoffices[$office['oid']]=$office['oname'];
-}
-$soffices = array_unique($tempoffices);
-unset($tempoffices);
-unset($office);
-unset($teacheroffices);
-
-//составляем список форм трудоустройства для селектов
-foreach($teacherjobstates as $jobstate){
-    $tempjobstates[$jobstate['fid']]=$jobstate['fname'];
-}
-$sjobstates = array_unique($tempjobstates);
-unset($tempjobstates);
-unset($jobstate);
-unset($teacherjobstates);
+    use yii\helpers\Html;
+    use yii\widgets\ActiveForm;
+    use yii\widgets\Breadcrumbs;
+    $this->title = 'Система учета :: '.Yii::t('app','Teachers');
+    $this->params['breadcrumbs'][] = Yii::t('app','Teachers');
+    //составляем список языков для селектов
+    foreach ($teacherlangs as $lang) {
+        $templangs[$lang['lid']]=$lang['lname'];
+    }
+    $slangs = array_unique($templangs);
+    unset($templangs);
+    unset($lang);
+    //составляем список офисов для селектов
+    foreach ($teacheroffices as $office) {
+        $tempoffices[$office['oid']]=$office['oname'];
+    }
+    $soffices = array_unique($tempoffices);
+    unset($tempoffices);
+    unset($office);
+    unset($teacheroffices);
+    //составляем список форм трудоустройства для селектов
+    foreach ($teacherjobstates as $jobstate) {
+        $tempjobstates[$jobstate['fid']]=$jobstate['fname'];
+    }
+    $sjobstates = array_unique($tempjobstates);
+    unset($tempjobstates);
+    unset($jobstate);
+    unset($teacherjobstates);
 ?>
+
 <div class="row row-offcanvas row-offcanvas-left schedule-index">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <div id="main-menu"></div>
+        <?php endif; ?>
         <?= $userInfoBlock ?>
         <?php
             // прячем кнопку добавления преподавателя от всех кроме руководителей
@@ -104,10 +98,14 @@ unset($teacherjobstates);
 	    <?php ActiveForm::end(); ?>
     </div>
     <div id="content" class="col-sm-10">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <?= Breadcrumbs::widget([
+            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+        ]); ?>
+        <?php endif; ?>
         <p class="pull-left visible-xs">
             <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
-
         <?php if(Yii::$app->session->hasFlash('error')) { ?>
         <div class="alert alert-danger" role="alert">
             <?= Yii::$app->session->getFlash('error') ?>
@@ -119,50 +117,46 @@ unset($teacherjobstates);
             <?= Yii::$app->session->getFlash('success') ?>
         </div>
         <?php } ?>
-<?php
-    // задаем дефолтные параметры выборки
-    // первый элемент страницы 
-    $start = 1;
-    // последний элемент страницы
-    $end = 20;
-    // следующая страница
-    $nextpage = 2;
-    // предыдущая страница
-    $prevpage = 0;
-    // проверяем не задан ли номер страницы
-    if(Yii::$app->request->get('page')){
-	    if(Yii::$app->request->get('page')>1){
-            // считаем номер первой строки с учетом страницы
-	        $start = (20 * (Yii::$app->request->get('page') - 1) + 1);
-            // считаем номер последней строки с учетом страницы
-	        $end = $start + 19;
-            // если страничка последняя подменяем номер последнего элемента
-            if($end>=$pages->totalCount){
-                $end = $pages->totalCount;
+    <?php
+        // задаем дефолтные параметры выборки
+        // первый элемент страницы 
+        $start = 1;
+        // последний элемент страницы
+        $end = 20;
+        // следующая страница
+        $nextpage = 2;
+        // предыдущая страница
+        $prevpage = 0;
+        // проверяем не задан ли номер страницы
+        if(Yii::$app->request->get('page')){
+            if(Yii::$app->request->get('page')>1){
+                // считаем номер первой строки с учетом страницы
+                $start = (20 * (Yii::$app->request->get('page') - 1) + 1);
+                // считаем номер последней строки с учетом страницы
+                $end = $start + 19;
+                // если страничка последняя подменяем номер последнего элемента
+                if($end>=$pages->totalCount){
+                    $end = $pages->totalCount;
+                }
+                // считаем номер следующей страницы
+                $prevpage = Yii::$app->request->get('page') - 1;
+                // считаем номер предыдущей страницы
+                $nextpage = Yii::$app->request->get('page') + 1;
             }
-            // считаем номер следующей страницы
-	        $prevpage = Yii::$app->request->get('page') - 1;
-            // считаем номер предыдущей страницы
-	        $nextpage = Yii::$app->request->get('page') + 1;
-	    }
-    }
-    echo "<p class='text-right'>Показано ".$start." - ";
-    if($end>=$pages->totalCount) {
-	    echo $pages->totalCount;
-    }
-    else {
-        echo $end;
-    }
-    echo " из ".$pages->totalCount."</p>";
+        }
     ?>
-    <nav>
-        <ul class="pager">
-            <li class="previous"><?= ($prevpage > 0) ? Html::a('Предыдущий',['teacher/index','page'=>$prevpage,'TSS'=>$params['TSS'],'TOID'=>$params['TOID'],'TLID'=>$params['TLID'],'TJID'=>$params['TJID'],/*'JPID'=>$params['JPID'],*/'STATE'=>$params['STATE'],'BD'=>$params['BD']]) : '' ?></li>
-            <li class="next"><?= ($end < $pages->totalCount) ? Html::a('Следующий',['teacher/index','page'=>$nextpage,'TSS'=>$params['TSS'],'TOID'=>$params['TOID'],'TLID'=>$params['TLID'],'TJID'=>$params['TJID'],/*'JPID'=>$params['JPID'],*/'STATE'=>$params['STATE'],'BD'=>$params['BD']]) : '' ?></li>
-        </ul>
-    </nav>
-
-    <table class="table table-stripped table-bordered table-hover table-condensed small">
+    <div class="row" style="margin-bottom: 0.5rem">
+        <div class="col-xs-12 col-sm-3 text-left">
+            <?= (($prevpage > 0) ? Html::a('Предыдущий',['teacher/index','page'=>$prevpage,'TSS'=>$params['TSS'],'TOID'=>$params['TOID'],'TLID'=>$params['TLID'],'TJID'=>$params['TJID'],/*'JPID'=>$params['JPID'],*/'STATE'=>$params['STATE'],'BD'=>$params['BD']], ['class' => 'btn btn-default']) : '') ?>
+        </div>
+        <div class="col-xs-12 col-sm-6 text-center">
+            <p style="margin-top: 1rem; margin-bottom: 0.5rem">Показано <?= $start ?> - <?= $end >= $pages->totalCount ? $pages->totalCount : $end ?> из <?= $pages->totalCount ?></p>
+        </div>
+        <div class="col-xs-12 col-sm-3 text-right">
+            <?= (($end < $pages->totalCount) ? Html::a('Следующий',['teacher/index','page'=>$nextpage,'TSS'=>$params['TSS'],'TOID'=>$params['TOID'],'TLID'=>$params['TLID'],'TJID'=>$params['TJID'],/*'JPID'=>$params['JPID'],*/'STATE'=>$params['STATE'],'BD'=>$params['BD']], ['class' => 'btn btn-default']) : '') ?>
+        </div>
+    </div>
+    <table class="table table-stripped table-bordered table-hover table-condensed small" style="margin-bottom: 0.5rem">
         <thead>
             <tr>
                 <th class="text-center tbl-cell-5"><i class="fa fa-building" aria-hidden="true"></i></th>
@@ -275,12 +269,16 @@ unset($teacherjobstates);
             <?php } ?>
         </tbody>
     </table>
-
-    <nav>
-        <ul class="pager">
-        <li class="previous"><?= ($prevpage > 0) ? Html::a('Предыдущий',['teacher/index','page'=>$prevpage,'TSS'=>$params['TSS'],'TOID'=>$params['TOID'],'TLID'=>$params['TLID'],'TJID'=>$params['TJID'],/*'JPID'=>$params['JPID'],*/'STATE'=>$params['STATE'],'BD'=>$params['BD']]) : '' ?></li>
-        <li class="next"><?= ($end < $pages->totalCount) ? Html::a('Следующий',['teacher/index','page'=>$nextpage,'TSS'=>$params['TSS'],'TOID'=>$params['TOID'],'TLID'=>$params['TLID'],'TJID'=>$params['TJID'],/*'JPID'=>$params['JPID'],*/'STATE'=>$params['STATE'],'BD'=>$params['BD']]) : '' ?></li>
-    </ul>
-    </nav>
+    <div class="row" style="margin-bottom: 0.5rem">
+        <div class="col-xs-12 col-sm-3 text-left">
+            <?= (($prevpage > 0) ? Html::a('Предыдущий',['teacher/index','page'=>$prevpage,'TSS'=>$params['TSS'],'TOID'=>$params['TOID'],'TLID'=>$params['TLID'],'TJID'=>$params['TJID'],/*'JPID'=>$params['JPID'],*/'STATE'=>$params['STATE'],'BD'=>$params['BD']], ['class' => 'btn btn-default']) : '') ?>
+        </div>
+        <div class="col-xs-12 col-sm-6 text-center">
+            <p style="margin-top: 1rem; margin-bottom: 0.5rem">Показано <?= $start ?> - <?= $end >= $pages->totalCount ? $pages->totalCount : $end ?> из <?= $pages->totalCount ?></p>
+        </div>
+        <div class="col-xs-12 col-sm-3 text-right">
+            <?= (($end < $pages->totalCount) ? Html::a('Следующий',['teacher/index','page'=>$nextpage,'TSS'=>$params['TSS'],'TOID'=>$params['TOID'],'TLID'=>$params['TLID'],'TJID'=>$params['TJID'],/*'JPID'=>$params['JPID'],*/'STATE'=>$params['STATE'],'BD'=>$params['BD']], ['class' => 'btn btn-default']) : '') ?>
+        </div>
+    </div>
     </div>
 </div>

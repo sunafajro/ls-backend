@@ -56,7 +56,7 @@ class Student extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'visible', 'history', 'phone', 'calc_sex','active'], 'required'],
+            [['name', 'visible', 'history', 'calc_sex','active'], 'required'],
             [['name', 'fname', 'lname', 'mname', 'email', 'phone', 'address', 'description'], 'string'],
             [['visible', 'history', 'calc_sex', 'calc_cumulativediscount', 'active', 'calc_way'], 'integer'],
             [['debt', 'debt2', 'invoice', 'money'], 'number']
@@ -212,6 +212,17 @@ class Student extends \yii\db\ActiveRecord
             array_multisort($date, SORT_DESC, $name, SORT_ASC, $result);
         }
         return $result;
+    }
+
+    public static function getStudentOffices($id = 0)
+    {
+        $offices = (new \yii\db\Query())
+        ->select(['id' => 'o.id', 'name' => 'o.name'])
+        ->from(['so' => 'calc_student_office'])
+        ->innerJoin('calc_office o', 'o.id=so.office_id')
+        ->where(['so.student_id' => $id])
+        ->all();
+        return $offices;
     }
 
     /**

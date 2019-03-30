@@ -1,31 +1,50 @@
 <?php
-
-use yii\helpers\Html;
-
-/* @var $this yii\web\View */
-/* @var $model app\models\CalcMessage */
-
-$this->title = Yii::t('app','Update');
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Messages'), 'url' => ['index']];
-$this->params['breadcrumbs'][] = Yii::t('app','Update');
-
-if(Yii::$app->session->get('user.ustatus')==5){
-    $types = $cmwts;
-    unset($cmwts);
-} else {
-    //составляем список типов сообщений
-    foreach($cmwts as $cmwt){
-    $temptypes[$cmwt['tid']]=$cmwt['tname'];
-    }
-    $types = array_unique($temptypes);
-}
+    use yii\widgets\Breadcrumbs;
+    $this->title = 'Система учета :: ' . Yii::t('app', 'Messages');
+    $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Messages'), 'url' => ['index']];
+    $this->params['breadcrumbs'][] = Yii::t('app','Update');
 ?>
-<div class="calc-message-update">
+
+<div class="row row-offcanvas row-offcanvas-left message-update">
+    <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <div id="main-menu"></div>
+        <?php endif; ?>
+        <?= $userInfoBlock ?>
+        <div style="margin-top: 1rem">
+            <h4><?= Yii::t('app', 'Hints') ?>:</h4>
+            <ul>
+                <li>После создания сообщения, оно не будет отправлено автоматически, это необходимо сделать вручную!</li>
+			    <li>Вы можете прикрепить файл только после создания сообщения, но до его отправки!</li>
+		    </ul>
+        </div>
+    </div>
+    <div id="content" class="col-sm-10">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <?= Breadcrumbs::widget([
+            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+        ]); ?>
+        <?php endif; ?>
+        
+        <p class="pull-left visible-xs">
+            <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
+        </p>
+        
+        <?php if(Yii::$app->session->hasFlash('error')) : ?>
+        <div class="alert alert-danger" role="alert">
+            <?= Yii::$app->session->getFlash('error') ?>
+        </div>
+        <?php endif; ?>
+   
+        <?php if(Yii::$app->session->hasFlash('success')) : ?>
+        <div class="alert alert-success" role="alert">
+            <?= Yii::$app->session->getFlash('success') ?>
+        </div>
+        <?php endif; ?>
 
     <?= $this->render('_form', [
         'model' => $model,
-	'types'=>$types,
-        'reciever' => $reciever,
+	    'types'=>$types,
     ]) ?>
-
+    </div>
 </div>
