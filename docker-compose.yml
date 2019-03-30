@@ -24,8 +24,8 @@ services:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: langschool
     volumes:
-     - d:/dev/mysql/conf:/etc/mysql/conf.d
-     - d:/dev/mysql/data:/var/lib/mysql
+     - ./data/conf:/etc/mysql/conf.d
+     - ./data/db:/var/lib/mysql
     ports:
      - 127.0.0.1:3306:3306
     networks:

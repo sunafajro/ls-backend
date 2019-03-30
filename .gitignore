@@ -28,6 +28,7 @@ tests/_support/_generated
 
 composer.phar
 
+/data/db
 /runtime
 /web/images
 /web/uploads
