@@ -42,8 +42,9 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Add attestation');
           </div>
         <?php } ?> 
         <?php if (
-            (int)Yii::$app->session->get('user.ustatus') === 3
-            || (int)Yii::$app->session->get('user.ustatus') === 4
+            ((int)Yii::$app->session->get('user.ustatus') === 3
+            || (int)Yii::$app->session->get('user.ustatus') === 4)
+            && (int)$student->active === 1
         ) { ?>
             <?= $this->render('_form', [
                 'model' => $model,
@@ -59,8 +60,9 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Add attestation');
               <th><?= Yii::t('app', 'Score') ?></th>
               <th><?= Yii::t('app', 'Added by') ?></th>
               <?php if (
-                (int)Yii::$app->session->get('user.ustatus') === 3
-                || (int)Yii::$app->session->get('user.ustatus') === 4
+                ((int)Yii::$app->session->get('user.ustatus') === 3
+                || (int)Yii::$app->session->get('user.ustatus') === 4)
+                && (int)$student->active === 1
               ) { ?>
                 <th><?= Yii::t('app', 'Actions') ?></th>
               <?php } ?>
@@ -74,8 +76,9 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Add attestation');
                 <td><?= $grade['score'] ?><?= (int)$grade['type'] === 1 ? '%' : '' ?></td>
                 <td><?= $grade['userName'] ?></td>
                 <?php if (
-                  (int)Yii::$app->session->get('user.ustatus') === 3
-                  || (int)Yii::$app->session->get('user.ustatus') === 4
+                  ((int)Yii::$app->session->get('user.ustatus') === 3
+                  || (int)Yii::$app->session->get('user.ustatus') === 4)
+                  && (int)$student->active === 1
                 ) { ?>
                   <td><?= Html::a('<i class="fa fa-trash"></i>', ['student-grade/delete', 'id' => $grade['id']]) ?></td>
                 <?php } ?>

@@ -24,6 +24,7 @@ use kartik\datetime\DateTimePicker;
     <?= $form->field($model, 'date')->widget(DateTimePicker::className(), [
       'options' => [
         'placeholder' => 'Дата аттестации',
+        'autocomplete' => 'off',
       ],
       'size' => 'sm',
       'pluginOptions' => [
