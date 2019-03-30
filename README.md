@@ -20,6 +20,10 @@ Run the installation triggers (creating cookie validation code)
 ```
 docker-compose run --rm web composer install    
 ```
+Миграция структуры базы данных
+```
+docker-compose run --rm web php yii migrate
+```
 Запуск контейнера
 ```
 docker-compose up -d
