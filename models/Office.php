@@ -49,6 +49,19 @@ class Office extends \yii\db\ActiveRecord
         ];
     }
 
+    // возвращает список офисов по которым есть занятия в расписании
+    public static function getOfficeBySchedule()
+    {
+        $offices = (new \yii\db\Query())
+        ->select('o.id as id, o.name as name')
+        ->distinct()
+        ->from('calc_office o')
+        ->innerJoin('calc_schedule sch', 'sch.calc_office=o.id')
+        ->where('o.visible=:one', [':one' => 1])
+        ->all();
+        return $offices;
+    }
+    
     /* список офисов кроме помеченных удаленными, по которым есть занятия в расписании. одномерный массив. */
     public static function getOfficeInScheduleListSimple()
     {
