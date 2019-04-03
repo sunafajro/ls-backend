@@ -35,10 +35,10 @@
         </div>
         <?php ActiveForm::end(); ?>
         <p>Текущая фотография:</p>
-        <?php if ($user->logo != '' && $user->logo != '0') : ?>
-            <img src='uploads/user/<?= $user->id ?>/logo/<?= $user->logo ?>' alt='foto' class='img-thumbnail'>
-        <?php else : ?>
+        <?php if ($user->logo != '' && $user->logo != '0') { ?>
+            <?= Html::img('@web/uploads/user/' . $user->id . '/logo/' . $user->logo, ['alt' => 'foto', 'class' => 'img-thumbnail']) ?>
+        <?php } else { ?>
             <p class='text-danger'>У данного пользователя отсутствует фото!</p>
-        <?php endif; ?>
+        <?php } ?>
     </div>
 </div>
