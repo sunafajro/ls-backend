@@ -11,6 +11,7 @@ use yii\filters\VerbFilter;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
+use kartik\mpdf\Pdf;
 
 class StudentGradeController extends Controller
 {
@@ -109,6 +110,29 @@ class StudentGradeController extends Controller
             return $this->redirect(['index', 'id' => $grade->calc_studname]);
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');
+        }
+    }
+
+    public function actionDownloadAttestation($id)
+    {
+        $model = new StudentGrade();
+        $attestation = $model->getAttestation($id);
+        if ($attestation) {                
+            $pdf = new Pdf([
+                'mode'        => Pdf::MODE_UTF8,
+                'format'      => Pdf::FORMAT_A4,
+                'orientation' => Pdf::ORIENT_PORTRAIT,
+                'destination' => Pdf::DEST_BROWSER, 
+                'content'     => $this->renderPartial('_viewPdf', ['attestation' => $attestation]),
+                'cssFile'     => '@vendor/kartik-v/yii2-mpdf/src/assets/kv-mpdf-bootstrap.min.css',
+                'cssInline'   => '.kv-heading-1{font-size:18px}', 
+                'options'     => [
+                    'title'   => Yii::t('app', 'Attestation'),
+                ],
+            ]);
+            return $pdf->render();
+        } else {
+            throw new NotFoundHttpException(Yii::t('app', 'The requested page does not exist.'));
         }
     }
 }

@@ -68,6 +68,32 @@ class StudentGrade extends \yii\db\ActiveRecord
     }
 
     /**
+     *  метод возвращает одну оценку по id
+     */
+    public function getAttestation($id)
+    {
+        $attestation = (new \yii\db\Query())
+        ->select([
+            'id' => 'sg.id',
+            'date' => 'sg.date',
+            'score' => 'sg.score',
+            'type' => 'sg.type',
+            'description' => 'sg.description',
+            'studentId' => 'sg.calc_studname',
+            'studentName' => 's.name',
+        ])
+        ->from(['sg' => 'student_grades'])
+        ->innerJoin(['s' => 'calc_studname'], 'sg.calc_studname = s.id')
+        ->where([
+            'sg.id' => $id,
+            'sg.visible' => 1,
+        ])
+        ->one();
+
+        return $attestation;
+    }
+
+    /**
      *  метод возвращает список оценок студента
      */
     public function getStudentGrades(string $sid)

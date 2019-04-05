@@ -340,7 +340,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
                         default: $result = false;
                     }
                 }
-                if ($action === 'create' || $action === 'delete') {
+                if ($action === 'create' || $action === 'delete' || $action = 'download-attestation') {
                     switch(Yii::$app->session->get('user.ustatus')) {
                         case 3: $result = true; break;
                         case 4: $result = true; break;
