@@ -19,15 +19,15 @@ class StudentGradeController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['index', 'create', 'delete'],
+                'only' => ['index', 'create', 'delete', 'download-attestation'],
                 'rules' => [
                     [
-                        'actions' => ['index', 'create', 'delete'],
+                        'actions' => ['index', 'create', 'delete', 'download-attestation'],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index', 'create','delete'],
+                        'actions' => ['index', 'create','delete', 'download-attestation'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -36,7 +36,8 @@ class StudentGradeController extends Controller
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
-                    'create' => ['post']
+                    'create' => ['post'],
+                    'delete' => ['post'],
                 ],
             ],
         ];
@@ -60,7 +61,7 @@ class StudentGradeController extends Controller
         $student = Student::findOne($id);
         if ($student !== NULL) {
             return $this->render('index', [
-                'grades' => $model->getStudentGrades(['sid' => $id]),
+                'grades' => $model->getStudentGrades($id),
                 'gradeTypes' => StudentGrade::getGradeTypes(),
                 'model' => $model,
                 'student' => $student,

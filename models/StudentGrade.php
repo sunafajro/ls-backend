@@ -4,6 +4,8 @@ namespace app\models;
 
 use Yii;
 
+use yii\data\ActiveDataProvider;
+
 /**
  * This is the model class for table "student_grades".
  *
@@ -68,13 +70,12 @@ class StudentGrade extends \yii\db\ActiveRecord
     /**
      *  метод возвращает список оценок студента
      */
-    public function getStudentGrades(array $params = [])
+    public function getStudentGrades(string $sid)
     {
-        $grades = (new \yii\db\Query())
+        $query = (new \yii\db\Query())
         ->select([
             'id' => 'sg.id',
             'date' => 'sg.date',
-            'userId' => 'sg.id',
             'userName' => 'u.name',
             'score' => 'sg.score',
             'type' => 'sg.type',
@@ -86,15 +87,23 @@ class StudentGrade extends \yii\db\ActiveRecord
         ->innerJoin(['u' => 'user'], 'sg.user = u.id')
         ->innerJoin(['s' => 'calc_studname'], 'sg.calc_studname = s.id')
         ->where([
+            'sg.calc_studname' => $sid,
             'sg.visible' => 1,
-            's.visible' => 1
-        ])
-        ->andFilterWhere(['sg.calc_studname' => $params['sid'] ?? NULL])
-        ->andFilterWhere(['>=', 'sg.date', $params['start'] ?? NULL])
-        ->andFilterWhere(['<=', 'sg.date', $params['end'] ?? NULL])
-        ->orderBy(['sg.date' => SORT_DESC])
-        ->all();
+        ]);
         
-        return $grades;
+        return new ActiveDataProvider([
+            'query' => $query,
+            'pagination' => [
+                'pageSize' => 20,
+            ],
+            'sort'=> [
+                'attributes' => [
+                    'date',
+                ],
+                'defaultOrder' => [
+                    'date' => SORT_DESC
+                ],
+            ],
+        ]);
     }
 }

@@ -1,19 +1,110 @@
 <?php
+
 /**
- * @var $this          yii\web\View
- * @var $form          yii\widgets\ActiveForm
- * @var $model         app\models\StudentGrades
- * @var $student       app\models\Student
- * @var $grades
- * @var $gradeTypes 
+ * @var yii\web\View $this
+ * @var yii\widgets\ActiveForm $form
+ * @var app\models\StudentGrades $model
+ * @var app\models\Student $student
+ * @var array $grades
+ * @var array $gradeTypes 
  * @var $userInfoBlock
  */
+
 use yii\helpers\Html;
 use yii\widgets\Breadcrumbs;
+use yii\grid\GridView;
+
 $this->title = 'Система учета :: ' . Yii::t('app', 'Add attestation');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Clients'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $student->name, 'url' => ['studname/view','id' => $student->id]];
 $this->params['breadcrumbs'][] = Yii::t('app', 'Add attestation');
+
+$columns = [];
+$columns[] = [
+    'class' => 'yii\grid\SerialColumn',
+    'header' => '№',
+    'headerOptions' => ['width' => '5%'],
+];
+$columns[] = [
+    'attribute' => 'date',
+    'format' => 'raw',
+    'headerOptions' => ['width' => '10%'],
+    'label' => Yii::t('app', 'Date'),
+    'value' => function ($grade) {
+        return date('d.m.Y', strtotime($grade['date']));
+    }
+];
+$columns[] = [
+    'attribute' => 'description',
+    'format' => 'raw',
+    'label' => Yii::t('app', 'Description'),
+    'value' => function ($grade) {
+        return $grade['description'];
+    }
+];
+$columns[] = [
+    'attribute' => 'score',
+    'format' => 'raw',
+    'headerOptions' => ['width' => '10%'],
+    'label' => Yii::t('app', 'Score'),
+    'value' => function ($grade) {
+        return $grade['score'] . ((int)$grade['type'] === 1 ? '%' : '');
+    }
+];
+$columns[] = [
+  'attribute' => 'userName',
+  'format' => 'raw',
+  'label' => Yii::t('app', 'Added by'),
+  'value' => function ($grade) {
+      return $grade['userName'];
+  }
+];
+if (((int)Yii::$app->session->get('user.ustatus') === 3 ||
+   (int)Yii::$app->session->get('user.ustatus') === 4) &&
+   (int)$student->active === 1) {
+    $columns[] = [
+        'class' => 'yii\grid\ActionColumn',
+        'header' => Yii::t('app', 'Act.'),
+        'headerOptions' => ['width' => '10%'],
+        'template' => '{pdf}{delete}',
+        'buttons' => [
+            'pdf' => function ($url, $grade) {
+                return Html::a(
+                    Html::tag('i',
+                    '',
+                    [
+                        'class' => 'glyphicon glyphicon-print',
+                        'aria-hidden' => true,
+                    ]),
+                    ['student-grade/download-attestation', 'id' => $grade['id']],
+                    [
+                        'class' => 'btn btn-default btn-xs',
+                        'style' => 'margin-right: 0.2rem',
+                        'target' => '_blank',
+                    ]
+                );
+            },
+            'delete' => function ($url, $grade) {
+                return Html::a(
+                    Html::tag('i',
+                    '',
+                    [
+                      'class' => 'glyphicon glyphicon-trash',
+                      'aria-hidden' => true,
+                    ]
+                    ),
+                    ['student-grade/delete', 'id' => $grade['id']],
+                    [
+                        'class' => 'btn btn-danger btn-xs',
+                        'data' => [
+                          'method' => 'post',
+                        ],
+                    ]
+                );
+            }
+        ],
+    ];
+}
 ?>
 <div class="row row-offcanvas row-offcanvas-left student_grade-create">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
@@ -52,39 +143,10 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Add attestation');
                 'studentId' => $student->id,
             ]) ?>
         <?php } ?>
-        <table class="table table-bordered table-hover table-stripped table-condensed">
-          <thead>
-            <tr>
-              <th><?= Yii::t('app', 'Date') ?></th>
-              <th><?= Yii::t('app', 'Description') ?></th>
-              <th><?= Yii::t('app', 'Score') ?></th>
-              <th><?= Yii::t('app', 'Added by') ?></th>
-              <?php if (
-                ((int)Yii::$app->session->get('user.ustatus') === 3
-                || (int)Yii::$app->session->get('user.ustatus') === 4)
-                && (int)$student->active === 1
-              ) { ?>
-                <th><?= Yii::t('app', 'Actions') ?></th>
-              <?php } ?>
-            </tr>
-          </thead>
-          <tbody>
-            <?php foreach ($grades as $grade) { ?>
-              <tr>
-                <td><?= date('d.m.Y', strtotime($grade['date'])) ?></td>
-                <td><?= $grade['description'] ?></td>
-                <td><?= $grade['score'] ?><?= (int)$grade['type'] === 1 ? '%' : '' ?></td>
-                <td><?= $grade['userName'] ?></td>
-                <?php if (
-                  ((int)Yii::$app->session->get('user.ustatus') === 3
-                  || (int)Yii::$app->session->get('user.ustatus') === 4)
-                  && (int)$student->active === 1
-                ) { ?>
-                  <td><?= Html::a('<i class="fa fa-trash"></i>', ['student-grade/delete', 'id' => $grade['id']]) ?></td>
-                <?php } ?>
-              </tr>
-            <?php } ?>
-          </tbody>
-        </table>
+        <?= GridView::widget([
+            'dataProvider' => $grades,
+            'layout' => "{items}\n{pager}",
+            'columns' => $columns,
+        ])?>
     </div>
 </div>
