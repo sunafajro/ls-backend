@@ -50,7 +50,7 @@ class Office extends \yii\db\ActiveRecord
     }
 
     // возвращает список офисов по которым есть занятия в расписании
-    public static function getOfficeBySchedule()
+    public function getOfficeBySchedule()
     {
         $offices = (new \yii\db\Query())
         ->select('o.id as id, o.name as name')
@@ -80,7 +80,7 @@ class Office extends \yii\db\ActiveRecord
     }
 
     /* возвращает список действующих офисов */
-    public static function getOfficesList($id = null)
+    public function getOfficesList($id = null)
     {
         $offices = (new \yii\db\Query())
         ->select('co.id as id, co.name as name')

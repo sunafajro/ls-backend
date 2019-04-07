@@ -40,7 +40,7 @@ class Eduage extends \yii\db\ActiveRecord
         ];
     }
 
-    public static function getEduages()
+    public function getEduages()
     {
     	$data = (new \yii\db\Query())
     	->select('id as id, name as name')

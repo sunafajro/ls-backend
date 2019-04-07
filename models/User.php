@@ -179,7 +179,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     }
 
     /* возвращает данные пользователя, для информационного блока */
-    public static function getUserInfo()
+    public function getUserInfo()
     {
         $userData = [];
 
@@ -193,6 +193,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
         $userData['role'] = Yii::$app->session->get('user.stname');
         if((int)Yii::$app->session->get('user.ustatus') === 4) {
             $userData['office'] = Yii::$app->session->get('user.uoffice');
+            $userData['officeId'] = Yii::$app->session->get('user.uoffice_id');
         } else {
             $userData['office'] = null;
         }
@@ -349,8 +350,34 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
                 }
                 break;
             /* подраздел аттестации клиента */
-
             /* раздел Клиенты */
+
+            /* раздел Расписание */
+            case 'schedule':
+            if ($action === 'api-actions' ||
+                $action === 'api-create' ||
+                $action === 'api-delete' ||
+                $action === 'api-filters' ||
+                $action === 'api-groups' ||
+                $action === 'api-hours' ||
+                $action === 'api-lessons' ||
+                $action === 'api-offices' ||
+                $action === 'api-rooms' ||
+                $action === 'api-teachers' ||
+                $action === 'api-update' ||
+                $action === 'index') {
+                switch(Yii::$app->session->get('user.ustatus')) {
+                    case 3: $result = true; break;
+                    case 4: $result = true; break;
+                    case 5: $result = true; break;
+                    case 6: $result = true; break;
+                    case 10: $result = true; break;
+                    default: $result = false;
+                }
+            }
+            break;
+            /* раздел Расписание */
+
             /* раздел Переводы */
             case 'langtranslator':
                 switch(Yii::$app->session->get('user.ustatus')) {

@@ -316,8 +316,18 @@ class UserController extends Controller
     public function actionGetInfo()
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
+        $user = new User();
         return [
-            'userData' => User::getUserInfo()
+            'userData' => $user->getUserInfo()
         ];
     }
+    public function actionApiInfo()
+    {
+        $user = new User();
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        return [
+            'userData' => $user->getUserInfo()
+        ];
+    }
+
 }
