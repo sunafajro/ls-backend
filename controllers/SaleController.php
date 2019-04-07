@@ -81,7 +81,8 @@ class SaleController extends Controller
         /* запрос на все данные для приложения */
         if(!Yii::$app->request->post('Sale')) {
             /* готовим данные для блока польователя */
-            $userData = User::getUserInfo();
+            $user = new User();
+            $userData = $user->getUserInfo();
 
             /* типы скидок */
             $type = [
