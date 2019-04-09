@@ -4,14 +4,13 @@ namespace app\controllers;
 
 use Yii;
 use app\models\AccrualTeacher;
+use app\models\LanguagePremium;
 use app\models\Teacher;
-use app\models\Tool;
+use app\models\TeacherLanguagePremium;
 use app\models\User;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
-use yii\web\Response;
 use yii\filters\AccessControl;
-use yii\filters\VerbFilter;
 use yii\data\Pagination;
 
 /**
@@ -24,32 +23,47 @@ class TeacherController extends Controller
         return [
 	    'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['index','view','create','update','delete','enable','disable'],
+                'only' => [
+					'index',
+					'view',
+					'create',
+					'update',
+					'delete',
+					'enable',
+					'language-premiums',
+					'delete-language-premium',
+			    ],
                 'rules' => [
                     [
-                        'actions' => ['index','view','create','update','delete','enable','disable'],
+                        'actions' => [
+							'index',
+							'view',
+							'create',
+							'update',
+							'delete',
+							'enable',
+							'language-premiums',
+							'delete-language-premium',
+						],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index','view','create','update','delete','enable','disable'],
+                        'actions' => [
+							'index',
+							'view',
+							'create',
+							'update',
+							'delete',
+							'enable',
+							'language-premiums',
+							'delete-language-premium',
+						],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
-                    //[
-                    //   'actions' => ['delete'],
-                    //   'allow' => false,
-                    //   'roles' => ['@'],
-                    //],
                 ],
             ],
-
-            //'verbs' => [
-            //    'class' => VerbFilter::className(),
-            //    'actions' => [
-            //        'delete' => ['post'],
-            //    ],
-            //],
         ];
     }
 
@@ -481,7 +495,7 @@ class TeacherController extends Controller
 		->where('calc_teacher=:tid and done!=:one and visible=:one', [':tid'=>$id, ':one'=>1])
 		->one();
 
-		$acc = AccrualTeacher::calculateFullTeacherAccrual($id);
+		$acc = AccrualTeacher::calculateFullTeacherAccrual((int)$id);
 		return $this->render('view', [
 			'model' => $model,
 			'teachertax'=> $teachertax,
@@ -617,6 +631,64 @@ class TeacherController extends Controller
             return $this->redirect(['index']);
         }
 	}
+
+	public function actionLanguagePremiums($tid)
+	{
+		/* получаем текущие надбавки преподавателя */
+		$teacherLanguagePremium = new TeacherLanguagePremium();
+        $teacherPremiums = $teacherLanguagePremium->getTeacherLanguagePremiums($tid);
+        // $params = NULL;
+        // if(!empty($teacherPremiums)) {
+        //     foreach($teacherPremiums as $tlp) {
+        //         $params[] = $tlp['lpid'];
+        //     }
+        // }
+        /* запрашиваем список надбавок из справочника за исключением уже назначенных */
+        $premium = new LanguagePremium();
+        $premiums = $premium->getLanguagePremiumsSimple();
+        
+        $model = new TeacherLanguagePremium();
+        if ($model->load(Yii::$app->request->post())) {
+            if ((int)$model->language_premium_id !== 0 && (int)$model->company !== 0) {
+                $teacherLanguagePremium->removeDuplicateLanguagePremium($model->language_premium_id, $model->company, $tid);
+                $model->teacher_id = $tid;
+                $model->user_id = Yii::$app->session->get('user.uid');
+                $model->created_at = date('Y-m-d');
+                $model->visible = 1;
+                if ($model->save()) {
+                    Yii::$app->session->setFlash('success', Yii::t('app','Language premium successfully added to the teacher!'));
+                } else {
+                    Yii::$app->session->setFlash('success', Yii::t('app','Failed to add language premium to the teacher!'));
+                }
+            } else {
+                Yii::$app->session->setFlash('success', Yii::t('app','Failed to add language premium to the teacher!'));
+            }
+
+            $this->redirect(['language-premiums', 'tid' => $tid]);
+        }
+
+        return $this->render('language-premiums', [
+            'model'            => $model,
+            'teacher'          => Teacher::findOne($tid),
+            'premiums'         => $premiums,
+            'teacherPremiums'  => $teacherPremiums,
+            'userInfoBlock'    => User::getUserInfoBlock(),
+        ]);
+	}
+
+	public function actionDeleteLanguagePremium($id, $tid)
+    {
+        if (($model = TeacherLanguagePremium::findOne($id)) !== NULL) {
+            $model->visible = 0;
+            if ($model->save()) {
+                Yii::$app->session->setFlash('success', Yii::t('app','Teacher language premium successfully removed!'));
+            } else {
+                Yii::$app->session->setFlash('success', Yii::t('app','Failed to remove teacher language premium!'));
+            }
+        }
+
+        return $this->redirect(['teacher/language-premiums', 'tid' => $tid]);
+    }
 
     /**
      * Finds the CalcTeacher model based on its primary key value.

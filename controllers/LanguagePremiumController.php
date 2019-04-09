@@ -4,16 +4,14 @@ namespace app\controllers;
 
 use Yii;
 use app\models\AccessRule;
-use app\models\Langpremium;
+use app\models\LanguagePremium;
 use app\models\Tool;
 use yii\web\Controller;
 use yii\web\Response;
 use yii\web\ForbiddenHttpException;
 use yii\filters\AccessControl;
-/**
- * LangteacherController implements the CRUD actions for CalcLangteacher model.
- */
-class LangpremiumController extends Controller
+
+class LanguagePremiumController extends Controller
 {
     public function behaviors()
     {
@@ -56,9 +54,10 @@ class LangpremiumController extends Controller
     public function actionIndex()
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        $data = Langpremium::getLangPremiums();
+        $premium = new LanguagePremium();
+        $data = $premium->getLanguagePremiums();
         return [
-            'actions' => AccessRule::GetCRUD('langpremium'),
+            'actions' => AccessRule::GetCRUD('language_premiums'),
             'columns' => $data['columns'] ? $data['columns'] : [],
             'data'    => $data['data'] ? $data['data'] : [],
             'status'  => true,
@@ -74,11 +73,11 @@ class LangpremiumController extends Controller
     public function actionCreate()
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        $model = new Langpremium();
+        $model = new LanguagePremium();
 
         if (Yii::$app->request->post() && $model->load(Yii::$app->request->post())) {            
             $model->created_at = date('Y-m-d');            
-            $model->user = Yii::$app->session->get('user.uid');
+            $model->user_id = Yii::$app->session->get('user.uid');
             $model->visible = 1;
             if($model->save()) {
                 return [
@@ -98,41 +97,11 @@ class LangpremiumController extends Controller
         }
     }
 
-    /**
-     * Updates an existing Langpremium model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param integer $id
-     * @return mixed
-     */
-    // public function actionUpdate($id)
-    // {
-    //     Yii::$app->response->format = Response::FORMAT_JSON;
-    //     if (Yii::$app->request->post()) {
-    //         if (($model = Langpremium::findOne($id)) !== NULL) {
-    //             if ($model->load(Yii::$app->request->post()) && $model->save()) {
-    //                 return [
-    //                     'status' => true,
-    //                     'text' => Yii::t('app','Language premium successfully updated!')
-    //                 ];
-    //             } else {
-    //                 return [
-    //                     'status' => false,
-    //                     'text' => Yii::t('app','Language premium update failed!')
-    //                 ];
-    //             }
-    //         } else {
-    //             return Tool::objectNotFound();
-    //         }
-    //     } else {
-    //         return Tool::methodNotAllowed();
-    //     }
-    // }
-
     public function actionDelete($id)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         if (Yii::$app->request->post()) {
-            if (($model = Langpremium::findOne($id)) !== NULL) {
+            if (($model = LanguagePremium::findOne($id)) !== NULL) {
                 $model->visible = 0;
                 $model->save();
                 return [

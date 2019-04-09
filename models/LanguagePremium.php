@@ -3,25 +3,25 @@
 namespace app\models;
 
 use Yii;
-
+use app\models\Lang;
 /**
- * This is the model class for table "calc_langpremium".
+ * This is the model class for table "language_premiums".
  *
  * @property integer $id
- * @property integer $calc_lang
+ * @property integer $language_id
  * @property integer $value
- * @property integer $user
+ * @property integer $user_id
  * @property string $created_at
  * @property integer $visible
  */
-class Langpremium extends \yii\db\ActiveRecord
+class LanguagePremium extends \yii\db\ActiveRecord
 {
     /**
      * @inheritdoc
      */
     public static function tableName()
     {
-        return 'calc_langpremium';
+        return 'language_premiums';
     }
 
     /**
@@ -30,8 +30,8 @@ class Langpremium extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['calc_lang', 'value', 'user', 'created_at', 'visible'], 'required'],
-            [['calc_lang', 'value', 'user', 'visible'], 'integer'],
+            [['language_id', 'value', 'user_id', 'created_at', 'visible', 'company'], 'required'],
+            [['language_id', 'value', 'user_id', 'visible'], 'integer'],
             [['created_at'], 'safe'],
         ];
     }
@@ -42,20 +42,30 @@ class Langpremium extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => Yii::t('app', 'ID'),
-            'calc_lang' => Yii::t('app', 'Language'),
-            'value' => Yii::t('app', 'Value'),
-            'visible' => Yii::t('app', 'Visible'),
+            'id'          => Yii::t('app', 'ID'),
+            'language_id' => Yii::t('app', 'Language'),
+            'value'       => Yii::t('app', 'Value'),
+            'user_id'     => Yii::t('app', 'User'),
+            'created_at'  => Yii::t('app', 'Creation date'),
+            'visible'     => Yii::t('app', 'Visible'),
+            'company'     => Yii::t('app', 'Company'),
         ];
     }
 
-    public static function getLangPremiums($params = NULL)
+    public function getLanguagePremiums($params = NULL)
     {
         $lp = (new yii\db\Query())
-        ->select(['id' => 'lp.id', 'language' => 'l.name', 'value' => 'lp.value'])
-        ->from('calc_langpremium lp')
-        ->innerJoin('calc_lang l', 'lp.calc_lang=l.id')
-        ->where('lp.visible=:one AND l.visible=:one', [':one' => 1])
+        ->select([
+            'id'       => 'lp.id',
+            'language' => 'l.name',
+            'value'    => 'lp.value',
+        ])
+        ->from(['lp' => static::tableName()])
+        ->innerJoin(['l' => Lang::tableName()], 'lp.language_id = l.id')
+        ->where([
+            'lp.visible' => 1,
+            'l.visible'  => 1
+        ])
         ->andFilterWhere(['not in', 'lp.id', $params])
         ->orderby(['l.name' => SORT_ASC, 'lp.value' => SORT_ASC])
         ->all();
@@ -77,15 +87,20 @@ class Langpremium extends \yii\db\ActiveRecord
                     'name' => Yii::t('app', 'Value'),
                     'show' => true
                 ],
+                [
+                    'id'   => 'company',
+                    'name' => Yii::t('app', 'Company'),
+                    'show' => true
+                ],
             ],
             'data'    => $lp
         ];
     }
 
-    public static function getLangPremiumsSimple($params = NULL)
+    public function getLanguagePremiumsSimple($params = NULL)
     {
         $result = [];
-        $lps = self::getLangpremiums($params);
+        $lps = $this->getLanguagePremiums($params);
         if(!empty($lps)) {
             foreach($lps['data'] as $lp) {
                 $result[$lp['id']] = $lp['language'] . ' ' . $lp['value'] . ' р.';

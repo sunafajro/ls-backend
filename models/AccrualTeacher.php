@@ -5,7 +5,7 @@ namespace app\models;
 use Yii;
 use app\models\Coefficient;
 use app\models\Edunormteacher;
-use app\models\Teacherlangpremium;
+use app\models\TeacherLanguagePremium;
 /**
  * This is the model class for table "calc_accrualteacher".
  *
@@ -173,15 +173,16 @@ class AccrualTeacher extends \yii\db\ActiveRecord
 	 * @param integer id
 	 * @return float
      */
-	public static function calculateFullTeacherAccrual($id, $gid = NULL) 
+	public static function calculateFullTeacherAccrual(int $id, int $gid = NULL) 
 	{
 		/* получаем нормы оплаты преподавателя и ставку */
         if (!empty($edunorm = Edunormteacher::getTeacherTaxesForAccrual($id))) {
             /* получаем надбавки за языки */
-            $langprem = Teacherlangpremium::getTeacherLangPremiumsForAccrual($id);
+            $teacherLanguagePremium = new TeacherLanguagePremium();
+            $langprem = $teacherLanguagePremium->getTeacherLanguagePremiumsForAccrual($id);
 			/* получаем данные по занятиям */
 			$list = [$id];
-			$order = ['jg.data'=>SORT_DESC];
+			$order = ['jg.data' => SORT_DESC];
 			if (!empty($lessons = self::getViewedLessonList($list, $order, $gid))) {
                 /* задаем переменную для подсчета суммы начисления */
                 $accrual = 0;
@@ -189,7 +190,7 @@ class AccrualTeacher extends \yii\db\ActiveRecord
                 $i = 0;
                 $lp = 0;
                 foreach ($lessons as $lesson) {
-                    $norm = isset($edunorm['norm'][$lesson['tjplace']]) ? $edunorm['norm'][$lesson['tjplace']] : 0;
+                    $norm = $edunorm['norm'][$lesson['tjplace']] ?? 0;
                     /* 
                      * вызываем функцию расчета стоимости начисления за урок 
                      * и считаем суммарное начисление по всем урокам
@@ -198,7 +199,7 @@ class AccrualTeacher extends \yii\db\ActiveRecord
                         $lesson, 
                         $norm, 
                         $edunorm['corp'],
-                        isset($langprem['prem'][$lesson['lang_id']]) ? $langprem['prem'][$lesson['lang_id']] : 0
+                        $langprem['prem'][$lesson['lang_id']][$lesson['tjplace']] ?? 0
                     );
                     $accrual += $result['accrual'];
                     $lids[] = $lesson['jid'];
@@ -214,7 +215,7 @@ class AccrualTeacher extends \yii\db\ActiveRecord
                 return [
                     'lessons' => $lessons,
                     'accrual' => round($accrual, 2),
-                    'norm' => isset($edunorm['normid'][$lesson['tjplace']]) ? $edunorm['normid'][$lesson['tjplace']] : 0,
+                    'norm' => $edunorm['normid'][$lesson['tjplace']] ?? 0,
                     'corp' => $edunorm['corp'],
                     'prem' => $lp,
                     'lids' => $lids
@@ -256,12 +257,13 @@ class AccrualTeacher extends \yii\db\ActiveRecord
 		foreach($teachers as $t) {
 			if((int)$t['id'] === (int)$lesson['tid']) {
                 /* получаем надбавки за языки */
-                $langprem = Teacherlangpremium::getTeacherLangPremiumsForAccrual((int)$t['id']);
+                $teacherLanguagePremium = new TeacherLanguagePremium();
+                $langprem = $teacherLanguagePremium->getTeacherLanguagePremiumsForAccrual((int)$t['id']);
 				$accrual = self::calculateLessonAccrual(
                     $lesson, 
-                    isset($t['value'][$lesson['tjplace']]) ? $t['value'][$lesson['tjplace']] : 0, 
+                    $t['value'][$lesson['tjplace']] ?? 0, 
                     $t['vcorp'],
-                    isset($langprem['prem'][$lesson['lang_id']]) ? $langprem['prem'][$lesson['lang_id']] : 0
+                    $langprem['prem'][$lesson['lang_id']][$lesson['tjplace']] ?? 0
                 )['accrual'];
                 break;
 			}

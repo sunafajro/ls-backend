@@ -1,13 +1,20 @@
 <?php
-	use yii\helpers\Html;
-	use yii\widgets\Breadcrumbs;
-	$this->title = 'Система учета :: ' . Yii::t('app', 'Add language premium');
-	$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Teachers'), 'url' => ['teacher/index']];
-	$this->params['breadcrumbs'][] = ['label' => $teacher->name, 'url' => ['teacher/view', 'id'=>$teacher->id]];
-	$this->params['breadcrumbs'][] = Yii::t('app', 'Add language premium');
+/**
+ * @var app\models\TeacherLanguagePremiums $model
+ * @var array                              $premiums
+ * @var app\models\Teacher                 $teacher
+ * @var array                              $teacherPremiums
+ * @var string                             $userInfoBlock
+ */
+use yii\helpers\Html;
+use yii\widgets\Breadcrumbs;
+$this->title = 'Система учета :: ' . Yii::t('app', 'Add language premium');
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Teachers'), 'url' => ['teacher/index']];
+$this->params['breadcrumbs'][] = ['label' => $teacher->name, 'url' => ['teacher/view', 'id'=>$teacher->id]];
+$this->params['breadcrumbs'][] = Yii::t('app', 'Add language premium');
 ?>
 
-<div class="row row-offcanvas row-offcanvas-left edunorm-teacher-create">
+<div class="row row-offcanvas row-offcanvas-left teacher-language-premium-create">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
 		<?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
         <div id="main-menu"></div>
@@ -37,7 +44,7 @@
 				<?= Yii::$app->session->getFlash('success') ?>
 			</div>
 		<?php endif; ?>
-	    <?= $this->render('_form', [
+	    <?= $this->render('_form-language-premiums', [
 	        'model' => $model,
 	        'premiums' => $premiums
 	    ]) ?>
@@ -47,18 +54,20 @@
 				<tr>
 					<th class="text-center"><?= Yii::t('app', 'Language') ?></th>
 					<th class="text-center"><?= Yii::t('app', 'Value') ?></th>
+					<th class="text-center"><?= Yii::t('app', 'Job place') ?></th>
 					<th class="text-center"><?= Yii::t('app', 'Assign date') ?></th>
 					<th class="text-center"><?= Yii::t('app', 'Act.') ?></th>
 				</tr>
 			</thead>
 			<tbody>
-			<?php foreach($teacher_premiums as $tp) : ?>
+			<?php foreach($teacherPremiums as $tp) : ?>
 				<tr>
 					<td><?= $tp['language'] ?></td>
 					<td class="text-center"><?= $tp['value'] ?></td>
+					<td class="text-center"><?= Yii::$app->params['jobPlaces'][$tp['company']] ?></td>
 					<td class="text-center"><?= $tp['created_at'] ?></td>
 					<td class="text-center">
-						<?= Html::a('<i class="fa fa-trash"></i>', ['teacherlangpremium/delete', 'id' => $tp['tlpid'], 'tid' => $teacher->id]) ?>
+						<?= Html::a('<i class="fa fa-trash"></i>', ['teacher/delete-language-premium', 'id' => $tp['tlpid'], 'tid' => $teacher->id]) ?>
 					</td>
 				</tr>
 			<?php endforeach; ?>
