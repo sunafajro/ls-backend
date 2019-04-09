@@ -119,13 +119,15 @@ class InvoiceController extends Controller
                 'saveErrorMessage' => Yii::t('app', 'Failed to save the invoice on server!'),
                 'saveSuccessMessage' => Yii::t('app', 'The invoice successfully saved on server!'),
             ];
+            $office = new Office();
+            $user = new User();
             return [
-                'userData' => User::getUserInfo(),
+                'userData' => $user->getUserInfo(),
                 'hints' => $hints,
                 'services' => Service::getInvoiceServicesList(),
                 'rubsales'  => $sales['rub'],
                 'procsales' => $sales['proc'],
-                'offices' => (int)Yii::$app->session->get('user.ustatus') !== 4 ? Office::getOfficesList() : [],
+                'offices' => (int)Yii::$app->session->get('user.ustatus') !== 4 ? $office->getOfficesList() : [],
                 'permsale'  => Salestud::getClientPermamentSale($sid),
                 'labels' => $labels
             ];

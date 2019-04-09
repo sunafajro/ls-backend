@@ -953,7 +953,8 @@ class ReportController extends Controller
                 $i = 0;
                 // распечатываем массив
                 foreach($students as $service){
-                    $schedule = Schedule::getStudentSchedule($service['stid']);
+                    $schedule = new Schedule();
+                    $studentSchedule = $schedule->getStudentSchedule($service['stid']);
                     // запрашиваем из базы колич пройденных уроков
                     $lssns = (new \yii\db\Query())
                     ->select('COUNT(sjg.id) AS cnt')
@@ -965,7 +966,7 @@ class ReportController extends Controller
                     // считаем остаток уроков
                     $cnt = $students[$i]['num'] - $lssns['cnt'];
                     $students[$i]['num'] = $cnt;
-                    $students[$i]['npd'] = Moneystud::getNextPaymentDay($schedule, $service['sid'], $cnt);
+                    $students[$i]['npd'] = Moneystud::getNextPaymentDay($studentSchedule, $service['sid'], $cnt);
                     $i++;
                 }
                 unset($service);

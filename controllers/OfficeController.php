@@ -60,6 +60,7 @@ class OfficeController extends Controller
     public function actionIndex($type = null)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
+        $office = new Office();
         if ($type === 'with_cities') {
             $data = Office::getOfficesWithCitiesList();
             return [
@@ -71,7 +72,7 @@ class OfficeController extends Controller
         } else {
             return [
                 'status'  => true,
-                'offices' => Office::getOfficesList()
+                'offices' => $office->getOfficesList(),
             ];
         }
 

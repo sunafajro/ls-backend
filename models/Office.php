@@ -66,7 +66,8 @@ class Office extends \yii\db\ActiveRecord
     public static function getOfficeInScheduleListSimple()
     {
         $offices = [];
-        $tmp_offices = static::getOfficeBySchedule();
+        $office = new Office();
+        $tmp_offices = $office->getOfficeBySchedule();
         
         // если массив не пустой, формируем простой одноуровневый список
         if(!empty($tmp_offices)) {
@@ -142,8 +143,8 @@ class Office extends \yii\db\ActiveRecord
     public static function getOfficesListSimple($id = null)
     {
         $offices = [];
-
-        $tmp_offices = static::getOfficesList($id);
+        $office = new Office();
+        $tmp_offices = $office->getOfficesList($id);
         
         /* если массив не пустой, формируем из него простой одномерный */
         if(!empty($tmp_offices)) {
