@@ -2,5 +2,7 @@
 
 return [
     'adminEmail' => 'admin@example.com',
-    'appMode' => 'standalone',
+    'appMode'    => 'standalone',
+    'appTitle'   => 'Система учета :: ',
+    'jobPlaces'  => ['1' => 'ШИЯ', '2' => 'СРР'],
 ];

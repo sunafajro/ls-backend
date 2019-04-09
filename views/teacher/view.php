@@ -72,7 +72,7 @@
                 <?= Html::a('<span class="fa fa-money" aria-hidden="true"></span> ' . Yii::t('app', 'Add rate'), ['edunormteacher/create','tid'=>$model->id], ['class' => 'btn btn-default btn-sm btn-block', 'title' => Yii::t('app','Add rate')]) ?>
             <?php endif; ?>
             <?php if ((int)Yii::$app->session->get('user.uid') !== 296 && (int)Yii::$app->session->get('user.ustatus') !== 4) : ?>
-            <?= Html::a('<span class="fa fa-gift" aria-hidden="true"></span> ' . Yii::t('app', 'Add premium'), ['teacherlangpremium/create','tid'=>$model->id], ['class' => 'btn btn-default btn-sm btn-block', 'title' => Yii::t('app','Add premium')]) ?>
+            <?= Html::a('<span class="fa fa-gift" aria-hidden="true"></span> ' . Yii::t('app', 'Add premium'), ['teacher/language-premiums','tid'=>$model->id], ['class' => 'btn btn-default btn-sm btn-block', 'title' => Yii::t('app','Add premium')]) ?>
             <?php endif; ?>
             <?= Html::a('<span class="fa fa-pencil" aria-hidden="true"></span> ' . Yii::t('app', 'Edit'), ['teacher/update','id'=>$model->id], ['class' => 'btn btn-warning btn-sm btn-block', 'title' => Yii::t('app','Edit teacher')]) ?>
             <?php if ((int)Yii::$app->session->get('user.uid') !== 296 && (int)Yii::$app->session->get('user.ustatus') !== 4) : ?>
@@ -112,7 +112,7 @@
                     $places[$tax['tjplace']] = $str;
                   }
                   ksort($places);
-                  echo ' :: ' . implode($places, ' / ');
+                  echo ' :: ' . implode(' / ', $places);
                 }
             ?>
         </h4>

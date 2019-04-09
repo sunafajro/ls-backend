@@ -47,13 +47,16 @@ $config = [
             		],
         	    ],
         ],
-        // 'session' => [
-        //     'class' => 'yii\web\DbSession',
-        // ],
         'urlManager' => [
             'class' => 'yii\web\UrlManager',
             'showScriptName' => false,
             'enablePrettyUrl' => true,
+            'rules' => [
+                '/schedule' => '/schedule/index',
+                '/schedule/<action>' => '/schedule/index',
+                '/api/schedule/<tag>' => '/schedule/api-<tag>',
+                '/api/user/<tag>' => '/user/api-<tag>',
+            ]
         ],
     ],
     'params' => $params,
@@ -63,7 +66,7 @@ if (YII_ENV_DEV) {
     // configuration adjustments for 'dev' environment
     $config['bootstrap'][] = 'debug';
     $config['modules']['debug']['class'] = 'yii\debug\Module';
-    $config['modules']['debug']['allowedIPs'] = ['127.0.0.1','::1'];
+    $config['modules']['debug']['allowedIPs'] = ['127.0.0.1','::1', '*'];
 
     // $config['bootstrap'][] = 'gii';
     // $config['modules']['gii']['class'] = 'yii\gii\Module';

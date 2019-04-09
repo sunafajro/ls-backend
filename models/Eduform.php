@@ -40,7 +40,7 @@ class Eduform extends \yii\db\ActiveRecord
         ];
     }
 
-    public static function getEduforms()
+    public function getEduforms()
     {
     	$data = (new \yii\db\Query())
     	->select('id as id, name as name')

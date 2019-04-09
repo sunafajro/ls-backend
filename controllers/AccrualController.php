@@ -55,7 +55,7 @@ class AccrualController extends Controller
 		    $page = Yii::$app->request->get('page');
 		}
 		
-        $calculate = AccrualTeacher::calculateFullTeacherAccrual($tid, $gid);
+        $calculate = AccrualTeacher::calculateFullTeacherAccrual((int)$tid, (int)$gid);
 
 		// заливаем данные о начислении в модель
 		$model = new AccrualTeacher();

@@ -302,7 +302,8 @@ class StudnameController extends Controller
 			$permsale = Salestud::getClientPermamentSale($id);
 
             // расписание студента
-            $schedule = Schedule::getStudentSchedule($id);
+            $schedule = new Schedule();
+            $studentSchedule = $schedule->getStudentSchedule($id);
 
             // запрашиваем услуги назначенные студенту
             $services = (new \yii\db\Query())
@@ -333,7 +334,7 @@ class StudnameController extends Controller
                     // считаем остаток уроков
                     $cnt = $services[$i]['num'] - $lessons['cnt'];
                     $services[$i]['num'] = $cnt;
-                    $services[$i]['npd'] = Moneystud::getNextPaymentDay($schedule, $service['sid'], $cnt);
+                    $services[$i]['npd'] = Moneystud::getNextPaymentDay($studentSchedule, $service['sid'], $cnt);
                     $i++;
                 }
                 unset($service);
@@ -343,7 +344,7 @@ class StudnameController extends Controller
             $studsales = [];
             $permsale = [];
             $services = [];
-            $schedule = [];
+            $studentSchedule = [];
         }
         
         /* вкладка Счета */
@@ -431,7 +432,7 @@ class StudnameController extends Controller
             $groups = [];
             $lessons = [];
         }
-
+        $office = new Office();
         return $this->render('view', [
             'model'         => $this->findModel($id),
             'invoices'      => $invoices,
@@ -440,7 +441,7 @@ class StudnameController extends Controller
             'lessons'       => $lessons,
             'studsales'     => $studsales,
             'services'      => $services,
-            'schedule'      => $schedule,
+            'schedule'      => $studentSchedule,
             'years'         => $years,
             'invcount'      => $invcount,
             'clientaccess'  => ClientAccess::find()->where(['calc_studname'=>$id])->one(),
@@ -448,7 +449,7 @@ class StudnameController extends Controller
             'userInfoBlock' => $userInfoBlock,
             'offices'       => [
                 'added' => Student::getStudentOffices($id),
-                'all'   => Office::getOfficesList(),
+                'all'   => $office->getOfficesList(),
             ],
             'contracts'     => Contract::getClientContracts($id)
             //'debt'=>number_format($this->studentDebt($id), 1, '.', ' '),
