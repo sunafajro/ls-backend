@@ -7,6 +7,6 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Schedule');
 ?>
 <div id="app" data-mode="<?=Yii::$app->params['appMode']?>"></div>
 <?php
-$this->registerJsFile('/js/schedule/vendors-' . Yii::$app->params['appMode'] . '.js', ['position' => yii\web\View::POS_END]);
-$this->registerJsFile('/js/schedule/app-' . Yii::$app->params['appMode'] . '.js', ['position' => yii\web\View::POS_END]);
+$this->registerJsFile('/js/schedule/vendors.js', ['position' => yii\web\View::POS_END]);
+$this->registerJsFile('/js/schedule/app.js', ['position' => yii\web\View::POS_END]);
 ?>
