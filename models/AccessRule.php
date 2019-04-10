@@ -95,7 +95,7 @@ class AccessRule extends \yii\db\ActiveRecord
         ];
     }
 
-    public static function GetCRUD($controller)
+    public static function GetCRUD(string $controller)
     {
         return [
             'create' => static::CheckAccess($controller, 'create'),
@@ -104,11 +104,16 @@ class AccessRule extends \yii\db\ActiveRecord
         ];
     }
 
-    public static function CheckAccess($controller = NULL, $action = NULL)
+    public static function CheckAccess(string $controller, string $action)
     {
         $result = NULL;
         if ($controller && $action) {
-            $result = AccessRule::find()->where('action=:action AND controller=:controller AND role=:role', [':action' => $action, ':controller' => $controller, ':role' => Yii::$app->session->get('user.ustatus')])->one();
+            $result = AccessRule::find()->where([
+                'action' => $action,
+                'controller' => $controller,
+                'role' => Yii::$app->session->get('user.ustatus'),
+            ])
+            ->one();
         }
         return $result ? true : false;
     }

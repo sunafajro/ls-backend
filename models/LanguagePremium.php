@@ -48,7 +48,6 @@ class LanguagePremium extends \yii\db\ActiveRecord
             'user_id'     => Yii::t('app', 'User'),
             'created_at'  => Yii::t('app', 'Creation date'),
             'visible'     => Yii::t('app', 'Visible'),
-            'company'     => Yii::t('app', 'Company'),
         ];
     }
 
@@ -85,11 +84,6 @@ class LanguagePremium extends \yii\db\ActiveRecord
                 [
                     'id'   => 'value',
                     'name' => Yii::t('app', 'Value'),
-                    'show' => true
-                ],
-                [
-                    'id'   => 'company',
-                    'name' => Yii::t('app', 'Company'),
                     'show' => true
                 ],
             ],
