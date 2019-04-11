@@ -6,38 +6,60 @@
  */
 
 use Yii;
+use yii\helpers\Html;
+use yii\helpers\Url;
 ?>
-<div style="padding: 2rem 5rem">
-    <div style="text-align: center; font-size: 18px; margin-bottom: 2rem">
-        Негосударственное образовательное учреждение дополнительного и дополнительного профессионального образования
-    </div>
-    <div style="text-align: center; font-size: 18px; margin-bottom: 3rem">
-        Школа иностранных языков "Язык для успеха"
-    </div>
-    <div style="margin-bottom: 3rem; font-size: 18px;">
-        Дата: <?= date('d.m.Y', strtotime($attestation['date'])) ?><br />
-        Регистрационный номер: <?= date('ymd', strtotime($attestation['date'])) . '-' . $attestation['id'] ?><br />
-        г. Чебоксары<br />
-    </div>
-    <div style="margin-left: 2rem; margin-right: 2rem; margin-bottom: 1rem; font-size: 18px;">
-        Настоящим удостоверяется, что
-    </div>
-    <div style="margin-left: 2rem; margin-right: 2rem; text-align: center; margin-bottom: 1rem; font-size: 24px; font-style: italic; border-bottom: 1px solid #999999">
-        <?= $attestation['studentName'] ?>
-    </div>
-    <div style="margin-left: 2rem; margin-right: 2rem; margin-bottom: 1rem; font-size: 18px;">
-        сдал
-    </div>
-    <div style="margin-left: 2rem; margin-right: 2rem; text-align: center; margin-bottom: 1rem; font-size: 24px; font-style: italic; border-bottom: 1px solid #999999">
-        <?= $attestation['description'] ?>
-    </div>
-    <div style="margin-left: 2rem; margin-right: 2rem; margin-bottom: 1rem; font-size: 18px;">
-        и получил
-    </div>
-    <div style="margin-left: 2rem; margin-right: 2rem; text-align: center; font-size: 24px; font-style: italic; border-bottom: 1px solid #999999">
-        <?= $attestation['score'] ?>
-    </div>
-    <div style="position: fixed; bottom: 2rem">
-        Лицензия Министерства образования ЧР № 799 от 27.02.2014 г. серия 21ЛО1 № 0000152
+<div class="body">
+<div class="outer-block">
+      <div class="header-block">
+        <div class="logo-block">
+          <?= Html::img(Url::to('./uploads/yazyk_uspekha_logo_1.png'), ['class' => 'logo']) ?>
+        </div>
+        <div class="title-block">
+          <div>
+            Негосударственное образовательное учреждение дополнительного и
+            дополнительного профессионального образования
+          </div>
+          <div>
+            Школа иностранных языков "Язык для успеха"
+          </div>
+        </div>
+        <div style="clear: both"></div>
+      </div>
+      <div class="reginfo">
+          Дата: <?= date('d.m.Y', strtotime($attestation['date'])) ?><br />
+          Регистрационный номер: <?= date('ymd', strtotime($attestation['date'])) . '-' . $attestation['id'] ?><br />
+          г. Чебоксары<br />
+      </div>
+      <div class="text-description-block">
+          Настоящим удостоверяется, что
+      </div>
+      <div class="text-result-block">
+          <?= $attestation['studentName'] ?>
+      </div>
+      <div class="text-description-block">
+          сдал
+      </div>
+      <div class="text-result-block">
+          <?= $attestation['description'] ?>
+      </div>
+      <div class="text-description-block">
+          с результатом
+      </div>
+      <div class="text-result-block">
+          <?= $attestation['score'] . ((int)$attestation['type'] === 0 ? 'баллов' : (int)$attestation['type'] === 1 ? '%' : '') ?>
+      </div>
+      <div class="sign-block">
+        <div class="left-sign-block">
+            Директор   
+        </div>
+        <div class="right-sign-block">
+            Филиппова А.К.
+        </div>
+        <div style="clear: both"></div>
+      </div>
+      <div class="licence">
+          Лицензия Министерства образования ЧР № 799 от 27.02.2014 г. серия 21ЛО1 № 0000152
+      </div>
     </div>
 </div>

@@ -121,14 +121,19 @@ class StudentGradeController extends Controller
             $pdf = new Pdf([
                 'mode'        => Pdf::MODE_UTF8,
                 'format'      => Pdf::FORMAT_A4,
-                'orientation' => Pdf::ORIENT_PORTRAIT,
+                'orientation' => Pdf::ORIENT_LANDSCAPE,
                 'destination' => Pdf::DEST_BROWSER, 
                 'content'     => $this->renderPartial('_viewPdf', ['attestation' => $attestation]),
-                'cssFile'     => '@vendor/kartik-v/yii2-mpdf/src/assets/kv-mpdf-bootstrap.min.css',
-                'cssInline'   => '.kv-heading-1{font-size:18px}', 
+                'cssFile'     => '@app/web/css/print_attestate.css',
                 'options'     => [
                     'title'   => Yii::t('app', 'Attestation'),
                 ],
+                'marginHeader' => 0,
+                'marginFooter' => 0,
+                'marginTop'    => 0,
+                'marginBottom' => 0,
+                'marginLeft'   => 0,
+                'marginRight'  => 0,
             ]);
             return $pdf->render();
         } else {
