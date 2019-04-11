@@ -37,6 +37,7 @@
 .text-description-block {
     margin: 0 5mm 5mm 5mm;
     font-size: 16pt;
+    height: 8mm;
 }
 .text-result-block {
     margin: 0 5mm 5mm 5mm;
@@ -63,6 +64,6 @@
     padding-right: 5mm;
 }
 .licence {
-    margin: 25mm 5mm 5mm 5mm;
+    margin: 15mm 5mm 5mm 5mm;
     font-size: 10pt;
 }
