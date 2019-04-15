@@ -1,13 +1,14 @@
 <?php
 
 /**
- * @var yii\web\View $this
- * @var yii\widgets\ActiveForm $form
+ * @var yii\web\View             $this
+ * @var yii\widgets\ActiveForm   $form
  * @var app\models\StudentGrades $model
- * @var app\models\Student $student
- * @var array $grades
- * @var array $gradeTypes 
- * @var $userInfoBlock
+ * @var app\models\Student       $student
+ * @var array                    $contentTypes
+ * @var array                    $grades
+ * @var array                    $exams
+ * @var string                   $userInfoBlock
  */
 
 use yii\helpers\Html;
@@ -15,7 +16,7 @@ use yii\widgets\Breadcrumbs;
 use yii\grid\GridView;
 
 $this->title = 'Система учета :: ' . Yii::t('app', 'Add attestation');
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Clients'), 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Clients'), 'url' => ['studname/index']];
 $this->params['breadcrumbs'][] = ['label' => $student->name, 'url' => ['studname/view','id' => $student->id]];
 $this->params['breadcrumbs'][] = Yii::t('app', 'Add attestation');
 
@@ -38,8 +39,26 @@ $columns[] = [
     'attribute' => 'description',
     'format' => 'raw',
     'label' => Yii::t('app', 'Description'),
-    'value' => function ($grade) {
-        return $grade['description'];
+    'value' => function ($grade) use ($exams) {
+        return $exams[$grade['description']] ?? $grade['description'];
+    }
+];
+$columns[] = [
+    'attribute' => 'contents',
+    'format' => 'raw',
+    'headerOptions' => ['width' => '20%'],
+    'label' => Yii::t('app', 'Exam contents'),
+    'value' => function ($grade) use ($contentTypes) {
+        if ($grade['contents']) {
+            $contents = [];
+            $json = json_decode($grade['contents']);
+            foreach($json as $key => $value) {
+              $contents[] = '<i>' . ($contentTypes[$key] ?? $key) . ':</i> ' . $value;
+            }
+            return implode('<br />', $contents);
+        } else {
+            return NULL;
+        }
     }
 ];
 $columns[] = [
@@ -138,15 +157,15 @@ if (((int)Yii::$app->session->get('user.ustatus') === 3 ||
             && (int)$student->active === 1
         ) { ?>
             <?= $this->render('_form', [
-                'model' => $model,
-                'gradeTypes' => $gradeTypes,
+                'model'     => $model,
+                'exams'     => $exams,
                 'studentId' => $student->id,
             ]) ?>
         <?php } ?>
         <?= GridView::widget([
             'dataProvider' => $grades,
-            'layout' => "{items}\n{pager}",
-            'columns' => $columns,
+            'layout'       => "{items}\n{pager}",
+            'columns'      => $columns,
         ])?>
     </div>
 </div>

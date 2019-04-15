@@ -14,13 +14,32 @@ use yii\data\ActiveDataProvider;
  * @property string $date
  * @property string $user
  * @property string $score
- * @property string $type
+ * @property integer $type
+ * @property string $contents
  * @property string $description
  * @property string $calc_studname
  */
 
 class StudentGrade extends \yii\db\ActiveRecord
 {
+    private $examTypes = [
+       'yleStarters' => 'YLE starters',
+       'yleMovers' => 'YLE movers',
+       'yleFlyers' => 'YLE flyers',
+       'ketA2' => 'KET - A2',
+       'petB1' => 'PET - B2',
+       'fceB2' => 'FCE - B2',
+    ];
+
+    private $examContentTypes = [
+        'listening' => 'Listening',
+        'readingAndWriting' => 'Reading & Writing',
+        'speaking' => 'Speaking',
+        'reading' => 'Reading',
+        'useOfEnglish' => 'Use of English',
+        'writing' => 'Writing',
+     ];
+
     /**
      * @inheritdoc
      */
@@ -28,7 +47,7 @@ class StudentGrade extends \yii\db\ActiveRecord
     {
         return 'student_grades';
     }
- 
+
     public static function getGradeTypes()
     {
         return [
@@ -36,17 +55,17 @@ class StudentGrade extends \yii\db\ActiveRecord
             1 => 'Проценты',
         ];
     }
-    
+
     /**
      * @inheritdoc
      */
     public function rules()
     {
         return [
-            [['user', 'calc_studname',], 'required'],
-            [['description'], 'string'],
-            [['visible', 'user', 'calc_studname', 'score', 'type'], 'integer'],
-            [['date'], 'safe']
+            [['date', 'description', 'score', 'user', 'calc_studname'], 'required'],
+            [['description', 'score'], 'string'],
+            [['visible', 'user', 'calc_studname', 'type'], 'integer'],
+            [['date', 'contents'], 'safe']
         ];
     }
 
@@ -61,8 +80,9 @@ class StudentGrade extends \yii\db\ActiveRecord
             'date' => Yii::t('app', 'Grade date'),
             'user' => Yii::t('app', 'Added by'),
             'score' => Yii::t('app', 'Score'),
-            'type' => Yii::t('app', 'Type'),
-            'description' => Yii::t('app', 'Description'),
+            'type' => Yii::t('app', 'Score type'),
+            'contents' => Yii::t('app', 'Exam contents'),
+            'description' => Yii::t('app', 'Exam description'),
             'calc_studname' => Yii::t('app', 'Student'),
         ];
     }
@@ -79,6 +99,7 @@ class StudentGrade extends \yii\db\ActiveRecord
             'score' => 'sg.score',
             'type' => 'sg.type',
             'description' => 'sg.description',
+            'contents' => 'sg.contents',
             'studentId' => 'sg.calc_studname',
             'studentName' => 's.name',
         ])
@@ -106,6 +127,7 @@ class StudentGrade extends \yii\db\ActiveRecord
             'score' => 'sg.score',
             'type' => 'sg.type',
             'description' => 'sg.description',
+            'contents' => 'sg.contents',
             'studentId' => 'sg.calc_studname',
             'studentName' => 's.name',
         ])
@@ -131,5 +153,32 @@ class StudentGrade extends \yii\db\ActiveRecord
                 ],
             ],
         ]);
+    }
+
+    public function getExams()
+    {
+        return $this->examTypes;
+    }
+
+    public function getExamContentTypes()
+    {
+        return $this->examContentTypes;
+    }
+
+    public function getExamContents($exam)
+    {
+        if ($exam === 'yleStarters' || $exam === 'yleMovers' || $exam === 'yleFlyers') {
+            return [
+                'show' => '.js--exam-contents-first',
+                'hide' => '.js--exam-contents-second',
+            ];
+        } else if ($exam === 'ketA2' || $exam === 'petB1' || $exam === 'fceB2') {
+            return [
+                'hide' => '.js--exam-contents-first',
+                'show' => '.js--exam-contents-second',
+            ];
+        } else {
+            return '';
+        }
     }
 }
