@@ -13,7 +13,7 @@ use yii\helpers\Url;
 $contents = [];
 if ($attestation['contents']) {
   $json = json_decode($attestation['contents']);
-  foreach($json as $key => $value) {
+  foreach($json ?? [] as $key => $value) {
     $contents[] = ($contentTypes[$key] ?? $key) . ': ' . $value;
   }
 }
@@ -53,7 +53,7 @@ if ($attestation['contents']) {
           <?= $exams[$attestation['description']] ?? $attestation['description'] ?>
       </div>
       <div class="text-description-block">
-          с результом
+          с результатом
       </div>
       <div class="text-result-block">
           <?= implode(', ', $contents); ?>
