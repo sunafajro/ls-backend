@@ -52,7 +52,7 @@ $columns[] = [
         if ($grade['contents']) {
             $contents = [];
             $json = json_decode($grade['contents']);
-            foreach($json as $key => $value) {
+            foreach($json ?? [] as $key => $value) {
               $contents[] = '<i>' . ($contentTypes[$key] ?? $key) . ':</i> ' . $value;
             }
             return implode('<br />', $contents);
