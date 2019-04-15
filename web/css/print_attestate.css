@@ -32,23 +32,23 @@
 }
 .reginfo {
     margin: 0 0 5mm 5mm;
-    font-size: 12pt;
+    font-size: 10pt;
 }
 .text-description-block {
     margin: 0 5mm 5mm 5mm;
     font-size: 16pt;
-    height: 8mm;
+    height: 5mm;
 }
 .text-result-block {
     margin: 0 5mm 5mm 5mm;
-    font-size: 18pt;
+    font-size: 16pt;
     text-align: center;
     font-style: italic;
     border-bottom: 1px solid #999999;
 }
 .sign-block {
     margin: 0 5mm 5mm 5mm;
-    padding: 10mm 0 0 0;
+    padding: 3mm 0 0 0;
     font-size: 14pt;
 }
 .left-sign-block {
@@ -64,6 +64,6 @@
     padding-right: 5mm;
 }
 .licence {
-    margin: 15mm 5mm 5mm 5mm;
+    margin: 5mm 5mm 5mm 5mm;
     font-size: 10pt;
 }

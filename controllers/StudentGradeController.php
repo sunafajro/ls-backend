@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use Yii;
+use app\models\AccessRule;
 use app\models\Student;
 use app\models\StudentGrade;
 use app\models\User;
@@ -11,6 +12,7 @@ use yii\filters\VerbFilter;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
+use yii\web\Response;
 use kartik\mpdf\Pdf;
 
 class StudentGradeController extends Controller
@@ -20,15 +22,15 @@ class StudentGradeController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['index', 'create', 'delete', 'download-attestation'],
+                'only' => ['index', 'create', 'delete', 'download-attestation', 'exam-contents'],
                 'rules' => [
                     [
-                        'actions' => ['index', 'create', 'delete', 'download-attestation'],
+                        'actions' => ['index', 'create', 'delete', 'download-attestation', 'exam-contents'],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index', 'create','delete', 'download-attestation'],
+                        'actions' => ['index', 'create','delete', 'download-attestation', 'exam-contents'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -47,7 +49,8 @@ class StudentGradeController extends Controller
     public function beforeAction($action)
 	{
 		if(parent::beforeAction($action)) {
-			if (User::checkAccess($action->controller->id, $action->id) === false) {
+            $rule = new AccessRule();
+			if ($rule->checkAccess($action->controller->id, $action->id) === false) {
 				throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
 			}
 			return true;
@@ -60,10 +63,13 @@ class StudentGradeController extends Controller
     {
         $model = new StudentGrade();
         $student = Student::findOne($id);
+        $exams = $model->getExams();
+        $examsAll = array_merge([NULL => Yii::t('app', 'Select an exam')], $exams);
         if ($student !== NULL) {
             return $this->render('index', [
+                'contentTypes' => $model->getExamContentTypes(),
                 'grades' => $model->getStudentGrades($id),
-                'gradeTypes' => StudentGrade::getGradeTypes(),
+                'exams' => $examsAll,
                 'model' => $model,
                 'student' => $student,
                 'userInfoBlock' => User::getUserInfoBlock()
@@ -81,6 +87,7 @@ class StudentGradeController extends Controller
             $model->load(Yii::$app->request->post());
             $model->user = Yii::$app->session->get('user.uid');
             $model->calc_studname = $id;
+            $model->contents = Yii::$app->request->post('StudentGradeContents') ?? NULL; //json_encode($contents);
             if ($model->save()) {
                 Yii::$app->session->setFlash('success', "Аттестация успешно добавлена!");
                 $model = new StudentGrade();
@@ -123,7 +130,11 @@ class StudentGradeController extends Controller
                 'format'      => Pdf::FORMAT_A4,
                 'orientation' => Pdf::ORIENT_LANDSCAPE,
                 'destination' => Pdf::DEST_BROWSER, 
-                'content'     => $this->renderPartial('_viewPdf', ['attestation' => $attestation]),
+                'content'     => $this->renderPartial('_viewPdf', [
+                    'attestation'  => $attestation,
+                    'contentTypes' => $model->getExamContentTypes(),
+                    'exams'        => $model->getExams(),
+                ]),
                 'cssFile'     => '@app/web/css/print_attestate.css',
                 'options'     => [
                     'title'   => Yii::t('app', 'Attestation'),
@@ -139,5 +150,12 @@ class StudentGradeController extends Controller
         } else {
             throw new NotFoundHttpException(Yii::t('app', 'The requested page does not exist.'));
         }
+    }
+
+    public function actionExamContents($exam)
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        $grade = new StudentGrade();
+        return $grade->getExamContents($exam);
     }
 }

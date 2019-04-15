@@ -3,11 +3,20 @@
 /**
  * @var yii\web\View $this
  * @var array $attestation
+ * @var array $contentTypes
+ * @var array $exams
  */
 
 use Yii;
 use yii\helpers\Html;
 use yii\helpers\Url;
+$contents = [];
+if ($attestation['contents']) {
+  $json = json_decode($attestation['contents']);
+  foreach($json as $key => $value) {
+    $contents[] = ($contentTypes[$key] ?? $key) . ': ' . $value;
+  }
+}
 ?>
 <div class="body">
 <div class="outer-block">
@@ -41,13 +50,19 @@ use yii\helpers\Url;
           сдал
       </div>
       <div class="text-result-block">
-          <?= $attestation['description'] ?>
+          <?= $exams[$attestation['description']] ?? $attestation['description'] ?>
       </div>
       <div class="text-description-block">
-          с результатом
+          с результом
       </div>
       <div class="text-result-block">
-          <?= $attestation['score'] . ((int)$attestation['type'] === 0 ? 'баллов' : (int)$attestation['type'] === 1 ? '%' : '') ?>
+          <?= implode(', ', $contents); ?>
+      </div>
+      <div class="text-description-block">
+          итог/уровень
+      </div>
+      <div class="text-result-block">
+          <?= $attestation['score'] ?>
       </div>
       <div class="sign-block">
         <div class="left-sign-block">
