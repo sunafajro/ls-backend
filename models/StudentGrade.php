@@ -22,23 +22,19 @@ use yii\data\ActiveDataProvider;
 
 class StudentGrade extends \yii\db\ActiveRecord
 {
-    private $examTypes = [
-       'yleStarters' => 'YLE starters',
-       'yleMovers' => 'YLE movers',
-       'yleFlyers' => 'YLE flyers',
-       'ketA2' => 'KET - A2',
-       'petB1' => 'PET - B2',
-       'fceB2' => 'FCE - B2',
-    ];
+    const EXAM_YLE_STARTERS = 'yleStarters';
+    const EXAM_YLE_MOVERS   = 'yleMovers';
+    const EXAM_YLE_FLYERS   = 'yleFlyers';
+    const EXAM_KET_A2       = 'ketA2';
+    const EXAM_PET_B1       = 'petB1';
+    const EXAM_FCE_B2       = 'fceB2';
 
-    private $examContentTypes = [
-        'listening' => 'Listening',
-        'readingAndWriting' => 'Reading & Writing',
-        'speaking' => 'Speaking',
-        'reading' => 'Reading',
-        'useOfEnglish' => 'Use of English',
-        'writing' => 'Writing',
-     ];
+    const EXAM_CONTENT_LISTENING           = 'listening';
+    const EXAM_CONTENT_READING_AND_WRITING = 'readingAndWriting';
+    const EXAM_CONTENT_SPEAKING            = 'speaking';
+    const EXAM_CONTENT_READING             = 'reading';
+    const EXAM_CONTENT_USE_OF_ENGLISH      = 'useOfEnglish';
+    const EXAM_CONTENT_WRITING             = 'writing';
 
     /**
      * @inheritdoc
@@ -56,6 +52,29 @@ class StudentGrade extends \yii\db\ActiveRecord
         ];
     }
 
+    public static function getExams() : array
+    {
+        return [
+            self::EXAM_YLE_STARTERS => 'YLE starters',
+            self::EXAM_YLE_MOVERS   => 'YLE movers',
+            self::EXAM_YLE_FLYERS   => 'YLE flyers',
+            self::EXAM_KET_A2       => 'KET - A2',
+            self::EXAM_PET_B1       => 'PET - B1',
+            self::EXAM_FCE_B2       => 'FCE - B2',
+        ];
+    }
+
+    public static function getExamContentTypes() : array
+    {
+        return [
+            self::EXAM_CONTENT_LISTENING            => 'Listening',
+            self::EXAM_CONTENT_READING_AND_WRITING  => 'Reading & Writing',
+            self::EXAM_CONTENT_SPEAKING             => 'Speaking',
+            self::EXAM_CONTENT_READING              => 'Reading',
+            self::EXAM_CONTENT_USE_OF_ENGLISH       => 'Use of English',
+            self::EXAM_CONTENT_WRITING              => 'Writing',
+        ];
+    }
     /**
      * @inheritdoc
      */
@@ -155,24 +174,18 @@ class StudentGrade extends \yii\db\ActiveRecord
         ]);
     }
 
-    public function getExams()
-    {
-        return $this->examTypes;
-    }
-
-    public function getExamContentTypes()
-    {
-        return $this->examContentTypes;
-    }
-
     public function getExamContents($exam)
     {
-        if ($exam === 'yleStarters' || $exam === 'yleMovers' || $exam === 'yleFlyers') {
+        if ($exam === StudentGrade::EXAM_YLE_STARTERS ||
+            $exam === StudentGrade::EXAM_YLE_MOVERS ||
+            $exam === StudentGrade::EXAM_YLE_FLYERS) {
             return [
                 'show' => '.js--exam-contents-first',
                 'hide' => '.js--exam-contents-second',
             ];
-        } else if ($exam === 'ketA2' || $exam === 'petB1' || $exam === 'fceB2') {
+        } else if ($exam === StudentGrade::EXAM_KET_A2 ||
+                   $exam === StudentGrade::EXAM_PET_B1 ||
+                   $exam === StudentGrade::EXAM_FCE_B2) {
             return [
                 'hide' => '.js--exam-contents-first',
                 'show' => '.js--exam-contents-second',

@@ -63,11 +63,11 @@ class StudentGradeController extends Controller
     {
         $model = new StudentGrade();
         $student = Student::findOne($id);
-        $exams = $model->getExams();
+        $exams = StudentGrade::getExams();
         $examsAll = array_merge([NULL => Yii::t('app', 'Select an exam')], $exams);
         if ($student !== NULL) {
             return $this->render('index', [
-                'contentTypes' => $model->getExamContentTypes(),
+                'contentTypes' => StudentGrade::getExamContentTypes(),
                 'grades' => $model->getStudentGrades($id),
                 'exams' => $examsAll,
                 'model' => $model,
@@ -132,8 +132,8 @@ class StudentGradeController extends Controller
                 'destination' => Pdf::DEST_BROWSER, 
                 'content'     => $this->renderPartial('_viewPdf', [
                     'attestation'  => $attestation,
-                    'contentTypes' => $model->getExamContentTypes(),
-                    'exams'        => $model->getExams(),
+                    'contentTypes' => StudentGrade::getExamContentTypes(),
+                    'exams'        => StudentGrade::getExams(),
                 ]),
                 'cssFile'     => '@app/web/css/print_attestate.css',
                 'options'     => [
