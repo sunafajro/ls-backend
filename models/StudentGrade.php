@@ -39,12 +39,12 @@ class StudentGrade extends \yii\db\ActiveRecord
     /**
      * @inheritdoc
      */
-    public static function tableName()
+    public static function tableName() : string
     {
         return 'student_grades';
     }
 
-    public static function getGradeTypes()
+    public static function getGradeTypes() : array
     {
         return [
             0 => 'Баллы',
@@ -64,6 +64,12 @@ class StudentGrade extends \yii\db\ActiveRecord
         ];
     }
 
+    public static function getExamContentType(string $type) : string
+    {
+        $exams = self::getExamContentTypes();
+        return $exams[$type] ?? '';
+    }
+
     public static function getExamContentTypes() : array
     {
         return [
@@ -78,7 +84,7 @@ class StudentGrade extends \yii\db\ActiveRecord
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules() : array
     {
         return [
             [['date', 'description', 'score', 'user', 'calc_studname'], 'required'],
@@ -91,7 +97,7 @@ class StudentGrade extends \yii\db\ActiveRecord
     /**
      * @inheritdoc
      */
-    public function attributeLabels()
+    public function attributeLabels() : array
     {
         return [
             'id' => 'ID',
@@ -109,7 +115,7 @@ class StudentGrade extends \yii\db\ActiveRecord
     /**
      *  метод возвращает одну оценку по id
      */
-    public function getAttestation($id)
+    public function getAttestation(int $id) : array
     {
         $attestation = (new \yii\db\Query())
         ->select([
@@ -136,7 +142,7 @@ class StudentGrade extends \yii\db\ActiveRecord
     /**
      *  метод возвращает список оценок студента
      */
-    public function getStudentGrades(string $sid)
+    public function getStudentGrades(int $sid) : ActiveDataProvider
     {
         $query = (new \yii\db\Query())
         ->select([
@@ -174,24 +180,44 @@ class StudentGrade extends \yii\db\ActiveRecord
         ]);
     }
 
-    public function getExamContents($exam)
+    public function getExamContents(string $exam) : array
     {
-        if ($exam === StudentGrade::EXAM_YLE_STARTERS ||
-            $exam === StudentGrade::EXAM_YLE_MOVERS ||
-            $exam === StudentGrade::EXAM_YLE_FLYERS) {
-            return [
-                'show' => '.js--exam-contents-first',
-                'hide' => '.js--exam-contents-second',
-            ];
-        } else if ($exam === StudentGrade::EXAM_KET_A2 ||
-                   $exam === StudentGrade::EXAM_PET_B1 ||
-                   $exam === StudentGrade::EXAM_FCE_B2) {
-            return [
-                'hide' => '.js--exam-contents-first',
-                'show' => '.js--exam-contents-second',
-            ];
-        } else {
-            return '';
+        $result = [];
+        switch ($exam) {
+            case StudentGrade::EXAM_YLE_STARTERS:
+            case StudentGrade::EXAM_YLE_MOVERS:
+            case StudentGrade::EXAM_YLE_FLYERS:
+            case StudentGrade::EXAM_KET_A2:
+                $result = [
+                    'contents' => [
+                        StudentGrade::EXAM_CONTENT_LISTENING => StudentGrade::getExamContentType(StudentGrade::EXAM_CONTENT_LISTENING),
+                        StudentGrade::EXAM_CONTENT_READING_AND_WRITING => StudentGrade::getExamContentType(StudentGrade::EXAM_CONTENT_READING_AND_WRITING),
+                        StudentGrade::EXAM_CONTENT_SPEAKING => StudentGrade::getExamContentType(StudentGrade::EXAM_CONTENT_SPEAKING),
+                    ],
+                ];
+                break;
+            case StudentGrade::EXAM_PET_B1:
+                $result = [
+                    'contents' => [
+                        StudentGrade::EXAM_CONTENT_LISTENING => StudentGrade::getExamContentType(StudentGrade::EXAM_CONTENT_LISTENING),
+                        StudentGrade::EXAM_CONTENT_READING => StudentGrade::getExamContentType(StudentGrade::EXAM_CONTENT_READING),
+                        StudentGrade::EXAM_CONTENT_WRITING => StudentGrade::getExamContentType(StudentGrade::EXAM_CONTENT_WRITING),
+                        StudentGrade::EXAM_CONTENT_SPEAKING => StudentGrade::getExamContentType(StudentGrade::EXAM_CONTENT_SPEAKING),
+                    ]
+                ];
+                break;
+            case StudentGrade::EXAM_FCE_B2:
+                $result = [
+                    'contents' => [
+                        StudentGrade::EXAM_CONTENT_LISTENING => StudentGrade::getExamContentType(StudentGrade::EXAM_CONTENT_LISTENING),
+                        StudentGrade::EXAM_CONTENT_READING => StudentGrade::getExamContentType(StudentGrade::EXAM_CONTENT_READING),
+                        StudentGrade::EXAM_CONTENT_WRITING => StudentGrade::getExamContentType(StudentGrade::EXAM_CONTENT_WRITING),
+                        StudentGrade::EXAM_CONTENT_SPEAKING => StudentGrade::getExamContentType(StudentGrade::EXAM_CONTENT_SPEAKING),
+                        StudentGrade::EXAM_CONTENT_USE_OF_ENGLISH => StudentGrade::getExamContentType(StudentGrade::EXAM_CONTENT_USE_OF_ENGLISH),
+                    ]
+                ];
+                break;
         }
+        return $result;
     }
 }

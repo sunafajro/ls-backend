@@ -62,13 +62,13 @@ class StudentGradeController extends Controller
     public function actionIndex($id)
     {
         $model = new StudentGrade();
-        $student = Student::findOne($id);
+        $student = Student::findOne(intval($id));
         $exams = StudentGrade::getExams();
         $examsAll = array_merge([NULL => Yii::t('app', 'Select an exam')], $exams);
         if ($student !== NULL) {
             return $this->render('index', [
                 'contentTypes' => StudentGrade::getExamContentTypes(),
-                'grades' => $model->getStudentGrades($id),
+                'grades' => $model->getStudentGrades(intval($id)),
                 'exams' => $examsAll,
                 'model' => $model,
                 'student' => $student,
@@ -82,12 +82,11 @@ class StudentGradeController extends Controller
     public function actionCreate($id)
     {
         $model = new StudentGrade();
-        $student = Student::findOne($id);
+        $student = Student::findOne(intval($id));
         if ($student !== NULL) {
             $model->load(Yii::$app->request->post());
             $model->user = Yii::$app->session->get('user.uid');
             $model->calc_studname = $id;
-            $model->contents = Yii::$app->request->post('StudentGradeContents') ?? NULL; //json_encode($contents);
             if ($model->save()) {
                 Yii::$app->session->setFlash('success', "Аттестация успешно добавлена!");
                 $model = new StudentGrade();
@@ -102,7 +101,7 @@ class StudentGradeController extends Controller
 
     public function actionDelete($id)
     {
-        $grade = StudentGrade::findOne($id);
+        $grade = StudentGrade::findOne(intval($id));
         if ($grade !== NULL) {
             if ((int)$grade->visible === 1) {
                 $grade->visible = 0;
@@ -123,7 +122,7 @@ class StudentGradeController extends Controller
     public function actionDownloadAttestation($id)
     {
         $model = new StudentGrade();
-        $attestation = $model->getAttestation($id);
+        $attestation = $model->getAttestation(intval($id));
         if ($attestation) {                
             $pdf = new Pdf([
                 'mode'        => Pdf::MODE_UTF8,

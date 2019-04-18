@@ -13,9 +13,6 @@ use kartik\datetime\DateTimePicker;
 <?php $form = ActiveForm::begin([
   'action' => ['create', 'id' => $studentId],
   'method' => 'post',
-  'options' => [
-    'class' => 'js--student-grade-form'
-  ]
 ]); ?>
 <div class="row">
   <div class="col-xs-12 col-sm-1">
@@ -48,51 +45,12 @@ use kartik\datetime\DateTimePicker;
     <?= $form->field($model, 'score')->textInput(['class' => 'form-control input-sm', 'placeholder' => Yii::t('app', 'Score')])->label(false) ?>
   </div>
 </div>
-<div class="row js--exam-contents-first hidden">
-    <div class="col-xs-12 col-sm-4">
-      <div class="form-group">
-        <?= Html::input('text', 'StudentGradeContents[listening]', null, ['class' => 'form-control input-sm', 'placeholder' => 'Listening']) ?>
-      </div>
-    </div>
-    <div class="col-xs-12 col-sm-4">
-      <div class="form-group">
-        <?= Html::input('text', 'StudentGradeContents[readingAndWriting]', null, ['class' => 'form-control input-sm', 'placeholder' => 'Reading & Writing']) ?>
-      </div>
-    </div>
-    <div class="col-xs-12 col-sm-4">
-      <div class="form-group">
-        <?= Html::input('text', 'StudentGradeContents[speaking]', null, ['class' => 'form-control input-sm', 'placeholder' => 'Speaking']) ?>
-      </div>
-    </div>
-</div>
-<div class="row js--exam-contents-second hidden">
-    <div class="col-xs-12 col-sm-2">
-      <div class="form-group">
-        <?= Html::input('text', 'StudentGradeContents[listening]', null, ['class' => 'form-control input-sm', 'placeholder' => 'Listening']) ?>
-      </div>
-    </div>
-    <div class="col-xs-12 col-sm-2">
-      <div class="form-group">
-        <?= Html::input('text', 'StudentGradeContents[reading]', null, ['class' => 'form-control input-sm', 'placeholder' => 'Reading']) ?>
-      </div>
-    </div>
-    <div class="col-xs-12 col-sm-2">
-      <div class="form-group">
-        <?= Html::input('text', 'StudentGradeContents[useOfEnglish]', null, ['class' => 'form-control input-sm', 'placeholder' => 'Use of English']) ?>
-      </div>
-    </div>
-    <div class="col-xs-12 col-sm-2">
-      <div class="form-group">
-        <?= Html::input('text', 'StudentGradeContents[writing]', null, ['class' => 'form-control input-sm', 'placeholder' => 'Writing']) ?>
-      </div>
-    </div>
-    <div class="col-xs-12 col-sm-2">
-      <div class="form-group">
-        <?= Html::input('text', 'StudentGradeContents[speaking]', null, ['class' => 'form-control input-sm', 'placeholder' => 'Speaking']) ?>
-      </div>
-    </div>
-</div>
+<div class="row js--exam-contents"></div>
 <?php ActiveForm::end(); ?>
+<div id="template-input" class="col-xs-12 hidden">
+  <?= Html::input('text', '', '', ['class' => 'form-control input-sm']) ?>
+  <div class="help-block"></div>
+</div>
 <?php
 $js = <<<JS
 function hideCOmponent(content) {
@@ -112,30 +70,31 @@ function showCOmponent(content) {
   }
 }
 $('.js--exam-select').on('change', function(e) {
+  var contentsBlock = $('.js--exam-contents');
+  contentsBlock.html('');
   if (e.target.value) {
     $.get('/student-grade/exam-contents?exam=' + e.target.value, {}, function(data) {
-      if (data) {
-        if (data.hasOwnProperty('show')) {
-          showCOmponent(data.show);
+      console.log(data.hasOwnProperty('contents') && typeof(data.contents) === 'object' && Object.keys(data.contents).length)
+      if (data.hasOwnProperty('contents') && typeof(data.contents) === 'object' && Object.keys(data.contents).length) {
+        for(var key in data.contents) {
+          var col = Object.keys(data.contents).length ? Math.floor(12 / Object.keys(data.contents).length) : null;
+          var templateInput = $('#template-input').clone();
+          if (col) {
+            templateInput.addClass('col-sm-' + col);
+          }
+          templateInput.removeClass('hidden');
+          var inputField = templateInput.find('input');
+          inputField.prop('name', 'StudentGrade[contents][' + key + ']');
+          inputField.prop('placeholder', data.contents[key]);
+          contentsBlock.append(templateInput);
         }
-        if (data.hasOwnProperty('hide')) {
-          hideCOmponent(data.hide);
-        }
+      } else {
+        var alertBlock = '<div class="alert alert-danger">Не удалось получить содержание экзамена</div>';
+        contentsBlock.append(alertBlock);
       }
     });
-  } else {
-    hideCOmponent('.js--exam-contents-first');
-    hideCOmponent('.js--exam-contents-second');
   }
 });
-$('.js--student-grade-form').on('submit', function () {
-  if ($('.js--exam-contents-first').hasClass('hidden')){
-    $('.js--exam-contents-first').html('');
-  }
-  if ($('.js--exam-contents-second').hasClass('hidden')){
-    $('.js--exam-contents-second').html('');
-  }
-})
 JS;
 $this->registerJs($js);
 ?>
