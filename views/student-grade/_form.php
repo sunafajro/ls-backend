@@ -45,7 +45,7 @@ use kartik\datetime\DateTimePicker;
     <?= $form->field($model, 'score')->textInput(['class' => 'form-control input-sm', 'placeholder' => Yii::t('app', 'Score')])->label(false) ?>
   </div>
 </div>
-<div class="row js--exam-contents"></div>
+<div class="row js--exam-contents" style="min-height: 40px"></div>
 <?php ActiveForm::end(); ?>
 <div id="template-input" class="col-xs-12 hidden">
   <?= Html::input('text', '', '', ['class' => 'form-control input-sm']) ?>
