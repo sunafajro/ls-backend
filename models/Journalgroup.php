@@ -3,6 +3,9 @@
 namespace app\models;
 
 use Yii;
+use app\models\Student;
+use app\models\Studjournalgroup;
+use yii\data\ActiveDataProvider;
 
 /**
  * This is the model class for table "calc_journalgroup".
@@ -35,6 +38,11 @@ use Yii;
  */
 class Journalgroup extends \yii\db\ActiveRecord
 {
+    public $id = NULL;
+    public $date = NULL;
+    public $teacherName = NULL;
+    public $groupName = NULL;
+
     /**
      * @inheritdoc
      */
@@ -52,7 +60,10 @@ class Journalgroup extends \yii\db\ActiveRecord
             [['calc_groupteacher', 'data', 'user', 'visible', 'description', 'homework', 'calc_edutime', 'calc_teacher'], 'required'],
             [['view', 'user_view', 'calc_groupteacher', 'user', 'visible', 'user_visible', 'done', 'user_done', 'calc_accrual', 'calc_edutime', 'edit', 'user_edit', 'audit', 'user_audit', 'calc_teacher'], 'integer'],
             [['data_view', 'data', 'data_visible', 'data_done', 'data_edit', 'data_audit'], 'safe'],
-            [['description', 'homework', 'description_audit'], 'string']
+            [['description', 'homework', 'description_audit'], 'string'],
+            [['id', 'teacherId', 'groupId'], 'integer'],
+            [['teacherName', 'groupName'], 'string'],
+            [['date'], 'safe'],
         ];
     }
 
@@ -88,5 +99,80 @@ class Journalgroup extends \yii\db\ActiveRecord
             'description_audit' => Yii::t('app', 'Description Audit'),
             'calc_teacher' => Yii::t('app', 'Teacher'),
         ];
+    }
+
+    /**
+     *  метод возвращает список занятий
+     */
+    public function search(array $params = []) : ActiveDataProvider
+    {
+        $this->load($params);
+        $groupId = NULL;
+        $groupName = NUll;
+        if ((int)$this->groupName > 0) {
+            $groupId = (int)$this->groupName;
+        } else {
+            $groupName = $this->groupName;
+        }
+        $query = (new \yii\db\Query())
+        ->select([
+            'id'          => 'l.id',
+            'date'        => 'l.data',
+            'teacherId'   => 'l.calc_teacher',
+            'teacherName' => 't.name',
+            'subject'     => 'l.description',
+            'hometask'    => 'l.homework',
+            'groupId'     => 'l.calc_groupteacher',
+            'groupName'   => 's.name',
+        ])
+        ->from(['l' => static::tableName()])
+        ->innerJoin(['t' => 'calc_teacher'], 't.id = l.calc_teacher')
+        ->innerJoin(['g' => 'calc_groupteacher'], 'g.id = l.calc_groupteacher')
+        ->innerJoin(['s' => 'calc_service'], 's.id = g.calc_service')
+        ->where([
+            'l.visible' => 1,
+        ])
+        ->andFilterWhere(['l.id' => $this->id])
+        ->andFilterWhere(['like', 'DATE_FORMAT(l.data, "%d.%m.%Y")', $this->date])
+        ->andFilterWhere(['like', 't.name', $this->teacherName])
+        ->andFilterWhere(['like', 'g.id', $groupId])
+        ->andFilterWhere(['like', 's.name', $groupName]);
+        
+        return new ActiveDataProvider([
+            'query' => $query,
+            'pagination' => [
+                'pageSize' => 20,
+            ],
+            'sort'=> [
+                'attributes' => [
+                    'id',
+                    'date',
+                    'teacherName',
+                    'groupName',
+                    'subject',
+                    'hometask',
+                ],
+                'defaultOrder' => [
+                    'date' => SORT_DESC
+                ],
+            ],
+        ]);
+    }
+    public function getCommentsByLesson($id)
+    {
+        $comments = (new \yii\db\Query())
+        ->select([
+            'studentId'   => 's.id',
+            'studentName' => 's.name',
+            'comment'     => 'sc.comments'
+        ])
+        ->from(['sc' => Studjournalgroup::tableName()])
+        ->innerJoin(['s' => Student::tableName()], 's.id = sc.calc_studname')
+        ->where([
+            'sc.calc_journalgroup' => $id,
+            'sc.calc_statusjournal' => 1
+        ])
+        ->all();
+        return $comments;
     }
 }

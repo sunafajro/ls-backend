@@ -7,7 +7,6 @@ use yii\base\Model;
 use app\models\AccrualTeacher;
 use app\models\Edunormteacher;
 use app\models\Moneystud;
-use app\models\Office;
 use app\models\Teacher;
 
 /**
@@ -87,6 +86,13 @@ class Report extends Model
                 'id' => 'plan',
                 'label' => Yii::t('app','Office plan'),
                 'url' => '/report/plan'
+            ];
+        }
+        if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4) {
+            $items[] = [
+                'id' => 'plan',
+                'label' => Yii::t('app','Lessons'),
+                'url' => '/report/lessons'
             ];
         }
         return $items;
