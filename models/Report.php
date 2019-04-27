@@ -90,7 +90,7 @@ class Report extends Model
         }
         if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4) {
             $items[] = [
-                'id' => 'plan',
+                'id' => 'lessons',
                 'label' => Yii::t('app','Lessons'),
                 'url' => '/report/lessons'
             ];

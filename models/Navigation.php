@@ -4,7 +4,7 @@ namespace app\models;
 
 use Yii;
 use yii\base\Model;
-use app\models\Kaslibro;
+//use app\models\Kaslibro;
 use app\models\Message;
 use app\models\Salestud;
 use app\models\Ticket;
@@ -38,6 +38,7 @@ class Navigation extends Model
         ];
         if((int)Yii::$app->session->get('user.ustatus') === 3 ||
            (int)Yii::$app->session->get('user.ustatus') === 4 ||
+           (int)Yii::$app->session->get('user.ustatus') === 6 ||
            (int)Yii::$app->session->get('user.ustatus') === 8) {
             /* ссылка на раздел Отчеты */
             $menu[] = [

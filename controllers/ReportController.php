@@ -995,7 +995,7 @@ class ReportController extends Controller
 
     public function actionLessons()
     {
-        if ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {            
+        if ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4 && (int)Yii::$app->session->get('user.ustatus') !== 6) {            
             return $this->redirect(Yii::$app->request->referrer);
         }
         $searchModel = new LessonSearch();
@@ -1011,36 +1011,47 @@ class ReportController extends Controller
     {
         $this->layout = 'column2';
         /* всех кроме менеджеров и руководителей редиректим обратно */
-        if(Yii::$app->session->get('user.ustatus')!=4 && Yii::$app->session->get('user.ustatus')!=3 && Yii::$app->session->get('user.ustatus')!=8) {
+        if((int)Yii::$app->session->get('user.ustatus') !== 3 &&
+            (int)Yii::$app->session->get('user.ustatus') !== 4 &&
+            (int)Yii::$app->session->get('user.ustatus') !== 6 &&
+            (int)Yii::$app->session->get('user.ustatus') !== 8) {
             return $this->redirect(Yii::$app->request->referrer);
         }
         /* всех кроме менеджеров и руководителей редиректим обратно */
 
         $office = NULL;
         // для менеджеров задаем переменную с id офиса
-        if(\Yii::$app->session->get('user.ustatus')==4){
-            $office = \Yii::$app->session->get('user.uoffice_id');
+        if((int)Yii::$app->session->get('user.ustatus') === 4) {
+            $office = Yii::$app->session->get('user.uoffice_id');
         }
-        if(\Yii::$app->request->get('OID') && \Yii::$app->request->get('OID')!='all') {
-            $office = \Yii::$app->request->get('OID');
+        if(Yii::$app->request->get('OID') && Yii::$app->request->get('OID') !== 'all') {
+            $office = Yii::$app->request->get('OID');
         }
 
-        switch(\Yii::$app->request->get('type')){
-            case 1: ((\Yii::$app->session->get('user.ustatus')==4) ? $type=8 : $type=1); break;
-            case 2: ((\Yii::$app->session->get('user.ustatus')==4) ? $type=8 : $type=2); break;
-			case 4: $type = 4; break;
+        switch(Yii::$app->request->get('type')){
             case 5: $type = 5; break;
-            case 6: $type = 6; break;
-            case 8: $type = 8; break;
-            case 9: $type = 9; break;
-            case 10: $type = 10; break;
-            default: ((\Yii::$app->session->get('user.ustatus')==4) ? $type=8 : $type=1);
+            default: {
+                if ((int)Yii::$app->session->get('user.ustatus') === 3 ||
+                    (int)Yii::$app->session->get('user.ustatus') === 8) {
+                    $type = 1;
+                }
+                if ((int)Yii::$app->session->get('user.ustatus') === 4) {
+                    $type = 8;
+                }
+                if ((int)Yii::$app->session->get('user.ustatus') === 6) {
+                    $type = 11;
+                }
+                break;
+            }
         }
         if($type == 1) {
             return $this->redirect(['report/common']);
         }
         if($type == 8) {
             return $this->redirect(['report/journals']);
+        }
+        if($type == 11) {
+            return $this->redirect(['report/lessons']);
         }
 	
         // проверяем get-запрос на наличие информации о годе и задаем переменную $year
@@ -1129,379 +1140,6 @@ class ReportController extends Controller
         $lcount = [];
         // задаем пустые массивы, которые потом будут использоваться в разных отчетах
 		
-        // формируем данные для общего отчета
-        if($type == 1) {
-			// определяем условия выборки
-            if($mon && $year) {
-                $fd = NULL;
-                $ld = NULL;
-                $m = $mon;
-                $y = $year;
-            } elseif(!$first_day && !$last_day && !$mon && $year) {
-                $fd = NULL;
-                $ld = NULL;
-                $m = NULL;
-                $y = $year;
-            } else {
-                $fd = $first_day;
-                $ld = $last_day;
-                $m = NULL;
-                $y = NULL;
-            }
-			// определяем условия выборки
-			
-            // получаем список офисов
-            $offices = (new \yii\db\Query())
-            ->select('id as oid, name as oname')
-            ->from('calc_office')
-            ->where('visible=1')
-            ->andWhere(['not in','id',['20','17','15','14','13']])
-            ->all();
-            // получаем список офисов
-			
-            // получаем оплаты
-            $common_payments = (new \yii\db\Query())
-            ->select('ms.calc_office as oid, SUM(value_card) as card, SUM(value_cash) as cash, SUM(value_bank) as bank, SUM(ms.value) as money')
-            ->from('calc_moneystud ms')
-            ->where('ms.visible=1 and ms.remain=0')
-            ->andFilterWhere(['>=', 'ms.data', $fd])
-            ->andFilterWhere(['<=', 'ms.data', $ld])
-            ->andFilterWhere(['MONTH(ms.data)'=>$m])
-            ->andFilterWhere(['YEAR(ms.data)'=>$y])
-            ->groupby(['ms.calc_office'])
-            ->all();
-            // получаем оплаты
-			
-            // получаем счета
-            $common_invoices = (new \yii\db\Query())
-            ->select('is.calc_office as oid, SUM(is.value) as money, SUM(is.value_discount) as discount')
-            ->from('calc_invoicestud is')
-            ->where('is.visible=1')
-            ->andFilterWhere(['>=', 'is.data', $fd])
-            ->andFilterWhere(['<=', 'is.data', $ld])
-            ->andFilterWhere(['MONTH(is.data)'=>$m])
-            ->andFilterWhere(['YEAR(is.data)'=>$y])
-            ->groupby(['is.calc_office'])
-            ->all();           
-            // получаем счета
-			
-            // получаем начисления
-            $common_accruals = (new \yii\db\Query())
-            ->select('gt.calc_office as oid, SUM(at.value) as money')
-            ->from('calc_accrualteacher at')
-            ->leftjoin('calc_groupteacher gt', 'gt.id=at.calc_groupteacher')
-            ->andFilterWhere(['>=', 'at.data', $fd])
-            ->andFilterWhere(['<=', 'at.data', $ld])
-            ->andFilterWhere(['MONTH(at.data)'=>$m])
-            ->andFilterWhere(['YEAR(at.data)'=>$y])
-            ->groupby(['gt.calc_office'])
-            ->all();
-            // получаем начисления
-			
-            // получаем часы
-            $common_hours = (new \yii\db\Query())
-            ->select('gt.calc_office as oid, SUM(tn.value) as hours')
-            ->from('calc_journalgroup jg')
-            ->leftjoin('calc_groupteacher gt', 'gt.id=jg.calc_groupteacher')
-            ->leftjoin('calc_service s', 's.id=gt.calc_service')
-            ->leftjoin('calc_timenorm tn', 'tn.id=s.calc_timenorm')
-            ->where('jg.visible=1')
-            ->andFilterWhere(['>=', 'jg.data', $fd])
-            ->andFilterWhere(['<=', 'jg.data', $ld])
-            ->andFilterWhere(['MONTH(jg.data)'=>$m])
-            ->andFilterWhere(['YEAR(jg.data)'=>$y])
-            ->groupby(['gt.calc_office'])
-            ->all();
-
-            // получаем колич студентов
-            $subQuery = (new \yii\db\Query())
-            ->select('count(DISTINCT sjg.calc_studname) as students')
-            //->distinct()
-            ->from('calc_studjournalgroup sjg')
-            ->leftJoin('calc_journalgroup jg', 'jg.id=sjg.calc_journalgroup')
-            ->leftJoin('calc_groupteacher gt', 'gt.id=jg.calc_groupteacher')
-            ->where('gt.calc_office=o.id and jg.view=:vis and sjg.calc_statusjournal=:vis', [':vis'=>1])
-            ->andFilterWhere(['>=', 'jg.data', $fd])
-            ->andFilterWhere(['<=', 'jg.data', $ld])
-            ->andFilterWhere(['MONTH(jg.data)'=>$m])
-            ->andFilterWhere(['YEAR(jg.data)'=>$y]);
-
-            $common_students = (new \yii\db\Query())
-            ->select('o.id as oid')
-            ->addSelect(['students'=>$subQuery])
-            ->from('calc_office o')
-            ->where('o.visible=:vis', [':vis'=>1])
-            ->andWhere(['not in','o.id',['20','17','15','14','13']])
-            ->all();
-
-            // получаем долги
-            $common_debts = [];
-            $i = 0;
-            foreach($offices as $o) {
-                $tmp_debts = (new \yii\db\Query())
-                ->select('s.debt as debts')
-                ->from('calc_studname s')
-                ->leftjoin('calc_studgroup sg', 's.id=sg.calc_studname')
-                ->leftjoin('calc_groupteacher gt', 'gt.id=sg.calc_groupteacher')
-                ->where('sg.visible=:vis and s.debt<=:minus and gt.calc_office=:oid', [':vis'=>1, ':minus'=>0, ':oid'=>$o['oid']])
-                ->groupby(['s.id'])
-                ->all();
-                if($o['oid']!=6) {
-                    $tmp = 0.001;
-                    foreach($tmp_debts as $td) {
-                        $tmp += $td['debts'];
-                    }
-                    unset($td);
-                    $common_debts[$i]['oid'] = $o['oid'];
-                    $common_debts[$i]['debts'] = $tmp;
-                }
-                $i++;
-            }
-            unset($o);
-            unset($tmp_debts);
-            // задаем начальные переменные для формирования многомерного массива с данными для таблицы
-            $i = 0;
-            // оплаты
-            $pmnts = 0;
-            // счета
-            $nvcs = 0;
-            // скидки
-            $dscnt = 0;
-            // начисления
-            $ccrls = 0;
-            // часы
-            $hrs = 0;
-            // долги
-            $dbts = 0;
-            // долги
-            $sts = 0;
-            
-            // распечатываем массив офисов
-            foreach($offices as $o) {
-                // создаем вложенный массив и задаем id офиса
-                $common_report[$i]['oid'] = $o['oid'];
-                // задаем имя офиса
-                $common_report[$i]['name'] = $o['oname'];
-                // задаем дефолтное значение оплат по офису
-                $common_report[$i]['payments'] = [];
-                // задаем дефолтное значение счетов по офису
-                $common_report[$i]['invoices'] = 0;
-                // задаем дефолтное значение скидок по офису
-                $common_report[$i]['discounts'] = 0;
-                // задаем дефолтное значение начислений по офису
-                $common_report[$i]['accruals'] = 0;
-                // задаем дефолтное значение часов по офису
-                $common_report[$i]['hours'] = 0;
-                // задаем дефолтное значение долгов по офису
-                $common_report[$i]['debts'] = 0;
-                // распечатываем массив с оплатами
-                foreach($common_payments as $pay) {
-                    // выбираем оплаты по id офиса
-                    if($common_report[$i]['oid'] == $pay['oid']) {
-                        // вносим сумму оплат по офису в массив
-                        $common_report[$i]['payments'] = ['cash' => $pay['cash'], 'card' => $pay['card'], 'bank' => $pay['bank'], 'money' => $pay['money']];
-                        // суммируем оплаты для последущего получения итогового значения
-                        $pmnts = $pmnts + $pay['money'];
-                    }
-                }
-                // рампечатываем массив со счетами
-                foreach($common_invoices as $inv) {
-                    // выбираем счета по id офиса
-                    if($common_report[$i]['oid'] == $inv['oid']) {
-                        // вносим сумму счетов по офису в массив
-                        $common_report[$i]['invoices'] = $inv['money'];
-                        // вносим сумму скидок счетов по офису в массив
-                        $common_report[$i]['discounts'] = $inv['discount'];
-                        // суммируем счета для последующего получения итогового значения
-                        $nvcs = $nvcs + $inv['money'];
-                        // суммируем скидки для последующего получения итогового значения 
-                        $dscnt = $dscnt + $inv['discount'];
-                    }
-                }
-                // распечатываем массив с начислениями
-                foreach($common_accruals as $acr) {
-                    // выбираем начисления по id офиса
-                    if($common_report[$i]['oid'] == $acr['oid']) {
-                        // вносим сумму начислений по офису в массив
-                        $common_report[$i]['accruals'] = $acr['money'];
-                        // суммируем начисления для поледущего получения итогового значения
-                        $ccrls = $ccrls + $acr['money'];
-                    }
-                }
-                // распечатываем массив с часами
-                foreach($common_hours as $hr) {
-                    // выбираем часы по id офиса
-                    if($common_report[$i]['oid'] == $hr['oid']) {
-                        // вносим сумму часов по офису в массив
-                        $common_report[$i]['hours'] = $hr['hours'];
-                        // суммируем часы для последущего получения итогового значения
-                        $hrs = $hrs + $hr['hours'];
-                    }
-                }
-                // распечатываем массив со студентами
-                foreach($common_students as $st) {
-                    // выбираем студентов по id офиса
-                    if($common_report[$i]['oid'] == $st['oid']) {
-                        // вносим сумму студентов по офису в массив
-                        $common_report[$i]['students'] = $st['students'];
-                        // суммируем студентов для последущего получения итогового значения
-                        $sts = $sts + $st['students'];
-                    }
-                }
-                // распечатываем массив с долгами
-                foreach($common_debts as $db) {
-                    // выбираем часы по id офиса
-                    if($common_report[$i]['oid'] == $db['oid']) {
-                        // вносим сумму часов по офису в массив
-                        $common_report[$i]['debts'] = $db['debts'];
-                        // суммируем долги для последущего получения итогового значения
-                        $dbts = $dbts + $db['debts'];
-                    }
-                }
-                // увеличиваем номер
-                $i++;  
-        }
-            // ставим число побольше чтобы точно не совпадало с id офисов
-            $i = 999;
-            // добавлем последний вложенный массив в котором будут итоговые суммарные значения по столбцам
-            // задаем id офиса - в данном случае совпадает с номером массива
-            $common_report[$i]['oid'] = $i;
-            // задаем имя массива
-            $common_report[$i]['name'] = 'Итого:';
-            // задаем итоговую сумму по оплатам
-            $common_report[999]['payments'] = $pmnts;
-            // задаем итоговвую сумму по счетам
-            $common_report[999]['invoices'] = $nvcs;
-            // задаем итоговую сумму по скидкам
-            $common_report[999]['discounts'] = $dscnt;
-            // задаем итоговую сумму по начислениям
-            $common_report[999]['accruals'] = $ccrls;
-            // задаем итоговую сумму по часам
-            $common_report[999]['hours'] = $hrs;
-            // задаем итоговую сумму по студентам
-            $common_report[999]['students'] = $sts;
-            // задаем итоговую сумму по долгам
-            $common_report[999]['debts'] = $dbts;
-
-            // уничтожаем временные переменные
-            unset($i);
-            unset($common_payments);
-            unset($common_invoices);
-            unset($common_accruals);
-            unset($common_hours);
-            unset($common_students);
-            unset($common_debts);
-            unset($pmnts);
-            unset($nvcs);
-            unset($dscnt);
-            unset($ccrls);
-            unset($hrs);
-            unset($sts);
-            unset($dbts);
-            unset($o);
-            unset($m);
-            unset($y);
-            unset($fd);
-            unset($ld);
-            unset($subQuery);
-            $offices = [];
-        }
-
-		// если указан тип отчета - Маржа 1
-		if($type == 2) {
-			// определяем условия выборки
-            if($mon && $year) {
-                $m = $mon;
-                $y = $year;
-            } else {
-                $m = date('m');
-                $y = date('Y');
-            }
-			// определяем условия выборки
-			
-			$teachers = (new \yii\db\Query())
-			->select('t.id as tid, t.name as tname, count(rm.id) as cnt, sum(rm.income) as income, sum(rm.expense) as expense')
-			->from('calc_report_margin rm')
-			->leftJoin('calc_teacher t', 't.id=rm.calc_teacher')
-			->where('rm.deleted!=:vis', [':vis'=>1])
-            //->andFilterWhere(['>=', 'rm.creation_date', $fd])
-            //->andFilterWhere(['<=', 'rm.creation_date', $ld])
-            ->andFilterWhere(['MONTH(rm.creation_date)'=>$m])
-            ->andFilterWhere(['YEAR(rm.creation_date)'=>$y])
-			->groupBy(['tid', 'tname'])
-            ->orderBy(['tname'=>SORT_ASC])
-			->all();
-		}
-		// если указан тип отчета - Маржа 1
-		
-        // если указан тип отчета - Оплаты
-        if($type == 4){
-			// определяем условия выборки
-            if($mon && $year) {
-                $fd = NULL;
-                $ld = NULL;
-                $m = $mon;
-                $y = $year;
-            } else {        return $this->render('debt',[
-                'offices'       => Office::getOfficeInScheduleListSimple(),
-                'oid'           => $oid,
-                'pages'         => $pages,
-                'reportlist'    => Report::getReportTypeList(),
-                'sign'          => $sign,
-                'state'         => $state,
-                'stds'          => $stds,
-                'students'      => $students,
-                'tss'           => $tss,
-                'userInfoBlock' => User::getUserInfoBlock(),
-            ]);
-                $fd = $first_day;
-                $ld = $last_day;
-                $m = NULL;
-                $y = NULL;
-            }
-			// определяем условия выборки
-			
-            // получаем список офисов
-            $offices = (new \yii\db\Query())
-            ->select('id as oid, name as oname')
-            ->from('calc_office')
-            ->where('visible=1')
-            //->andWhere(['not in','id',['6', '20','17','15','14','13']])
-            ->andFilterWhere(['id'=>$office])
-            ->all();
-            // получаем список офисов
-			
-            // получаем даннные по оплатам
-            $payments = (new \yii\db\Query())
-            ->select('ms.id as mid, sn.id as sid, sn.name as sname, ms.value as money, ms.value_card as card, ms.value_cash as cash, ms.value_bank as bank, ms.data as date, ms.receipt as receipt, u.name as uname, ms.visible as visible, ms.remain as remain, ms.calc_office as oid')
-            ->from('calc_moneystud ms')
-            ->leftjoin('calc_studname sn', 'sn.id=ms.calc_studname')
-            ->leftJoin('user u', 'u.id=ms.user')
-            //->where('ms.visible=:vis', [':vis'=>1])
-            ->andFilterWhere(['ms.calc_office'=>$office])
-            ->andFilterWhere(['>=', 'ms.data', $fd])
-            ->andFilterWhere(['<=', 'ms.data', $ld])
-            ->andFilterWhere(['MONTH(ms.data)'=>$m])
-            ->andFilterWhere(['YEAR(ms.data)'=>$y])
-            ->orderby(['ms.data'=>SORT_DESC, 'ms.id'=>SORT_DESC])
-            ->all();
-            // получаем даннные по оплатам
-			
-            $i = 0;
-            // формируем массив дат, для последующей группировки оплат
-            foreach($payments as $p){
-                $dates[$i] = $p['date'];
-                $i++;
-            }
-            unset($p);
-            // проверяем что массив не пустой (если оплат не было)
-            if(!empty($dates)){
-                // избавляемся от дублей
-                $dates = array_unique($dates);
-            }
-        }
-        // если указан тип отчета - Оплаты
-		
         // если указан тип отчета - Счета
         if($type == 5){
         	// определяем условия выборки
@@ -1546,223 +1184,6 @@ class ReportController extends Controller
                 $dates = array_unique($dates);
             }
         } 
-
-        // если указан тип отчета - Долги
-        if($type == 6){
-            // задаем фильтр по балансу (по умолчанию отрицательный баланс)
-            if(Yii::$app->request->get('SIGN')) {
-                if(Yii::$app->request->get('SIGN')==1) {
-                    $sign = '<';
-                    $val = 0;
-                } elseif(Yii::$app->request->get('SIGN')==2) {
-                    $sign = '>';
-                    $val = 0;
-                } else {
-                    $sign = '<';
-                    $val = NULL;
-                }
-            } else {
-                $sign = '<';
-                $val = 0;
-            }
-            // задаем фильтр по состоянию клиента (по умолчанию активные)
-            if(Yii::$app->request->get('state')) {
-                if(Yii::$app->request->get('STATE')==1) {
-                    $state = 1;
-                } elseif(Yii::$app->request->get('STATE')==2) {
-                    $state = 0;
-                } else {
-                    $state = NULL;
-                }
-            } else {
-                $state = 1;
-            }
-            // получаем список офисов
-            $offices = (new \yii\db\Query())
-            ->select('id as oid, name as oname')
-            ->from('calc_office')
-            ->where('visible=1')
-            //->andWhere(['not in','id',['20','17','15','14','13']])            
-            ->all();
-            // запрашиваем список студентов
-            $stds = (new \yii\db\Query())
-            ->select(['id' => 'sn.id', 'name' => 'sn.name', 'debt' => 'sn.debt'])
-            ->distinct()
-            ->from('calc_studname sn')
-            ->leftJoin('calc_studgroup sg', 'sn.id=sg.calc_studname')
-            ->leftJoin('calc_groupteacher gt', 'gt.id=sg.calc_groupteacher')
-            ->where('sn.visible=:vis', [':vis'=>1])
-            ->andFilterWhere([$sign,'sn.debt2', $val])
-            ->andFilterWhere(['sn.active'=>$state])
-            ->andFilterWhere(['gt.calc_office'=>$office])
-            ->andFilterWhere(['like', 'sn.name', $tss]);
-            
-            // делаем клон запроса
-            $countQuery = clone $stds;
-            // получаем данные для паджинации
-            $pages = new Pagination(['totalCount' => $countQuery->count()]);
-
-            // задаем параметры для паджинации
-            $limit = 20;
-            $offset = 0;
-            if(Yii::$app->request->get('page')){
-                if(Yii::$app->request->get('page')>1&&Yii::$app->request->get('page')<=$pages->totalCount){
-                    $offset = 20 * (Yii::$app->request->get('page') - 1);
-            }
-            }
-            
-            // доделываем запрос и выполняем
-            $stds = $stds->orderby(['sn.name'=>SORT_ASC])->limit($limit)->offset($offset)->all();
-            $i = 0;
-            $stids = [];
-            // формируем массив для последующей группировки услуг по студенту
-            foreach($stds as $s) {
-                //$tmp_stdnts[$s['stid']] = $s['stname']; 
-                $stids[$i] = $s['id'];
-                $i++;
-            }
-            unset($s);
-            //unset($stds);
-            if(!empty($stids)) {
-                // задаем пустой массив для общего списка студентов
-                //$stdnts = [];
-                // оставляем в массиве со студентами только уникальные значения
-                //$tmp_stdnts = array_unique($tmp_stdnts);
-                //$i = 0;
-                //foreach($tmp_stdnts as $key => $value) {
-                    // заполняем массив id-шниками студентов
-                //    $stids[$i] = $key;
-                    // заполняем массив общим списком студентов
-                //  $stdnts[$i]['id'] = $key;
-                //  $stdnts[$i]['name'] = $value;
-                //  $stdnts[$i]['debt'] = $this->studentDebt($key);
-                //    $i++;
-                //}
-                // уничтожаем ненужные переменные
-                //unset($key);
-                //unset($value);
-                
-                // запрашиваем услуги назначенные студенту
-                $students = (new \yii\db\Query())
-                ->select('s.id as sid, s.name as sname, is.calc_studname as stid, SUM(is.num) as num')
-                ->distinct()
-                ->from('calc_service s')
-                ->leftjoin('calc_invoicestud is', 'is.calc_service=s.id')
-                ->where('is.remain=:rem and is.visible=:vis', [':rem'=>0, ':vis'=>1])                
-                ->andWhere(['in','is.calc_studname',$stids])
-                ->groupby(['is.calc_studname','s.id'])
-                ->orderby(['s.id'=>SORT_ASC])
-                ->all();
-                // запрашиваем услуги назначенные студенту
-                
-                // проверяем что у студента есть назначенные услуги
-                if(!empty($students)){
-                    $i = 0;
-                    // распечатываем массив
-                    foreach($students as $service){
-                        // запрашиваем из базы колич пройденных уроков
-                        $lssns = (new \yii\db\Query())
-                        ->select('COUNT(sjg.id) AS cnt')
-                        ->from('calc_studjournalgroup sjg')
-                        ->leftjoin('calc_groupteacher gt', 'sjg.calc_groupteacher=gt.id')
-                        ->leftjoin('calc_journalgroup jg', 'sjg.calc_journalgroup=jg.id')
-                        ->where('jg.view=:vis and jg.visible=:vis and (sjg.calc_statusjournal=:vis or sjg.calc_statusjournal=:stat) and gt.calc_service=:sid and sjg.calc_studname=:stid', [':vis'=>1, 'stat'=>3, ':sid'=>$service['sid'], ':stid'=>$service['stid']])
-                        ->one();
-                        // считаем остаток уроков
-                        $students[$i]['num'] = $students[$i]['num'] - $lssns['cnt'];                        
-                        $i++;
-                    }
-                    unset($service);
-                    unset($lssns);                  
-                }
-                // проверяем что у студента есть назначенные услуги
-            }
-        }
-        // если указан тип отчета - Журналы   
-        if($type == 8) {
-            // обращаемся к функции формирующей массивы с данными для отчета
-            list($teachers, $lessons, $groups, $tchrs, $pages, $lcount) = $this->reportJournals($tid, $office);
-        }
-
-        // если указан тип отчета - начисления   
-        if($type == 9) {
-            // обращаемся к функции формирующей массивы с данными для отчета
-            list($teachers, $lessons, $groups, $pages, $tchrs) = $this->reportAccruals($tid);
-        }
-        
-        // если указан тип отчета - академические долги   
-        if($type == 10) {
-            // обращаемся к функции формирующей массивы с данными для отчета
-            //list($teachers, $lessons, $groups, $pages, $tchrs) = $this->reportAccruals($tid);
-            
-            //$st_inv = (new \yii\db\Query())
-            //->select('COUNT(is.num) as cnt')
-            //->from('calc_invoicestud is')
-            //->where('is.calc_studname=sn.id AND is.visible=:one', [':one'=>1]);
-            
-            // запрашиваем список студентов
-            $students = (new \yii\db\Query())
-            ->select('sn.id as id, sn.name as name')
-            //->addSelect(['inv' => $st_inv])
-            ->distinct()
-            //->from('calc_studname sn')
-            //->leftJoin('calc_studgroup sg', 'sn.id=sg.calc_studname')
-            //->leftJoin('calc_groupteacher gt', 'gt.id=sg.calc_groupteacher')
-            ->from('calc_schedule sch')
-            ->leftJoin('calc_studgroup sg', 'sg.calc_groupteacher=sch.calc_groupteacher')
-            ->leftJoin('calc_studname sn', 'sg.calc_studname=sn.id')
-            ->where('sn.visible=:vis AND sch.visible=:vis AND sch.calc_groupteacher!=:zero AND sg.visible=:vis', [':vis' => 1, ':zero' => 0])
-            ->andFilterWhere(['sch.calc_office'=>$office])
-            ->limit(10)
-            ->orderby(['sn.name'=>SORT_ASC])
-            ->all();
-            
-            $stids = NULL;
-            $gids = NULL;
-            
-            if(!empty($students)) {
-                foreach($students as $s) {
-                    $stids[] = $s['id'];
-                    //$gids[] = $s['gid'];
-                }
-                unset($s);
-                
-                $stids = array_unique($stids);
-                //$gids = array_unique($gids);
-                
-                $subQuery = (new \yii\db\Query())
-                ->select('COUNT(sjg.id) AS cnt')
-                ->from('calc_studjournalgroup sjg')
-                ->leftjoin('calc_groupteacher gt', 'sjg.calc_groupteacher=gt.id')
-                ->leftjoin('calc_journalgroup jg', 'sjg.calc_journalgroup=jg.id')
-                ->where('jg.view=:vis and jg.visible=:vis and (sjg.calc_statusjournal=:vis or sjg.calc_statusjournal=:stat) and gt.calc_service=s.id and sjg.calc_studname=is.calc_studname', [':vis'=>1, 'stat'=>3]);
-                
-                $invoices = (new \yii\db\Query())
-                ->select('s.id as sid, s.name as sname, is.calc_studname as stid, SUM(is.num) as inum')
-                ->addSelect(['lnum' => $subQuery])
-                ->distinct()
-                ->from('calc_service s')
-                ->leftjoin('calc_invoicestud is', 'is.calc_service=s.id')
-                ->where('is.remain=:rem and is.visible=:vis', [':rem'=>0, ':vis'=>1])                
-                ->andFilterWhere(['in', 'is.calc_studname', $stids])
-                ->groupby(['is.calc_studname','s.id'])
-                ->orderby(['s.id' => SORT_ASC])
-                ->all();
-                
-                $lessons = (new \yii\db\Query())
-                ->select('gt.calc_service as sid, sch.calc_denned as day')
-                ->from('calc_schedule sch')
-                ->leftJoin('calc_groupteacher gt', 'gt.id=sch.calc_groupteacher')
-                ->leftJoin('calc_studgroup sg', 'sg.calc_groupteacher=gt.id')
-                ->where('sch.visible=:one', [':one' => 1])
-                ->andWhere(['in', 'sg.calc_studname', $stids])
-                ->all();
-            }
-            
-            $stids = NULL;
-            $gids = NULL;
-        }
-        // если указан тип отчета - академические долги
 
         return $this->render('index',[
 		    'months' => $months,
