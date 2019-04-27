@@ -5,10 +5,13 @@
  * @var array $receipt
  */
 
+use app\assets\PrintReceiptAsset;
 use app\models\Receipt;
 use yii\helpers\Html;
 use Da\QrCode\QrCode;
 
+PrintReceiptAsset::register($this);
+$this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Receipts');
 $qrCode = isset($receipt['qrdata']) ? (new QrCode($receipt['qrdata'])) : NULL;
 ?>
 <div class="body">
@@ -19,7 +22,7 @@ $qrCode = isset($receipt['qrdata']) ? (new QrCode($receipt['qrdata'])) : NULL;
           Извещение
         <?php } else { ?>
           Квитанция
-          <?= $qrCode ? Html::img($qrCode->writeDataUri()) : NULL ?>
+          <?= $qrCode ? Html::img($qrCode->writeDataUri(), ['class' => 'qr-code-width', 'alt' => Yii::t('app', 'QR code')]) : NULL ?>
         <?php } ?>
 			</div>
 			<div class="right-block">

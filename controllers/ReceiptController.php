@@ -124,29 +124,13 @@ class ReceiptController extends Controller
 
     public function actionDownloadReceipt($id)
     {
+        $this->layout = 'print';
         $model = new Receipt();
         $receipt = $model->getReceipt(intval($id));
         if ($receipt) {                
-            $pdf = new Pdf([
-                'mode'        => Pdf::MODE_UTF8,
-                'format'      => Pdf::FORMAT_A4,
-                'orientation' => Pdf::ORIENT_LANDSCAPE,
-                'destination' => Pdf::DEST_BROWSER, 
-                'content'     => $this->renderPartial('_viewPdf', [
-                    'receipt'  => $receipt,
-                ]),
-                'cssFile'     => '@app/web/css/print_receipt.css',
-                'options'     => [
-                    'title'   => Yii::t('app', 'Receipt'),
-                ],
-                'marginHeader' => 0,
-                'marginFooter' => 0,
-                'marginTop'    => 0,
-                'marginBottom' => 0,
-                'marginLeft'   => 0,
-                'marginRight'  => 0,
+            return $this->render('_viewPdf', [
+                'receipt'  => $receipt,
             ]);
-            return $pdf->render();
         } else {
             throw new NotFoundHttpException(Yii::t('app', 'The requested page does not exist.'));
         }
