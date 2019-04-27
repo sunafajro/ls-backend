@@ -4,7 +4,7 @@ namespace app\controllers;
 
 use Yii;
 use app\models\AccrualTeacher;
-use app\models\Journalgroup;
+use app\models\search\LessonSearch;
 use app\models\Moneystud;
 use app\models\Office;
 use app\models\Report;
@@ -998,7 +998,7 @@ class ReportController extends Controller
         if ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {            
             return $this->redirect(Yii::$app->request->referrer);
         }
-        $searchModel = new Journalgroup();
+        $searchModel = new LessonSearch();
         return $this->render('lessons', [
             'dataProvider'  => $searchModel->search(Yii::$app->request->queryParams),
             'reportlist'    => Report::getReportTypeList(),
