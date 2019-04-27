@@ -72,6 +72,11 @@ if (Yii::$app->request->get('tab')) {
                     ['class' => 'btn btn-default btn-sm btn-block'])
                 ?>
                 <?= Html::a(
+                    '<i class="fa fa-file-text-o" aria-hidden="true"></i> ' . Yii::t('app', 'Receipts'),
+                    ['receipt/index', 'sid' => $model->id],
+                    ['class' => 'btn btn-default btn-sm btn-block'])
+                ?>
+                <?= Html::a(
                     '<i class="fa fa-list" aria-hidden="true"></i> ' . Yii::t('app', 'Detail'),
                     ['studname/detail', 'id' => $model->id],
                     ['class' => 'btn btn-default btn-sm btn-block'])
