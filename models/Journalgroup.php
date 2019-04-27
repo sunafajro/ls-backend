@@ -3,6 +3,8 @@
 namespace app\models;
 
 use Yii;
+use app\models\Student;
+use app\models\Studjournalgroup;
 
 /**
  * This is the model class for table "calc_journalgroup".
@@ -52,7 +54,7 @@ class Journalgroup extends \yii\db\ActiveRecord
             [['calc_groupteacher', 'data', 'user', 'visible', 'description', 'homework', 'calc_edutime', 'calc_teacher'], 'required'],
             [['view', 'user_view', 'calc_groupteacher', 'user', 'visible', 'user_visible', 'done', 'user_done', 'calc_accrual', 'calc_edutime', 'edit', 'user_edit', 'audit', 'user_audit', 'calc_teacher'], 'integer'],
             [['data_view', 'data', 'data_visible', 'data_done', 'data_edit', 'data_audit'], 'safe'],
-            [['description', 'homework', 'description_audit'], 'string']
+            [['description', 'homework', 'description_audit'], 'string'],
         ];
     }
 
@@ -88,5 +90,23 @@ class Journalgroup extends \yii\db\ActiveRecord
             'description_audit' => Yii::t('app', 'Description Audit'),
             'calc_teacher' => Yii::t('app', 'Teacher'),
         ];
+    }
+
+    public function getCommentsByLesson($id)
+    {
+        $comments = (new \yii\db\Query())
+        ->select([
+            'studentId'   => 's.id',
+            'studentName' => 's.name',
+            'comment'     => 'sc.comments'
+        ])
+        ->from(['sc' => Studjournalgroup::tableName()])
+        ->innerJoin(['s' => Student::tableName()], 's.id = sc.calc_studname')
+        ->where([
+            'sc.calc_journalgroup' => $id,
+            'sc.calc_statusjournal' => 1
+        ])
+        ->all();
+        return $comments;
     }
 }
