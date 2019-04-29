@@ -133,4 +133,20 @@ class Invoicestud extends \yii\db\ActiveRecord
         ->all();
         return $invoices;
     }
+
+    public function getInvoices(array $params = []) : array
+    {
+        $invoices = (new \yii\db\Query())
+        ->select('is.id as iid, sn.id as sid, sn.name as sname, u.name as uname, is.value as money, is.visible as visible, is.done as done, is.num as num, is.calc_service as id, is.data as date, is.remain as remain')
+        ->from(['is' => 'calc_invoicestud'])
+        ->leftJoin(['u' => 'user'], 'u.id = is.user')
+        ->leftJoin(['sn' => 'calc_studname'], 'sn.id = is.calc_studname')
+        ->andFilterWhere(['is.calc_office' => $params['office'] ?? NULL ])
+        ->andFilterWhere(['>=', 'is.data', $params['start'] ?? NULL])
+        ->andFilterWhere(['<=', 'is.data', $params['end'] ?? NULL])
+        ->orderby(['is.data' => SORT_DESC, 'is.id' => SORT_DESC])
+        ->all();
+
+        return $invoices;
+    }
 }

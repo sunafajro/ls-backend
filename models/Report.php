@@ -43,7 +43,7 @@ class Report extends Model
             $items[] = [
                 'id' => 'invoices',
                 'label' => Yii::t('app','Invoices'),
-                'url' => '/report/index?type=5'
+                'url' => '/report/invoices'
             ];
         }
         if ((int)Yii::$app->session->get('user.ustatus') === 3) {

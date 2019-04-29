@@ -4,7 +4,7 @@ namespace app\controllers;
 
 use Yii;
 use app\models\AccrualTeacher;
-use app\models\search\LessonSearch;
+use app\models\Invoicestud;
 use app\models\Moneystud;
 use app\models\Office;
 use app\models\Report;
@@ -13,11 +13,13 @@ use app\models\Schedule;
 use app\models\Teacher;
 use app\models\Tool;
 use app\models\User;
+use app\models\search\LessonSearch;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\Response;
 use yii\filters\VerbFilter;
 use yii\data\Pagination;
+
 
 class ReportController extends Controller
 {
@@ -56,7 +58,7 @@ class ReportController extends Controller
         ];
     }
     
-        /**
+    /**
     * отчет по Начислениям 
     */
     public function actionAccrual()
@@ -1009,207 +1011,49 @@ class ReportController extends Controller
 
     public function actionIndex()
     {
-        $this->layout = 'column2';
-        /* всех кроме менеджеров и руководителей редиректим обратно */
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 &&
-            (int)Yii::$app->session->get('user.ustatus') !== 4 &&
-            (int)Yii::$app->session->get('user.ustatus') !== 6 &&
-            (int)Yii::$app->session->get('user.ustatus') !== 8) {
+        if((int)Yii::$app->session->get('user.ustatus') === 3 ||
+           (int)Yii::$app->session->get('user.ustatus') === 8) {
+            return $this->redirect(['report/common']);
+        } else if((int)Yii::$app->session->get('user.ustatus') === 4) {
+            return $this->redirect(['report/journals']);
+        } else if((int)Yii::$app->session->get('user.ustatus') === 6) {
+            return $this->redirect(['report/lessons']);
+        } else {
             return $this->redirect(Yii::$app->request->referrer);
         }
-        /* всех кроме менеджеров и руководителей редиректим обратно */
-
-        $office = NULL;
-        // для менеджеров задаем переменную с id офиса
-        if((int)Yii::$app->session->get('user.ustatus') === 4) {
-            $office = Yii::$app->session->get('user.uoffice_id');
-        }
-        if(Yii::$app->request->get('OID') && Yii::$app->request->get('OID') !== 'all') {
-            $office = Yii::$app->request->get('OID');
-        }
-
-        switch(Yii::$app->request->get('type')){
-            case 5: $type = 5; break;
-            default: {
-                if ((int)Yii::$app->session->get('user.ustatus') === 3 ||
-                    (int)Yii::$app->session->get('user.ustatus') === 8) {
-                    $type = 1;
-                }
-                if ((int)Yii::$app->session->get('user.ustatus') === 4) {
-                    $type = 8;
-                }
-                if ((int)Yii::$app->session->get('user.ustatus') === 6) {
-                    $type = 11;
-                }
-                break;
-            }
-        }
-        if($type == 1) {
-            return $this->redirect(['report/common']);
-        }
-        if($type == 8) {
-            return $this->redirect(['report/journals']);
-        }
-        if($type == 11) {
-            return $this->redirect(['report/lessons']);
-        }
-	
-        // проверяем get-запрос на наличие информации о годе и задаем переменную $year
-        if(\Yii::$app->request->get('year')){
-            $year = \Yii::$app->request->get('year');
-        } else {
-            $year = date('Y');
-        }
-        // проверяем get-запрос на наличие информации о годе и задаем переменную $year
-		
-		// проверяем get-запрос на наличие информации о месяце и задаем переменную $mon
-        if(\Yii::$app->request->get('MON')) {
-            if(\Yii::$app->request->get('MON')>=1 && \Yii::$app->request->get('MON')<=12) {
-                $mon = \Yii::$app->request->get('MON');
-            } else {
-                $mon = NULL;
-            }
-        } else {
-            $mon = NULL;
-        }
-        // проверяем get-запрос на наличие информации о месяце и задаем переменную $mon
-		
-		// проверяем get-запрос на наличие информации о неделе и задаем переменные $week, $first_day, $last_day
-        if(\Yii::$app->request->get('RWID')){
-            if(\Yii::$app->request->get('RWID')!='all') {
-                $week = Yii::$app->request->get('RWID') - 1;
-                $first_day = date('Y-m-d', $week * 7 * 86400 + strtotime('1/1/' . $year) - date('w', strtotime('1/1/' . $year)) * 86400 + 86400);
-                $last_day = date('Y-m-d', ($week + 1) * 7 * 86400 + strtotime('1/1/' . $year) - date('w', strtotime('1/1/' . $year)) * 86400);
-            } else {
-                $first_day = NULL;
-                $last_day = NULL;
-            }
-        } else {
-            $week = date('W') - 1;          
-            $first_day = date('Y-m-d', $week * 7 * 86400 + strtotime('1/1/' . $year) - date('w', strtotime('1/1/' . $year)) * 86400 + 86400);
-            $last_day = date('Y-m-d', ($week + 1) * 7 * 86400 + strtotime('1/1/' . $year) - date('w', strtotime('1/1/' . $year)) * 86400);
-
-        }
-        // проверяем get-запрос на наличие информации о неделе и задаем переменные $week, $first_day, $last_day
-		
-		// проверяем get-запрос на наличие информации о преподавателе и задаем переменную $tid
-        if(\Yii::$app->request->get('RTID') && \Yii::$app->request->get('RTID')!='all'){
-            $tid = \Yii::$app->request->get('RTID');
-        } else {
-            $tid = NULL;
-        }
-        // проверяем get-запрос на наличие информации о преподавателе и задаем переменную $tid
-		
-        // проверяем get-запрос на наличие термина для поиска и задаем переменную $tss
-        if(\Yii::$app->request->get('TSS')){
-            $tss = \Yii::$app->request->get('TSS');
-        } else {
-            $tss = NULL;
-        }
-        // проверяем get-запрос на наличие термина для поиска и задаем переменную $tss
-		
-        // выбираем список месяцев
-        $arr_months = (new \yii\db\Query())
-        ->select('id as id, name as name')
-        ->from('calc_month')
-        ->where('visible=:vis', [':vis' => 1])
-        ->all();
-        
-        $months = [];
-        foreach($arr_months as $m){
-            $months[$m['id']] = $m['name'];
-        }
-        unset($m);
-        unset($arr_months);
-        // выбираем список месяцев
-		
-        // задаем пустые массивы, которые потом будут использоваться в разных отчетах
-        $payments = [];
-        $invoices = [];
-        $students = [];
-        $stds = [];
-        $debt = [];
-        $offices = [];
-        $lessons = [];
-        $teachers = [];
-        $tchrs = [];
-        $groups = [];
-        $dates = [];
-        $common_report = [];
-        $pages = [];
-        $lcount = [];
-        // задаем пустые массивы, которые потом будут использоваться в разных отчетах
-		
-        // если указан тип отчета - Счета
-        if($type == 5){
-        	// определяем условия выборки
-            if($mon && $year) {
-                $fd = NULL;
-                $ld = NULL;
-                $m = $mon;
-                $y = $year;
-            } else {
-                $fd = $first_day;
-                $ld = $last_day;
-                $m = NULL;
-                $y = NULL;
-            }
-			// определяем условия выборки
-
-            // получаем данные по счетам
-            $invoices = (new \yii\db\Query())
-            ->select('is.id as iid, sn.id as sid, sn.name as sname, u.name as uname, is.value as money, is.visible as visible, is.done as done, is.num as num, is.calc_service as id, is.data as date, is.remain as remain')
-            ->from('calc_invoicestud is')
-            ->leftJoin('user u', 'u.id=is.user')
-            ->leftJoin('calc_studname as sn', 'sn.id=is.calc_studname')
-            ->andFilterWhere(['is.calc_office'=>$office])
-            ->andFilterWhere(['>=', 'is.data', $fd])
-            ->andFilterWhere(['<=', 'is.data', $ld])
-            ->andFilterWhere(['MONTH(is.data)'=>$m])
-            ->andFilterWhere(['YEAR(is.data)'=>$y])
-            ->orderby(['is.data'=>SORT_DESC, 'is.id'=>SORT_DESC])
-            ->all();
-            // получаем данные по счетам
-			
-            $i = 0;
-            // формируем массив дат, для последующей группировки счетов
-            foreach($invoices as $inv){
-                $dates[$i] = $inv['date'];
-                $i++;
-            }
-            unset($inv);
-            // проверяем что массив не пустой (если счетов не было)
-            if(!empty($dates)){
-                // избавляемся от дублей
-                $dates = array_unique($dates);
-            }
-        } 
-
-        return $this->render('index',[
-		    'months' => $months,
-            'common_report' => $common_report,
-            'offices' => $offices,
-            'payments' => $payments,
-            'invoices' => $invoices,
-            'dates' => $dates,
-            'students' => $students,
-            'stds' => $stds,
-            'teachers' => $teachers,
-            'lessons' => $lessons,
-            'groups' => $groups,
-            'pages' => $pages,
-            'debt' => $debt,
-            'pages' => $pages,
-            'tchrs' => $tchrs,
-            'lcount' => $lcount,
-        ]);
     }
     
-    public function actionInvoices($start = null, $end = null) {
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+    public function actionInvoices(string $start = '', string $end = '', string $oid = '') {
+        if((int)Yii::$app->session->get('user.ustatus') !== 3 &&
+           (int)Yii::$app->session->get('user.ustatus') !== 4) {
             return $this->redirect(Yii::$app->request->referrer);
         }
+        if (!($start && $end)) {
+            $start = date("Y-m-d", strtotime('monday this week'));
+            $end = date("Y-m-d", strtotime('sunday this week'));
+        }
+        $oid = (int)Yii::$app->session->get('user.ustatus') === 4 ? (int)Yii::$app->session->get('user.uoffice_id') : $oid;
+        $invoice = new Invoicestud();
+        $invoices = $invoice->getInvoices([
+            'start'  => $start,
+            'end'    => $end,
+            'office' => $oid,
+        ]);
+        $dates = [];
+        foreach ($invoices as $inv){
+            $dates[] = $inv['date'];
+        }
+        if (!empty($dates)) {
+            $dates = array_unique($dates);
+        }
         return $this->render('invoices', [
+            'dates'         => $dates,
+            'end'           => $end,
+            'invoices'      => $invoices,
+            'offices'       => Office::getOfficesListSimple(),
+            'oid'           => $oid,
+            'reportlist'    => Report::getReportTypeList(),
+            'start'         => $start,
             'userInfoBlock' => User::getUserInfoBlock(),
         ]);
     }
