@@ -89,6 +89,8 @@ class ReceiptController extends Controller
             $receipt->date = date('Y-m-d');
             $receipt->user = Yii::$app->session->get('user.uid');
             $receipt->studentId = $sid;
+            // добавляем id клиента для идентификации
+            $receipt->purpose = $receipt->purpose . '. Клиент №' . $sid . '.';
             $receipt->qrdata = Receipt::receiptParamsStringified() . '|';
             $receipt->qrdata .= Receipt::RECEIPT_LASTNAME . '=' . mb_strtoupper($receipt->name)    . '|';
             $receipt->qrdata .= Receipt::RECEIPT_PURPOSE  . '=' . mb_strtoupper($receipt->purpose) . '|';
