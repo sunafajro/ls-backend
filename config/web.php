@@ -59,6 +59,9 @@ $config = [
             ]
         ],
     ],
+    'aliases' => [
+        '@uploads' => dirname(__DIR__) . '/web/uploads',
+    ],
     'params' => $params,
 ];
 

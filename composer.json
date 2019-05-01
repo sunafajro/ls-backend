@@ -23,7 +23,8 @@
         "moonlandsoft/yii2-tinymce": "*",
         "yiisoft/yii2-jui": "^2.0",
         "kartik-v/yii2-mpdf": "dev-master",
-        "2amigos/qrcode-library": "^1.1"
+        "2amigos/qrcode-library": "^1.1",
+        "yiisoft/yii2-imagine": "^2.1"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.0.0",
