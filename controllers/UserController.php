@@ -229,46 +229,23 @@ class UserController extends Controller
     return $this->redirect(['index']);
     }
 
-    public function actionUpload($id)
+    public function actionUpload(string $id)
     {
-        if((int)Yii::$app->session->get('user.ustatus')!==3 && (int)Yii::$app->session->get('user.uid') !== 296){
+        if((int)Yii::$app->session->get('user.ustatus') !== 3 &&
+           (int)Yii::$app->session->get('user.uid') !== 296) {
             return $this->redirect(Yii::$app->request->referrer);
         }
-        // подключаем боковую панель
-        $this->layout = 'column2';
-        // находим пользователя
         $user = $this->findModel($id);
-
-        if(!empty($user)){
-            // создаем новую модель загрузки
+        if ($user !== NULL) {
             $model = new UploadForm();
-
             if (Yii::$app->request->isPost) {
                 $model->file = UploadedFile::getInstance($model, 'file');
-
                 if ($model->file && $model->validate()) {
-                    //задаем адрес папки с файлами для поиска
-                    $spath = "uploads/user/";
-                    //задаем адрес папки для загрузки файла
-                    $filepath = "uploads/user/".$id."/logo/";
-                    //задаем имя файла
-                    $filename = "calc-language-school-ru-".$id.".".$model->file->extension;
-                    //проверяем наличие файла и папки
-                    $filesearch = FileHelper::findFiles($spath,['only'=>[$filename]]);
-                    // если нет
-                    if(empty($filesearch)){
-                        // создаем папку по идентификатору пользователя
-                        FileHelper::createDirectory($spath.$id."/");
-                        // в ней создаем папку logo
-                        FileHelper::createDirectory($spath.$id."/logo/");
-                    }
-                    $model->file->saveAs($filepath.$filename);
-                    $logoname = 'calc-language-school-ru-'.$id.'.'.$model->file->extension;
-                    $db = (new \yii\db\Query())
-                    ->createCommand()
-                    ->update('user', ['logo' => $logoname], ['id'=>$id])
-                    ->execute();
-                    return $this->redirect(['user/upload','id'=>$id]);
+                    $spath = Yii::getAlias('@uploads/user');
+                    $filename = $model->resizeAndSave($spath, $id, 'logo');
+                    $user->logo = $filename;
+                    $user->save();
+                    return $this->redirect(['user/upload','id' => $id]);
                 }
             }
             return $this->render('upload', [
@@ -277,7 +254,7 @@ class UserController extends Controller
                 'userInfoBlock' => User::getUserInfoBlock()
             ]);
         } else {
-            return $this->redirect(['user/index']);
+            throw new NotFoundHttpException(Yii::t('yii', 'The requested page does not exist.'));
         }
     }
 

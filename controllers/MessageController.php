@@ -3,19 +3,17 @@
 namespace app\controllers;
 
 use Yii;
-use yii\filters\AccessControl;
-use yii\filters\VerbFilter;
-use yii\helpers\FileHelper;
 use app\models\Message;
 use app\models\UploadForm;
 use app\models\User;
+use yii\filters\AccessControl;
+use yii\filters\VerbFilter;
 use yii\web\Controller;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 use yii\web\UploadedFile;
-
 
 /**
  * MessageController implements the CRUD actions for CalcMessage model.
@@ -259,60 +257,28 @@ class MessageController extends Controller
         }
     }
     
-    public function actionUpload($id)
+    public function actionUpload(string $id)
     {
-        if (Yii::$app->request->get('id')) {
-            $message = $this->findModel($id);
-            if (!empty($message)) {
-                $file = (new \yii\db\Query())
-                ->select('id as mid, name as mname, files as mfile, data as mdate')
-                ->from('calc_message')
-                ->where([
-                    'id' => Yii::$app->request->get('id'),
-                    'send' => 0
-                ])
-                ->one();
-
-                $model = new UploadForm();
-
-                if (Yii::$app->request->isPost) {
-                    $model->file = UploadedFile::getInstance($model, 'file');
-                    if ($model->file && $model->validate()) {
-                        //задаем адрес папки с файлами для поиска
-                        $spath = "uploads/calc_message/";
-                        //задаем адрес папки для загрузки файла
-                        $filepath = "uploads/calc_message/".$id."/fls/";
-                        //задаем имя файла
-                        $filename = "file-".$id.".".$model->file->extension;
-                        //проверяем наличие файла и папки
-                        $filesearch = FileHelper::findFiles($spath,['only'=>[$filename]]);
-                        if (empty($filesearch)) {
-                            FileHelper::createDirectory($spath.$id."/");
-                            FileHelper::createDirectory($spath.$id."/fls/");
-                        }
-                        $model->file->saveAs($filepath.$filename);
-                        $db = (new \yii\db\Query())
-                        ->createCommand()
-                        ->update('calc_message', [
-                            'files' => $filename,
-                            'data' => $file['mdate']
-                        ], [
-                            'id' => $id
-                        ])
-                        ->execute();
-                        return $this->redirect(['message/upload', 'id' => $id]);
-                    }
+        $message = $this->findModel($id);
+        if ($message !== NULL) {
+            $model = new UploadForm();
+            if (Yii::$app->request->isPost) {
+                $model->file = UploadedFile::getInstance($model, 'file');
+                if ($model->file && $model->validate()) {
+                    $spath = Yii::getAlias('@uploads/calc_message');
+                    $filename = $model->resizeAndSave($spath, $id, 'fls');
+                    $message->files = $filename;
+                    $message->save();
+                    return $this->redirect(['message/upload', 'id' => $id]);
                 }
-                return $this->render('upload', [
-                    'model' => $model,
-                    'file' => $file,
-                    'userInfoBlock' => User::getUserInfoBlock()
-                ]);
-            } else {
-                throw new NotFoundHttpException(Yii::t('yii', 'The requested page does not exist.'));
             }
+            return $this->render('upload', [
+                'model' => $model,
+                'message' => $message,
+                'userInfoBlock' => User::getUserInfoBlock()
+            ]);
         } else {
-            throw new BadRequestHttpException(Yii::t('yii', 'Missing required arguments: { id }'));
+            throw new NotFoundHttpException(Yii::t('yii', 'The requested page does not exist.'));
         }
     }
     

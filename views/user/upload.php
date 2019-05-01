@@ -1,10 +1,18 @@
 <?php
-    use yii\helpers\Html;
-    use yii\widgets\ActiveForm;
-    use yii\widgets\Breadcrumbs;
-    $this->title = 'Система учета :: ' . Yii::t('app', 'Add image') . ': ' . $user->name;
-    $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Users'), 'url' => ['index']];
-    $this->params['breadcrumbs'][] = Yii::t('app','Upload image');
+
+/**
+ * @var yii\web\View          $this
+ * @var app\models\User       $user
+ * @var app\models\UploadForm $model
+ * @var string                $userInfoBlock
+ */
+
+use yii\helpers\Html;
+use yii\widgets\ActiveForm;
+use yii\widgets\Breadcrumbs;
+$this->title = 'Система учета :: ' . Yii::t('app', 'Add image') . ': ' . $user->name;
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Users'), 'url' => ['index']];
+$this->params['breadcrumbs'][] = Yii::t('app','Upload image');
 ?>
 
 <div class="row row-offcanvas row-offcanvas-left user-upload">
