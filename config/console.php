@@ -28,6 +28,9 @@ return [
                 ],
             ],
         ],
+        'mailer' => [
+            'class' => 'yii\swiftmailer\Mailer',
+        ],
         'db' => $db,
     ],
     'params' => $params,
