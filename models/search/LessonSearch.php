@@ -31,15 +31,12 @@ class LessonSearch extends Journalgroup
     public function attributeLabels()
     {
         return [
-            'date' => Yii::t('app', 'date'),
+            'date' => Yii::t('app', 'Date'),
             'groupName' => Yii::t('app', 'Group'),
             'teacherName' => Yii::t('app', 'Teacher'),
         ];
     }
 
-    /**
-     *  метод возвращает список занятий
-     */
     public function search(array $params = []) : ActiveDataProvider
     {
         $this->load($params);
@@ -62,16 +59,16 @@ class LessonSearch extends Journalgroup
             'groupName'   => 's.name',
         ])
         ->from(['l' => static::tableName()])
-        ->innerJoin(['t' => 'calc_teacher'], 't.id = l.calc_teacher')
+        ->innerJoin(['t' => 'calc_teacher'],      't.id = l.calc_teacher')
         ->innerJoin(['g' => 'calc_groupteacher'], 'g.id = l.calc_groupteacher')
-        ->innerJoin(['s' => 'calc_service'], 's.id = g.calc_service')
+        ->innerJoin(['s' => 'calc_service'],      's.id = g.calc_service')
         ->where([
             'l.visible' => 1,
         ])
         ->andFilterWhere(['l.id' => $this->id])
         ->andFilterWhere(['like', 'DATE_FORMAT(l.data, "%d.%m.%Y")', $this->date])
         ->andFilterWhere(['like', 't.name', $this->teacherName])
-        ->andFilterWhere(['like', 'g.id', $groupId])
+        ->andFilterWhere(['g.id' => $groupId])
         ->andFilterWhere(['like', 's.name', $groupName]);
         
         return new ActiveDataProvider([
