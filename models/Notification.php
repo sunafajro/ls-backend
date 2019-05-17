@@ -3,6 +3,8 @@
 namespace app\models;
 
 use Yii;
+use app\models\Moneystud;
+use app\models\Student;
 
 /**
  * This is the model class for table "notifications".
@@ -76,5 +78,49 @@ class Notification extends \yii\db\ActiveRecord
             self::STATUS_QUEUE   => Yii::t('app', 'Queue'),
             self::STATUS_SUCCESS => Yii::t('app', 'Success'),
         ];
+    }
+
+    public static function getNotificationSubject(string $type) : string
+    {
+        $subject = '';
+        switch($type) {
+            case self::TYPE_PAYMENT:
+                $subject = '[ШИЯ Язык для Успеха] Уведомление об оплате';
+                break;
+        }
+        return $subject;
+    }
+
+    public static function getNotificationBody(string $type, string $name = '', string $value = '', string $date = '') : string
+    {
+        $body = '';
+        switch($type) {
+            case self::TYPE_PAYMENT:
+                $body =  '<p><b>' . $name . '</b>, уведомляем вас о том, что ваш платеж от ' . $date . ' в размере <b>' . $value . 'р.</b> успешно зачислен на баланс.</p>';
+                break;
+        }
+        return $body;
+    }
+
+    public function getNotificationsByStatus(string $status) : array
+    {
+        $notifications = $query = (new \yii\db\Query())
+        ->select([
+            'notificationId'   => 'n.id',
+            'notificationType' => 'n.type',
+            'paymentDate'      => 'p.data',
+            'paymentValue'     => 'p.value',
+            'recipientName'    => 's.name',
+            'recipientEmail'   => 's.email', 
+        ])
+        ->from(['n' => Notification::tableName()])
+        ->innerJoin(['p' => Moneystud::tableName()], 'n.payment_id = p.id')
+        ->innerJoin(['s' => Student::tableName()],   'p.calc_studname = s.id')
+        ->where([
+            'n.status' => $status 
+        ])
+        ->orderBy(['n.created_at' => SORT_ASC])
+        ->all();
+        return $notifications;
     }
 }
