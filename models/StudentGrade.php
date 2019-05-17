@@ -10,14 +10,14 @@ use yii\data\ActiveDataProvider;
  * This is the model class for table "student_grades".
  *
  * @property integer $id
- * @property string $visible
+ * @property integer $visible
  * @property string $date
- * @property string $user
+ * @property integer $user
  * @property string $score
  * @property integer $type
  * @property string $contents
  * @property string $description
- * @property string $calc_studname
+ * @property integer $calc_studname
  */
 
 class StudentGrade extends \yii\db\ActiveRecord
