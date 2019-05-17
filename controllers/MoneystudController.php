@@ -4,12 +4,14 @@ namespace app\controllers;
 
 use Yii;
 use app\models\Moneystud;
+use app\models\Notification;
+use app\models\Office;
 use app\models\Student;
 use app\models\User;
-use yii\data\ActiveDataProvider;
+use yii\filters\AccessControl;
+use yii\helpers\ArrayHelper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
-use yii\filters\AccessControl;
 
 /**
  * MoneystudController implements the CRUD actions for Moneystud model.
@@ -43,38 +45,20 @@ class MoneystudController extends Controller
      * создавать оплаты клиента. Для создания оплаты необходим ID клиента.
      */
 
-    public function actionCreate()
+    public function actionCreate($sid)
     {
         // оплаты принимают только менеджеры или руководители
-        if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4) {
-            if(Yii::$app->request->get('sid')){
-                $sid = Yii::$app->request->get('sid');                
-            } else {
-                // если нет возвращаемся на предыдущую страницу
-                return $this->redirect(Yii::$app->request->referrer);                
-            }
-            $userInfoBlock = User::getUserInfoBlock();
+        if((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4) {
             // создаем пустую модель записи об оплате
             $model = new Moneystud();
 
             // находим информацию по клиенту
             $student = Student::findOne($sid);
 			
-		    // получаем массив со списком офисов
-			$tmp_offices = (new \yii\db\Query())
-			->select('co.id as oid, co.name as oname')
-			->from('calc_office co')
-			->where('co.visible=:vis', [':vis'=>1])
-			->orderBy(['co.id'=>SORT_ASC])
-			->all();
-			
-			$offices = [];
-			foreach($tmp_offices as $to) {
-				$offices[$to['oid']] = $to['oname'];
-			}
-            unset($to);
-			unset($tmp_offices);
-            if ($model->load(Yii::$app->request->post())) {
+			$office = new Office();
+			$offices = ArrayHelper::map($office->getOffices(), 'id', 'name');
+            
+            if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
                 $model->value_cash = $this->prepareInput($model->value_cash);
                 $model->value_card = $this->prepareInput($model->value_card);
                 $model->value_bank = $this->prepareInput($model->value_bank);
@@ -92,31 +76,36 @@ class MoneystudController extends Controller
                 $model->data_remain = '0000-00-00';
                 $model->data_collection = '0000-00-00';
                 // для менеджеров офис подставляем автоматом
-                if(Yii::$app->session->get('user.ustatus')==4) {
+                if((int)Yii::$app->session->get('user.ustatus') === 4) {
                     $model->calc_office = Yii::$app->session->get('user.uoffice_id');
                 }
-                // если запись об оплате прошла успешно
+                // TODO create transaction
                 if($model->save()) {
-                    // суммируем общее число оплат с новой оплатой
                     $student->money = $student->money + $model->value;
-					// пересчитываем значение долга для старой системы
                     $student->debt = $student->money - $student->invoice;
-					// пересчитываем баланс клиента новой функцией
-					$student->debt2 = $this->studentDebt($student->id);
-                    // сохраняем данные
-                    $student->save();
-                    // вызываем функцию рассчета долга
-                    // $student->debt = $this->calcDebt($studdent->id);
-                    // сохраняем данные
-                    // $student->save();
+                    // $student->debt2 = $this->studentDebt($student->id);
+                    if (Yii::$app->request->post('sendEmail')) {
+                        $notification = new Notification();
+                        $notification->payment_id = $model->id;
+                        $notification->type       = Notification::TYPE_PAYMENT;
+                        $notification->user_id    = Yii::$app->session->get('user.uid');
+                        $notification->save();
+                    }
+                    if ($student->save()) {
+                        Yii::$app->session->setFlash('success', Yii::t('app', 'Payment is successfully created!'));
+                    } else {
+                        Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to create payment!'));
+                    }
+                } else {
+                    Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to create payment!'));
                 }
-                return $this->redirect(['studname/view', 'id' => $student->id, 'tab'=>4]); 
+                return $this->redirect(['studname/view', 'id' => $student->id, 'tab' => 4]); 
             } else {
                 return $this->render('create', [
-                    'model' => $model,
-                    'student'=>$student,
-					'offices'=>$offices,
-                    'userInfoBlock' => $userInfoBlock
+                    'model'         => $model,
+                    'offices'       => $offices,
+                    'student'       => $student,
+                    'userInfoBlock' => User::getUserInfoBlock()
                 ]);
             }
         } else {
@@ -153,7 +142,7 @@ class MoneystudController extends Controller
 					// пересчитываем значение долга для старой системы
                     $student->debt = $student->money - $student->invoice;
 					// пересчитываем баланс клиента новой функцией
-					$student->debt2 = $this->studentDebt($student->id);
+					// $student->debt2 = $this->studentDebt($student->id);
                     // сохраняем данные
                     $student->save();
                     // вызываем функцию рассчета долга
@@ -201,7 +190,7 @@ class MoneystudController extends Controller
 					// пересчитываем значение долга для старой системы
                     $student->debt = $student->money - $student->invoice;
 					// пересчитываем баланс клиента новой функцией
-					$student->debt2 = $this->studentDebt($student->id);
+					// $student->debt2 = $this->studentDebt($student->id);
                     // сохраняем данные
                     $student->save();
                     // вызываем функцию рассчета долга

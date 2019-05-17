@@ -1,42 +1,38 @@
 <?php
 
+/**
+ * @var yii\web\View          $this
+ * @var app\models\Moneystud  $model 
+ * @var ActiveForm            $form
+ * @var string                $email
+ * @var array                 $offices
+ */
+
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
-
-/* @var $this yii\web\View */
-/* @var $model app\models\Moneystud */
-/* @var $form yii\widgets\ActiveForm */
 ?>
-
 <div class="payment-form">
-
     <?php $form = ActiveForm::begin(); ?>
-
     <?= $form->field($model, 'value_cash')->textInput(['value' => 0]) ?>
-
     <?= $form->field($model, 'value_card')->textInput(['value' => 0]) ?>
-
     <?= $form->field($model, 'value_bank')->textInput(['value' => 0]) ?>
-
     <div class="alert alert-success"><b>Итог:</b> <span id="total_payment">0</span> р.</div>
-
     <?= $form->field($model, 'receipt')->textInput() ?>
-    
-    <?= $form->field($model, 'remain')->checkbox(); ?>
-    
-    <?php
-        // для руководителей даем возможность указать офис 
-        if(Yii::$app->session->get('user.ustatus') == 3) {
-            echo $form->field($model, 'calc_office')->dropDownList($items=$offices, ['prompt'=>Yii::t('app','-select-')]);
-        }
-     ?>
-
+    <?php if ((int)Yii::$app->session->get('user.ustatus') === 3) { ?>
+        <?= $form->field($model, 'calc_office')->dropDownList($offices, ['prompt' => Yii::t('app','-select-')]) ?>
+    <?php } ?>
     <div class="form-group">
-        <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
+        <div class="row">
+            <div class="col-xs-12 col-sm-6">
+                <?= Html::checkbox('sendEmail', $email ? true : false, ['disabled' => $email ? false : true, 'label' => Yii::t('app', 'Send notification') . ($email ? ' (' . $email . ')' : '')]) ?>    
+                <?= $form->field($model, 'remain')->checkbox(); ?>
+            </div>
+            <div class="col-xs-12 col-sm-6 text-right">
+                <?= Html::submitButton(Yii::t('app', 'Create'), ['class' => 'btn btn-success']) ?>  
+            </div>
+        </div>
     </div>
-
     <?php ActiveForm::end(); ?>
-    
 </div>
 <?php
 $this->registerJs('
