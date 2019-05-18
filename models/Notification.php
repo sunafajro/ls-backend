@@ -91,12 +91,12 @@ class Notification extends \yii\db\ActiveRecord
         return $subject;
     }
 
-    public static function getNotificationBody(string $type, string $name = '', string $value = '', string $date = '') : string
+    public static function getNotificationBody(string $type, string $name = '', string $date = '', string $value = '') : string
     {
         $body = '';
         switch($type) {
             case self::TYPE_PAYMENT:
-                $body =  '<p><b>' . $name . '</b>, уведомляем вас о том, что ваш платеж от ' . $date . ' в размере <b>' . $value . 'р.</b> успешно зачислен на баланс.</p>';
+                $body =  '<p><b>' . $name . '</b>, уведомляем вас о том, что ваш платеж от <b>' . date('d.m.Y', strtotime($date)) . '</b> в размере <b>' . $value . 'р.</b> успешно зачислен на баланс.</p>';
                 break;
         }
         return $body;
