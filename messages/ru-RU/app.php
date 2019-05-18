@@ -283,6 +283,7 @@ return array(
 'Not with us'=>'Не с нами',
 'Notarial'=>'Нотариальное заверение',
 'Notes'=>'Примечания',
+'Notification' => 'Уведомление',
 'Office'=>'Офис',
 'Office plan'=>'План на офис',
 'Offices'=>'Офисы',

@@ -179,58 +179,81 @@ class Report extends Model
         return [
             [
                 'id' => 'id',
+                'icon' => null,
                 'name' => '№',
                 'show' => true,
                 'width' => '10%'
             ],
             [
                 'id' => 'studentId',
+                'icon' => null,
                 'name' => Yii::t('app', 'Student ID'),
                 'show' => false,
                 'width' => ''
             ],
             [
                 'id' => 'student',
+                'icon' => null,
                 'name' => Yii::t('app', 'Student'),
                 'show' => true,
                 'width' => '30%'
             ],
             [
                 'id' => 'manager',
+                'icon' => null,
                 'name' => Yii::t('app', 'Manager'),
                 'show' => true,
                 'width' => '30%'
             ],
             [
                 'id' => 'receipt',
+                'icon' => null,
                 'name' => Yii::t('app', 'Receipt'),
                 "show" => true,
                 'width' => '10%'
             ],
             [
                 'id' => 'type',
+                'icon' => null,
                 'name' => Yii::t('app', 'Type'),
                 'show' => true,
                 'width' => '10%'
             ],
             [
                 'id' => 'sum',
+                'icon' => null,
                 'name' => Yii::t('app', 'Sum'),
                 'show' => true,
                 'width' => '10%'
             ],
             [
                 'id' => 'active',
+                'icon' => null,
                 'name' => Yii::t('app', 'Active'),
                 'show' => false,
                 'width' => ''
             ],
             [
                 'id' => 'remain',
+                'icon' => null,
                 'name' => Yii::t('app', 'Remain'),
                 'show' => false,
                 'width' => ''
             ],
+            [
+                'id' => 'notificationId',
+                'icon' => null,
+                'name' => Yii::t('app', 'Notification Id'),
+                'show' => false,
+                'width' => '',
+            ],
+            [
+                'id' => 'notification',
+                'icon' => 'fa fa-envelope',
+                'name' => Yii::t('app', 'Notification'),
+                'show' => true,
+                'width' => '',
+            ]
         ];
     }
 
@@ -288,15 +311,17 @@ class Report extends Model
                 $result[$p['officeId']][$p['date']]['counts']['all'] += $p['sum'];
             }
             $result[$p['officeId']][$p['date']]['rows'][] = [
-                'id' => $p['id'],
-                'studentId' => $p['studentId'],
-                'student' => $p['student'],
-                'manager' => $p['manager'],
-                'receipt' => $p['receipt'],
-                'type' => $type,
-                'sum' => $p['sum'],
-                'active' => $p['active'],
-                'remain' => $p['remain']
+                'id'                 => $p['id'],
+                'studentId'          => $p['studentId'],
+                'student'            => $p['student'],
+                'manager'            => $p['manager'],
+                'receipt'            => $p['receipt'],
+                'type'               => $type,
+                'sum'                => $p['sum'],
+                'active'             => $p['active'],
+                'remain'             => $p['remain'],
+                'notificationId'     => $p['notificationId'],
+                'notification'       => Notification::getTextColorClassByStatus($p['notification']),
             ];
         }
 
