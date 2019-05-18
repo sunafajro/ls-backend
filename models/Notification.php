@@ -15,7 +15,7 @@ use app\models\Student;
  * @property integer $count
  * @property string $type
  * @property string $status
- * @property integer $payment_id
+ * @property integer $entity_id
  * @property integer $user_id
  */
 
@@ -41,8 +41,8 @@ class Notification extends \yii\db\ActiveRecord
     public function rules() : array
     {
         return [
-            [['type', 'payment_id', 'user_id'], 'required'],
-            [['count', 'payment_id', 'user_id', 'visible'], 'integer'],
+            [['type', 'entity_id', 'user_id'], 'required'],
+            [['count', 'entity_id', 'user_id', 'visible'], 'integer'],
             [['type', 'status'], 'string'],
             [['created_at'], 'safe'],
         ];
@@ -60,7 +60,7 @@ class Notification extends \yii\db\ActiveRecord
             'count'      => Yii::t('app', 'Sending count'),
             'type'       => Yii::t('app', 'Notification type'),
             'status'     => Yii::t('app', 'Notification status'),
-            'payment_id' => Yii::t('app', 'Payment Id'),
+            'entity_id'  => Yii::t('app', 'Entity Id'),
             'user_id'    => Yii::t('app', 'Creator Id'),
         ];
     }
@@ -102,9 +102,32 @@ class Notification extends \yii\db\ActiveRecord
         return $body;
     }
 
+    public static function getTextColorClassByStatus(string $status = NULL) : string
+    {
+        $result = '';
+        switch($status) {
+            case self::STATUS_FAIL:
+                $result = 'text-danger';
+                break;
+            case self::STATUS_QUEUE:
+                $result = 'text-info';
+                break;
+            case self::STATUS_SUCCESS:
+                $result = 'text-success';
+                break;
+        }
+        return $result;
+    }
+
     public function getNotificationsByStatus(string $status) : array
     {
-        $notifications = $query = (new \yii\db\Query())
+        $payments = $this->getPaymentNotificationsByStatus($status);
+        return $payments;
+    }
+
+    public function getPaymentNotificationsByStatus(string $status) : array
+    {
+        $notifications = (new \yii\db\Query())
         ->select([
             'notificationId'   => 'n.id',
             'notificationType' => 'n.type',
@@ -113,8 +136,8 @@ class Notification extends \yii\db\ActiveRecord
             'recipientName'    => 's.name',
             'recipientEmail'   => 's.email', 
         ])
-        ->from(['n' => Notification::tableName()])
-        ->innerJoin(['p' => Moneystud::tableName()], 'n.payment_id = p.id')
+        ->from(['n'      => Notification::tableName()])
+        ->innerJoin(['p' => Moneystud::tableName()], 'n.entity_id = p.id')
         ->innerJoin(['s' => Student::tableName()],   'p.calc_studname = s.id')
         ->where([
             'n.status' => $status 

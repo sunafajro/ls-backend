@@ -119,21 +119,24 @@ class Moneystud extends \yii\db\ActiveRecord
     {
         $payments = (new \yii\db\Query())
         ->select([
-            'pid' => 'ms.id',
-            'pdate' => 'ms.data',
-            'pvalue' => 'ms.value',
-            'uname' => 'u.name',
-            'oname' => 'o.name',
-            'receipt' => 'ms.receipt',
-            'visible' => 'ms.visible',
-            'editor' => 'u2.name',
-            'edit_date' => 'ms.data_visible',
-            'remain' => 'ms.remain'
+            'pid'                => 'ms.id',
+            'pdate'              => 'ms.data',
+            'pvalue'             => 'ms.value',
+            'uname'              => 'u.name',
+            'oname'              => 'o.name',
+            'receipt'            => 'ms.receipt',
+            'visible'            => 'ms.visible',
+            'editor'             => 'u2.name',
+            'edit_date'          => 'ms.data_visible',
+            'remain'             => 'ms.remain',
+            'notificationId'     => 'n.id',
+            'notificationStatus' => 'n.status'
         ])
         ->from(['ms' => self::tableName()])
         ->innerJoin(['u' => 'user'], 'u.id = ms.user')
-        ->leftJoin(['u2' => 'user'], 'u2.id = ms.user_visible')
         ->innerJoin(['o' => 'calc_office'], 'o.id = ms.calc_office')
+        ->leftJoin(['u2' => 'user'], 'u2.id = ms.user_visible')
+        ->leftJoin(['n'  => 'notifications'], 'n.entity_id = ms.id')
         ->where([
             'ms.calc_studname' => $sid
         ])

@@ -24,7 +24,7 @@ class SendEmailController extends Controller
             $notify->count += 1;
             if ($mailer->send()) {
                 $notify->status = Notification::STATUS_SUCCESS;
-                $notify->save(); 
+                $notify->save();
             } else {
                 $notify->status = Notification::STATUS_FAIL;
                 $notify->save(); 

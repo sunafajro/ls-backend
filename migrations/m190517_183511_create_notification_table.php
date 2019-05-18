@@ -3,7 +3,7 @@
 use yii\db\Migration;
 
 /**
- * Handles the creation of table `notification`.
+ * Handles the creation of table `notifications`.
  */
 class m190517_183511_create_notification_table extends Migration
 {
@@ -19,14 +19,14 @@ class m190517_183511_create_notification_table extends Migration
             'count'      => $this->integer()->defaultValue(0)->notNull(),
             'type'       => $this->string()->notNull(),
             'status'     => $this->string()->defaultValue('queue')->notNull(),
-            'payment_id' => $this->integer()->notNull(),
+            'entity_id'  => $this->integer()->notNull(),
             'user_id'    => $this->integer()->notNull(),
         ]);
 
         $this->createIndex(
-            'idx-notifications-payment_id',
+            'idx-notifications-entity_id',
             'notifications',
-            'payment_id'
+            'entity_id'
         );
         $this->createIndex(
             'idx-notifications-user_id',
