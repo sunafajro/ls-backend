@@ -128,15 +128,17 @@ $total = [
                                     <?php } ?>
                                     <td>
                                         <?php if ((int)$row['active'] === 1) { ?>
-                                            <?= Html::tag(
-                                                'i',
-                                                '',
-                                                [
-                                                    'class' => 'fa fa-envelope ' . Notification::getTextColorClassByStatus($row['notification'] ?? ''),
-                                                    'aria-hidden' => 'true',
-                                                    'title' => Yii::t('app', Notification::getStatusLabel($row['notification'] ?? '')),
-                                                ]
-                                            )?>
+                                            <?php if ($row['notificationId']) { ?>
+                                                <?= Html::tag(
+                                                    'i',
+                                                    '',
+                                                    [
+                                                        'class' => 'fa fa-envelope ' . Notification::getTextColorClassByStatus($row['notification'] ?? ''),
+                                                        'aria-hidden' => 'true',
+                                                        'title' => Yii::t('app', Notification::getStatusLabel($row['notification'] ?? '')),
+                                                    ]
+                                                )?>
+                                            <?php } ?>
                                             <?php if ($row['notification'] !== Notification::STATUS_QUEUE) { ?>
                                                 <?= Html::a(
                                                     Html::tag(
