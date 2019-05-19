@@ -173,91 +173,7 @@ class Report extends Model
     }
     /* метод возвращает номер недели по дате понедельника и воскресенья */
 
-    // возвращает заголовки таблицы отчета по оплатам
-    public static function getPaymentsReportColumns()
-    {
-        return [
-            [
-                'id' => 'id',
-                'icon' => null,
-                'name' => '№',
-                'show' => true,
-                'width' => '10%'
-            ],
-            [
-                'id' => 'studentId',
-                'icon' => null,
-                'name' => Yii::t('app', 'Student ID'),
-                'show' => false,
-                'width' => ''
-            ],
-            [
-                'id' => 'student',
-                'icon' => null,
-                'name' => Yii::t('app', 'Student'),
-                'show' => true,
-                'width' => '30%'
-            ],
-            [
-                'id' => 'manager',
-                'icon' => null,
-                'name' => Yii::t('app', 'Manager'),
-                'show' => true,
-                'width' => '30%'
-            ],
-            [
-                'id' => 'receipt',
-                'icon' => null,
-                'name' => Yii::t('app', 'Receipt'),
-                "show" => true,
-                'width' => '10%'
-            ],
-            [
-                'id' => 'type',
-                'icon' => null,
-                'name' => Yii::t('app', 'Type'),
-                'show' => true,
-                'width' => '10%'
-            ],
-            [
-                'id' => 'sum',
-                'icon' => null,
-                'name' => Yii::t('app', 'Sum'),
-                'show' => true,
-                'width' => '10%'
-            ],
-            [
-                'id' => 'active',
-                'icon' => null,
-                'name' => Yii::t('app', 'Active'),
-                'show' => false,
-                'width' => ''
-            ],
-            [
-                'id' => 'remain',
-                'icon' => null,
-                'name' => Yii::t('app', 'Remain'),
-                'show' => false,
-                'width' => ''
-            ],
-            [
-                'id' => 'notificationId',
-                'icon' => null,
-                'name' => Yii::t('app', 'Notification Id'),
-                'show' => false,
-                'width' => '',
-            ],
-            [
-                'id' => 'notification',
-                'icon' => 'fa fa-envelope',
-                'name' => Yii::t('app', 'Notification'),
-                'show' => true,
-                'width' => '',
-            ]
-        ];
-    }
-
-    public static function getPaymentsReportRows($start = null, $end = null, $office = null)
+    public static function getPayments($start = null, $end = null, $office = null)
     {
         $result = [];
         $payments = Moneystud::getPayments($start, $end, $office);
@@ -266,9 +182,9 @@ class Report extends Model
                 $result[$p['officeId']] = [
                     'name' => $p['office'],
                     'counts' => [
-                        'cash' => 0,
-                        'card' => 0,
-                        'bank' => 0,
+                        Moneystud::PAYMENT_TYPE_CASH => 0,
+                        Moneystud::PAYMENT_TYPE_CARD => 0,
+                        Moneystud::PAYMENT_TYPE_BANK => 0,
                         'all' => 0
                     ]
                 ];
@@ -276,9 +192,9 @@ class Report extends Model
             if (!isset($result[$p['officeId']][$p['date']])) {
                 $result[$p['officeId']][$p['date']] = [
                     'counts' => [
-                        'cash' => 0,
-                        'card' => 0,
-                        'bank' => 0,
+                        Moneystud::PAYMENT_TYPE_CASH => 0,
+                        Moneystud::PAYMENT_TYPE_CARD => 0,
+                        Moneystud::PAYMENT_TYPE_BANK => 0,
                         'all' => 0
                     ],
                     'rows' => []
@@ -286,24 +202,24 @@ class Report extends Model
             }
             $type = '';
             if ($p['card'] != '0.00') {
-                $type = Yii::t('app','Card');
+                $type = Moneystud::PAYMENT_TYPE_CARD;
                 if ($p['active'] && !$p['remain']) {
-                    $result[$p['officeId']]['counts']['card'] += $p['card'];
-                    $result[$p['officeId']][$p['date']]['counts']['card'] += $p['card'];
+                    $result[$p['officeId']]['counts'][$type] += $p[$type];
+                    $result[$p['officeId']][$p['date']]['counts'][$type] += $p[$type];
                 }
             }
             if ($p['cash'] != '0.00') {
-                $type = Yii::t('app','Cash');
+                $type = Moneystud::PAYMENT_TYPE_CASH;
                 if ($p['active'] && !$p['remain']) {
-                    $result[$p['officeId']]['counts']['cash'] += $p['cash'];
-                    $result[$p['officeId']][$p['date']]['counts']['cash'] += $p['cash'];
+                    $result[$p['officeId']]['counts'][$type] += $p[$type];
+                    $result[$p['officeId']][$p['date']]['counts'][$type] += $p[$type];
                 }
             }
             if ($p['bank'] != '0.00') {
-                $type = Yii::t('app','Bank');
+                $type = Moneystud::PAYMENT_TYPE_BANK;
                 if ($p['active'] && !$p['remain']) {
-                    $result[$p['officeId']]['counts']['bank'] += $p['bank'];
-                    $result[$p['officeId']][$p['date']]['counts']['bank'] += $p['bank'];
+                    $result[$p['officeId']]['counts'][$type] += $p[$type];
+                    $result[$p['officeId']][$p['date']]['counts'][$type] += $p[$type];
                 }
             }
             if ($p['active'] && !$p['remain']) {
@@ -321,7 +237,7 @@ class Report extends Model
                 'active'             => $p['active'],
                 'remain'             => $p['remain'],
                 'notificationId'     => $p['notificationId'],
-                'notification'       => Notification::getTextColorClassByStatus($p['notification']),
+                'notification'       => $p['notification'],
             ];
         }
 

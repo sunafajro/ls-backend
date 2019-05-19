@@ -29,6 +29,10 @@ use Yii;
  */
 class Moneystud extends \yii\db\ActiveRecord
 {
+    const PAYMENT_TYPE_CASH = 'cash';
+    const PAYMENT_TYPE_CARD = 'card';
+    const PAYMENT_TYPE_BANK = 'bank';
+
     /**
      * @inheritdoc
      */
@@ -79,6 +83,40 @@ class Moneystud extends \yii\db\ActiveRecord
         ];
     }
     
+    public static function getPaymentTypeLabel(string $type = NULL): string
+    {
+        $result = '';
+        switch($type) {
+            case self::PAYMENT_TYPE_CASH:
+                $result = Yii::t('app', 'Cash');
+                break;
+            case self::PAYMENT_TYPE_CARD:
+                $result = Yii::t('app', 'Card');
+                break;
+            case self::PAYMENT_TYPE_BANK:
+                $result = Yii::t('app', 'Bank');
+                break;
+        }
+        return $result;
+    }
+
+    public static function getPaymentTypeColorClass(string $type = NULL) : string
+    {
+        $result = '';
+        switch($type) {
+            case self::PAYMENT_TYPE_CASH:
+                $result = 'success';
+                break;
+            case self::PAYMENT_TYPE_CARD:
+                $result = 'info';
+                break;
+            case self::PAYMENT_TYPE_BANK:
+                $result = 'warning';
+                break;
+        }
+        return $result;
+    }
+
     /* возвращает список оплат в рамках указанных диапазона времени и офиса */
     public static function getPayments($start = null, $end = null, $office = null)
     {
