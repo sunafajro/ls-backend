@@ -55,19 +55,19 @@ $total = [
                     <small>
                         <span title="<?= Yii::t('app', 'Cash') ?>">
                             <i class="fa fa-money" aria-hidden="true"></i>
-                            <?= isset($office['counts']['cash']) ? number_format($office['counts']['cash'], 2, '.', ' ') : NULL ?>
+                            <?= isset($office['counts']['cash']) ? number_format(round($office['counts']['cash']), 0, '.', ' ') : NULL ?>
                         </span>&nbsp;&nbsp;
                         <span title="<?= Yii::t('app', 'Card') ?>">
                             <i class="fa fa-credit-card" aria-hidden="true"></i>
-                            <?= isset($office['counts']['card']) ? number_format($office['counts']['card'], 2, '.', ' ') : NULL ?>
+                            <?= isset($office['counts']['card']) ? number_format(round($office['counts']['card']), 0, '.', ' ') : NULL ?>
                         </span>&nbsp;&nbsp;
                         <span title="<?= Yii::t('app', 'Bank') ?>">
                             <i class="fa fa-university" aria-hidden="true"></i>
-                            <?= isset($office['counts']['bank']) ? number_format($office['counts']['bank'], 2, '.', ' ') : NULL ?>
+                            <?= isset($office['counts']['bank']) ? number_format(round($office['counts']['bank']), 0, '.', ' ') : NULL ?>
                         </span>&nbsp;&nbsp;
                         <span title="<?= Yii::t('app', 'Total') ?>">
                             <i class="fa fa-rub" aria-hidden="true"></i>
-                            <?= isset($office['counts']['all']) ? number_format($office['counts']['all'], 2, '.', ' ') : NULL ?>
+                            <?= isset($office['counts']['all']) ? number_format(round($office['counts']['all']), 0, '.', ' ') : NULL ?>
                         </span>
                     </small>
                 </h3>
@@ -79,19 +79,19 @@ $total = [
                             <small>
                                 <span title="<?= Yii::t('app', 'Cash') ?>">
                                     <i class="fa fa-money" aria-hidden="true"></i>
-                                    <?= isset($date['counts']['cash']) ? number_format($date['counts']['cash'], 2, '.', ' ') : NULL ?>
+                                    <?= isset($date['counts']['cash']) ? number_format(round($date['counts']['cash']), 0, '.', ' ') : NULL ?>
                                 </span>&nbsp;&nbsp;
                                 <span title="<?= Yii::t('app', 'Card') ?>">
                                     <i class="fa fa-credit-card" aria-hidden="true"></i>
-                                    <?= isset($date['counts']['card']) ? number_format($date['counts']['card'], 2, '.', ' ') : NULL ?>
+                                    <?= isset($date['counts']['card']) ? number_format(round($date['counts']['card']), 0, '.', ' ') : NULL ?>
                                 </span>&nbsp;&nbsp;
                                 <span title="<?= Yii::t('app', 'Bank') ?>">
                                     <i class="fa fa-university" aria-hidden="true"></i>
-                                    <?= isset($date['counts']['bank']) ? number_format($date['counts']['bank'], 2, '.', ' ') : NULL ?>
+                                    <?= isset($date['counts']['bank']) ? number_format(round($date['counts']['bank']), 0, '.', ' ') : NULL ?>
                                 </span>&nbsp;&nbsp;
                                 <span title="<?= Yii::t('app', 'Total') ?>">
                                     <i class="fa fa-rub" aria-hidden="true"></i>
-                                    <?= isset($date['counts']['all']) ? number_format($date['counts']['all'], 2, '.', ' ') : NULL ?>
+                                    <?= isset($date['counts']['all']) ? number_format(round($date['counts']['all']), 0, '.', ' ') : NULL ?>
                                 </span>
                             </small>
                         </h4>
@@ -177,19 +177,19 @@ $total = [
         <h3 class="text-center">
             <span title="<?= Yii::t('app', 'Cash') ?>">
                 <i class="fa fa-money" aria-hidden="true"></i>
-                <?= isset($total[Moneystud::PAYMENT_TYPE_CASH]) ? number_format($total[Moneystud::PAYMENT_TYPE_CASH], 2, '.', ' ') : NULL ?>
+                <?= isset($total[Moneystud::PAYMENT_TYPE_CASH]) ? number_format(round($total[Moneystud::PAYMENT_TYPE_CASH]), 0, '.', ' ') : NULL ?>
             </span>&nbsp;&nbsp;
             <span title="<?= Yii::t('app', 'Card') ?>">
                 <i class="fa fa-credit-card" aria-hidden="true"></i>
-                <?= isset($total[Moneystud::PAYMENT_TYPE_CARD]) ? number_format($total[Moneystud::PAYMENT_TYPE_CARD], 2, '.', ' ') : NULL ?>
+                <?= isset($total[Moneystud::PAYMENT_TYPE_CARD]) ? number_format(round($total[Moneystud::PAYMENT_TYPE_CARD]), 0, '.', ' ') : NULL ?>
             </span>&nbsp;&nbsp;
             <span title="<?= Yii::t('app', 'Bank') ?>">
                 <i class="fa fa-university" aria-hidden="true"></i>
-                <?= isset($total[Moneystud::PAYMENT_TYPE_BANK]) ? number_format($total[Moneystud::PAYMENT_TYPE_BANK], 2, '.', ' ') : NULL ?>
+                <?= isset($total[Moneystud::PAYMENT_TYPE_BANK]) ? number_format(round($total[Moneystud::PAYMENT_TYPE_BANK]), 0, '.', ' ') : NULL ?>
             </span>&nbsp;&nbsp;
             <span title="<?= Yii::t('app', 'Total') ?>">
                 <i class="fa fa-rub" aria-hidden="true"></i>
-                <?= isset($total['all']) ? number_format($total['all'], 2, '.', ' ') : NULL ?>
+                <?= isset($total['all']) ? number_format(round($total['all']), 0, '.', ' ') : NULL ?>
             </span>
         </h3>
     </div>
