@@ -3,7 +3,9 @@
 namespace app\controllers;
 
 use Yii;
+use app\models\Moneystud;
 use app\models\Notification;
+use app\models\Student;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
@@ -48,6 +50,17 @@ class NotificationController extends Controller
     {
         if ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        }
+        if ($type === Notification::TYPE_PAYMENT) {
+            $student = (new \yii\db\Query())
+            ->select(['email' => 's.email'])
+            ->from(['p' => Moneystud::tableName()])
+            ->innerJoin(['s' => Student::tableName()], 'p.calc_studname = s.id')
+            ->where(['p.id' => $id])
+            ->one();
+            if (!($student['email'] ?? false)) {
+                throw new NotFoundHttpException(Yii::t('app', 'Fail! Client not have an e-mail address!'));
+            }
         }
         $notification = new Notification();
         $notification->entity_id = $id;

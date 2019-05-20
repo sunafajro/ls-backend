@@ -176,6 +176,7 @@ return array(
 'Executors'=>'Исполнители',
 'Expenses' => 'Расходы',
 'Fail' => 'Сбой',
+'Fail! Client not have an e-mail address!'=> 'Сбой! У клиента отсуствует e-mail адрес!',
 'Failed to add e-mail notification to queue!' => 'Не удалось добавить уведомелние в очередь на отправку!',
 'Failed to add language premium to the teacher!' => 'Не удалось добавить языковую надбавку преподавателю!',
 'Failed to create language premium!' => 'Не удалось создать языковую надбавку!',
