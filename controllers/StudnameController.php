@@ -272,8 +272,6 @@ class StudnameController extends Controller
      */
     public function actionView($id)
     {
-        $userInfoBlock = User::getUserInfoBlock();
-
         // проверяем какие данные выводить в карочку преподавателя: 1 - активные группы, 2 - завершенные группы, 3 - счета; 4 - оплаты
         if(Yii::$app->request->get('tab')){
             switch(Yii::$app->request->get('tab')){
@@ -446,7 +444,7 @@ class StudnameController extends Controller
             'invcount'      => $invcount,
             'clientaccess'  => ClientAccess::find()->where(['calc_studname'=>$id])->one(),
             'permsale'      => $permsale,
-            'userInfoBlock' => $userInfoBlock,
+            'userInfoBlock' => User::getUserInfoBlock(),
             'offices'       => [
                 'added' => Student::getStudentOffices($id),
                 'all'   => $office->getOfficesList(),

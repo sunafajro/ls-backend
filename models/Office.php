@@ -79,6 +79,19 @@ class Office extends \yii\db\ActiveRecord
 
         return $offices;
     }
+    /* возвращает список действующих офисов */
+    public function getOffices(string $id = null) : array
+    {
+        $offices = (new \yii\db\Query())
+        ->select(['id' => 'o.id', 'name' => 'o.name'])
+        ->from(['o' => Office::tableName()])
+        ->where(['visible' => 1])
+        ->andFilterWhere(['o.id' => $id])
+        ->orderBy(['o.name' => SORT_ASC])
+        ->all();
+    
+        return $offices;
+    }
 
     /* возвращает список действующих офисов */
     public function getOfficesList($id = null)

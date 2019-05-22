@@ -4,12 +4,15 @@ namespace app\controllers;
 
 use Yii;
 use app\models\Moneystud;
+use app\models\Notification;
+use app\models\Office;
 use app\models\Student;
 use app\models\User;
-use yii\data\ActiveDataProvider;
-use yii\web\Controller;
-use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
+use yii\helpers\ArrayHelper;
+use yii\web\Controller;
+use yii\web\ForbiddenHttpException;
+use yii\web\NotFoundHttpException;
 
 /**
  * MoneystudController implements the CRUD actions for Moneystud model.
@@ -43,85 +46,70 @@ class MoneystudController extends Controller
      * создавать оплаты клиента. Для создания оплаты необходим ID клиента.
      */
 
-    public function actionCreate()
+    public function actionCreate($sid)
     {
         // оплаты принимают только менеджеры или руководители
-        if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4) {
-            if(Yii::$app->request->get('sid')){
-                $sid = Yii::$app->request->get('sid');                
-            } else {
-                // если нет возвращаемся на предыдущую страницу
-                return $this->redirect(Yii::$app->request->referrer);                
-            }
-            $userInfoBlock = User::getUserInfoBlock();
-            // создаем пустую модель записи об оплате
-            $model = new Moneystud();
+        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        }
+        // создаем пустую модель записи об оплате
+        $model = new Moneystud();
 
-            // находим информацию по клиенту
-            $student = Student::findOne($sid);
-			
-		    // получаем массив со списком офисов
-			$tmp_offices = (new \yii\db\Query())
-			->select('co.id as oid, co.name as oname')
-			->from('calc_office co')
-			->where('co.visible=:vis', [':vis'=>1])
-			->orderBy(['co.id'=>SORT_ASC])
-			->all();
-			
-			$offices = [];
-			foreach($tmp_offices as $to) {
-				$offices[$to['oid']] = $to['oname'];
-			}
-            unset($to);
-			unset($tmp_offices);
-            if ($model->load(Yii::$app->request->post())) {
-                $model->value_cash = $this->prepareInput($model->value_cash);
-                $model->value_card = $this->prepareInput($model->value_card);
-                $model->value_bank = $this->prepareInput($model->value_bank);
-                $model->value = $model->value_cash + $model->value_card + $model->value_bank;
-                // указываем id клиента
-                $model->calc_studname = $sid;
-                $model->visible = 1;
-                $model->user = Yii::$app->session->get('user.uid');
-                $model->user_visible = 0;
-                $model->user_remain = 0;
-                $model->user_collection = 0;
-                $model->collection = 0;
-                $model->data = date('Y-m-d');
-                $model->data_visible = '0000-00-00';
-                $model->data_remain = '0000-00-00';
-                $model->data_collection = '0000-00-00';
-                // для менеджеров офис подставляем автоматом
-                if(Yii::$app->session->get('user.ustatus')==4) {
-                    $model->calc_office = Yii::$app->session->get('user.uoffice_id');
-                }
-                // если запись об оплате прошла успешно
-                if($model->save()) {
-                    // суммируем общее число оплат с новой оплатой
-                    $student->money = $student->money + $model->value;
-					// пересчитываем значение долга для старой системы
-                    $student->debt = $student->money - $student->invoice;
-					// пересчитываем баланс клиента новой функцией
-					$student->debt2 = $this->studentDebt($student->id);
-                    // сохраняем данные
-                    $student->save();
-                    // вызываем функцию рассчета долга
-                    // $student->debt = $this->calcDebt($studdent->id);
-                    // сохраняем данные
-                    // $student->save();
-                }
-                return $this->redirect(['studname/view', 'id' => $student->id, 'tab'=>4]); 
-            } else {
-                return $this->render('create', [
-                    'model' => $model,
-                    'student'=>$student,
-					'offices'=>$offices,
-                    'userInfoBlock' => $userInfoBlock
-                ]);
+        // находим информацию по клиенту
+        $student = Student::findOne($sid);
+        
+        $office = new Office();
+        $offices = ArrayHelper::map($office->getOffices(), 'id', 'name');
+        
+        if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
+            $model->value_cash = $this->prepareInput($model->value_cash);
+            $model->value_card = $this->prepareInput($model->value_card);
+            $model->value_bank = $this->prepareInput($model->value_bank);
+            $model->value = $model->value_cash + $model->value_card + $model->value_bank;
+            // указываем id клиента
+            $model->calc_studname = $sid;
+            $model->visible = 1;
+            $model->user = Yii::$app->session->get('user.uid');
+            $model->user_visible = 0;
+            $model->user_remain = 0;
+            $model->user_collection = 0;
+            $model->collection = 0;
+            $model->data = date('Y-m-d');
+            $model->data_visible = '0000-00-00';
+            $model->data_remain = '0000-00-00';
+            $model->data_collection = '0000-00-00';
+            // для менеджеров офис подставляем автоматом
+            if((int)Yii::$app->session->get('user.ustatus') === 4) {
+                $model->calc_office = Yii::$app->session->get('user.uoffice_id');
             }
+            // TODO create transaction
+            if($model->save()) {
+                $student->money = $student->money + $model->value;
+                $student->debt = $student->money - $student->invoice;
+                // $student->debt2 = $this->studentDebt($student->id);
+                if (Yii::$app->request->post('sendEmail')) {
+                    $notification = new Notification();
+                    $notification->entity_id = $model->id;
+                    $notification->type       = Notification::TYPE_PAYMENT;
+                    $notification->user_id    = Yii::$app->session->get('user.uid');
+                    $notification->save();
+                }
+                if ($student->save()) {
+                    Yii::$app->session->setFlash('success', Yii::t('app', 'Payment successfully created!'));
+                } else {
+                    Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to create payment!'));
+                }
+            } else {
+                Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to create payment!'));
+            }
+            return $this->redirect(['studname/view', 'id' => $student->id, 'tab' => 4]); 
         } else {
-            // если нет возвращаемся на предыдущую страницу
-            return $this->redirect(Yii::$app->request->referrer);
+            return $this->render('create', [
+                'model'         => $model,
+                'offices'       => $offices,
+                'student'       => $student,
+                'userInfoBlock' => User::getUserInfoBlock()
+            ]);
         }
     }
 
@@ -129,47 +117,42 @@ class MoneystudController extends Controller
     * метод позволяет менеджерам и руководителям 
     * аннулировать оплату клиента. Для аннулирования необходим ID оплаты.
     **/
-
     public function actionDisable($id)
     {
         // оплаты могут аннулировать только менеджеры или руководители
-        if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4) {
-            // 
-            $model = $this->findModel($id);
-            // проверяем что оплата действующая
-            if($model->visible==1) {
-                // помечаем оплату как аннулированную
-                $model->visible = 0;
-                // указываем пользователя аннулировавшего оплату
-                $model->user_visible = Yii::$app->session->get('user.uid');
-                // указываем дату анулирования оплаты
-                $model->data_visible = date('Y-m-d');
-                // если запись успешно сохранилась
-                if($model->save()) {
-                    // находим клиента
-                    $student = Student::findOne($model->calc_studname);
-                    // вычитаем сумму оплаты из общего числа оплат
-                    $student->money = $student->money - $model->value;
-					// пересчитываем значение долга для старой системы
-                    $student->debt = $student->money - $student->invoice;
-					// пересчитываем баланс клиента новой функцией
-					$student->debt2 = $this->studentDebt($student->id);
-                    // сохраняем данные
-                    $student->save();
-                    // вызываем функцию рассчета долга
-                    // $student->debt = $this->calcDebt($studdent->id);
-                    // сохраняем данные
-                    // $student->save();
-
-                }
-                return $this->redirect(['studname/view', 'id' => $student->id, 'tab'=>4]);
-            } else {
-                // возвращаемся обратно
-                return $this->redirect(Yii::$app->request->referrer); 
+        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        }
+        $model = $this->findModel($id);
+        // проверяем что оплата действующая
+        if ((int)$model->visible === 1) {
+            // помечаем оплату как аннулированную
+            $model->visible = 0;
+            // указываем пользователя аннулировавшего оплату
+            $model->user_visible = Yii::$app->session->get('user.uid');
+            // указываем дату анулирования оплаты
+            $model->data_visible = date('Y-m-d');
+            // уведомление об оплате
+            $notification = Notification::find()->where([
+                'entity_id' => $model->id,
+                'type'      => Notification::TYPE_PAYMENT,
+            ])->one();
+            if ($notification !== NULL) {
+                $notification->visible = 0;
+                $notification->save();
             }
+            // TODO create transaction
+            if($model->save()) {
+                $student = Student::findOne($model->calc_studname);
+                $student->money = $student->money - $model->value;
+                $student->debt = $student->money - $student->invoice;
+                // $student->debt2 = $this->studentDebt($student->id);
+                $student->save();
+            }
+            return $this->redirect(['studname/view', 'id' => $student->id, 'tab'=>4]);
         } else {
             // возвращаемся обратно
-            return $this->redirect(Yii::$app->request->referrer);
+            return $this->redirect(Yii::$app->request->referrer); 
         }
     }
 
@@ -181,45 +164,40 @@ class MoneystudController extends Controller
     public function actionEnable($id)
     {
         // оплаты могут восстановить только менеджеры или руководители
-        if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4) {
-            // 
-            $model = $this->findModel($id);
-            // проверяем что оплата аннулирована
-            if($model->visible==0) {
-                // помечаем оплату как действующую
-                $model->visible = 1;
-                // указываем пользователя восстановившего оплату
-                $model->user_visible = Yii::$app->session->get('user.uid');
-                // указываем дату восстановления оплаты
-                $model->data_visible = date('Y-m-d');
-                // если запись успешно сохранилась
-                if($model->save()) {
-                    // находим клиента
-                    $student = Student::findOne($model->calc_studname);
-                    // добавляем сумму оплаты к общему числу оплат
-                    $student->money = $student->money + $model->value;
-					// пересчитываем значение долга для старой системы
-                    $student->debt = $student->money - $student->invoice;
-					// пересчитываем баланс клиента новой функцией
-					$student->debt2 = $this->studentDebt($student->id);
-                    // сохраняем данные
-                    $student->save();
-                    // вызываем функцию рассчета долга
-                    // $student->debt = $this->calcDebt($studdent->id);
-                    // сохраняем данные
-                    // $student->save();
-
-                }
-                return $this->redirect(['studname/view', 'id' => $student->id, 'tab'=>4]);
-            } else {
-                // возвращаемся обратно
-                return $this->redirect(Yii::$app->request->referrer);
+        if((int)Yii::$app->session->get('user.ustatus') !==3 && Yii::$app->session->get('user.ustatus') !== 4) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        }
+        $model = $this->findModel($id);
+        // проверяем что оплата аннулирована
+        if($model->visible==0) {
+            // помечаем оплату как действующую
+            $model->visible = 1;
+            // указываем пользователя восстановившего оплату
+            $model->user_visible = Yii::$app->session->get('user.uid');
+            // указываем дату восстановления оплаты
+            $model->data_visible = date('Y-m-d');
+            // уведомление об оплате
+            $notification = Notification::find()->where([
+                'entity_id' => $model->id,
+                'type'      => Notification::TYPE_PAYMENT,
+            ])->one();
+            if ($notification !== NULL) {
+                $notification->visible = 1;
+                $notification->save();
             }
+            // TODO create transaction
+            if($model->save()) {
+                $student = Student::findOne($model->calc_studname);
+                $student->money = $student->money + $model->value;
+                $student->debt = $student->money - $student->invoice;
+                // $student->debt2 = $this->studentDebt($student->id);
+                $student->save();
+            }
+            return $this->redirect(['studname/view', 'id' => $student->id, 'tab' => 4]);
         } else {
             // возвращаемся обратно
             return $this->redirect(Yii::$app->request->referrer);
         }
-
     }
 
     /**
@@ -230,23 +208,20 @@ class MoneystudController extends Controller
     public function actionRemain($id)
     {
         // оплаты могут делать остаточными только менеджеры или руководители
-        if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4) {
-            // 
-            $model = $this->findModel($id);
-            // проверяем что оплата действующая и не остаточная
-            if($model->visible==1 && $model->remain==0) {
-                // помечаем оплату как остаточную
-                $model->remain = 1;
-                // сохраняем
-                $model->save();
-                return $this->redirect(['studname/view', 'id' => $model->calc_studname, 'tab'=>4]);
-            } else {
-                // возвращаемся обратно
-                return $this->redirect(Yii::$app->request->referrer); 
-            }
+        if((int)Yii::$app->session->get('user.ustatus') !==3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        }
+        $model = $this->findModel($id);
+        // проверяем что оплата действующая и не остаточная
+        if($model->visible==1 && $model->remain==0) {
+            // помечаем оплату как остаточную
+            $model->remain = 1;
+            // сохраняем
+            $model->save();
+            return $this->redirect(['studname/view', 'id' => $model->calc_studname, 'tab'=>4]);
         } else {
             // возвращаемся обратно
-            return $this->redirect(Yii::$app->request->referrer);
+            return $this->redirect(Yii::$app->request->referrer); 
         }
     }
 
@@ -258,23 +233,19 @@ class MoneystudController extends Controller
     public function actionUnremain($id)
     {
         // оплаты могут делать остаточными только менеджеры или руководители
-        if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4) {
-            // 
-            $model = $this->findModel($id);
-            // проверяем что оплата действующая и остаточная
-            if($model->visible==1 && $model->remain==1) {
-                // помечаем оплату как обычную
-                $model->remain = 0;
-                // сохраняем
-                $model->save();
-                return $this->redirect(['studname/view', 'id' => $model->calc_studname, 'tab'=>4]);
-            } else {
-                // возвращаемся обратно
-                return $this->redirect(Yii::$app->request->referrer); 
-            }
+        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        }
+        $model = $this->findModel($id);
+        // проверяем что оплата действующая и остаточная
+        if($model->visible==1 && $model->remain==1) {
+            // помечаем оплату как обычную
+            $model->remain = 0;
+            $model->save();
+            return $this->redirect(['studname/view', 'id' => $model->calc_studname, 'tab'=>4]);
         } else {
             // возвращаемся обратно
-            return $this->redirect(Yii::$app->request->referrer);
+            return $this->redirect(Yii::$app->request->referrer); 
         }
     }
     
@@ -286,14 +257,13 @@ class MoneystudController extends Controller
      */
     public function actionDelete($id)
     {
-        if((int)Yii::$app->session->get('user.ustatus') === 3) {
-            $payment = $this->findModel($id);
-            $student = $payment->calc_studname;
-            $this->findModel($id)->delete();
-            return $this->redirect(['studname/view', 'id' => $student, 'tab'=>4]);
-        } else {
-            return $this->redirect(Yii::$app->request->referrer);
+        if((int)Yii::$app->session->get('user.ustatus') !== 3) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
+        $payment = $this->findModel($id);
+        $student = $payment->calc_studname;
+        $this->findModel($id)->delete();
+        return $this->redirect(['studname/view', 'id' => $student, 'tab'=>4]);
     }
 
     /**

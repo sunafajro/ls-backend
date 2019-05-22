@@ -29,6 +29,10 @@ use Yii;
  */
 class Moneystud extends \yii\db\ActiveRecord
 {
+    const PAYMENT_TYPE_CASH = 'cash';
+    const PAYMENT_TYPE_CARD = 'card';
+    const PAYMENT_TYPE_BANK = 'bank';
+
     /**
      * @inheritdoc
      */
@@ -79,30 +83,67 @@ class Moneystud extends \yii\db\ActiveRecord
         ];
     }
     
+    public static function getPaymentTypeLabel(string $type = NULL): string
+    {
+        $result = '';
+        switch($type) {
+            case self::PAYMENT_TYPE_CASH:
+                $result = Yii::t('app', 'Cash');
+                break;
+            case self::PAYMENT_TYPE_CARD:
+                $result = Yii::t('app', 'Card');
+                break;
+            case self::PAYMENT_TYPE_BANK:
+                $result = Yii::t('app', 'Bank');
+                break;
+        }
+        return $result;
+    }
+
+    public static function getPaymentTypeColorClass(string $type = NULL) : string
+    {
+        $result = '';
+        switch($type) {
+            case self::PAYMENT_TYPE_CASH:
+                $result = 'success';
+                break;
+            case self::PAYMENT_TYPE_CARD:
+                $result = 'info';
+                break;
+            case self::PAYMENT_TYPE_BANK:
+                $result = 'warning';
+                break;
+        }
+        return $result;
+    }
+
     /* возвращает список оплат в рамках указанных диапазона времени и офиса */
     public static function getPayments($start = null, $end = null, $office = null)
     {
         $payments = (new \yii\db\Query())
         ->select([
-            'id' => 'ms.id',
-            'studentId' => 'sn.id',
-            'student' => 'sn.name', 
-            'manager' => 'u.name',
-            'sum' => 'ms.value',
-            'card' => 'ms.value_card',
-            'cash' => 'ms.value_cash', 
-            'bank' => 'ms.value_bank',
-            'date' => 'ms.data',
-            'receipt' => 'ms.receipt', 
-            'active' => 'ms.visible',
-            'remain' => 'ms.remain',
-            'officeId' => 'ms.calc_office',
-            'office' => 'o.name'
+            'id'                 => 'ms.id',
+            'studentId'          => 'sn.id',
+            'student'            => 'sn.name', 
+            'manager'            => 'u.name',
+            'sum'                => 'ms.value',
+            'card'               => 'ms.value_card',
+            'cash'               => 'ms.value_cash', 
+            'bank'               => 'ms.value_bank',
+            'date'               => 'ms.data',
+            'receipt'            => 'ms.receipt', 
+            'active'             => 'ms.visible',
+            'remain'             => 'ms.remain',
+            'officeId'           => 'ms.calc_office',
+            'office'             => 'o.name',
+            'notificationId'     => 'n.id',
+            'notification'       => 'n.status',
         ])
         ->from(['ms' => static::tableName()])
         ->innerjoin(['sn' => 'calc_studname'], 'sn.id = ms.calc_studname')
         ->innerJoin(['u' => 'user'], 'u.id = ms.user')
         ->innerJoin(['o' => 'calc_office'], 'o.id = ms.calc_office')
+        ->leftJoin(['n' => 'notifications'], 'n.entity_id = ms.id')
         ->andFilterWhere(['ms.calc_office' => $office])
         ->andFilterWhere(['>=', 'ms.data', $start])
         ->andFilterWhere(['<=', 'ms.data', $end])
@@ -119,21 +160,24 @@ class Moneystud extends \yii\db\ActiveRecord
     {
         $payments = (new \yii\db\Query())
         ->select([
-            'pid' => 'ms.id',
-            'pdate' => 'ms.data',
-            'pvalue' => 'ms.value',
-            'uname' => 'u.name',
-            'oname' => 'o.name',
-            'receipt' => 'ms.receipt',
-            'visible' => 'ms.visible',
-            'editor' => 'u2.name',
-            'edit_date' => 'ms.data_visible',
-            'remain' => 'ms.remain'
+            'pid'                => 'ms.id',
+            'pdate'              => 'ms.data',
+            'pvalue'             => 'ms.value',
+            'uname'              => 'u.name',
+            'oname'              => 'o.name',
+            'receipt'            => 'ms.receipt',
+            'visible'            => 'ms.visible',
+            'editor'             => 'u2.name',
+            'edit_date'          => 'ms.data_visible',
+            'remain'             => 'ms.remain',
+            'notificationId'     => 'n.id',
+            'notificationStatus' => 'n.status'
         ])
         ->from(['ms' => self::tableName()])
         ->innerJoin(['u' => 'user'], 'u.id = ms.user')
-        ->leftJoin(['u2' => 'user'], 'u2.id = ms.user_visible')
         ->innerJoin(['o' => 'calc_office'], 'o.id = ms.calc_office')
+        ->leftJoin(['u2' => 'user'], 'u2.id = ms.user_visible')
+        ->leftJoin(['n'  => 'notifications'], 'n.entity_id = ms.id')
         ->where([
             'ms.calc_studname' => $sid
         ])

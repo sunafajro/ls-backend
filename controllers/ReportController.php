@@ -16,8 +16,8 @@ use app\models\User;
 use app\models\search\LessonSearch;
 use yii\filters\AccessControl;
 use yii\web\Controller;
+use yii\web\ForbiddenHttpException;
 use yii\web\Response;
-use yii\filters\VerbFilter;
 use yii\data\Pagination;
 
 
@@ -301,39 +301,74 @@ class ReportController extends Controller
         /* выводим данные в вьюз */
 
     }
-    
-    public function actionPayments ($start = null, $end = null)
+
+    // Отчет по оплатам
+    public function actionPayments (string $start = NULL, string $end = NULL, string $oid = NULL)
     {
-        /* всех кроме руководителей, менеджеров и бухгалтеров редиректим обратно */
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4 && (int)Yii::$app->session->get('user.ustatus') !== 8) {
-            return $this->redirect(Yii::$app->request->referrer);
+        if ((int)Yii::$app->session->get('user.ustatus') !== 3 &&
+            (int)Yii::$app->session->get('user.ustatus') !== 4 &&
+            (int)Yii::$app->session->get('user.ustatus') !== 8) {
+                throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
-        if (Yii::$app->request->isPost) {
-            $office = null;
-            if ((int)Yii::$app->session->get('user.ustatus') === 4) {
-              $office = (int)Yii::$app->session->get('user.uoffice_id');
-            }
-            Yii::$app->response->format = Response::FORMAT_JSON;
-            return [
-                "status" => true,
-                "menuData" => Report::getReportTypes(),
-                "paymentsData" => [
-                    "columns" => Report::getPaymentsReportColumns(),
-                    "rows" => Report::getPaymentsReportRows($start, $end, $office)
-                ]
-            ];
-        } else {
-            return $this->render('payments');
+        if (!($start && $end)) {
+            $start = date("Y-m-d", strtotime('monday this week'));
+            $end = date("Y-m-d", strtotime('sunday this week'));
         }
+        $oid = (int)Yii::$app->session->get('user.ustatus') === 4 ? (int)Yii::$app->session->get('user.uoffice_id') : $oid;
+        $report = new Report();
+        $payments = $report->getPayments($start, $end, $oid);
+        return $this->render('payments', [
+            'end'           => $end,
+            'offices'       => Office::getOfficesListSimple(),
+            'oid'           => $oid,
+            'payments'      => $payments,
+            'reportList'    => Report::getReportTypeList(),
+            'start'         => $start,
+            'userInfoBlock' => User::getUserInfoBlock(),
+        ]);
+    }
+
+    // Отчет по счетам
+    public function actionInvoices(string $start = '', string $end = '', string $oid = '') {
+        if((int)Yii::$app->session->get('user.ustatus') !== 3 &&
+           (int)Yii::$app->session->get('user.ustatus') !== 4) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        }
+        if (!($start && $end)) {
+            $start = date("Y-m-d", strtotime('monday this week'));
+            $end = date("Y-m-d", strtotime('sunday this week'));
+        }
+        $oid = (int)Yii::$app->session->get('user.ustatus') === 4 ? (int)Yii::$app->session->get('user.uoffice_id') : $oid;
+        $invoice = new Invoicestud();
+        $invoices = $invoice->getInvoices([
+            'start'  => $start,
+            'end'    => $end,
+            'office' => $oid,
+        ]);
+        $dates = [];
+        foreach ($invoices as $inv){
+            $dates[] = $inv['date'];
+        }
+        if (!empty($dates)) {
+            $dates = array_unique($dates);
+        }
+        return $this->render('invoices', [
+            'dates'         => $dates,
+            'end'           => $end,
+            'invoices'      => $invoices,
+            'offices'       => Office::getOfficesListSimple(),
+            'oid'           => $oid,
+            'reportList'    => Report::getReportTypeList(),
+            'start'         => $start,
+            'userInfoBlock' => User::getUserInfoBlock(),
+        ]);
     }
 
     public function actionPlan()
 	{
-        /* всех кроме менеджеров и руководителей редиректим обратно */
-        if(Yii::$app->session->get('user.ustatus')!=3 && Yii::$app->session->get('user.ustatus')!=8) {
-            return $this->redirect(Yii::$app->request->referrer);
+        if ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 8) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
-        /* всех кроме менеджеров и руководителей редиректим обратно */
 		
 		$month = date('n');
 		$year = date('Y');
@@ -1021,41 +1056,6 @@ class ReportController extends Controller
         } else {
             return $this->redirect(Yii::$app->request->referrer);
         }
-    }
-    
-    public function actionInvoices(string $start = '', string $end = '', string $oid = '') {
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 &&
-           (int)Yii::$app->session->get('user.ustatus') !== 4) {
-            return $this->redirect(Yii::$app->request->referrer);
-        }
-        if (!($start && $end)) {
-            $start = date("Y-m-d", strtotime('monday this week'));
-            $end = date("Y-m-d", strtotime('sunday this week'));
-        }
-        $oid = (int)Yii::$app->session->get('user.ustatus') === 4 ? (int)Yii::$app->session->get('user.uoffice_id') : $oid;
-        $invoice = new Invoicestud();
-        $invoices = $invoice->getInvoices([
-            'start'  => $start,
-            'end'    => $end,
-            'office' => $oid,
-        ]);
-        $dates = [];
-        foreach ($invoices as $inv){
-            $dates[] = $inv['date'];
-        }
-        if (!empty($dates)) {
-            $dates = array_unique($dates);
-        }
-        return $this->render('invoices', [
-            'dates'         => $dates,
-            'end'           => $end,
-            'invoices'      => $invoices,
-            'offices'       => Office::getOfficesListSimple(),
-            'oid'           => $oid,
-            'reportlist'    => Report::getReportTypeList(),
-            'start'         => $start,
-            'userInfoBlock' => User::getUserInfoBlock(),
-        ]);
     }
     
     /*

@@ -1,27 +1,29 @@
 <?php
 /**
- * @var $this  yii\web\View
- * @var $form  yii\widgets\ActiveForm
- * @var $model app\models\Student
- * @var $invoices
- * @var $payments
- * @var $groups
- * @var $lessons
- * @var $studsales
- * @var $services
- * @var $schedule
- * @var $years
- * @var $invcount
- * @var $clientaccess
- * @var $permsale
- * @var $userInfoBlock
- * @var $offices
- * @var $contracts
+ * @var yii\web\View            $this
+ * @var yii\widgets\ActiveForm  $form
+ * @var app\models\ClientAccess $clientaccess
+ * @var app\models\Student      $model
+ * @var array                   $invoices
+ * @var array                   $payments
+ * @var array                   $groups
+ * @var array                   $lessons
+ * @var array                   $studsales
+ * @var array                   $services
+ * @var array                   $schedule
+ * @var array                   $years
+ * @var array                   $invcount
+ * @var array                   $permsale
+ * @var string                  $userInfoBlock
+ * @var array                   $offices
+ * @var array                   $contracts
  */
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
+use app\widgets\Alert;
 use yii\widgets\Breadcrumbs;
-$this->title = 'Система учета :: '.Yii::t('app', 'Students').' :: ' . $model->name;
+
+$this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Students') . ' :: ' . $model->name;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Clients'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $model->name;
 // проверяем какие данные выводить в карочку преподавателя: 1 - активные группы, 2 - завершенные группы, 3 - счета; 4 - оплаты
@@ -155,10 +157,9 @@ if (Yii::$app->request->get('tab')) {
                 <li class="list-group-item list-group-item-warning">
                     <?php if (
                         (
-                            (int)Yii::$app->session->get('user.ustatus') === 3
-                            || (int)Yii::$app->session->get('user.ustatus') === 4
-                        )
-                        && (int)$model->active === 1
+                            (int)Yii::$app->session->get('user.ustatus') === 3 ||
+                            (int)Yii::$app->session->get('user.ustatus') === 4
+                        ) && (int)$model->active === 1
                     ) { ?>
                     <?= Html::a(
                         '<i class="fa fa-trash" aria-hidden="true"></i>',
@@ -172,16 +173,16 @@ if (Yii::$app->request->get('tab')) {
             <?php } ?>
             </ul>
         <?php } ?>
-        <?php if (
-            (
-                (int)Yii::$app->session->get('user.ustatus') === 3
-                || (int)Yii::$app->session->get('user.ustatus') === 4
-            )
-            && (int)$model->active === 1
-        ) { ?>
+        <?php
+            if (
+                (
+                    (int)Yii::$app->session->get('user.ustatus') === 3 ||
+                    (int)Yii::$app->session->get('user.ustatus') === 4
+                ) && (int)$model->active === 1
+            ) { ?>
             <?php $form = ActiveForm::begin([
                 'method' => 'post',
-                'action' => '/studname/change-office?sid=' . $model->id . '&action=add'
+                'action' => ['studname/change-office', 'sid' => $model->id, 'action' => 'add']
             ]); ?>
             <div style="margin-bottom: 10px">
                 <select class="form-control input-sm" name="office">
@@ -208,12 +209,7 @@ if (Yii::$app->request->get('tab')) {
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle</button>
 		</p>
-        <?php if(Yii::$app->session->hasFlash('error')): ?>
-		    <div class="alert alert-danger" role="alert"><?= Yii::$app->session->getFlash('error') ?></div>
-        <?php endif; ?>    
-        <?php if(Yii::$app->session->hasFlash('success')): ?>
-		    <div class="alert alert-success" role="alert"><?= Yii::$app->session->getFlash('success'); ?></div>
-        <?php endif; ?> 
+        <?= Alert::widget() ?>
         <h3>[#<?= Html::encode($model->id) ?>] <?= Html::encode($model->name) ?> :: 
 		<?= Html::encode($model->phone) ?>
         <?php if(isset($model->email) && $model->email !== '' && $model->email !== '0'): ?>
@@ -369,8 +365,9 @@ if (Yii::$app->request->get('tab')) {
             /* оплаты */
             if(Yii::$app->session->get('user.ustatus') == 3|| Yii::$app->session->get('user.ustatus') == 4) {
                 echo $this->render('_payments', [
-                    'years' => $years,
-                    'payments' => $payments 
+                    'email'    => $model->email,
+                    'payments' => $payments,
+                    'years'    => $years,
                 ]);
             }
         } ?>

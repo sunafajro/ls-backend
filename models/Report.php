@@ -173,68 +173,7 @@ class Report extends Model
     }
     /* метод возвращает номер недели по дате понедельника и воскресенья */
 
-    // возвращает заголовки таблицы отчета по оплатам
-    public static function getPaymentsReportColumns()
-    {
-        return [
-            [
-                'id' => 'id',
-                'name' => '№',
-                'show' => true,
-                'width' => '10%'
-            ],
-            [
-                'id' => 'studentId',
-                'name' => Yii::t('app', 'Student ID'),
-                'show' => false,
-                'width' => ''
-            ],
-            [
-                'id' => 'student',
-                'name' => Yii::t('app', 'Student'),
-                'show' => true,
-                'width' => '30%'
-            ],
-            [
-                'id' => 'manager',
-                'name' => Yii::t('app', 'Manager'),
-                'show' => true,
-                'width' => '30%'
-            ],
-            [
-                'id' => 'receipt',
-                'name' => Yii::t('app', 'Receipt'),
-                "show" => true,
-                'width' => '10%'
-            ],
-            [
-                'id' => 'type',
-                'name' => Yii::t('app', 'Type'),
-                'show' => true,
-                'width' => '10%'
-            ],
-            [
-                'id' => 'sum',
-                'name' => Yii::t('app', 'Sum'),
-                'show' => true,
-                'width' => '10%'
-            ],
-            [
-                'id' => 'active',
-                'name' => Yii::t('app', 'Active'),
-                'show' => false,
-                'width' => ''
-            ],
-            [
-                'id' => 'remain',
-                'name' => Yii::t('app', 'Remain'),
-                'show' => false,
-                'width' => ''
-            ],
-        ];
-    }
-
-    public static function getPaymentsReportRows($start = null, $end = null, $office = null)
+    public static function getPayments($start = null, $end = null, $office = null)
     {
         $result = [];
         $payments = Moneystud::getPayments($start, $end, $office);
@@ -243,9 +182,9 @@ class Report extends Model
                 $result[$p['officeId']] = [
                     'name' => $p['office'],
                     'counts' => [
-                        'cash' => 0,
-                        'card' => 0,
-                        'bank' => 0,
+                        Moneystud::PAYMENT_TYPE_CASH => 0,
+                        Moneystud::PAYMENT_TYPE_CARD => 0,
+                        Moneystud::PAYMENT_TYPE_BANK => 0,
                         'all' => 0
                     ]
                 ];
@@ -253,9 +192,9 @@ class Report extends Model
             if (!isset($result[$p['officeId']][$p['date']])) {
                 $result[$p['officeId']][$p['date']] = [
                     'counts' => [
-                        'cash' => 0,
-                        'card' => 0,
-                        'bank' => 0,
+                        Moneystud::PAYMENT_TYPE_CASH => 0,
+                        Moneystud::PAYMENT_TYPE_CARD => 0,
+                        Moneystud::PAYMENT_TYPE_BANK => 0,
                         'all' => 0
                     ],
                     'rows' => []
@@ -263,24 +202,24 @@ class Report extends Model
             }
             $type = '';
             if ($p['card'] != '0.00') {
-                $type = Yii::t('app','Card');
+                $type = Moneystud::PAYMENT_TYPE_CARD;
                 if ($p['active'] && !$p['remain']) {
-                    $result[$p['officeId']]['counts']['card'] += $p['card'];
-                    $result[$p['officeId']][$p['date']]['counts']['card'] += $p['card'];
+                    $result[$p['officeId']]['counts'][$type] += $p[$type];
+                    $result[$p['officeId']][$p['date']]['counts'][$type] += $p[$type];
                 }
             }
             if ($p['cash'] != '0.00') {
-                $type = Yii::t('app','Cash');
+                $type = Moneystud::PAYMENT_TYPE_CASH;
                 if ($p['active'] && !$p['remain']) {
-                    $result[$p['officeId']]['counts']['cash'] += $p['cash'];
-                    $result[$p['officeId']][$p['date']]['counts']['cash'] += $p['cash'];
+                    $result[$p['officeId']]['counts'][$type] += $p[$type];
+                    $result[$p['officeId']][$p['date']]['counts'][$type] += $p[$type];
                 }
             }
             if ($p['bank'] != '0.00') {
-                $type = Yii::t('app','Bank');
+                $type = Moneystud::PAYMENT_TYPE_BANK;
                 if ($p['active'] && !$p['remain']) {
-                    $result[$p['officeId']]['counts']['bank'] += $p['bank'];
-                    $result[$p['officeId']][$p['date']]['counts']['bank'] += $p['bank'];
+                    $result[$p['officeId']]['counts'][$type] += $p[$type];
+                    $result[$p['officeId']][$p['date']]['counts'][$type] += $p[$type];
                 }
             }
             if ($p['active'] && !$p['remain']) {
@@ -288,15 +227,17 @@ class Report extends Model
                 $result[$p['officeId']][$p['date']]['counts']['all'] += $p['sum'];
             }
             $result[$p['officeId']][$p['date']]['rows'][] = [
-                'id' => $p['id'],
-                'studentId' => $p['studentId'],
-                'student' => $p['student'],
-                'manager' => $p['manager'],
-                'receipt' => $p['receipt'],
-                'type' => $type,
-                'sum' => $p['sum'],
-                'active' => $p['active'],
-                'remain' => $p['remain']
+                'id'                 => $p['id'],
+                'studentId'          => $p['studentId'],
+                'student'            => $p['student'],
+                'manager'            => $p['manager'],
+                'receipt'            => $p['receipt'],
+                'type'               => $type,
+                'sum'                => $p['sum'],
+                'active'             => $p['active'],
+                'remain'             => $p['remain'],
+                'notificationId'     => $p['notificationId'],
+                'notification'       => $p['notification'],
             ];
         }
 
