@@ -8,6 +8,8 @@
  * @var string                 $oid
  * @var array                  $reportList
  * @var string                 $start
+ * @var array                  $teachers
+ * @var string                 $tid
  * @var string                 $userInfoBlock
  */
 
@@ -72,12 +74,26 @@ use kartik\datetime\DateTimePicker;
             'value' => $end,
         ]);?>
     </div>
-    <?php if ((int)Yii::$app->session->get('user.ustatus') === 3) { ?>
+    <?php if (!empty($offices)) { ?>
+        <?php if ((int)Yii::$app->session->get('user.ustatus') === 3) { ?>
+            <div class="form-group">
+                <select name="oid" class="form-control input-sm">
+                    <option value><?= Yii::t('app', '-all offices-') ?></option>
+                    <?php foreach ($offices as $key => $value) { ?>
+                        <option value="<?= $key ?>" <?= (int)$oid === (int)$key ? 'selected' : ''?>>
+                            <?= mb_substr($value, 0, 16) ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
+        <?php } ?>
+    <?php } ?>
+    <?php if (!empty($teachers)) { ?>
         <div class="form-group">
-            <select name="oid" class="form-control input-sm">
-                <option value>-все офисы-</option>
-                <?php foreach ($offices as $key => $value) { ?>
-                    <option value="<?= $key ?>" <?= (int)$oid === (int)$key ? 'selected' : ''?>>
+            <select name="tid" class="form-control input-sm">
+                <option value><?= Yii::t('app', '-all teachers-') ?></option>
+                <?php foreach ($teachers as $key => $value) { ?>
+                    <option value="<?= $key ?>" <?= (int)$tid === (int)$key ? 'selected' : ''?>>
                         <?= mb_substr($value, 0, 16) ?>
                     </option>
                 <?php } ?>

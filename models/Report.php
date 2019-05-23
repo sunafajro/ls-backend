@@ -6,8 +6,13 @@ use Yii;
 use yii\base\Model;
 use app\models\AccrualTeacher;
 use app\models\Edunormteacher;
+use app\models\Groupteacher;
+use app\models\Journalgroup;
 use app\models\Moneystud;
+use app\models\Service;
+use app\models\Studjournalgroup;
 use app\models\Teacher;
+use app\models\Timenorm;
 
 /**
  * 
@@ -93,6 +98,13 @@ class Report extends Model
                 'id' => 'lessons',
                 'label' => Yii::t('app','Lessons'),
                 'url' => '/report/lessons'
+            ];
+        }
+        if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4) {
+            $items[] = [
+                'id' => 'teacher-hours',
+                'label' => Yii::t('app','Teacher hours'),
+                'url' => '/report/teacher-hours'
             ];
         }
         return $items;
@@ -344,5 +356,46 @@ class Report extends Model
             'rows' => $result,
             'total' => $teachers['total']
         ];
+    }
+
+    public function getTeacherHours(array $params) : array
+    {
+        $studCountQuery = (new \yii\db\Query())
+        ->select('count(id)')
+        ->from(['sj' => Studjournalgroup::tableName()])
+        ->where('sj.calc_journalgroup = j.id')
+        ->andWhere([
+            'sj.calc_statusjournal' => Studjournalgroup::STATUS_PRESENT,
+        ]);
+        $lessons = (new \yii\db\Query())
+        ->select(['teacherId' => 't.id', 'teacher' => 't.name', 'hours' => 'tn.value'])
+        ->addSelect(['students' => $studCountQuery])
+        ->from(['j' => Journalgroup::tableName()])
+        ->innerJoin(['t' => Teacher::tableName()], 'j.calc_teacher = t.id')
+        ->innerJoin(['g' => Groupteacher::tableName()], 'j.calc_groupteacher = g.id')
+        ->innerJoin(['s' => Service::tableName()], 'g.calc_service = s.id')
+        ->innerJoin(['tn' => Timenorm::tableName()], 's.calc_timenorm = tn.id')
+        ->andWhere([
+            'j.visible' => 1,
+        ])
+        ->andFilterWhere(['j.calc_teacher' => $params['tid'] ?? NULL])
+        ->andFilterWhere(['>=', 'j.data', $params['start'] ?? NULL])
+        ->andFilterWhere(['<=', 'j.data', $params['end'] ?? NULL])
+        ->all();
+
+        $result = [];
+        foreach ($lessons ?? [] as $lesson) {
+            if (!isset($result[$lesson['teacherId']])) {
+                $result[$lesson['teacherId']] = [
+                    'name'     => $lesson['teacher'],
+                    'hours'    => $lesson['hours'],
+                    'students' => $lesson['students'],
+                ];
+            } else {
+                $result[$lesson['teacherId']]['hours'] += $lesson['hours'];
+                $result[$lesson['teacherId']]['students'] += $lesson['students'];
+            }
+        }
+        return $result;
     }
 }

@@ -28,15 +28,54 @@ class ReportController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['accrual', 'common', 'debt', 'index', 'invoices', 'journals', 'margin', 'payments', 'plan', 'sale', 'salaries'],
+                'only' => [
+                    'accrual',
+                    'common',
+                    'debt',
+                    'index',
+                    'invoices',
+                    'journals',
+                    'margin',
+                    'payments',
+                    'plan',
+                    'sale',
+                    'salaries',
+                    'teacher-hours',
+                ],
                 'rules' => [
                     [
-                        'actions' => ['accrual', 'common', 'debt', 'index', 'invoices', 'journals', 'margin', 'plan', 'payments', 'sale', 'salaries'],
+                        'actions' => [
+                            'accrual',
+                            'common',
+                            'debt',
+                            'index',
+                            'invoices',
+                            'journals',
+                            'margin',
+                            'plan',
+                            'payments',
+                            'sale',
+                            'salaries',
+                            'teacher-hours',
+                        ],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['accrual', 'common', 'debt', 'index', 'invoices', 'journals', 'margin', 'plan', 'payments', 'sale', 'salaries'],
+                        'actions' => [
+                            'accrual',
+                            'common',
+                            'debt',
+                            'index',
+                            'invoices',
+                            'journals',
+                            'margin',
+                            'plan',
+                            'payments',
+                            'sale',
+                            'salaries',
+                            'teacher-hours',
+                        ],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -1196,6 +1235,38 @@ class ReportController extends Controller
             'teacher_names' => $teacher_names,
             'tid'           => $tid,
 			'userInfoBlock' => User::getUserInfoBlock(),
+        ]);
+    }
+
+    // Отчет по оплатам
+    public function actionTeacherHours(
+        string $start = NULL,
+        string $end = NULL,
+        string $tid = NULL
+    )
+    {
+        if ((int)Yii::$app->session->get('user.ustatus') !== 3 &&
+            (int)Yii::$app->session->get('user.ustatus') !== 4) {
+                throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        }
+        if (!($start && $end)) {
+            $start = date("Y-m-d", strtotime('monday last week'));
+            $end = date("Y-m-d", strtotime('sunday last week'));
+        }
+        $report = new Report();
+        $hours = $report->getTeacherHours([
+            'end'    => $end,
+            'start'  => $start,
+            'tid'    => $tid
+        ]);
+        return $this->render('teacher-hours', [
+            'end'           => $end,
+            'hours'         => $hours,
+            'reportList'    => Report::getReportTypeList(),
+            'start'         => $start,
+            'teachers'      => Teacher::getTeachersInUserListSimple(),
+            'tid'           => $tid,
+            'userInfoBlock' => User::getUserInfoBlock(),
         ]);
     }
     
