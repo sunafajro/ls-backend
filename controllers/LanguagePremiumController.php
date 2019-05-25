@@ -75,11 +75,11 @@ class LanguagePremiumController extends Controller
         Yii::$app->response->format = Response::FORMAT_JSON;
         $model = new LanguagePremium();
 
-        if (Yii::$app->request->post() && $model->load(Yii::$app->request->post())) {            
+        if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
             $model->created_at = date('Y-m-d');            
             $model->user_id = Yii::$app->session->get('user.uid');
             $model->visible = 1;
-            if($model->save()) {
+            if ($model->save()) {
                 return [
                     'status' => true,
                     'text' => Yii::t('app','Language premium successfully created!')
@@ -88,7 +88,7 @@ class LanguagePremiumController extends Controller
                 Yii::$app->response->statusCode = 500;
                 return [
                     'status' => false,
-                    'text' => Yii::t('app','Language premium create failed!')
+                    'text' => Yii::t('app','Language premium create failed!'),
                 ];
             }            
         } else {
@@ -100,14 +100,21 @@ class LanguagePremiumController extends Controller
     public function actionDelete($id)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        if (Yii::$app->request->post()) {
+        if (Yii::$app->request->isPost) {
             if (($model = LanguagePremium::findOne($id)) !== NULL) {
                 $model->visible = 0;
-                $model->save();
-                return [
-                    'status' => true,
-                    'text' => Yii::t('app', 'Language premium successfully deleted!')
-                ];
+                if ($model->save()) {
+                    return [
+                        'status' => true,
+                        'text' => Yii::t('app', 'Language premium successfully deleted!')
+                    ];
+                } else {
+                    Yii::$app->response->statusCode = 500;
+                    return [
+                        'status' => false,
+                        'text' => Yii::t('app','Language premium delete failed!'),
+                    ];
+                } 
             } else {
                 Yii::$app->response->statusCode = 404;
                 return Tool::objectNotFound();

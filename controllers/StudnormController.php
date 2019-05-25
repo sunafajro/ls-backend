@@ -76,19 +76,19 @@ class StudnormController extends Controller
         Yii::$app->response->format = Response::FORMAT_JSON;
         $model = new Studnorm();
 
-        if (Yii::$app->request->post() && $model->load(Yii::$app->request->post())) {
+        if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
             $model->visible = 1;
             $model->data = date("Y-m-d H:i:s");
-            if($model->save()) {
+            if ($model->save()) {
                 return [
                     'status' => true,
-                    'text' => Yii::t('app','Studnorm successfully created!')
+                    'text' => Yii::t('app','Studnorm successfully created!'),
                 ];
             } else {
                 Yii::$app->response->statusCode = 500;
                 return [
                     'status' => false,
-                    'text' => Yii::t('app','Studnorm create failed!')
+                    'text' => Yii::t('app','Studnorm create failed!'),
                 ];
             }            
         } else {
@@ -136,14 +136,21 @@ class StudnormController extends Controller
     public function actionDelete($id)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        if (Yii::$app->request->post()) {
+        if (Yii::$app->request->isPost) {
             if (($model = Studnorm::findOne($id)) !== NULL) {
                 $model->visible = 0;
-                $model->save();
-                return [
-                    'status' => true,
-                    'text' => Yii::t('app', 'Studnorm successfully deleted!')
-                ];
+                if ($model->save()) {
+                    return [
+                        'status' => true,
+                        'text' => Yii::t('app', 'Studnorm successfully deleted!'),
+                    ];
+                } else {
+                    Yii::$app->response->statusCode = 500;
+                    return [
+                        'status' => false,
+                        'text' => Yii::t('app', 'Studnorm delete failed!'),
+                    ];
+                }
             } else {
                 Yii::$app->response->statusCode = 404;
                 return Tool::objectNotFound();

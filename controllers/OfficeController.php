@@ -88,19 +88,19 @@ class OfficeController extends Controller
         Yii::$app->response->format = Response::FORMAT_JSON;
         $model = new Office();
 
-        if (Yii::$app->request->post() && $model->load(Yii::$app->request->post())) {
+        if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
             $model->visible = 1;
             $model->num = 0;
-            if($model->save()) {
+            if ($model->save()) {
                 return [
                     'status' => true,
-                    'text' => Yii::t('app','Office successfully created!')
+                    'text' => Yii::t('app','Office successfully created!'),
                 ];
             } else {
                 Yii::$app->response->statusCode = 500;
                 return [
                     'status' => false,
-                    'text' => Yii::t('app','Office create failed!')
+                    'text' => Yii::t('app','Office create failed!'),
                 ];
             }            
         } else {
@@ -148,14 +148,21 @@ class OfficeController extends Controller
     public function actionDelete($id)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        if (Yii::$app->request->post()) {
+        if (Yii::$app->request->isPost) {
             if (($model = Office::findOne($id)) !== NULL) {
                 $model->visible = 0;
-                $model->save();
-                return [
-                    'status' => true,
-                    'text' => Yii::t('app', 'Office was successfully deleted!')
-                ];
+                if ($model->save()) {
+                    return [
+                        'status' => true,
+                        'text' => Yii::t('app', 'Office was successfully deleted!'),
+                    ];
+                } else {
+                    Yii::$app->response->statusCode = 500;
+                    return [
+                        'status' => false,
+                        'text' => Yii::t('app','Office delete failed!'),
+                    ];
+                }  
             } else {
                 Yii::$app->response->statusCode = 404;
                 return Tool::objectNotFound();

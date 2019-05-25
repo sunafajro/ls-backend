@@ -76,19 +76,19 @@ class TimenormController extends Controller
         Yii::$app->response->format = Response::FORMAT_JSON;
         $model = new Timenorm();
 
-        if (Yii::$app->request->post() && $model->load(Yii::$app->request->post())) {
+        if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
             $model->visible = 1;
             $model->data = date("Y-m-d H:i:s");
-            if($model->save()) {
+            if ($model->save()) {
                 return [
                     'status' => true,
-                    'text' => Yii::t('app','Timenorm successfully created!')
+                    'text' => Yii::t('app','Timenorm successfully created!'),
                 ];
             } else {
                 Yii::$app->response->statusCode = 500;
                 return [
                     'status' => false,
-                    'text' => Yii::t('app','Timenorm create failed!')
+                    'text' => Yii::t('app','Timenorm create failed!'),
                 ];
             }            
         } else {
@@ -136,14 +136,21 @@ class TimenormController extends Controller
     public function actionDelete($id)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        if (Yii::$app->request->post()) {
+        if (Yii::$app->request->isPost) {
             if (($model = Timenorm::findOne($id)) !== NULL) {
                 $model->visible = 0;
-                $model->save();
-                return [
-                    'status' => true,
-                    'text' => Yii::t('app', 'Timenorm successfully deleted!')
-                ];
+                if ($model->save()) {
+                    return [
+                        'status' => true,
+                        'text' => Yii::t('app', 'Timenorm successfully deleted!'),
+                    ];
+                } else {
+                    Yii::$app->response->statusCode = 500;
+                    return [
+                        'status' => false,
+                        'text' => Yii::t('app','Timenorm delete failed!'),
+                    ];
+                } 
             } else {
                 Yii::$app->response->statusCode = 404;
                 return Tool::objectNotFound();
