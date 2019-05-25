@@ -3,11 +3,18 @@
 namespace app\models;
 
 use Yii;
-use yii\base\Model;
 use app\models\AccrualTeacher;
 use app\models\Edunormteacher;
+use app\models\Groupteacher;
+use app\models\Journalgroup;
 use app\models\Moneystud;
+use app\models\Service;
+use app\models\Studjournalgroup;
 use app\models\Teacher;
+use app\models\Timenorm;
+use yii\base\Model;
+use yii\data\Pagination;
+use yii\helpers\ArrayHelper;
 
 /**
  * 
@@ -15,6 +22,9 @@ use app\models\Teacher;
  
 class Report extends Model
 {
+    const DEFAULT_LIMIT  = 10;
+    const DEFAULT_OFFSET = 0;
+
     public static function getReportTypes()
     {
         $items = [];
@@ -93,6 +103,13 @@ class Report extends Model
                 'id' => 'lessons',
                 'label' => Yii::t('app','Lessons'),
                 'url' => '/report/lessons'
+            ];
+        }
+        if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4) {
+            $items[] = [
+                'id' => 'teacher-hours',
+                'label' => Yii::t('app','Teacher hours'),
+                'url' => '/report/teacher-hours'
             ];
         }
         return $items;
@@ -343,6 +360,79 @@ class Report extends Model
         return [
             'rows' => $result,
             'total' => $teachers['total']
+        ];
+    }
+
+    public function getTeacherHours(array $params) : array
+    {
+        $teachers = (new \yii\db\Query())
+        ->select(['tid' => 't.id'])
+        ->from(['t' => Teacher::tableName()])
+        ->innerJoin(['j' => 'calc_journalgroup'], 'j.calc_teacher = t.id')
+        ->where([
+            't.visible' => 1,
+            't.old'     => 0,
+            'j.visible' => 1,
+        ])
+        ->andFilterWhere(['>=', 'j.data', $params['start'] ?? NULL])
+        ->andFilterWhere(['<=', 'j.data', $params['end'] ?? NULL])
+        ->groupBy(['t.id'])
+        ->orderBy(['t.id' => SORT_ASC]);
+
+        $countQuery = clone $teachers;
+        $pager = new Pagination(['totalCount' => $countQuery->count()]);
+
+        $teachers = $teachers
+        ->limit($params['limit']   ?? Report::DEFAULT_LIMIT)
+        ->offset($params['offset'] ?? Report::DEFAULT_OFFSET)
+        ->all();
+        $ids = ArrayHelper::getColumn($teachers, 'tid');
+
+        $studCountQuery = (new \yii\db\Query())
+        ->select('count(id)')
+        ->from(['sj' => Studjournalgroup::tableName()])
+        ->where('sj.calc_journalgroup = j.id')
+        ->andWhere([
+            'sj.calc_statusjournal' => Studjournalgroup::STATUS_PRESENT,
+        ]);
+
+        $lessons = (new \yii\db\Query())
+        ->select([
+            'teacherId' => 't.id',
+            'teacher'   => 't.name',
+            'hours'     => 'tn.value'
+        ])
+        ->addSelect(['students' => $studCountQuery])
+        ->from(['j' => Journalgroup::tableName()])
+        ->innerJoin(['t' => Teacher::tableName()], 'j.calc_teacher = t.id')
+        ->innerJoin(['g' => Groupteacher::tableName()], 'j.calc_groupteacher = g.id')
+        ->innerJoin(['s' => Service::tableName()], 'g.calc_service = s.id')
+        ->innerJoin(['tn' => Timenorm::tableName()], 's.calc_timenorm = tn.id')
+        ->andWhere([
+            'j.visible' => 1,
+        ])
+        ->andFilterWhere(['j.calc_teacher' => $params['tid'] ?? $ids])
+        ->andFilterWhere(['>=', 'j.data', $params['start'] ?? NULL])
+        ->andFilterWhere(['<=', 'j.data', $params['end'] ?? NULL])
+        ->orderBy(['t.name' => SORT_ASC])
+        ->all();
+
+        $result = [];
+        foreach ($lessons ?? [] as $lesson) {
+            if (!isset($result[$lesson['teacherId']])) {
+                $result[$lesson['teacherId']] = [
+                    'name'     => $lesson['teacher'],
+                    'hours'    => $lesson['hours'],
+                    'students' => $lesson['students'],
+                ];
+            } else {
+                $result[$lesson['teacherId']]['hours']    += $lesson['hours'];
+                $result[$lesson['teacherId']]['students'] += $lesson['students'];
+            }
+        }
+        return [
+            'count' => $pager->totalCount,
+            'hours' => $result
         ];
     }
 }

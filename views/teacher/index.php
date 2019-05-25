@@ -191,7 +191,7 @@
                     }
                   }
                   ksort($places);
-                  echo implode($places, '<br />');
+                  echo implode('<br />', $places);
                 }
                 ?>
                 </td>
@@ -246,7 +246,7 @@
                     }
                   }
                   ksort($taxes);
-                  echo implode($taxes, '<br />');
+                  echo implode('<br />', $taxes);
                 }
                 ?>
                 </td>

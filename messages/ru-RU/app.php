@@ -209,6 +209,7 @@ return array(
 'Homework'=>'Домашнее задание',
 'Hourly tax' => 'Почасовая ставка',
 'Hours' => 'Часы',
+'Human/hour' => 'чел/час',
 'Image'=>'Изображение',
 'Inactive'=>'Неактивный',
 'Income (w/out discounts)'=>'Доход без учета скидок',

@@ -18,6 +18,8 @@ use Yii;
  */
 class Studjournalgroup extends \yii\db\ActiveRecord
 {
+    const STATUS_PRESENT = 1;
+    const STATUS_ABSENT  = 2;
     /**
      * @inheritdoc
      */
