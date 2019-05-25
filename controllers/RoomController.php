@@ -59,7 +59,7 @@ class RoomController extends Controller
      */
     public function actionIndex()
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;e {
+        Yii::$app->response->format = Response::FORMAT_JSON;
         $data = Room::getRoomsList();
         return [
             'actions' => AccessRule::GetCRUD('room'),
