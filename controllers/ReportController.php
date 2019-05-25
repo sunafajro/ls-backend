@@ -1239,29 +1239,39 @@ class ReportController extends Controller
     }
 
     // Отчет по оплатам
-    public function actionTeacherHours(
-        string $start = NULL,
-        string $end = NULL,
-        string $tid = NULL
-    )
+    public function actionTeacherHours()
     {
         if ((int)Yii::$app->session->get('user.ustatus') !== 3 &&
             (int)Yii::$app->session->get('user.ustatus') !== 4) {
                 throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
+        $req    = Yii::$app->request;
+        $start  = $req->get('start',  NULL);
+        $end    = $req->get('end',    NULL);
+        $tid    = $req->get('tid',    NULL);
+        $limit  = $req->get('limit',  NULL);
+        $offset = $req->get('offset', NULL);
+
         if (!($start && $end)) {
             $start = date("Y-m-d", strtotime('monday last week'));
             $end = date("Y-m-d", strtotime('sunday last week'));
         }
         $report = new Report();
-        $hours = $report->getTeacherHours([
-            'end'    => $end,
-            'start'  => $start,
-            'tid'    => $tid
+        $result = $report->getTeacherHours([
+            'end'    => $end    ? $end    : NULL,
+            'start'  => $start  ? $start  : NULL,
+            'tid'    => $tid    ? $tid    : NULL,
+            'limit'  => $limit  ? $limit  : 10,
+            'offset' => $offset ? $offset : 0,
         ]);
         return $this->render('teacher-hours', [
             'end'           => $end,
-            'hours'         => $hours,
+            'hours'         => $result['hours'],
+            'pager'         => [
+                'limit'  => $limit  ? $limit  : Report::DEFAULT_LIMIT,
+                'offset' => $offset ? $offset : Report::DEFAULT_OFFSET,
+                'total'  => $result['count'],
+            ],
             'reportList'    => Report::getReportTypeList(),
             'start'         => $start,
             'teachers'      => Teacher::getTeachersInUserListSimple(),

@@ -5,6 +5,7 @@
  * @var string       $end
  * @var array        $hours
  * @var array        $reportList
+ * @var array        $pager
  * @var string       $start
  * @var array        $teachers
  * @var string       $tid
@@ -52,7 +53,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Teacher hours');
                 <?php $i = 1; ?>
                 <?php foreach ($hours as $key => $row) { ?>
                     <tr>
-                        <td><?= $i ?></td>
+                        <td><?= $i + $pager['offset'] ?></td>
                         <td><?= Html::a($row['name'],['teacher/view', 'id' => $key]) ?></td>
                         <td><?= $row['hours'] ?></td>
                         <td><?= $row['students'] ?></td>
@@ -62,5 +63,17 @@ $this->params['breadcrumbs'][] = Yii::t('app','Teacher hours');
                 <?php } ?>
             </tbody>
         </table>
+        <?php if (!$tid && count($hours) > 0) { ?>
+            <?= $this->render('_pager', [
+                'pager'  => $pager,
+                'url'    => [
+                    'report/teacher-hours',
+                    'start' => $start ?? NULL,
+                    'end'   => $end   ?? NULL,
+                    'tid'   => $tid   ?? NULL,
+                    'limit' => $pager['limit'],
+                ],
+            ]) ?>
+        <?php } ?>
     </div>
 </div>

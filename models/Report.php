@@ -3,7 +3,6 @@
 namespace app\models;
 
 use Yii;
-use yii\base\Model;
 use app\models\AccrualTeacher;
 use app\models\Edunormteacher;
 use app\models\Groupteacher;
@@ -13,6 +12,9 @@ use app\models\Service;
 use app\models\Studjournalgroup;
 use app\models\Teacher;
 use app\models\Timenorm;
+use yii\base\Model;
+use yii\data\Pagination;
+use yii\helpers\ArrayHelper;
 
 /**
  * 
@@ -20,6 +22,9 @@ use app\models\Timenorm;
  
 class Report extends Model
 {
+    const DEFAULT_LIMIT  = 10;
+    const DEFAULT_OFFSET = 0;
+
     public static function getReportTypes()
     {
         $items = [];
@@ -360,6 +365,29 @@ class Report extends Model
 
     public function getTeacherHours(array $params) : array
     {
+        $teachers = (new \yii\db\Query())
+        ->select(['tid' => 't.id'])
+        ->from(['t' => Teacher::tableName()])
+        ->innerJoin(['j' => 'calc_journalgroup'], 'j.calc_teacher = t.id')
+        ->where([
+            't.visible' => 1,
+            't.old'     => 0,
+            'j.visible' => 1,
+        ])
+        ->andFilterWhere(['>=', 'j.data', $params['start'] ?? NULL])
+        ->andFilterWhere(['<=', 'j.data', $params['end'] ?? NULL])
+        ->groupBy(['t.id'])
+        ->orderBy(['t.id' => SORT_ASC]);
+
+        $countQuery = clone $teachers;
+        $pager = new Pagination(['totalCount' => $countQuery->count()]);
+
+        $teachers = $teachers
+        ->limit($params['limit']   ?? Report::DEFAULT_LIMIT)
+        ->offset($params['offset'] ?? Report::DEFAULT_OFFSET)
+        ->all();
+        $ids = ArrayHelper::getColumn($teachers, 'tid');
+
         $studCountQuery = (new \yii\db\Query())
         ->select('count(id)')
         ->from(['sj' => Studjournalgroup::tableName()])
@@ -367,8 +395,13 @@ class Report extends Model
         ->andWhere([
             'sj.calc_statusjournal' => Studjournalgroup::STATUS_PRESENT,
         ]);
+
         $lessons = (new \yii\db\Query())
-        ->select(['teacherId' => 't.id', 'teacher' => 't.name', 'hours' => 'tn.value'])
+        ->select([
+            'teacherId' => 't.id',
+            'teacher'   => 't.name',
+            'hours'     => 'tn.value'
+        ])
         ->addSelect(['students' => $studCountQuery])
         ->from(['j' => Journalgroup::tableName()])
         ->innerJoin(['t' => Teacher::tableName()], 'j.calc_teacher = t.id')
@@ -378,9 +411,10 @@ class Report extends Model
         ->andWhere([
             'j.visible' => 1,
         ])
-        ->andFilterWhere(['j.calc_teacher' => $params['tid'] ?? NULL])
+        ->andFilterWhere(['j.calc_teacher' => $params['tid'] ?? $ids])
         ->andFilterWhere(['>=', 'j.data', $params['start'] ?? NULL])
         ->andFilterWhere(['<=', 'j.data', $params['end'] ?? NULL])
+        ->orderBy(['t.name' => SORT_ASC])
         ->all();
 
         $result = [];
@@ -392,10 +426,13 @@ class Report extends Model
                     'students' => $lesson['students'],
                 ];
             } else {
-                $result[$lesson['teacherId']]['hours'] += $lesson['hours'];
+                $result[$lesson['teacherId']]['hours']    += $lesson['hours'];
                 $result[$lesson['teacherId']]['students'] += $lesson['students'];
             }
         }
-        return $result;
+        return [
+            'count' => $pager->totalCount,
+            'hours' => $result
+        ];
     }
 }
