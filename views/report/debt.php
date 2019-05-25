@@ -1,10 +1,25 @@
 <?php
-	use yii\helpers\Html;
-	use yii\widgets\ActiveForm;
-	use yii\widgets\Breadcrumbs;
-	$this->title = 'Система учета :: '.Yii::t('app','Debt report');
-	$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
-	$this->params['breadcrumbs'][] = Yii::t('app','Debt report');
+
+/**
+ * @var yii\web\View        $this
+ * @var yii\data\Pagination $pages
+ * @var array               $offices
+ * @var string              $oid
+ * @var array               $reportlist
+ * @var string              $sign
+ * @var string              $state
+ * @var array               $stds
+ * @var array               $students
+ * @var string              $tss
+ * @var string              $userInfoBlock
+ */
+
+use yii\helpers\Html;
+use yii\widgets\ActiveForm;
+use yii\widgets\Breadcrumbs;
+$this->title = 'Система учета :: '.Yii::t('app','Debt report');
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
+$this->params['breadcrumbs'][] = Yii::t('app','Debt report');
 ?>
 
 <div class="row row-offcanvas row-offcanvas-left report-debt">
@@ -35,24 +50,24 @@
 		</div>
         <div class="form-group">
 	        <select name="STATE" class="form-control input-sm">
-		        <option value="all"><?php echo Yii::t('app', '-all states-') ?></option>
-				<option value="1"<?= (int)$state === 1 ? ' selected' : '' ?>>С нами</option>
-				<option value="2"<?= (int)$state === 2 ? ' selected' : '' ?>>Не с нами</option>
+		        <option value=""><?php echo Yii::t('app', '-all states-') ?></option>
+				<option value="1" <?= $state === '1' ? 'selected' : '' ?>>С нами</option>
+				<option value="0" <?= $state === '0' ? 'selected' : '' ?>>Не с нами</option>
 	        </select>
         </div>
         <div class="form-group">
 	        <select class="form-control input-sm" name="SIGN">
-		        <option value="all"><?= Yii::t('app', '-all debts-') ?></option>
-				<option value="1"<?= (int)$sign === 1 ? ' selected' : '' ?>>Нам должны</option>
-                <option value="2"<?= (int)$sign === 2 ? ' selected' : '' ?>>Мы должны</option>
+		        <option value=""><?= Yii::t('app', '-all debts-') ?></option>
+				<option value="0"<?= $sign === '0' ? 'selected' : '' ?>>Нам должны</option>
+                <option value="1"<?= $sign === '1' ? 'selected' : '' ?>>Мы должны</option>
 	        </select>
 	    </div>
 		<?php if ((int)Yii::$app->session->get('user.ustatus') === 3) : ?>
         <div class="form-group">
 	        <select name="OID" class="form-control input-sm">
-			  <option value="all"><?= Yii::t('app', '-all offices-') ?></option>
+			  <option value=""><?= Yii::t('app', '-all offices-') ?></option>
 			  <?php foreach ($offices as $key => $value) : ?>
-			      <option value="<?= $key ?>"<?= (int)$oid === (int)$key ? ' selected' : '' ?>><?= $value ?></option>
+			      <option value="<?= $key ?>" <?= (int)$oid === $key ? 'selected' : '' ?>><?= $value ?></option>
 			  <?php endforeach; ?>
 	        </select>
         </div>
@@ -85,7 +100,7 @@
 
 		<?php
 			// первый элемент страницы 
-			$start = 1;
+			$start = (int)$pages->totalCount > 0 ? 1 : 0;
 			// последний элемент страницы
 			$end = 20;
 			// следующая страница
