@@ -57,7 +57,7 @@ class LanguagePremiumController extends Controller
         $premium = new LanguagePremium();
         $data = $premium->getLanguagePremiums();
         return [
-            'actions' => AccessRule::GetCRUD('language_premiums'),
+            'actions' => AccessRule::GetCRUD('language-premium'),
             'columns' => $data['columns'] ? $data['columns'] : [],
             'data'    => $data['data'] ? $data['data'] : [],
             'status'  => true,
