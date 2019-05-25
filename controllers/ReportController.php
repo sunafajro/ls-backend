@@ -10,6 +10,7 @@ use app\models\Office;
 use app\models\Report;
 use app\models\Sale;
 use app\models\Schedule;
+use app\models\Student;
 use app\models\Teacher;
 use app\models\Tool;
 use app\models\User;
@@ -930,63 +931,31 @@ class ReportController extends Controller
         if ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {            
             return $this->redirect(Yii::$app->request->referrer);
         }
-        $oid = NULL;
-        $pages = NULL;
-        $sign = 1;
-        $sign_id = '<';
-        $state = 1;
-        $state_id = 1;
-        $tss = NULL;
-        $val = -10;
-        
-        if (Yii::$app->request->get('TSS')) {
-            $tss = Yii::$app->request->get('TSS');
-        }
-        
-        if (Yii::$app->request->get('OID') && Yii::$app->request->get('OID') != 'all') {
-            $oid = (int)Yii::$app->request->get('OID');
-        }
-        if ((int)Yii::$app->session->get('user.ustatus') === 4) {
-            $oid = (int)Yii::$app->session->get('user.uoffice_id');
-        }
-
-        // задаем фильтр по балансу (по умолчанию отрицательный баланс)
-        if(Yii::$app->request->get('SIGN')) {
-            $sign = Yii::$app->request->get('SIGN');
-            if ((int)Yii::$app->request->get('SIGN') === 1) {
-                $sign_id = '<';
-            } else if ((int)Yii::$app->request->get('SIGN') === 2) {
-                $sign_id = '>';
-            } else {
-                $val = NULL;
-            }
-        }
-
-        // задаем фильтр по состоянию клиента (по умолчанию активные)
-        if (Yii::$app->request->get('STATE')) {
-            $state = Yii::$app->request->get('STATE');
-            if ((int)Yii::$app->request->get('STATE') === 1) {
-                $state_id = 1;
-            } else if ((int)Yii::$app->request->get('STATE') === 2) {
-                $state_id = 0;
-            } else {
-                $state_id = NULL;
-            }
-        } else {
-            $state = 1;
-        }
+        $req   = Yii::$app->request;
+        $oid   = (int)Yii::$app->session->get('user.ustatus') === 4 ? Yii::$app->session->get('user.uoffice_id') : $req->get('OID', NULL);;
+        $page  = $req->get('page', NULL);
+        $sign  = $req->get('SIGN', '0');
+        $state = $req->get('STATE', '1');
+        $tss   = $req->get('TSS', NULL);
 
         // запрашиваем список студентов
         $stds = (new \yii\db\Query())
         ->select(['id' => 'sn.id', 'name' => 'sn.name', 'debt' => 'sn.debt'])
-        ->distinct()
-        ->from('calc_studname sn')
-        ->leftJoin('calc_studgroup sg', 'sn.id=sg.calc_studname')
-        ->leftJoin('calc_groupteacher gt', 'gt.id=sg.calc_groupteacher')
-        ->where('sn.visible=:vis', [':vis'=>1])
-        ->andFilterWhere([$sign_id,'sn.debt', $val])
-        ->andFilterWhere(['sn.active' => $state_id])
-        ->andFilterWhere(['gt.calc_office' => $oid])
+        ->from(['sn' => Student::tableName()]);
+        if ($oid) {
+            $stds = $stds->innerJoin(['so' => 'calc_student_office'], 'sn.id = so.student_id');
+        }
+        $stds = $stds
+        ->where([
+            'sn.visible' => 1
+        ])
+        ->andFilterWhere([
+            $sign === '1' ? '>' : '<',
+            'sn.debt',
+            $sign === '' ? NULL: 0
+        ])
+        ->andFilterWhere(['sn.active'    => $state === '' ? NULL : $state])
+        ->andFilterWhere(['so.office_id' => $oid ===   '' ? NULL : $oid])
         ->andFilterWhere(['like', 'sn.name', $tss]);
             
         // делаем клон запроса
@@ -997,10 +966,8 @@ class ReportController extends Controller
         // задаем параметры для паджинации
         $limit = 20;
         $offset = 0;
-        if(Yii::$app->request->get('page')){
-            if(Yii::$app->request->get('page')>1&&Yii::$app->request->get('page')<=$pages->totalCount){
-                $offset = 20 * (Yii::$app->request->get('page') - 1);
-        }
+        if ($page > 1 && $page <= $pages->totalCount) {
+            $offset = 20 * ($page - 1);
         }
         
         // доделываем запрос и выполняем
@@ -1013,7 +980,7 @@ class ReportController extends Controller
             $stids[$i] = $s['id'];
             $i++;
         }
-
+        $students = [];
         if(!empty($stids)) {
             // запрашиваем услуги назначенные студенту
             $students = (new \yii\db\Query())
@@ -1048,9 +1015,7 @@ class ReportController extends Controller
                     $students[$i]['num'] = $cnt;
                     $students[$i]['npd'] = Moneystud::getNextPaymentDay($studentSchedule, $service['sid'], $cnt);
                     $i++;
-                }
-                unset($service);
-                unset($lssns);                  
+                }                 
             }
             // проверяем что у студента есть назначенные услуги
         }
