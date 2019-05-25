@@ -76,19 +76,19 @@ class EdunormController extends Controller
         Yii::$app->response->format = Response::FORMAT_JSON;
         $model = new Edunorm();
 
-        if (Yii::$app->request->post() && $model->load(Yii::$app->request->post())) {
+        if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
             $model->visible = 1;
             $model->data = date("Y-m-d H:i:s");
-            if($model->save()) {
+            if ($model->save()) {
                 return [
                     'status' => true,
-                    'text' => Yii::t('app','Teachernorm successfully created!')
+                    'text' => Yii::t('app','Teachernorm successfully created!'),
                 ];
             } else {
                 Yii::$app->response->statusCode = 500;
                 return [
                     'status' => false,
-                    'text' => Yii::t('app','Teachernorm create failed!')
+                    'text' => Yii::t('app','Teachernorm create failed!'),
                 ];
             }            
         } else {
@@ -139,11 +139,18 @@ class EdunormController extends Controller
         if (Yii::$app->request->post()) {
             if (($model = Edunorm::findOne($id)) !== NULL) {
                 $model->visible = 0;
-                $model->save();
-                return [
-                    'status' => true,
-                    'text' => Yii::t('app', 'Teachernorm successfully deleted!')
-                ];
+                if ($model->save()) {
+                    return [
+                        'status' => true,
+                        'text' => Yii::t('app', 'Teachernorm successfully deleted!'),
+                    ];
+                } else {
+                    Yii::$app->response->statusCode = 500;
+                    return [
+                        'status' => false,
+                        'text' => Yii::t('app','Teachernorm delete failed!'),
+                    ];
+                } 
             } else {
                 Yii::$app->response->statusCode = 404;
                 return Tool::objectNotFound();

@@ -78,18 +78,18 @@ class RoomController extends Controller
         Yii::$app->response->format = Response::FORMAT_JSON;
         $model = new Room();
 
-        if (Yii::$app->request->post() && $model->load(Yii::$app->request->post())) {
+        if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
             $model->visible = 1;
-            if($model->save()) {
+            if ($model->save()) {
                 return [
                     'status' => true,
-                    'text' => Yii::t('app','Room successfully created!')
+                    'text' => Yii::t('app','Room successfully created!'),
                 ];
             } else {
                 Yii::$app->response->statusCode = 500;
                 return [
                     'status' => false,
-                    'text' => Yii::t('app','Room create failed!')
+                    'text' => Yii::t('app','Room create failed!'),
                 ];
             }            
         } else {
@@ -135,14 +135,21 @@ class RoomController extends Controller
     public function actionDelete($id)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        if (Yii::$app->request->post()) {
+        if (Yii::$app->request->isPost) {
             if (($model = Room::findOne($id)) !== NULL) {
                 $model->visible = 0;
-                $model->save();
-                return [
-                    'status' => true,
-                    'text' => Yii::t('app', 'Room successfully deleted!')
-                ];
+                if ($model->save()) {
+                    return [
+                        'status' => true,
+                        'text' => Yii::t('app', 'Room successfully deleted!'),
+                    ];
+                } else {
+                    Yii::$app->response->statusCode = 500;
+                    return [
+                        'status' => false,
+                        'text' => Yii::t('app','Room delete failed!'),
+                    ];
+                } 
             } else {
                 Yii::$app->response->statusCode = 404;
                 return Tool::objectNotFound();

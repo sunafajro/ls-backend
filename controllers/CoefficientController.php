@@ -79,18 +79,18 @@ class CoefficientController extends Controller
         Yii::$app->response->format = Response::FORMAT_JSON;
         $model = new Coefficient();
 
-        if (Yii::$app->request->post() && $model->load(Yii::$app->request->post())) {
+        if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
             $model->visible = 1;
-            if($model->save()) {
+            if ($model->save()) {
                 return [
                     'status' => true,
-                    'text' => Yii::t('app','Coefficient successfully created!')
+                    'text' => Yii::t('app','Coefficient successfully created!'),
                 ];
             } else {
                 Yii::$app->response->statusCode = 500;
                 return [
                     'status' => false,
-                    'text' => Yii::t('app','Coefficient create failed!')
+                    'text' => Yii::t('app','Coefficient create failed!'),
                 ];
             }            
         } else {
@@ -138,14 +138,21 @@ class CoefficientController extends Controller
     public function actionDelete($id)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        if (Yii::$app->request->post()) {
+        if (Yii::$app->request->isPost) {
             if (($model = Coefficient::findOne($id)) !== NULL) {
                 $model->visible = 0;
-                $model->save();
-                return [
-                    'status' => true,
-                    'text' => Yii::t('app', 'Coefficient successfully deleted!')
-                ];
+                if ($model->save()) {
+                    return [
+                        'status' => true,
+                        'text' => Yii::t('app', 'Coefficient successfully deleted!'),
+                    ];
+                } else {
+                    Yii::$app->response->statusCode = 500;
+                    return [
+                        'status' => false,
+                        'text' => Yii::t('app','Coefficient delete failed!'),
+                    ];
+                } 
             } else {
                 Yii::$app->response->statusCode = 404;
                 return Tool::objectNotFound();

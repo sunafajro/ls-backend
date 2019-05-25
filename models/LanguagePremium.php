@@ -30,7 +30,7 @@ class LanguagePremium extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['language_id', 'value', 'user_id', 'created_at', 'visible', 'company'], 'required'],
+            [['language_id', 'value', 'user_id', 'created_at', 'visible'], 'required'],
             [['language_id', 'value', 'user_id', 'visible'], 'integer'],
             [['created_at'], 'safe'],
         ];
