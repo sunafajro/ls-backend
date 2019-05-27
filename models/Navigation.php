@@ -157,6 +157,18 @@ class Navigation extends Model
             ];
         }
         if((int)Yii::$app->session->get('user.ustatus') === 3 ||
+           (int)Yii::$app->session->get('user.ustatus') === 4) {
+            /* ссылка на раздел Скидки */
+            $menu[] = [
+                'id' => 'documents',
+                'url' => '/document/index',
+                'classes' => 'fa fa-files-o',
+                'title' => Yii::t('app', 'Documents'),
+                'hasBadge' => false,
+                'cnt' => false
+            ];
+        }
+        if((int)Yii::$app->session->get('user.ustatus') === 3 ||
            (int)Yii::$app->session->get('user.ustatus') === 9) {
             /* ссылка на раздел Переводы */
             $menu[] = [
