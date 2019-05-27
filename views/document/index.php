@@ -33,16 +33,16 @@ $this->params['breadcrumbs'][] = Yii::t('app','Documents');
         <?= Alert::widget() ?>
         <table class="table table-bordered table-stripped table-hover table-condensed">
             <thead>
-                <th>№</th>
+                <th style="width: 5%">№</th>
                 <th><?= Yii::t('app', 'File') ?></th>
-                <th><?= Yii::t('app', 'Act.') ?></th>
+                <th style="width: 10%"><?= Yii::t('app', 'Act.') ?></th>
             </thead>
             <tbody>
                 <?php foreach($fileList ?? [] as $key => $file) { ?>
                     <tr>
-                        <td style="width: 5%"><?= $key + 1 ?></td>
+                        <td><?= $key + 1 ?></td>
                         <td><?= $file['fileName'] ?></td>
-                        <td style="width: 10%">
+                        <td>
                             <?= Html::a(
                                 Html::tag('i', '', ['class' => 'fa fa-download', 'aria-hidden' => 'true']),
                                 [
