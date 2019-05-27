@@ -8,6 +8,8 @@ use app\models\User;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
+use yii\web\UploadedFile;
+use app\models\UploadForm;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 
@@ -36,6 +38,7 @@ class DocumentController extends Controller
                 'class' => VerbFilter::className(),
                 'actions' => [
                     'delete' => ['post'],
+                    'upload' => ['post'],
                 ],
             ],
         ];
@@ -68,7 +71,8 @@ class DocumentController extends Controller
             }
         }
         return $this->render('index', [
-            'fileList' => $fileList,
+            'fileList'      => $fileList,
+            'uploadForm'    => new UploadForm(),
             'userInfoBlock' => User::getUserInfoBlock(),
         ]);
     }
@@ -95,7 +99,17 @@ class DocumentController extends Controller
 
     public function actionUpload()
     {
-        // TODO upload file
+        $model = new UploadForm();
+        $model->file = UploadedFile::getInstance($model, 'file');
+        if ($model->file && $model->validate()) {
+            $path = Yii::getAlias('@app/data/files/');
+            if ($model->saveFile($path)) {
+                Yii::$app->session->setFlash('success', Yii::t('app', 'File successfully uploaded!'));
+            } else {
+                Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to upload file!'));
+            }
+            return $this->redirect(['document/index']);
+        }
         throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
     }
 
