@@ -26,6 +26,15 @@ class UploadForm extends Model
         ];
     }
 
+    public function saveFile(string $path)
+    {
+        $filesearch = FileHelper::findFiles($path, ['only' => [$this->file->name]]);
+        if (empty($filesearch)) {
+            FileHelper::createDirectory($path);
+        }
+        return $this->file->saveAs($path . $this->file->name);
+    }
+
     public function resizeAndSave(string $spath, string $id, string $subdir) : string
     {
         //задаем адрес папки для загрузки файла
