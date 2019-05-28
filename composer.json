@@ -36,13 +36,7 @@
         "codeception/specify": "~0.4.3"
     },
     "config": {
-        "process-timeout": 1800,
-        "fxp-asset":{
-            "installer-paths": {
-                "npm-asset-library": "vendor/npm",
-                "bower-asset-library": "vendor/bower"
-            }
-        }
+        "process-timeout": 1800
     },
     "scripts": {
         "post-create-project-cmd": [
@@ -62,5 +56,11 @@
                 "config/web.php"
             ]
         }
-    }
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        }
+    ]
 }
