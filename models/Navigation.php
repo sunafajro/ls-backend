@@ -39,7 +39,8 @@ class Navigation extends Model
         if((int)Yii::$app->session->get('user.ustatus') === 3 ||
            (int)Yii::$app->session->get('user.ustatus') === 4 ||
            (int)Yii::$app->session->get('user.ustatus') === 6 ||
-           (int)Yii::$app->session->get('user.ustatus') === 8) {
+           (int)Yii::$app->session->get('user.ustatus') === 8 ||
+           (int)Yii::$app->session->get('user.uid') === 296) {
             /* ссылка на раздел Отчеты */
             $menu[] = [
                 'id' => 'reports',

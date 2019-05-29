@@ -1060,6 +1060,8 @@ class ReportController extends Controller
             return $this->redirect(['report/journals']);
         } else if((int)Yii::$app->session->get('user.ustatus') === 6) {
             return $this->redirect(['report/lessons']);
+        } else if ((int)Yii::$app->session->get('user.uid') === 296) {
+            return $this->redirect(['report/teacher-hours']);
         } else {
             return $this->redirect(Yii::$app->request->referrer);
         }
@@ -1210,7 +1212,9 @@ class ReportController extends Controller
     public function actionTeacherHours()
     {
         if ((int)Yii::$app->session->get('user.ustatus') !== 3 &&
-            (int)Yii::$app->session->get('user.ustatus') !== 4) {
+            (int)Yii::$app->session->get('user.ustatus') !== 4 &&
+            (int)Yii::$app->session->get('user.ustatus') !== 6 &&
+            (int)Yii::$app->session->get('user.uid') !== 296) {
                 throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
         $req    = Yii::$app->request;

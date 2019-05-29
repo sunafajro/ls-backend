@@ -98,14 +98,14 @@ class Report extends Model
                 'url' => '/report/plan'
             ];
         }
-        if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4) {
+        if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4 || (int)Yii::$app->session->get('user.ustatus') === 6) {
             $items[] = [
                 'id' => 'lessons',
                 'label' => Yii::t('app','Lessons'),
                 'url' => '/report/lessons'
             ];
         }
-        if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4) {
+        if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4 || (int)Yii::$app->session->get('user.ustatus') === 6) {
             $items[] = [
                 'id' => 'teacher-hours',
                 'label' => Yii::t('app','Teacher hours'),
