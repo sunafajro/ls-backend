@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @var yii\web\View $this
  * @var array        $dates
@@ -11,9 +12,10 @@
  * @var string       $userInfoBlock
  */
 
-use yii\helpers\Html;
+use app\models\Invoicestud;
 use app\widgets\Alert;
 use yii\widgets\Breadcrumbs;
+use yii\helpers\Html;
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app','Reports');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
@@ -65,12 +67,16 @@ $this->params['breadcrumbs'][] = Yii::t('app','Invoices report');
                                 <tr class="warning">
                             <?php } ?>
                         <?php } ?>
-                        <td>#<?= $inv['iid'] . ((int)$inv['remain'] === 1 ? ' (ост.)' : '') ?></td>
+                        <td>
+                            #<?= $inv['iid'] ?>
+                            <?= ((int)$inv['remain'] === Invoicestud::TYPE_REMAIN ? ' (остаточный)' : '') ?>
+                            <?= ((int)$inv['remain'] === Invoicestud::TYPE_NETTING ? ' (взаимозачет)' : '') ?>
+                        </td>
                         <td><?= $inv['uname'] ?></td>
                         <td><?= Html::a($inv['sname'] . " → ", ['studname/view', 'id' => $inv['sid']]) ?> (усл. #<?= $inv['id'] ?>, <?= $inv['num'] ?> зан.)</td>
                         <td><?= $inv['money'] ?></td>
                         </tr>
-                        <?php if ((int)$inv['visible'] === 1 && (int)$inv['remain'] === 0) { ?>
+                        <?php if ((int)$inv['visible'] === 1 && (int)$inv['remain'] === Invoicestud::TYPE_NORMAL) { ?>
                             <?php $totaldaysum = $totaldaysum + $inv['money']; ?>
                         <?php } ?>
                     <?php } ?>

@@ -94,31 +94,35 @@ class Student extends \yii\db\ActiveRecord
      *  метод возвращает сумму по счетам выставленным клиенту
      */
 
-    public static function getStudentTotalInvoicesSum($id)
+    public function getStudentTotalInvoicesSum()
     {
         $invoices_sum = (new \yii\db\Query())
-        ->select('sum(value) as money')
-        ->from('calc_invoicestud')
-        ->where('visible=:vis and calc_studname=:sid', [':vis'=>1, ':sid'=>$id])
+        ->select(['money' => 'sum(value)'])
+        ->from(Invoicestud::tableName())
+        ->where([
+            'visible' => 1,
+            'calc_studname' => $this->id,
+            'remain' => [Invoicestud::TYPE_NORMAL, Invoicestud::TYPE_REMAIN]
+        ])
         ->one();
-        
-
-        return $invoices_sum['money'] !== NULL ? $invoices_sum['money'] : 0;
+        return $invoices_sum['money'] ?? 0;
     }
 
     /**
     *  метод возвращает сумму по оплатам принятым от клиента
     */
 
-    public static function getStudentTotalPaymentsSum($id)
+    public function getStudentTotalPaymentsSum()
     {
         $payments_sum = (new \yii\db\Query())
         ->select('sum(value) as money')
-        ->from('calc_moneystud')
-        ->where('visible=:vis and calc_studname=:sid', [':vis'=>1, ':sid'=>$id])
+        ->from(Moneystud::tableName())
+        ->where([
+            'visible' => 1,
+            'calc_studname' => $this->id
+        ])
         ->one();
-
-        return $payments_sum['money'] !== NULL ? $payments_sum['money'] : 0;
+        return $payments_sum['money'] ?? 0;
     }
 
     /**
@@ -126,13 +130,12 @@ class Student extends \yii\db\ActiveRecord
      * @param integer $id
      * @return boolean
      */
-    public static function updateInvMonDebt($id)
+    public function updateInvMonDebt()
     {
-        $student = Student::findOne($id);
-        $student->invoice = static::getStudentTotalInvoicesSum($id);
-        $student->money = static::getStudentTotalPaymentsSum($id);
-        $student->debt = $student->money - $student->invoice;
-        if ($student->save()) {
+        $this->invoice = $this->getStudentTotalInvoicesSum();
+        $this->money = $this->getStudentTotalPaymentsSum();
+        $this->debt = $this->money - $this->invoice;
+        if ($this->save()) {
             return true;
         } else {
             return false;

@@ -288,14 +288,8 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
                 if (
                     $action === 'index' ||
                     $action === 'create' ||
-                    $action === 'enable' ||
-                    $action === 'disable' ||
-                    $action === 'done' ||
-                    $action === 'undone' ||
-                    $action === 'remain' ||
-                    $action === 'unremain' ||
-                    $action === 'get-data' ||
-                    $action === 'corp') {
+                    $action === 'toggle' ||
+                    $action === 'get-data') {
                     switch(Yii::$app->session->get('user.ustatus')) {
                         case 3: $result = true; break;
                         case 4: $result = true; break;

@@ -27,15 +27,33 @@ class InvoiceController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['index','create','delete','enable','disable','done','undone','remain','unremain','get-data','corp'],
+                'only' => [
+                    'index',
+                    'create',
+                    'delete',
+                    'toggle',
+                    'get-data',
+                ],
                 'rules' => [
                     [
-                        'actions' => ['index','create','delete','enable','disable','done','undone','remain','unremain','get-data','corp'],
+                        'actions' => [
+                            'index',
+                            'create',
+                            'delete',
+                            'toggle',
+                            'get-data',
+                        ],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index','create','delete','enable','disable','done','undone','remain','unremain','get-data','corp'],
+                        'actions' => [
+                            'index',
+                            'create',
+                            'delete',
+                            'toggle',
+                            'get-data',
+                        ],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -74,9 +92,7 @@ class InvoiceController extends Controller
      */
     public function actionIndex($sid)
     {
-        /* достаем данные поп студенту */
-        $student   = Student::findOne($sid);
-
+        $student = Student::findOne($sid);
         return $this->render('index', [
             'student' => $student
         ]);
@@ -204,7 +220,10 @@ class InvoiceController extends Controller
 
             if($model->save()) {
                 /* обновляем карточку студента */
-                $student = Student::updateInvMonDebt((int)$data['sid']);
+                $student = Student::findOne((int)$data['sid']);
+                if ($student !== NULL) {
+                    $student->updateInvMonDebt();
+                }
                 return true;
             } else {
                 Yii::$app->response->statusCode = 500;
@@ -219,223 +238,105 @@ class InvoiceController extends Controller
         }
     }
 
-    /**
-     * Метод позволяет менеджерам и руководителям, перевести счета в состояние - отработанные.
-     * Для перевода необходим id счета.
-     */
-    public function actionDone($id)
+    public function actionToggle(string $id, string $action)
     {
-        $model = $this->findModel($id);
-        // проверяем что счет не отработан
-        if($model->done != 1) {
-            // помечаем счет как отработанный
-            $model->done = 1;
-            // указываем пользователя который перевел счет в состояние - отработан
-            $model->user_done = Yii::$app->session->get('user.uid');
-            // указываем дату перевода счета в состояние - отработан
-            $model->data_done = date('Y-m-d');
-            // если запись успешно сохранилась
-            $model->save();
-            // возвращаемся в карточку
-            return $this->redirect(['studname/view', 'id' => $model->calc_studname, 'tab'=>3]);
-        } else {
-            // возвращаемся обратно
-            return $this->redirect(Yii::$app->request->referrer);
-        }
-    }
-
-    /**
-     * Метод позволяет менеджерам и руководителям, перевести счета в состояние - рабочие.
-     * Для перевода необходим id счета.
-     */
-    public function actionUndone($id)
-    {
-        $model = $this->findModel($id);
-        // проверяем что счет отработан
-        if($model->done != 0) {
-            // помечаем счет как рабочий
-            $model->done = 0;
-            // указываем пользователя который перевел счет в состояние - рабочие
-            $model->user_done = Yii::$app->session->get('user.uid');
-            // указываем дату перевода счета в состояние - рабочие
-            $model->data_done = date('Y-m-d');
-            // если запись успешно сохранилась
-            $model->save();
-            // возвращаемся в карточку
-            return $this->redirect(['studname/view', 'id' => $model->calc_studname, 'tab'=>3]);
-        } else {
-            // возвращаемся обратно
-            return $this->redirect(Yii::$app->request->referrer);
-        }
-    }
-
-    /**
-     * Метод позволяет менеджерам и руководителям, аннулировать счета выставленные клиенту.
-     * Для аннулирования необходим id счета. 
-     * Стоимость счета вычитается из общей суммы счетов, долг клиента пересчитывается.
-     */
-    public function actionDisable($id)
-    {
-        $model = $this->findModel($id);
-        // проверяем что счет действующий
-        if($model->visible != 0) {
-            // помечаем счет как аннулированные
-            $model->visible = 0;
-            // указываем пользователя который аннулировал счет
-            $model->user_visible = Yii::$app->session->get('user.uid');
-            // указываем дату аннулирования счета
-            $model->data_visible = date('Y-m-d');
-            // если запись успешно сохранилась
-            if($model->save()){
-                // находим карточку клиента
-                $student = Student::updateInvMonDebt($model->calc_studname);               
-                // задаем сообщение об успешном аннулировании счета
-                Yii::$app->session->setFlash('success', "Счет успешно аннулирован!");
-            } else {
-                // задаем сообщение об безуспешном аннулировании счета
-                Yii::$app->session->setFlash('error', "Не удалось аннулировать счет!");
+        $invoice = $this->findModel($id);
+        if($invoice !== NULL) {
+            switch($action) {
+                case 'corp': {
+                    if ((int)$invoice->calc_office !== 6) {
+                        $invoice->calc_office = 6;
+                    } else {
+                        if ((int)Yii::$app->session->get('user.ustatus') === 4) {
+                            $invoice->calc_office = Yii::$app->session->get('user.uoffice_id');
+                        } else {
+                            Yii::$app->session->setFlash('error', 'Возврат счета в обычное состояние доступен только менеджерам!');
+                        }
+                    }
+                    if ($invoice->save()) {
+                        Yii::$app->session->setFlash('success', 'Счет успешно изменен!');
+                    } else {
+                        Yii::$app->session->setFlash('error', 'Не удалось изменить счет!');
+                    }
+                    break;
+                }
+                case 'done': {
+                    $invoice->done = (int)$invoice->done === 0 ? 1 : 0;
+                    $invoice->user_done = (int)$invoice->done === 1 ? Yii::$app->session->get('user.uid') : 0;
+                    $invoice->data_done = (int)$invoice->done === 1 ? date('Y-m-d') : '0000-00-00';
+                    if ($invoice->save()) {
+                        Yii::$app->session->setFlash('success', 'Счет успешно изменен!');
+                    } else {
+                        Yii::$app->session->setFlash('error', 'Не удалось изменить счет!');
+                    }
+                    break;
+                }
+                case 'enable': {
+                    $invoice->visible = (int)$invoice->visible === 0 ? 1 : 0;
+                    $invoice->user_visible = (int)$invoice->visible === 1 ? 0 : Yii::$app->session->get('user.uid');
+                    $invoice->data_visible = (int)$invoice->visible === 1 ? '0000-00-00' : date('Y-m-d');
+                    // TODO transaction
+                    if ($invoice->save()) {
+                        $student = Student::findOne($invoice->calc_studname);
+                        if ($student !== NULL) {
+                            $student->updateInvMonDebt();
+                        }
+                        Yii::$app->session->setFlash('success', (int)$invoice->visible === 1 ? 'Счет успешно восстановлен!' : 'Счет успешно аннулирован!');
+                    } else {
+                        Yii::$app->session->setFlash('error', (int)$invoice->visible === 1 ? 'Не удалось восстановить счет!' : 'Не удалось аннулировать счет!');
+                    }
+                    break;
+                }
+                case 'netting': {
+                    $invoice->remain = (int)$invoice->remain === 0 ? 2 : 0;
+                    $invoice->user_remain = (int)$invoice->remain === 0 ? 0 : Yii::$app->session->get('user.uid');
+                    $invoice->data_remain = (int)$invoice->remain === 0 ? '0000-00-00' : date('Y-m-d');
+                    // TODO transaction
+                    if($invoice->save()) {
+                        $student = Student::findOne($invoice->calc_studname);
+                        if ($student !== NULL) {
+                            $student->updateInvMonDebt();
+                        }
+                        Yii::$app->session->setFlash('success', 'Счет успешно изменен!');
+                    } else {
+                        Yii::$app->session->setFlash('error', 'Не удалось изменить счет!');
+                    }
+                    break;
+                }
+                case 'remain': {
+                    $invoice->remain = (int)$invoice->remain === 0 ? 1 : 0;
+                    $invoice->user_remain = (int)$invoice->remain === 0 ? 0 : Yii::$app->session->get('user.uid');
+                    $invoice->data_remain = (int)$invoice->remain === 0 ? '0000-00-00' : date('Y-m-d');
+                    if($invoice->save()) {
+                        Yii::$app->session->setFlash('success', 'Счет успешно изменен!');
+                    } else {
+                        Yii::$app->session->setFlash('error', 'Не удалось изменить счет!');
+                    }
+                    break;
+                }
             }
-            // возвращаемся в карточку
-            return $this->redirect(['studname/view', 'id' => $model->calc_studname, 'tab'=>3]);
+            return $this->redirect(['studname/view', 'id' => $invoice->calc_studname, 'tab' => 3]);
         } else {
-            // возвращаемся обратно
-            return $this->redirect(Yii::$app->request->referrer);
+            throw new NotFoundHttpException(Yii::t('app', 'Invoice not found!'));
         }
     }
 
-    /**
-     * Метод позволяет менеджерам и руководителям, восстановить аннулированные счета выставленные клиенту.
-     * Для аннулирования необходим id счета. 
-     * Стоимость счета добавляется в общую сумму счетов, долг клиента пересчитывается.
-     */
-    public function actionEnable($id)
+    public function actionDelete(string $id)
     {
         $model = $this->findModel($id);
-        // проверяем что счет аннулирован
-        if($model->visible != 1) {
-            // помечаем счет как действующий
-            $model->visible = 1;
-            // указываем пользователя который восстановил счет
-            $model->user_visible = Yii::$app->session->get('user.uid');
-            // указываем дату восстановления счета
-            $model->data_visible = date('Y-m-d');
-            // если запись успешно сохранилась
-            if($model->save()){
-                // находим карточку клиента
-                $student = Student::updateInvMonDebt($model->calc_studname);                
-                // задаем сообщение об успешном восстановлении счета
-                Yii::$app->session->setFlash('success', "Счет успешно восстановлен!");
-            } else {
-                // задаем сообщение об безуспешном восстановлении счета
-                Yii::$app->session->setFlash('error', "Не удалось восстановить счет!");
+        if ($model !== NULL) {
+            $tmp = $model;
+            if ((int)$model->visible !== 1) {
+                if($model->delete()) {
+                    Yii::$app->session->setFlash('success', "Счет успешно удален!");
+                } else {
+                    Yii::$app->session->setFlash('success', "Не удалось удалить счет!");
+                }
             }
-            // возвращаемся в карточку
-            return $this->redirect(['studname/view', 'id' => $model->calc_studname, 'tab'=>3]);
+            return $this->redirect(['studname/view', 'id' => $tmp->calc_studname, 'tab' => 3]);
         } else {
-            // возвращаемся обратно
-            return $this->redirect(Yii::$app->request->referrer);
+            throw new NotFoundHttpException(Yii::t('app', 'Invoice not found!'));
         }
-    }
-
-    /**
-    * метод позволяет менеджерам и руководителям 
-    * перевести тип счета клиента в "остаточный". Для этого необходим ID счета.
-    **/
-
-    public function actionRemain($id)
-    {
-        $model = $this->findModel($id);
-        // проверяем что счет действующий и не остаточный
-        if($model->visible==1 && $model->remain !=1 ) {
-            // помечаем счет как остаточный
-            $model->remain = 1;
-            // сохраняем
-            if($model->save()) {
-                // если успешно, задаем сообщение об успешности
-                Yii::$app->session->setFlash('success', 'Счет успешно переведен в статус "Остаточный"!');
-            } else {
-                // если не успешно задаем сообщение об ошибке
-                Yii::$app->session->setFlash('error', 'Не удалось перевести счет в статус "Остаточный"!');
-            }
-        }
-        // возвращаемся обратно
-        return $this->redirect(Yii::$app->request->referrer); 
-    }
-
-    /**
-    * метод позволяет менеджерам и руководителям 
-    * перевести тип счета клиента в "нормальный". Для этого необходим ID счета.
-    **/
-
-    public function actionUnremain($id)
-    {
-        $model = $this->findModel($id);
-        // проверяем что счет действующий и остаточный
-        if($model->visible==1 && $model->remain !=0) {
-            // помечаем счет как обычный
-            $model->remain = 0;
-            // сохраняем
-            if($model->save()) {
-                // если успешно, задаем сообщение об успешности
-                Yii::$app->session->setFlash('success', 'Счет успешно переведен в статус "Обычный"!');
-            } else {
-                // если не успешно задаем сообщение об ошибке
-                Yii::$app->session->setFlash('error', 'Не удалось перевести счет в статус "Обычный"');
-            }
-        }
-        // возвращаемся обратно
-        return $this->redirect(Yii::$app->request->referrer); 
-    }
-
-    /**
-     * Deletes an existing CalcInvoicestud model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param integer $id
-     * @return mixed
-     */
-    public function actionDelete($id)
-    {
-        // находим обьект
-        $model = $this->findModel($id);
-        //делаем копию обекта для возврата
-        $tmp = $model;
-        // проверяем что счет действующий
-        if($model->visible != 1) {
-            // удаляем запись
-            if($model->delete()) {
-                // задаем сообщение об успешном удалении счета
-                Yii::$app->session->setFlash('success', "Счет успешно удален!");
-            } else {
-                // задаем сообщение о безуспешном удалении счета
-                Yii::$app->session->setFlash('success', "Не удалось удалить счет!");
-            }
-        }
-        // возвращаемся обратно
-        return $this->redirect(Yii::$app->request->referrer);
-    }
-
-    public function actionCorp($id)
-    {
-        $model = $this->findModel($id);
-        if ($model === NULL) {
-          return $this->redirect(Yii::$app->request->referrer);
-        }
-        if ((int)$model->calc_office !== 6) {
-          $model->calc_office = 6;
-        } else {
-          if ((int)Yii::$app->session->get('user.ustatus') === 4) {
-            $model->calc_office = Yii::$app->session->get('user.uoffice_id');
-          } else {
-            Yii::$app->session->setFlash('error', 'Возврат счета в обычное состояние доступен только менеджерам!');
-            return $this->redirect(['studname/view', 'id' => $model->calc_studname]);
-          }
-        }
-        if($model->save()) {
-          Yii::$app->session->setFlash('success', 'Счет успешно изменен!');
-        } else {
-          Yii::$app->session->setFlash('error', 'Не удалось изменить счет!');
-        }
-        return $this->redirect(['studname/view', 'id' => $model->calc_studname]);
     }
 
     /**

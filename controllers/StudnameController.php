@@ -202,11 +202,14 @@ class StudnameController extends Controller
             ->select('s.id as sid, s.name as sname, is.calc_studname as stid, SUM(is.num) as num')
             ->distinct()
             ->from('calc_service s')
-            ->leftjoin('calc_invoicestud is', 'is.calc_service=s.id')
-            ->where('is.remain=:rem and is.visible=:vis', [':rem'=>0, ':vis'=>1])
-            ->andWhere(['in','is.calc_studname',$studentids])
-            ->groupby(['is.calc_studname','s.id'])
-            ->orderby(['s.id'=>SORT_ASC])
+            ->leftjoin(['is' => Invoicestud::tableName()], 'is.calc_service = s.id')
+            ->where([
+                'is.remain' => [Invoicestud::TYPE_NORMAL, Invoicestud::TYPE_NETTING],
+                'is.visible' => 1
+            ])
+            ->andWhere(['in', 'is.calc_studname', $studentids])
+            ->groupby(['is.calc_studname', 's.id'])
+            ->orderby(['s.id' => SORT_ASC])
             ->all();
 
             // проверяем что у студента есть назначенные услуги
@@ -308,11 +311,14 @@ class StudnameController extends Controller
             ->select('s.id as sid, s.name as sname, SUM(is.num) as num')
             ->distinct()
             ->from('calc_service s')
-            ->leftjoin('calc_invoicestud is', 'is.calc_service=s.id')
-            ->where('is.remain=:rem and is.visible=:vis', [':rem'=>0, ':vis'=>1])
+            ->leftjoin(['is' => Invoicestud::tableName()], 'is.calc_service = s.id')
+            ->where([
+                'is.remain' => [Invoicestud::TYPE_NORMAL, Invoicestud::TYPE_NETTING],
+                'is.visible' => 1
+            ])
             ->andWhere(['is.calc_studname' => $id])
-            ->groupby(['is.calc_studname','s.id'])
-            ->orderby(['s.id'=>SORT_ASC])
+            ->groupby(['is.calc_studname', 's.id'])
+            ->orderby(['s.id' => SORT_ASC])
             ->all();
          
             // проверяем что у студента есть назначенные услуги
@@ -668,8 +674,8 @@ class StudnameController extends Controller
                     $log = Student::mergeStudentAccounts($id, $id2);
                     $account2 = $this->findModel($id2);
 
-                    $student->invoice = Student::getStudentTotalInvoicesSum($id);
-                    $student->money = Student::getStudentTotalPaymentsSum($id);
+                    $student->invoice = $student->getStudentTotalInvoicesSum();
+                    $student->money = $student->getStudentTotalPaymentsSum();
                     $student->debt = $student->money - $student->invoice;
                     $student->description .= $account2->description;
                     $student->save();
@@ -724,13 +730,17 @@ class StudnameController extends Controller
 
     public function actionUpdateDebt($sid)
     {
-        $result = Student::updateInvMonDebt($sid);
-        if ($result) {
-            Yii::$app->session->setFlash('success', 'Баланс студента пересчитан успешно!');
+        $student = Student::findOne($sid);
+        if ($student !== NULL) {
+            if ($student->updateInvMonDebt()) {
+                Yii::$app->session->setFlash('success', 'Баланс студента пересчитан успешно!');
+            } else {
+                Yii::$app->session->setFlash('error', 'Не удалось пересчитать баланс клиента!');
+            }
+            $this->redirect(['studname/view', 'id' => $sid]);
         } else {
-            Yii::$app->session->setFlash('error', 'Не удалось пересчитать баланс клиента!');
+            throw new NotFoundHttpException('Student not found!');
         }
-        $this->redirect(['studname/view', 'id' => $sid]);
     }
 
     //public function actionCalculate($id)

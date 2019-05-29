@@ -32,6 +32,13 @@ use Yii;
  */
 class Invoicestud extends \yii\db\ActiveRecord
 {
+    // обычный счет
+    const TYPE_NORMAL = 0;
+    // не засчитывается в сумму общего отчета и отчета по счетам
+    const TYPE_REMAIN = 1;
+    // не засчитывается в сумму общего отчета и отчета по счетам и в баланс клиента
+    const TYPE_NETTING = 2;
+
     /**
      * @inheritdoc
      */
