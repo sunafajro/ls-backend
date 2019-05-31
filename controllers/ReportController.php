@@ -987,11 +987,14 @@ class ReportController extends Controller
             ->select('s.id as sid, s.name as sname, is.calc_studname as stid, SUM(is.num) as num')
             ->distinct()
             ->from('calc_service s')
-            ->leftjoin('calc_invoicestud is', 'is.calc_service=s.id')
-            ->where('is.remain=:rem and is.visible=:vis', [':rem'=>0, ':vis'=>1])                
-            ->andWhere(['in','is.calc_studname',$stids])
-            ->groupby(['is.calc_studname','s.id'])
-            ->orderby(['s.id'=>SORT_ASC])
+            ->leftjoin(['is' => Invoicestud::tableName()], 'is.calc_service = s.id')
+            ->where([
+                'is.remain' => [Invoicestud::TYPE_NORMAL, Invoicestud::TYPE_NETTING],
+                'is.visible' => 1
+            ])               
+            ->andWhere(['in', 'is.calc_studname', $stids])
+            ->groupby(['is.calc_studname', 's.id'])
+            ->orderby(['s.id' => SORT_ASC])
             ->all();
             // запрашиваем услуги назначенные студенту
             
