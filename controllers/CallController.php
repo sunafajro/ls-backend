@@ -3,7 +3,6 @@
 namespace app\controllers;
 
 use Yii;
-use yii\db\Query;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use app\models\Call;
@@ -11,6 +10,7 @@ use app\models\Student;
 use app\models\User;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
+use yii\web\Response;
 
 /**
  * CallController implements the CRUD actions for CalcCall model.
@@ -810,32 +810,20 @@ class CallController extends Controller
         }
     }
 	
-	public function actionAutocomplete()
-    {    
-        $term = Yii::$app->request->get('term');
-        if ($term=='') $term='';
-        
-        $data = (new \yii\db\Query())
-        ->select(['id as id', 'name as name', 'phone as phone'])
-		->from('calc_studname')
-        ->where('visible=:one', [':one' => 1])
-        ->andWhere(['like', 'name', $term])
-		->limit(8)
+	public function actionAutocomplete(string $term)
+    {
+        $students = (new \yii\db\Query())
+        ->select(['label' => 'CONCAT("#", id, " ", name, " (", phone, ")")', 'value' => 'id'])
+		->from(Student::tableName())
+        ->where([
+            'visible' => 1
+        ])
+        ->andFilterWhere(['like', 'name', $term])
+        ->limit(8)
         ->all();
 
-		$i = 0;
-		$list = [];
-		if(!empty($data)) {
-		    foreach($data as $d){
-			    $list[$i]['value'] = $d['id'];
-				$list[$i]['label'] = "#".$d['id']." ".$d['name']." (".$d['phone'].")";
-				$i++;
-		    }
-			unset($d);
-			unset($data);
-		}
-        echo json_encode($list);
-        
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        return $students;
     }
 
     /**
