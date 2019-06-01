@@ -197,7 +197,6 @@
     <?php endif; ?>
     </div>
 </div>
-
 <?php
 $js = <<< 'SCRIPT'
 $(function () {
@@ -205,4 +204,3 @@ $(function () {
 });
 SCRIPT;
 $this->registerJs($js);
-?>
