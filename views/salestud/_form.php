@@ -1,23 +1,31 @@
 <?php
 
+/**
+ * @var yii\web\View           $this
+ * @var app\models\Salestud    $model
+ * @var yii\widgets\ActiveForm $form
+ * @var array                  $sales
+ * @var string                 $studentId
+ */
+
 use yii\helpers\Html;
+use yii\helpers\Url;
 use yii\widgets\ActiveForm;
-
-/* @var $this yii\web\View */
-/* @var $model app\models\Salestud */
-/* @var $form yii\widgets\ActiveForm */
+use app\widgets\autocomplete\AutoCompleteWidget;
 ?>
-
 <div class="salestud-form">
-
     <?php $form = ActiveForm::begin(); ?>
-
-    <?= $form->field($model, 'calc_sale')->dropDownList($items=$sale, ['prompt'=>Yii::t('app', '-select-')]) ?>
-
+    <?= AutoCompleteWidget::widget([
+        'hiddenField' => [
+            'name' => 'Salestud[calc_sale]',
+        ],
+        'searchField' => [
+            'label' => Yii::t('app', 'Sale'),
+            'url' => Url::to(['salestud/autocomplete', 'sid' => $studentId]),
+        ],
+    ]) ?>
     <div class="form-group">
-        <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Add') : Yii::t('app', 'Update'), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
+        <?= Html::submitButton(Yii::t('app', 'Add'), ['class' => 'btn btn-success']) ?>
     </div>
-
     <?php ActiveForm::end(); ?>
-
 </div>

@@ -1,10 +1,18 @@
 <?php
-	use yii\helpers\Html;
-	use yii\widgets\Breadcrumbs;
-	$this->title = 'Система учета :: ' . Yii::t('app', 'Add sale');
-	$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Clients'), 'url' => ['index']];
-	$this->params['breadcrumbs'][] = ['label' => $student->name, 'url' => ['studname/view','id'=>$student->id]];
-	$this->params['breadcrumbs'][] = Yii::t('app', 'Add sale');
+
+/**
+ * @var yii\web\View        $this
+ * @var app\models\Salestud $model
+ * @var app\models\Student  $student
+ * @var array               $sales
+ * @var string              $userInfoBlock
+ */
+
+use yii\widgets\Breadcrumbs;
+$this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Add sale');
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Clients'), 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => $student->name, 'url' => ['studname/view','id'=>$student->id]];
+$this->params['breadcrumbs'][] = Yii::t('app', 'Add sale');
 ?>
 
 <div class="row row-offcanvas row-offcanvas-left student_sale-create">
@@ -28,7 +36,8 @@
 		</p>
         <?= $this->render('_form', [
             'model' => $model,
-            'sale' => $sale,
+            'sales' => $sales,
+            'studentId' => $student->id,
         ]) ?>
     </div>
 </div>

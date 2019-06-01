@@ -3,12 +3,10 @@
 namespace app\controllers;
 
 use Yii;
-use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use app\models\Salestud;
 use app\models\Student;
-use app\models\Tool;
 use app\models\User;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
@@ -28,12 +26,12 @@ class SalestudController extends Controller
                 'only' => ['create','disable','enable'],
                 'rules' => [
                     [
-                        'actions' => ['create', 'disable', 'enable', 'approve', 'disableall'],
+                        'actions' => ['create', 'disable', 'enable', 'approve', 'disableall', 'autocomplete'],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['create','disable','enable', 'approve','disableall'],
+                        'actions' => ['create','disable','enable', 'approve','disableall', 'autocomplete'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -42,7 +40,8 @@ class SalestudController extends Controller
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
-                    'approve' => ['post']
+                    'approve' => ['post'],
+                    'autocomplete' => ['post'],
                 ],
             ],
         ];
@@ -73,15 +72,7 @@ class SalestudController extends Controller
         // находим данные по клиенту
         $student = Student::findOne($sid);
         // получаем список доступных скидок
-        $sales = (new \yii\db\Query())
-        ->select('id as id, name as name')
-        ->from('calc_sale')
-        ->where('visible=:one AND procent < :two', [':one' => 1, ':two' => 2])
-        ->all();
-        
-        foreach($sales as $s) {
-            $sale[$s['id']] = $s['name'];
-        }
+        $sales = $student->getStudentSales();
 
         // если данные пришли и успешно залились в модель
         if ($model->load(Yii::$app->request->post())) {
@@ -100,7 +91,7 @@ class SalestudController extends Controller
             // выводим данные в форму добавления скидки
             return $this->render('create', [
                 'model' => $model,
-                'sale' => $sale,
+                'sales' => $sales,
                 'student' => $student,
                 'userInfoBlock' => $userInfoBlock
             ]);
@@ -241,6 +232,14 @@ class SalestudController extends Controller
         } else {
             return false;
         }
+    }
+
+    public function actionAutocomplete(string $sid)
+    {
+        $student = Student::findOne($sid);
+        $sales = $student->getStudentAvailabelSales(['term' => Yii::$app->request->post('term') ?? NULL]);
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        return $sales;
     }
     
     /**
