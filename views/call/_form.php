@@ -1,13 +1,9 @@
 <?php
 
 use yii\helpers\Html;
-use yii\widgets\ActiveForm;
-use yii\jui\AutoComplete;
 use yii\helpers\Url;
-
-/* @var $this yii\web\View */
-/* @var $model app\models\CalcCall */
-/* @var $form yii\widgets\ActiveForm */
+use yii\widgets\ActiveForm;
+use app\widgets\autocomplete\AutoCompleteWidget;
 
 $sex = [1=>Yii::t('app','Male'), 2=>Yii::t('app','Female')];
 
@@ -51,24 +47,18 @@ $sex = [1=>Yii::t('app','Male'), 2=>Yii::t('app','Female')];
 			echo "</div>";
         }
     ?>    
-
-    <?php /*$form->field($model, 'calc_studname')->dropDownList($items=$student,['prompt'=>Yii::t('app', '-select-')])*/ ?>
-	
-	<?= $form->field($model, 'calc_studname')->widget(
-        AutoComplete::className(), [
-            'clientOptions' => [
-                //'source' => $studdata,
-				'source' =>Url::to(['call/autocomplete']),
-				'minLength'=>'3',				
-            ],
-            'options'=>[
-                'class'=>'form-control',
-				'placeholder' => 'Начните набирать имя...',
-            ]
-        ]);
-    ?>
-	
-	<?= $form->field($model, 'description')->textarea(['rows' => 3]) ?>
+  
+    <?= AutoCompleteWidget::widget([
+        'hiddenField' => [
+            'name' => 'Call[calc_studname]',
+        ],
+        'searchField' => [
+            'label' => Yii::t('app','Link to Client'),
+            'url' => Url::to(['call/autocomplete']),
+        ],
+    ]) ?>
+    
+    <?= $form->field($model, 'description')->textarea(['rows' => 3]) ?>
 
     <div class="form-group">
         <?= Html::submitButton($model->isNewRecord ? Yii::t('app','Create') : Yii::t('app','Update'), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
@@ -76,21 +66,18 @@ $sex = [1=>Yii::t('app','Male'), 2=>Yii::t('app','Female')];
 
     <?php ActiveForm::end(); ?>
 
-
-<?php 
-
-$this->registerJs('$(document).ready(
-function(){
-    $("#call-calc_servicetype").change(
-        function(){
-            var key = $("#call-calc_servicetype option:selected").val();
-            if(key == 1) {
-				$("#hidden-field").show();
-			} else {
-				$("#hidden-field").hide();
-			}
-        });
-});');
-?>
-
 </div>
+<?php 
+$js = <<< 'SCRIPT'
+$(document).ready(function() {
+  $("#call-calc_servicetype").change(function() {
+    var key = $("#call-calc_servicetype option:selected").val();
+    if(key === "1") {
+      $("#hidden-field").show();
+    } else {
+      $("#hidden-field").hide();
+    }
+  });
+});
+SCRIPT;
+$this->registerJs($js);
