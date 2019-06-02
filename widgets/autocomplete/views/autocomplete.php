@@ -16,7 +16,7 @@ use yii\helpers\Html;
         'data-url' => $searchField['url'],
         'data-min-length' => $searchField['minLength'],
     ]) ?>
-    <div class="help-block"><?= $searchField['error'] ?></div>
     <ul id="js--autocomplete-list" class="autocomplete-list"></ul>
+    <div class="help-block"><?= $searchField['error'] ?></div>
     <?= Html::input('hidden', $hiddenField['name'], '', ['id' => 'js--autocomplete-hidden']) ?>
 </div>
