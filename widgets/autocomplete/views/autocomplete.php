@@ -7,9 +7,16 @@
 
 use yii\helpers\Html;
 ?>
-<div class="form-group autocomplete-parent">
+<div class="form-group autocomplete-parent <?= $searchField['error'] ? 'has-error' : '' ?>">
     <label class="control-label" for="js--autocomplete"><?= $searchField['label'] ?></label>
-    <?= Html::input('text', '', '', ['id' => 'js--autocomplete', 'class' => 'form-control', 'autocomplete' => 'off', 'data-url' => $searchField['url']]) ?>
+    <?= Html::input('text', '', '', [
+        'id' => 'js--autocomplete',
+        'class' => 'form-control',
+        'autocomplete' => 'off',
+        'data-url' => $searchField['url'],
+        'data-min-length' => $searchField['minLength'],
+    ]) ?>
+    <div class="help-block"><?= $searchField['error'] ?></div>
     <ul id="js--autocomplete-list" class="autocomplete-list"></ul>
     <?= Html::input('hidden', $hiddenField['name'], '', ['id' => 'js--autocomplete-hidden']) ?>
 </div>

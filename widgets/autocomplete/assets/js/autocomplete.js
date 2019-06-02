@@ -1,5 +1,4 @@
 $(document).ready(function() {
-  var loading = false;
   var foundStudents = [];
   var $studentField = $("#js--autocomplete-hidden");
   var $studentListBlock = $("#js--autocomplete-list");
@@ -7,8 +6,7 @@ $(document).ready(function() {
     .on("input", function() {
       var $this = $(this);
       var str = $this.val();
-      if (!loading) {
-        loading = true;
+      if (str.length >= $this.data("min-length")) {
         $.ajax({
           method: "POST",
           url: $this.data("url"),
@@ -35,7 +33,6 @@ $(document).ready(function() {
           } else {
             $studentListBlock.hide();
           }
-          loading = false;
         });
       }
     })
