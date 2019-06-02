@@ -84,7 +84,7 @@ if (Yii::$app->request->get('tab')) {
                     ['class' => 'btn btn-default btn-sm btn-block'])
                 ?>
                 <?= Html::a(
-                    '<i class="fa fa-gift" aria-hidden="true"></i> ' . Yii::t('app', 'Sale'),
+                    '<i class="fa fa-gift" aria-hidden="true"></i> ' . Yii::t('app', 'Sales'),
                     ['salestud/create', 'sid' => $model->id],
                     ['class' => 'btn btn-default btn-sm btn-block'])
                 ?>

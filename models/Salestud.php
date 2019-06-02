@@ -122,7 +122,10 @@ class Salestud extends \yii\db\ActiveRecord
         ->leftJoin('user u', 'u.id=ss.user')
         ->leftJoin('user uu', 'uu.id=ss.user_used')
         ->leftJoin('user uv' , 'uv.id=ss.user_visible')
-        ->where('ss.calc_studname=:id', [':id' => $sid])
+        ->where([
+            'ss.visible' => 1,
+            'ss.calc_studname' => $sid,
+        ])
         ->orderby(['ss.id' => SORT_DESC])
         ->all();
 
@@ -273,8 +276,8 @@ class Salestud extends \yii\db\ActiveRecord
     {
         /* привязываем скидку к клиенту */
         $salestud = new Salestud();
-        $salestud->calc_studname    = (int)$student;
-        $salestud->calc_sale        = (int)$sale;
+        $salestud->calc_studname    = $student;
+        $salestud->calc_sale        = $sale;
         $salestud->user             = Yii::$app->session->get('user.uid');
         $salestud->data             = date('Y-m-d');
         $salestud->visible          = 1;

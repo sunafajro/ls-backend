@@ -238,6 +238,7 @@ class Student extends \yii\db\ActiveRecord
             'id' => 'ss.id',
             'name' => 's.name',
             'type' => 's.procent',
+            'value' => 's.value',
             'visible' => 'ss.visible',
             'date' => 'ss.data',
             'user' => 'u.name',
@@ -247,6 +248,7 @@ class Student extends \yii\db\ActiveRecord
         ->leftJoin(['u' => User::tableName()], 'ss.user=u.id')
         ->where(['ss.calc_studname' => $this->id])
         ->andWhere(['!=', 's.procent', Sale::TYPE_PERMAMENT])
+        ->orderBy(['ss.visible' => SORT_DESC, 's.procent' => SORT_ASC, 's.value' => SORT_ASC])
         ->all();
         return $sales;
     }
@@ -282,7 +284,7 @@ class Student extends \yii\db\ActiveRecord
         $sales = [];
         foreach($salesRaw as $sale) {
             $sales[] = [
-                'label' => $sale['name'] . ' :: ' . $sale['value'] . ((int)$sale === Sale::TYPE_RUB ? ' р.' : '%'),
+                'label' => $sale['name'] . ' :: ' . $sale['value'] . ((int)$sale['type'] === Sale::TYPE_RUB ? ' р.' : '%'),
                 'value' => $sale['id'],
             ];
         }

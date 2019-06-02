@@ -75,27 +75,38 @@ class SalestudController extends Controller
         $sales = $student->getStudentSales();
 
         // если данные пришли и успешно залились в модель
-        if ($model->load(Yii::$app->request->post())) {
-            $salestud = Salestud::addSaleToStudent($sid, $model->calc_sale);
-            // сохраняем данные
-            if($salestud > 0) {
-                // если успешно, задаем сообщение об успешности
-                Yii::$app->session->setFlash('success', 'Скидка успешно добавлена!');
+        if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
+            $model->calc_studname    = $sid;
+            $model->user             = Yii::$app->session->get('user.uid');
+            $model->data             = date('Y-m-d');
+            $model->visible          = 1;
+            $model->data_visible     = '0000-00-00';
+            $model->user_visible     = 0;
+            $model->data_used        = '0000-00-00';
+            $model->user_used        = 0;
+            /* если скидка назначается руководителем, сразу подтверждаем */
+            if ((int)Yii::$app->session->get('user.ustatus') === 3) {
+                $model->approved     = 1;
             } else {
-                // если не успешно задаем сообщение об ошибке
-                Yii::$app->session->setFlash('error', 'Не удалось добавить скидку!');
+                $model->approved     = 0;
             }
-            // возвращаемся в карточку клиента
-            return $this->redirect(['studname/view', 'id' => $sid]);
-        } else {
-            // выводим данные в форму добавления скидки
-            return $this->render('create', [
-                'model' => $model,
-                'sales' => $sales,
-                'student' => $student,
-                'userInfoBlock' => $userInfoBlock
-            ]);
+            if (!Salestud::find()->where(['calc_studname' => $sid, 'calc_sale' => $model->calc_sale])->exists()) {
+                if($model->save()) {
+                    Yii::$app->session->setFlash('success', 'Скидка успешно добавлена!');
+                    return $this->redirect(['salestud/create', 'sid' => $sid]);
+                } else {
+                    Yii::$app->session->setFlash('error', 'Не удалось добавить скидку!');
+                }
+            } else {
+                Yii::$app->session->setFlash('error', 'Скидка уже назначена!');
+            }
         }
+        return $this->render('create', [
+            'model' => $model,
+            'sales' => $sales,
+            'student' => $student,
+            'userInfoBlock' => $userInfoBlock
+        ]);
     }
     
     /* метод подтверждает скидку назначенную клиенту */

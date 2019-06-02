@@ -4,7 +4,6 @@
  * @var yii\web\View           $this
  * @var app\models\Salestud    $model
  * @var yii\widgets\ActiveForm $form
- * @var array                  $sales
  * @var string                 $studentId
  */
 
@@ -22,6 +21,8 @@ use app\widgets\autocomplete\AutoCompleteWidget;
         'searchField' => [
             'label' => Yii::t('app', 'Sale'),
             'url' => Url::to(['salestud/autocomplete', 'sid' => $studentId]),
+            'minLength' => 1,
+            'error' => $model->getFirstError('calc_sale'),
         ],
     ]) ?>
     <div class="form-group">
