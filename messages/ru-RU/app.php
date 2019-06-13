@@ -411,6 +411,7 @@ return array(
 'Start time'=>'Время начала',
 'Status'=>'Состояние',
 'Student'=>'Студент',
+'Student must be selected!' => 'Необходимо указать студента!',
 'Student data successfully updated!' => 'Данные студента успешно изменены!',
 'Students'=>'Студенты',
 'Student count'=>'Количество студентов',

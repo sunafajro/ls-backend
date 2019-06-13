@@ -57,8 +57,8 @@ use yii\helpers\Html;
 						    }
 						    $actions[] = Html::a('Аннулировать', ['moneystud/disable', 'id' => $payment['pid']]);
 							$actions[] = $payment['remain'] ?
-							    Html::a(Yii::t('app', 'Make normal'), ['moneystud/unremain', 'id'=> $payment['pid']]) :
-							    Html::a(Yii::t('app', 'Make remain'), ['moneystud/remain', 'id' => $payment['pid']]);
+							    Html::a(Yii::t('app', 'Unset remain'), ['moneystud/unremain', 'id'=> $payment['pid']]) :
+							    Html::a(Yii::t('app', 'Set remain'), ['moneystud/remain', 'id' => $payment['pid']]);
 				        } else {
 					        $actions[] = Html::a('Снова использовать', ['moneystud/enable', 'id' => $payment['pid']]);
 				        }
