@@ -1,11 +1,17 @@
 <?php
-    use yii\helpers\Html;
-    use yii\widgets\Breadcrumbs;
-    $this->title = 'Система учета :: ' . Yii::t('app', 'Create role');
-    $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Roles'), 'url' => ['admin/roles']];
-    $this->params['breadcrumbs'][] = Yii::t('app', 'Create');
-?>
 
+/**
+ * @var yii\web\View    $this
+ * @var app\models\Role $model
+ * @var string          $userInfoBlock
+ */
+
+use yii\widgets\Breadcrumbs;
+
+$this->title = 'Система учета :: ' . Yii::t('app', 'Create role');
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Roles'), 'url' => ['admin/roles']];
+$this->params['breadcrumbs'][] = Yii::t('app', 'Create');
+?>
 <div class="row row-offcanvas row-offcanvas-left role-create">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>

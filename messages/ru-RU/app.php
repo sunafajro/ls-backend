@@ -373,6 +373,7 @@ return array(
 'Resume'=>'Восстановить',
 'Restore'=>'Восстановить',
 'Role'=>'Роль',
+'Role name' => 'Наименование роли',
 'Roles' => 'Роли',
 'Room'=>'Кабинет',
 'Room successfully created!' => 'Кабинет успешно добавлен!',
