@@ -16,6 +16,10 @@ use Yii;
  */
 class Sale extends \yii\db\ActiveRecord
 {
+    const TYPE_RUB = 0;
+    const TYPE_PERCENT = 1;
+    const TYPE_PERMAMENT = 2;
+    
     /**
      * @inheritdoc
      */

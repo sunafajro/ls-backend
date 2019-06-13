@@ -4,18 +4,21 @@ namespace app\models;
 
 use Yii;
 use app\models\Call;
+use app\models\ClientAccess;
 use app\models\Invoicestud;
+use app\models\Message;
 use app\models\Moneystud;
+use app\models\Sale;
 use app\models\Salestud;
 use app\models\Studgroup;
 use app\models\Studjournalgroup;
 use app\models\Studjournalgrouphistory;
-use app\models\Message;
 use app\models\Studphone;
 use app\models\Studloginlog;
-use app\models\ClientAccess;
 use app\models\Smslog;
 use app\models\Studnamehistory;
+use app\models\User;
+use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "calc_studname".
@@ -226,6 +229,66 @@ class Student extends \yii\db\ActiveRecord
         ->where(['so.student_id' => $id])
         ->all();
         return $offices;
+    }
+
+    public function getStudentSales() : array
+    {
+        $sales = (new \yii\db\Query())
+        ->select([
+            'id' => 'ss.id',
+            'name' => 's.name',
+            'type' => 's.procent',
+            'value' => 's.value',
+            'visible' => 'ss.visible',
+            'date' => 'ss.data',
+            'user' => 'u.name',
+        ])
+        ->from(['ss' => Salestud::tableName()])
+        ->innerJoin(['s' => Sale::tableName()], 'ss.calc_sale=s.id')
+        ->leftJoin(['u' => User::tableName()], 'ss.user=u.id')
+        ->where(['ss.calc_studname' => $this->id])
+        ->andWhere(['!=', 's.procent', Sale::TYPE_PERMAMENT])
+        ->orderBy(['ss.visible' => SORT_DESC, 's.procent' => SORT_ASC, 's.value' => SORT_ASC])
+        ->all();
+        return $sales;
+    }
+
+    public function getStudentAvailabelSales(array $params) : array
+    {
+        $search = $params['term'] ?? NULL;
+        if ($search) {
+            $search = str_replace(',', '.', $search);
+        }
+        $columnName = 's.name';
+        $operator = 'like';
+        if ((int)$search !== 0) {
+            $columnName = 's.value';
+            $operator = '=';
+        }
+        $usedSales = (new \yii\db\Query())
+        ->select(['id' => 'calc_sale'])
+        ->from(Salestud::tableName())
+        ->where(['calc_studname' => $this->id])
+        ->all();
+        $salesRaw = (new \yii\db\Query())
+        ->select(['id' => 's.id', 'name' => 's.name', 'type' => 's.procent', 'value' => 's.value'])
+        ->from(['s' => Sale::tableName()])
+        ->where(['s.visible' => 1])
+        ->andWhere(['!=', 's.procent', Sale::TYPE_PERMAMENT])
+        ->andFilterWhere(['not in', 's.id', ArrayHelper::getColumn($usedSales, 'id')])
+        ->andFilterWhere([$operator, $columnName, $search])
+        ->orderBy(['s.name' => SORT_ASC])
+        ->limit(10)
+        ->all();
+
+        $sales = [];
+        foreach($salesRaw as $sale) {
+            $sales[] = [
+                'label' => $sale['name'] . ' :: ' . $sale['value'] . ((int)$sale['type'] === Sale::TYPE_RUB ? ' р.' : '%'),
+                'value' => $sale['id'],
+            ];
+        }
+        return $sales;
     }
 
     /**

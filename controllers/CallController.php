@@ -46,6 +46,7 @@ class CallController extends Controller
                 'class' => VerbFilter::className(),
                 'actions' => [
                     'delete' => ['post'],
+                    'autocomplete' => ['post'],
                 ],
             ],
         ];
@@ -810,7 +811,7 @@ class CallController extends Controller
         }
     }
 	
-	public function actionAutocomplete(string $term)
+	public function actionAutocomplete()
     {
         $students = (new \yii\db\Query())
         ->select(['label' => 'CONCAT("#", id, " ", name, " (", phone, ")")', 'value' => 'id'])
@@ -818,7 +819,7 @@ class CallController extends Controller
         ->where([
             'visible' => 1
         ])
-        ->andFilterWhere(['like', 'name', $term])
+        ->andFilterWhere(['like', 'name', Yii::$app->request->post('term') ?? NULL])
         ->limit(8)
         ->all();
 

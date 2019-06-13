@@ -313,7 +313,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
                         case 3: $result = true; break;
                         default: $result = false;
                     }
-                } else if($action === 'create' || $action === 'disable' || $action === 'enable') {
+                } else if($action === 'create' || $action === 'disable' || $action === 'enable' || $action === 'autocomplete') {
                     switch(Yii::$app->session->get('user.ustatus')) {
                         case 3: $result = true; break;
                         case 4: $result = true; break;
