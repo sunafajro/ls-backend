@@ -41,7 +41,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Create payment');
         </p>
         <?= Alert::widget() ?>
         <?= $this->render('_form', [
-			'student' => $student ?? NULL,
+            'student' => $student ?? NULL,
             'model'   => $model,
             'offices' => $offices,
         ]) ?>

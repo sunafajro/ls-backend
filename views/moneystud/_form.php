@@ -2,7 +2,7 @@
 
 /**
  * @var yii\web\View          $this
- * @var app\models\Moneystud  $model 
+ * @var app\models\Moneystud  $model
  * @var ActiveForm            $form
  * @var app\models\Student    $student
  * @var array                 $offices
@@ -12,6 +12,7 @@ use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\ActiveForm;
 use app\widgets\autocomplete\AutoCompleteWidget;
+$email = $student->email ?? NULL;
 ?>
 <div class="payment-form">
     <?php $form = ActiveForm::begin(); ?>
@@ -48,17 +49,17 @@ use app\widgets\autocomplete\AutoCompleteWidget;
                 <?php if ($student) {
                     echo Html::checkbox(
                         'sendEmail',
-                        isset($student->email),
+                        $email !== '',
                         [
-                            'disabled' => !isset($student->email),
-                            'label' => Yii::t('app', 'Send notification') . (isset($student->email) ? ' (' . $student->email . ')' : '')
+                            'disabled' => $email === '',
+                            'label' => Yii::t('app', 'Send notification') . ($email ? ' (' . $student->email . ')' : '')
                         ]
                     );
-                } ?>    
+                } ?>
                 <?= $form->field($model, 'remain')->checkbox(); ?>
             </div>
             <div class="col-xs-12 col-sm-6 text-right">
-                <?= Html::submitButton(Yii::t('app', 'Create'), ['class' => 'btn btn-success']) ?>  
+                <?= Html::submitButton(Yii::t('app', 'Create'), ['class' => 'btn btn-success']) ?>
             </div>
         </div>
     </div>

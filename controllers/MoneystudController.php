@@ -55,7 +55,7 @@ class MoneystudController extends Controller
      * создавать оплаты клиента. Для создания оплаты необходим ID клиента.
      */
 
-    public function actionCreate(string $sid = NULL)
+    public function actionCreate(string $sid = NULL, string $oid = NULL)
     {
         // оплаты принимают только менеджеры или руководители
         if ((int)Yii::$app->session->get('user.ustatus') !== 3 &&
@@ -68,10 +68,10 @@ class MoneystudController extends Controller
 
         // находим информацию по клиенту
         $student = Student::findOne($sid);
-        
+
         $office = new Office();
         $offices = ArrayHelper::map($office->getOffices(), 'id', 'name');
-        
+
         if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
             if (!$sid) {
                 $student = Student::findOne($model->calc_studname);
@@ -126,10 +126,12 @@ class MoneystudController extends Controller
             } else {
                 Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to create payment!'));
             }
-            return $this->redirect(['moneystud/create', 'sid' => $sid]); 
+            return $this->redirect(['moneystud/create', 'sid' => $sid, 'oid' => $model->calc_office]);
         } else {
+            $model->calc_office = Yii::$app->request->get('oid', NULL);
             return $this->render('create', [
                 'model'         => $model,
+                'oid'           => $oid,
                 'offices'       => $offices,
                 'student'       => $student,
                 'userInfoBlock' => User::getUserInfoBlock()
