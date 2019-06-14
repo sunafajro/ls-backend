@@ -28,11 +28,13 @@ use app\widgets\autocomplete\AutoCompleteWidget;
             ],
         ]);
     } ?> 
-    <?= $form->field($model, 'value_cash')->textInput(['value' => 0]) ?>
-    <?= $form->field($model, 'value_card')->textInput(['value' => 0]) ?>
     <?php if ((int)Yii::$app->session->get('user.ustatus') === 11) { ?>
-        <?= $form->field($model, 'value_bank')->hiddenInput(['value' => 0])->label(false) ?>
+        <?= $form->field($model, 'value_cash')->hiddenInput(['value' => 0])->label(false) ?>
+        <?= $form->field($model, 'value_card')->hiddenInput(['value' => 0])->label(false) ?>
+        <?= $form->field($model, 'value_bank')->textInput(['value' => 0]) ?>
     <?php } else { ?>
+        <?= $form->field($model, 'value_cash')->textInput(['value' => 0]) ?>
+        <?= $form->field($model, 'value_card')->textInput(['value' => 0]) ?>
         <?= $form->field($model, 'value_bank')->textInput(['value' => 0]) ?>
     <?php } ?>
     <div class="alert alert-success"><b>Итог:</b> <span id="total_payment">0</span> р.</div>
