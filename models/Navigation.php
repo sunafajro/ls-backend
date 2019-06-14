@@ -63,9 +63,21 @@ class Navigation extends Model
             // }
         }
 
-        if((int)Yii::$app->session->get('user.ustatus') !== 2 &&
+        if ((int)Yii::$app->session->get('user.ustatus') === 11) {
+            /* ссылка на раздел Оплаты */
+            $menu[] = [
+                'id'       => 'payments',
+                'url'      => '/moneystud/create',
+                'classes'  => 'fa fa-rub',
+                'title'    => Yii::t('app', 'Payments'),
+                'hasBadge' => false
+            ];
+        }
+
+        if ((int)Yii::$app->session->get('user.ustatus') !== 2 &&
            (int)Yii::$app->session->get('user.ustatus') !== 8 &&
-           (int)Yii::$app->session->get('user.ustatus') !== 9) {
+           (int)Yii::$app->session->get('user.ustatus') !== 9 &&
+           (int)Yii::$app->session->get('user.ustatus') !== 11) {
             /* ссылка на раздел Расписание */
             $menu[] = [
                 'id' => 'schedule',

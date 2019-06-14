@@ -9,10 +9,12 @@ use app\models\Office;
 use app\models\Student;
 use app\models\User;
 use yii\filters\AccessControl;
+use yii\filters\VerbFilter;
 use yii\helpers\ArrayHelper;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
+use yii\web\Response;
 
 /**
  * MoneystudController implements the CRUD actions for Moneystud model.
@@ -24,18 +26,25 @@ class MoneystudController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['create','delete','disable','enable', 'remain', 'unremain'],
+                'only' => ['create', 'delete', 'disable','enable', 'remain', 'unremain', 'autocomplete'],
                 'rules' => [
                     [
-                        'actions' => ['create','delete','disable','enable', 'remain', 'unremain'],
+                        'actions' => ['create', 'delete', 'disable', 'enable', 'remain', 'unremain', 'autocomplete'],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['create','disable','enable','delete','remain','unremain'],
+                        'actions' => ['create', 'disable', 'enable', 'delete', 'remain', 'unremain', 'autocomplete'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
+                ],
+            ],
+            'verbs' => [
+                'class' => VerbFilter::className(),
+                'actions' => [
+                    'delete' => ['post'],
+                    'autocomplete' => ['post'],
                 ],
             ],
         ];
@@ -46,10 +55,12 @@ class MoneystudController extends Controller
      * создавать оплаты клиента. Для создания оплаты необходим ID клиента.
      */
 
-    public function actionCreate($sid)
+    public function actionCreate(string $sid = NULL, string $oid = NULL)
     {
         // оплаты принимают только менеджеры или руководители
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+        if ((int)Yii::$app->session->get('user.ustatus') !== 3 &&
+            (int)Yii::$app->session->get('user.ustatus') !== 4 &&
+            (int)Yii::$app->session->get('user.ustatus') !== 11) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
         // создаем пустую модель записи об оплате
@@ -57,41 +68,54 @@ class MoneystudController extends Controller
 
         // находим информацию по клиенту
         $student = Student::findOne($sid);
-        
+
         $office = new Office();
         $offices = ArrayHelper::map($office->getOffices(), 'id', 'name');
-        
+
         if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
-            $model->value_cash = $this->prepareInput($model->value_cash);
-            $model->value_card = $this->prepareInput($model->value_card);
-            $model->value_bank = $this->prepareInput($model->value_bank);
-            $model->value = $model->value_cash + $model->value_card + $model->value_bank;
-            // указываем id клиента
-            $model->calc_studname = $sid;
-            $model->visible = 1;
-            $model->user = Yii::$app->session->get('user.uid');
-            $model->user_visible = 0;
-            $model->user_remain = 0;
+            if (!$sid) {
+                $student = Student::findOne($model->calc_studname);
+            } else {
+                // указываем id клиента
+                $model->calc_studname = $sid;
+            }
+            if (!$student) {
+                $model->addError('calc_studname', Yii::t('app', 'Student must be selected!'));
+                return $this->render('create', [
+                    'model'         => $model,
+                    'offices'       => $offices,
+                    'student'       => $student,
+                    'userInfoBlock' => User::getUserInfoBlock()
+                ]);
+            }
+            $model->value_cash      = $this->prepareInput($model->value_cash);
+            $model->value_card      = $this->prepareInput($model->value_card);
+            $model->value_bank      = $this->prepareInput($model->value_bank);
+            $model->value           = $model->value_cash + $model->value_card + $model->value_bank;
+            $model->visible         = 1;
+            $model->user            = Yii::$app->session->get('user.uid');
+            $model->user_visible    = 0;
+            $model->user_remain     = 0;
             $model->user_collection = 0;
-            $model->collection = 0;
-            $model->data = date('Y-m-d');
-            $model->data_visible = '0000-00-00';
-            $model->data_remain = '0000-00-00';
+            $model->collection      = 0;
+            $model->data            = date('Y-m-d');
+            $model->data_visible    = '0000-00-00';
+            $model->data_remain     = '0000-00-00';
             $model->data_collection = '0000-00-00';
             // для менеджеров офис подставляем автоматом
-            if((int)Yii::$app->session->get('user.ustatus') === 4) {
+            if ((int)Yii::$app->session->get('user.ustatus') === 4) {
                 $model->calc_office = Yii::$app->session->get('user.uoffice_id');
             }
             // TODO create transaction
-            if($model->save()) {
+            if ($model->save()) {
                 $student->money = $student->money + $model->value;
                 $student->debt = $student->money - $student->invoice;
                 // $student->debt2 = $this->studentDebt($student->id);
                 if (Yii::$app->request->post('sendEmail')) {
-                    $notification = new Notification();
+                    $notification            = new Notification();
                     $notification->entity_id = $model->id;
-                    $notification->type       = Notification::TYPE_PAYMENT;
-                    $notification->user_id    = Yii::$app->session->get('user.uid');
+                    $notification->type      = Notification::TYPE_PAYMENT;
+                    $notification->user_id   = Yii::$app->session->get('user.uid');
                     $notification->save();
                 }
                 if ($student->save()) {
@@ -102,11 +126,14 @@ class MoneystudController extends Controller
             } else {
                 Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to create payment!'));
             }
-            return $this->redirect(['studname/view', 'id' => $student->id, 'tab' => 4]); 
+            return $this->redirect(['moneystud/create', 'sid' => $sid, 'oid' => $model->calc_office]);
         } else {
+            $model->calc_office = Yii::$app->request->get('oid', NULL);
             return $this->render('create', [
                 'model'         => $model,
+                'oid'           => $oid,
                 'offices'       => $offices,
+                'payments'      => $model->getLastPaymentsByCreator(),
                 'student'       => $student,
                 'userInfoBlock' => User::getUserInfoBlock()
             ]);
@@ -120,7 +147,7 @@ class MoneystudController extends Controller
     public function actionDisable($id)
     {
         // оплаты могут аннулировать только менеджеры или руководители
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+        if ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
         $model = $this->findModel($id);
@@ -164,7 +191,7 @@ class MoneystudController extends Controller
     public function actionEnable($id)
     {
         // оплаты могут восстановить только менеджеры или руководители
-        if((int)Yii::$app->session->get('user.ustatus') !==3 && Yii::$app->session->get('user.ustatus') !== 4) {
+        if ((int)Yii::$app->session->get('user.ustatus') !==3 && Yii::$app->session->get('user.ustatus') !== 4) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
         $model = $this->findModel($id);
@@ -208,12 +235,12 @@ class MoneystudController extends Controller
     public function actionRemain($id)
     {
         // оплаты могут делать остаточными только менеджеры или руководители
-        if((int)Yii::$app->session->get('user.ustatus') !==3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+        if ((int)Yii::$app->session->get('user.ustatus') !==3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
         $model = $this->findModel($id);
         // проверяем что оплата действующая и не остаточная
-        if($model->visible==1 && $model->remain==0) {
+        if ($model->visible==1 && $model->remain==0) {
             // помечаем оплату как остаточную
             $model->remain = 1;
             // сохраняем
@@ -233,12 +260,12 @@ class MoneystudController extends Controller
     public function actionUnremain($id)
     {
         // оплаты могут делать остаточными только менеджеры или руководители
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+        if ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
         $model = $this->findModel($id);
         // проверяем что оплата действующая и остаточная
-        if($model->visible==1 && $model->remain==1) {
+        if ($model->visible==1 && $model->remain==1) {
             // помечаем оплату как обычную
             $model->remain = 0;
             $model->save();
@@ -257,13 +284,35 @@ class MoneystudController extends Controller
      */
     public function actionDelete($id)
     {
-        if((int)Yii::$app->session->get('user.ustatus') !== 3) {
+        if ((int)Yii::$app->session->get('user.ustatus') !== 3) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
         $payment = $this->findModel($id);
         $student = $payment->calc_studname;
         $this->findModel($id)->delete();
         return $this->redirect(['studname/view', 'id' => $student, 'tab'=>4]);
+    }
+
+	public function actionAutocomplete()
+    {
+        // оплаты принимают только менеджеры или руководители
+        if ((int)Yii::$app->session->get('user.ustatus') !== 3 &&
+        (int)Yii::$app->session->get('user.ustatus') !== 4 &&
+        (int)Yii::$app->session->get('user.ustatus') !== 11) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        }
+        $students = (new \yii\db\Query())
+        ->select(['label' => 'CONCAT("#", id, " ", name, " (", phone, ")")', 'value' => 'id'])
+		->from(Student::tableName())
+        ->where([
+            'visible' => 1
+        ])
+        ->andFilterWhere(['like', 'name', Yii::$app->request->post('term') ?? NULL])
+        ->limit(8)
+        ->all();
+
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        return $students;
     }
 
     /**

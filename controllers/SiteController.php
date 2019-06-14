@@ -120,11 +120,20 @@ class SiteController extends Controller
 
             // переподим пользователя на нужную страничку
             switch(Yii::$app->session->get('user.ustatus')){
-                case 3: return $this->redirect(['report/index', 'type'=>1]); break;
-                case 4: return $this->redirect(['call/index']); break;
-                case 5: return $this->redirect(['teacher/view','id'=>Yii::$app->session->get('user.uteacher')]); break;
-				case 6: return $this->redirect(['teacher/index']); break;
-                default: return $this->redirect(['site/index']);
+                case 3:
+                    return $this->redirect(['report/common']);
+                case 4:
+                    return $this->redirect(['call/index']);
+                case 5:
+                    return $this->redirect(['teacher/view', 'id' => Yii::$app->session->get('user.uteacher')]);
+                case 6:
+                    return $this->redirect(['teacher/index']);
+                case 9:
+                    return $this->redirect(['translate/translations']);
+                case 11:
+                    return $this->redirect(['moneystud/create']);
+                default:
+                    return $this->redirect(['site/index']);
             }            
         } else {
             return $this->render('login', [

@@ -301,4 +301,31 @@ class Moneystud extends \yii\db\ActiveRecord
 
         return ($sql == 0) ? false : true;
     }
+
+    public function getLastPaymentsByCreator(int $limit = 5, int $userId = NULL) : array
+    {
+        if (!$userId) {
+            $userId = Yii::$app->session->get('user.uid');
+        }
+        $payments = (new \yii\db\Query())
+        ->select([
+            'id'      => 'ms.id',
+            'date'    => 'ms.data',
+            'sum'     => 'ms.value',
+            'receipt' => 'ms.receipt',
+            'sid'     => 's.id',
+            'student' => 's.name',
+        ])
+        ->from(['ms' => self::tableName()])
+        ->innerJoin(['s' => Student::tableName()], 's.id = ms.calc_studname')
+        ->innerJoin(['o' => Office::tableName()], 'o.id = ms.calc_office')
+        ->where([
+            'ms.user' => $userId,
+            'ms.visible' => 1
+        ])
+        ->orderby(['ms.id' => SORT_DESC])
+        ->limit($limit)
+        ->all();
+        return $payments;
+    }
 }
