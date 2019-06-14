@@ -1,11 +1,12 @@
 <?php
 
 /**
- * @var yii\web\View          $this
- * @var app\models\Moneystud  $model
- * @var app\models\Student    $student
- * @var array                 $offices
- * @var string                $userInfoBlock
+ * @var yii\web\View         $this
+ * @var app\models\Moneystud $model
+ * @var app\models\Student   $student
+ * @var array                $offices
+ * @var array                $payments
+ * @var string               $userInfoBlock
  */
 
 use app\widgets\Alert;
@@ -27,7 +28,8 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Create payment');
         <?php } ?>
 		<?= $userInfoBlock ?>
 		<ul>
-			<li>Оплата помечается "остаточной", если необходимо погасить счет, по которому школа должна студенту отработать занятия, а он уже их ранее оплатил.</li>
+            <li>Оплата помечается "остаточной", если необходимо погасить счет, по которому школа должна студенту отработать занятия, а он уже их ранее оплатил.</li>
+            <li>Чекбокс "Отправить уведомление", устанавливается только при наличии адреса электронной почты в профиле клиента.</li>
 		</ul>
 	</div>
 	<div id="content" class="col-sm-6">
@@ -45,5 +47,27 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Create payment');
             'model'   => $model,
             'offices' => $offices,
         ]) ?>
+        <?php if ((int)Yii::$app->session->get('user.ustatus') === 11) { ?>
+            <table class="table table-striped table-bordered table-hover table-condensed small">
+                <thead>
+                    <th>№</th>
+                    <th><?= Yii::t('app', 'Date') ?></th>
+                    <th><?= Yii::t('app', 'Student') ?></th>
+                    <th><?= Yii::t('app', 'Sum') ?></th>
+                    <th><?= Yii::t('app', 'Receipt') ?></th>
+                </thead>
+                <tbody>
+                    <?php foreach ($payments ?? [] as $payment) { ?>
+                    <tr>
+                        <td><?= $payment['id'] ?></td>
+                        <td><?= date('d.m.Y', strtotime($payment['date'])) ?></td>
+                        <td>(#<?= $payment['sid'] ?>) <?= $payment['student'] ?></td>
+                        <td><?= $payment['sum'] ?> р.</td>
+                        <td><?= $payment['receipt'] ?></td>
+                    </tr>
+                    <?php } ?>
+                </tbody>
+            </table>
+        <?php } ?>
     </div>
 </div>

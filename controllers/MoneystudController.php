@@ -133,6 +133,7 @@ class MoneystudController extends Controller
                 'model'         => $model,
                 'oid'           => $oid,
                 'offices'       => $offices,
+                'payments'      => $model->getLastPaymentsByCreator(),
                 'student'       => $student,
                 'userInfoBlock' => User::getUserInfoBlock()
             ]);
