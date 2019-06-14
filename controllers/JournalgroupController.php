@@ -205,16 +205,16 @@ class JournalgroupController extends Controller
             else {
                 // выводим форму добавления занятия
                 return $this->render('create', [
-                    'model'=>$model,
-                    'check_teachers'=>$check_teachers,
-                    'students'=>$students,
-                    'times'=>$times,
-                    'statuses'=>$statuses,
-                    'gid' => $gid,
-                    'groupinfo' => Groupteacher::getGroupInfoById($gid),
-                    'items' => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
-                    'userInfoBlock' => User::getUserInfoBlock(),
-                    'params' => $params,
+                    'checkTeachers'  => $check_teachers,
+                    'groupinfo'      => Groupteacher::getGroupInfoById($gid),
+                    'items'          => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
+                    'model'          => $model,
+                    'params'         => $params,
+                    'statuses'       => $statuses,
+                    'students'       => $students,
+                    'times'          => $times,
+                    'userInfoBlock'  => User::getUserInfoBlock(),
+                    
                 ]);
             }
         }
@@ -474,10 +474,19 @@ class JournalgroupController extends Controller
 			return $this->redirect(['groupteacher/view', 'id' => $gid]);	        
 	    } else {
 	        return $this->render('change', [
-		        'students'=>$students,
-		        'statuses'=>$statuses,
-				'history'=>$history,
-				'dates'=>$dates,
+                'checkTeachers' => Groupteacher::getGroupTeacherListSimple($gid),
+                'dates'         => $dates,
+                'groupinfo'     => Groupteacher::getGroupInfoById($gid),
+                'history'       => $history,
+                'items'         => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
+                'params'        => [
+                    'active'    => Groupteacher::getGroupStateById($gid),
+                    'gid'       => (int)$gid,
+                    'lid'       => (int)$id,
+                ],
+		        'statuses'      => $statuses,
+				'students'      => $students,
+                'userInfoBlock' => User::getUserInfoBlock(),
     		]);
 		}
     }
