@@ -1,50 +1,75 @@
 <?php
 
+/**
+ * @var yii\web\View           $this
+ * @var yii\widgets\ActiveForm $form
+ * @var array                  $checkTeachers
+ * @var array                  $dates
+ * @var array                  $groupInfo
+ * @var array                  $history
+ * @var array                  $items
+ * @var array                  $params
+ * @var array                  $statuses
+ * @var array                  $students
+ * @var string                 $userInfoBlock
+ */
+
+use app\widgets\Alert;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
+use yii\widgets\Breadcrumbs;
 
-/* @var $this yii\web\View */
-/* @var $model app\models\CalcTeachergroup */
-/* @var $form yii\widgets\ActiveForm */
-//проверяем что идентификатор группы есть в get запросе и присваиваем его переменной $gid
-if(Yii::$app->request->get('gid')&&Yii::$app->request->get('id')){
-    $gid = (int)Yii::$app->request->get('gid');
-    $lid = (int)Yii::$app->request->get('id');
-}
-else {
-    $gid = 0;
-    $lid = 0;
-}
-$this->title = Yii::t('app', 'Lesson members');
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Group').' #'.$gid, 'url' => ['groupteacher/index']];
-$this->params['breadcrumbs'][] = $this->title;
-
+$this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Edit lesson');
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Group').' №' . $params['gid'], 'url' => ['groupteacher/view', 'id' => $params['gid']]];
+$this->params['breadcrumbs'][] = Yii::t('app', 'Edit lesson');
 ?>
-
-<div class="calc-teachergroup-form">
-    <nav class="navbar navbar-default">
-    <div class="container-fluid">
-        <?php
-            echo Html::a('<span class="glyphicon glyphicon-plus" aria-hidden="true"></span> '.Yii::t('app','Add lesson'), ['groupteacher/addlesson','gid'=>$gid], ['class' => 'btn btn-default navbar-btn']);
-            echo " ";
-			echo Html::a(Yii::t('app','Journal'), ['groupteacher/view','id'=>$gid], ['class' => 'btn btn-default navbar-btn']);
-			echo " ";
-            echo Html::a(Yii::t('app','Students'), ['groupteacher/addstudent','gid'=>$gid], ['class' => 'btn btn-primary navbar-btn']);
-            echo " ";
-            echo Html::a(Yii::t('app','Teachers'), ['groupteacher/addteacher','gid'=>$gid], ['class' => 'btn btn-default navbar-btn']);
-        ?>
-    </div><!-- /.container-fluid -->
-</nav>
-<!--    <h4><?= Yii::t('app', 'Current members of the lesson').' #'.$gid ?></h4>
-    <hr>
--->
-    <h4><?= Yii::t('app', 'Change lesson members').' #'.$gid ?></h4>
-    <hr>
-<?php
-    echo (!empty($students) ? "<p><strong>дата добавления состава:</strong> ".$students[0]['ldate'] : '');
-    echo (!empty($students) ? "<br><strong>кто добавил состав:</strong> ".$students[0]['user'] : '');
-?>
-    <?php $form = ActiveForm::begin(); ?>
+<div class="row row-offcanvas row-offcanvas-left journalgroup-change">
+    <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
+	    <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
+            <div id="main-menu"></div>
+		<?php } ?>
+		<?= $userInfoBlock ?>
+		<?php if($params['active'] == 1) { ?>
+			<?php if(
+                    (int)Yii::$app->session->get('user.ustatus') === 3 ||
+                    (int)Yii::$app->session->get('user.ustatus') === 4 ||
+                    (int)Yii::$app->session->get('user.uid') === 296 ||
+                    array_key_exists(Yii::$app->session->get('user.uteacher'), $checkTeachers)) { ?>
+                <?= Html::a('<span class="fa fa-plus" aria-hidden="true"></span> ' . Yii::t('app','Edit lesson'), ['journalgroup/change','gid' => $params['gid'], 'id' => $params['lid']], ['class' => 'btn btn-block btn-primary']) ?>
+            <?php } ?>
+			<?php foreach($items as $item) { ?>
+				<?= Html::a($item['title'], $item['url'], $item['options']) ?>
+			<?php } ?>
+		<?php } ?> 
+		<h4>Параметры группы №<?= $params['gid']; ?></h4>
+		<div class="well well-sm">
+		<?php $i = 0; ?>
+        <?php foreach($groupinfo as $key => $value): ?>
+		    <?php if($i != 0): ?>
+			<br>
+            <?php endif; ?>			
+            <span class="small"><b><?= $key ?>:</b></span> <span class="text-muted small"><?= $value ?></span>
+			<?php $i++; ?>
+        <?php endforeach; ?>
+	    </div>
+	</div>
+	<div class="col-sm-10">
+	    <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
+			<?= Breadcrumbs::widget([
+				'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+			]); ?>
+		<?php } ?>
+	    <p class="pull-left visible-xs">
+			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
+		</p>
+		<?= Alert::widget() ?>
+		<h4><?= Yii::t('app', 'Change lesson members') . ' #' . $params['gid'] ?></h4>
+		<hr>
+		<p>
+			<strong>дата добавления состава:</strong> <?= !empty($students) ? $students[0]['ldate'] : '' ?><br>
+			<strong>кто добавил состав:</strong> <?= !empty($students) ? $students[0]['user'] : '' ?></p>
+		</p>
+    	<?php $form = ActiveForm::begin(); ?>
 
     <?php
 	if(!empty($students)) {
@@ -81,7 +106,7 @@ $this->params['breadcrumbs'][] = $this->title;
     ?>
 
     <?php ActiveForm::end(); ?>
-    <h4><?= Yii::t('app', 'Lesson members history').' #'.$gid ?></h4>
+    <h4><?= Yii::t('app', 'Lesson members history') . ' #' . $params['gid'] ?></h4>
     <hr>
 	<?php
         foreach($dates as $key => $value){
@@ -98,4 +123,5 @@ $this->params['breadcrumbs'][] = $this->title;
 		unset($key);
 		unset($value);
 	?>
+   </div>
 </div>
