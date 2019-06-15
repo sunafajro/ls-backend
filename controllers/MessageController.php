@@ -56,25 +56,23 @@ class MessageController extends Controller
         ];
     }
 
-    public function actionIndex()
+    public function actionIndex(string $month = NULL, string $year = NULL)
     {
-        $month = date('n');
-        $month = $month < 10 ? '0' . $month : $month;
-        if (Yii::$app->request->get('mon')) {
-            if (Yii::$app->request->get('mon') >= 1 && Yii::$app->request->get('mon') <= 12) {
-                $month = Yii::$app->request->get('mon');
-            } elseif (Yii::$app->request->get('mon') === 'all') {
+        if ($month) {
+            if (($month < 1 && $month > 12) || $month === 'all')  {
                 $month = NULL;
             }
+        } else {
+            $month = date('n');
+            $month = $month < 10 ? '0' . $month : $month;
         }
 
-        $year = date('Y');
-        if (Yii::$app->request->get('year')) {
-            if (Yii::$app->request->get('year') >= 2012 && Yii::$app->request->get('year') <= $year) {
-                $year = Yii::$app->request->get('year');
-            } elseif (Yii::$app->request->get('year')=='all') {
+        if ($year) {
+            if (($year < 2012 && $year > $year) || $year === 'all') {
                 $year = NULL;
             }
+        } else {
+            $year = date('Y');
         }
 
         $unreaded = Message::getUnreadedMessagesIds();
@@ -86,28 +84,34 @@ class MessageController extends Controller
             $end = date('Y-m-t', strtotime($start));
         }
 
-        $incoming = Message::getUserMessages($start, $end, 'in');
+        $incomingRaw = Message::getUserMessages($start, $end, 'in');
         $outcoming = Message::getUserMessages($start, $end, 'out');
 
-        $outcoming_ids = !empty($outcoming) ? [] : NULL;
+        $outcomingIds = !empty($outcoming) ? [] : NULL;
         foreach ($outcoming as &$out) {
-            $outcoming_ids[] = $out['id'];
+            $outcomingIds[] = $out['id'];
             $out['direction'] = 'out';
         }
-        unset($out);
+        $incoming = [];
+        foreach ($incomingRaw as $in) {
+            if (!in_array($in['id'], $outcomingIds)) {
+                $in['direction'] = 'in';
+                $incoming[] = $in;
+            }
+        }
         $messages = array_merge($incoming, $outcoming);
 
-        $messages_readed = !empty($outcoming_ids) ? Message::getMessagesReadStatus($outcoming_ids, 1) : [];
-        $messages_all = !empty($outcoming_ids) ? Message::getMessagesReadStatus($outcoming_ids, NULL) : [];
+        $messagesReaded = !empty($outcomingIds) ? Message::getMessagesReadStatus($outcomingIds, 1) : [];
+        $messagesAll = !empty($outcomingIds) ? Message::getMessagesReadStatus($outcomingIds, NULL) : [];
 
         return $this->render('index', [
-            'messages' => $messages,
-            'messages_readed' => $messages_readed,
-            'messages_all' => $messages_all,
-            'unreaded' => $unreaded,
-            'month' => $month,
-            'year' => $year,
-            'userInfoBlock' => User::getUserInfoBlock()
+            'messages'       => $messages,
+            'messagesAll'    => $messagesAll,
+            'messagesReaded' => $messagesReaded,
+            'month'          => $month,
+            'unreaded'       => $unreaded,
+            'userInfoBlock'  => User::getUserInfoBlock(),
+            'year'           => $year,
         ]);
     }
 
