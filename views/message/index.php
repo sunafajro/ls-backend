@@ -1,8 +1,22 @@
 <?php
+
+/**
+ * @var yii\web\View            $this
+ * @var yii\widgets\ActiveForm  $form
+ * @var array                   $messages
+ * @var array                   $messagesAll
+ * @var array                   $messagesReaded
+ * @var string                  $month
+ * @var array                   $unreaded
+ * @var string                  $userInfoBlock
+ * @var string                  $year
+ */
+
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
+use app\widgets\Alert;
 use yii\widgets\Breadcrumbs;
-$this->title = 'Система учета :: '.Yii::t('app','Messages');
+$this->title = Yii::$app->params['appTitle'] . Yii::t('app','Messages');
 $this->params['breadcrumbs'][] = Yii::t('app','Messages');
 
 $js = <<< 'SCRIPT'
@@ -19,12 +33,11 @@ for ($i = 1; $i <= 12; $i++) {
 }
 ksort($months);
 ?>
-
 <div class="row row-offcanvas row-offcanvas-left message-create">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
-        <div id="main-menu"></div>
-        <?php endif; ?>
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
+            <div id="main-menu"></div>
+        <?php } ?>
         <?= $userInfoBlock ?>
         <h4><?= Yii::t('app', 'Actions') ?></h4>
         <?= Html::a('<span class="fa fa-plus" aria-hidden="true"></span> ' . Yii::t('app', 'Add'),
@@ -37,18 +50,18 @@ ksort($months);
         ]);
         ?>
         <div class="form-group">
-            <select class="form-control input-sm" name="mon">
+            <select class="form-control input-sm" name="month">
                 <option value="all">-все месяцы-</option>
-                <?php  foreach ($months as $key => $value) : ?>
+                <?php  foreach ($months as $key => $value) { ?>
                 <option <?= (int)$key === (int)$month ? 'selected' : '' ?> value="<?= $key ?>"><?= Yii::t('app', $value) ?></option>
-                <?php endforeach; ?>
+                <?php } ?>
             </select>
         </div>
         <div class="form-group">
             <select class="form-control input-sm" name="year">
-                <?php for ($i = 2011; $i <= date('Y'); $i++) : ?>
+                <?php for ($i = 2011; $i <= date('Y'); $i++) { ?>
                 <option <?= (int)$i === (int)$year ? 'selected' : '' ?> value="<?= $i ?>"><?= $i ?></option>
-                <?php endfor; ?>
+                <?php } ?>
             </select>
         </div>
         <div class="form-group">
@@ -57,27 +70,17 @@ ksort($months);
         <?php ActiveForm::end(); ?>
     </div>
     <div id="content" class="col-sm-10">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
-        <?= Breadcrumbs::widget([
-            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
-        ]); ?>
-        <?php endif; ?>
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
+            <?= Breadcrumbs::widget([
+                'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+            ]); ?>
+        <?php } ?>
         
         <p class="pull-left visible-xs">
             <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
         
-        <?php if(Yii::$app->session->hasFlash('error')) : ?>
-        <div class="alert alert-danger" role="alert">
-            <?= Yii::$app->session->getFlash('error') ?>
-        </div>
-        <?php endif; ?>
-   
-        <?php if(Yii::$app->session->hasFlash('success')) : ?>
-        <div class="alert alert-success" role="alert">
-            <?= Yii::$app->session->getFlash('success') ?>
-        </div>
-        <?php endif; ?>
+        <?= Alert::widget() ?>
     
         <table class="table table-stripped table-bordered table-hover table-condensed">
             <thead>
@@ -94,7 +97,7 @@ ksort($months);
                           class="btn btn-xs btn-default"
                           data-container="body"
                           data-toggle="popover"
-                          data-placement="top"
+                          data-placement="bottom"
                           data-content="После добавления сообщения, вы можете его отредактировать, удалить или прикрепить картинку. После отправки ни одно из этих действий доступно уже не будет."
                         >
                           ?
@@ -149,7 +152,7 @@ ksort($months);
                     <?php if ($message['direction'] === 'out') : ?>
                     <?php
                     $key = 0;
-                    foreach ($messages_readed as $r) {
+                    foreach ($messagesReaded as $r) {
                         if ((int)$r['id'] === (int)$message['id']) {
                             echo $r['num'] . '/';
                             $key += 1;
@@ -157,7 +160,7 @@ ksort($months);
                     }
                     echo ($key==0) ? "0/" : "";
                     $key = 0;
-                    foreach ($messages_all as $r) {
+                    foreach ($messagesAll as $r) {
                         if ((int)$r['id'] === (int)$message['id']) {
                             echo $r['num'];
                             $key += 1;
