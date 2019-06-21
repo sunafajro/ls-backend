@@ -12,7 +12,6 @@ use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\ActiveForm;
 use app\widgets\autocomplete\AutoCompleteWidget;
-$email = $student->email ?? NULL;
 ?>
 <div class="payment-form">
     <?php $form = ActiveForm::begin(); ?>
@@ -47,12 +46,13 @@ $email = $student->email ?? NULL;
         <div class="row">
             <div class="col-xs-12 col-sm-6">
                 <?php if ($student) {
+                    $hasEmail = preg_match('/.+@.+/', $student->email ?? '');
                     echo Html::checkbox(
                         'sendEmail',
-                        $email !== '',
+                        $hasEmail === 1,
                         [
-                            'disabled' => $email === '',
-                            'label' => Yii::t('app', 'Send notification') . ($email ? ' (' . $student->email . ')' : '')
+                            'disabled' => $hasEmail === 0,
+                            'label' => Yii::t('app', 'Send notification') . ($hasEmail === 1 ? ' (' . $student->email . ')' : '')
                         ]
                     );
                 } ?>
