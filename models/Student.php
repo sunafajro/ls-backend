@@ -28,6 +28,7 @@ use yii\helpers\ArrayHelper;
  * @property string $fname
  * @property string $lname
  * @property string $mname
+ * @property string $birthdate
  * @property string $email
  * @property string $address
  * @property integer $visible
@@ -62,7 +63,8 @@ class Student extends \yii\db\ActiveRecord
             [['name', 'visible', 'history', 'calc_sex','active'], 'required'],
             [['name', 'fname', 'lname', 'mname', 'email', 'phone', 'address', 'description'], 'string'],
             [['visible', 'history', 'calc_sex', 'calc_cumulativediscount', 'active', 'calc_way'], 'integer'],
-            [['debt', 'debt2', 'invoice', 'money'], 'number']
+            [['debt', 'debt2', 'invoice', 'money'], 'number'],
+            [['birthdate'], 'date', 'format'=>'yyyy-mm-dd'],
         ];
     }
 
@@ -77,6 +79,7 @@ class Student extends \yii\db\ActiveRecord
             'fname' => Yii::t('app', 'First name'),
             'lname' => Yii::t('app', 'Last name'),
             'mname' => Yii::t('app', 'Middle name'),
+            'birthdate' => Yii::t('app', 'Birthdate'),
             'email' => Yii::t('app', 'Email'),
             'address' => Yii::t('app', 'Address'),
             'visible' => 'Visible',
@@ -289,6 +292,19 @@ class Student extends \yii\db\ActiveRecord
             ];
         }
         return $sales;
+    }
+
+    public static function getStudentsAutocomplete(string $term = NULL) : array
+    {
+        return (new \yii\db\Query())
+        ->select(['label' => 'CONCAT("#", id, " ", name, " ", COALESCE(DATE_FORMAT(birthdate, "%d.%m.%y"), ""), " ", "(", phone, ")")', 'value' => 'id'])
+		->from(Student::tableName())
+        ->where([
+            'visible' => 1
+        ])
+        ->andFilterWhere(['like', 'name', $term])
+        ->limit(8)
+        ->all();
     }
 
     /**

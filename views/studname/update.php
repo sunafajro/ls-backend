@@ -1,17 +1,24 @@
 <?php
-	use yii\helpers\Html;
-	use yii\widgets\Breadcrumbs;
-	$this->title = Yii::t('app', 'Update client') . ': ' . ' ' . $model->name;
-	$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Clients'), 'url' => ['index']];
-	$this->params['breadcrumbs'][] = ['label' => $model->name, 'url' => ['view', 'id' => $model->id]];
-	$this->params['breadcrumbs'][] = Yii::t('app','Update');
-?>
+/**
+ * @var yii\web\View       $this
+ * @var app\models\Student $model
+ * @var array              $sex
+ * @var string             $userInfoBlock
+ * @var array              $way
+ */
 
+use yii\widgets\Breadcrumbs;
+
+$this->title = Yii::t('app', 'Update client') . ': ' . ' ' . $model->name;
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Clients'), 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => $model->name, 'url' => ['view', 'id' => $model->id]];
+$this->params['breadcrumbs'][] = Yii::t('app','Update');
+?>
 <div class="row row-offcanvas row-offcanvas-left student-update">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
-		<?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
-        <div id="main-menu"></div>
-        <?php endif; ?>
+		<?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
+            <div id="main-menu"></div>
+        <?php } ?>
 		<?= $userInfoBlock ?>
 		<ul>
 			<li>Имя, Фамилия и Отчество вносятся отдельно и автоматически при сохранении объединяются в полное ФИО.</li>

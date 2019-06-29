@@ -57,15 +57,15 @@
             <?= Yii::$app->session->getFlash('error') ?>
         </div>
         <?php } ?>
-   
+
         <?php if(Yii::$app->session->hasFlash('success')) { ?>
         <div class="alert alert-success" role="alert">
             <?= Yii::$app->session->getFlash('success') ?>
         </div>
         <?php } ?>
 
-        <?php 
-            // первый элемент страницы 
+        <?php
+            // первый элемент страницы
             $start = 1;
             // последний элемент страницы
             $end = 20;
@@ -107,11 +107,12 @@
     <table class="table table-striped table-bordered table-hover table-condensed small" style="margin-bottom: 0.5rem">
         <thead>
             <tr>
-                <th class="text-center">Пол</th>
-                <th>Имя</th>
-                <th>Телефон</th>
-                <th>Описание</th>
-                <th class="text-center">Долг</th>
+                <th class="text-center"><?= Yii::t('app', 'Sex') ?></th>
+                <th><?= Yii::t('app', 'Name') ?></th>
+                <th><?= Yii::t('app', 'Birthdate') ?></th>
+                <th><?= Yii::t('app', 'Phone') ?></th>
+                <th><?= Yii::t('app', 'Description') ?> / <?= Yii::t('app', 'Contract') ?></th>
+                <th class="text-center"><?= Yii::t('app', 'Debt') ?></th>
                 <?php if(Yii::$app->session->get('user.ustatus')==3 || Yii::$app->session->get('user.ustatus')==4) { ?>
                 <th class="tbl-cell-5"><?= Yii::t('app', 'Act.') ?></th>
                 <?php } ?>
@@ -129,7 +130,8 @@
                 } ?>
                 </p>
                 </td>
-                <td><?= Html::encode($student['stphone']) ?></td>
+                <td><?= isset($student['birthdate']) && $student['birthdate'] !== '' && $student['birthdate'] !== '0000-00-00' ? date('d.m.y', strtotime($student['birthdate'])) : null ?></td>
+                <td><?= Html::encode($student['phone']) ?></td>
                 <td>
                     <?php if (isset($student['description'])) : ?>
                     <div><?= Html::encode($student['description']) ?></div>

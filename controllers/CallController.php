@@ -813,16 +813,7 @@ class CallController extends Controller
 	
 	public function actionAutocomplete()
     {
-        $students = (new \yii\db\Query())
-        ->select(['label' => 'CONCAT("#", id, " ", name, " (", phone, ")")', 'value' => 'id'])
-		->from(Student::tableName())
-        ->where([
-            'visible' => 1
-        ])
-        ->andFilterWhere(['like', 'name', Yii::$app->request->post('term') ?? NULL])
-        ->limit(8)
-        ->all();
-
+        $students = Student::getStudentsAutocomplete(Yii::$app->request->post('term') ?? NULL);
         Yii::$app->response->format = Response::FORMAT_JSON;
         return $students;
     }
