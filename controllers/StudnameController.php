@@ -12,8 +12,6 @@ use app\models\Salestud;
 use app\models\Schedule;
 use app\models\Student;
 use app\models\StudentMergeForm;
-use app\models\Studphone;
-use app\models\Tool;
 use app\models\User;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
@@ -120,16 +118,17 @@ class StudnameController extends Controller
             // формируем запрос
             $students = (new \yii\db\Query())
             ->select([
-                'stid' => 's.id',
-                'stname' => 's.name',
-                'visible' => 's.visible',
-                'stphone' => 's.phone',
+                'stid'        => 's.id',
+                'stname'      => 's.name',
+                'visible'     => 's.visible',
+                'birthdate'   => 's.birthdate',
+                'phone'       => 's.phone',
                 'description' => 's.description',
-                'stinvoice' => 's.invoice',
-                'stmoney' => 's.money',
-                'debt' => 's.debt',
-                'stsex' => 's.calc_sex',
-                'active' => 's.active'
+                'stinvoice'   => 's.invoice',
+                'stmoney'     => 's.money',
+                'debt'        => 's.debt',
+                'stsex'       => 's.calc_sex',
+                'active'      => 's.active'
             ])
             ->from(['s' => 'calc_studname']);
             if ($oid) {

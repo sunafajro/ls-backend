@@ -210,13 +210,20 @@ if (Yii::$app->request->get('tab')) {
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle</button>
 		</p>
         <?= Alert::widget() ?>
-        <h3>[#<?= Html::encode($model->id) ?>] <?= Html::encode($model->name) ?> :: 
-		<?= Html::encode($model->phone) ?>
-        <?php if(isset($model->email) && $model->email !== '' && $model->email !== '0'): ?>
-			 :: <?= Html::encode($model->email) ?>
-		<?php endif; ?>
-        </h3>
-
+        <?= Html::tag('h3', '[#' . $model->id . '] ' .  Html::encode($model->name)) ?>
+        <?php
+            $userInfo = [];
+            if (isset($model->birthdate) && $model->birthdate !== '') {
+                $userInfo[] = Html::tag('i', '', ['class' => 'fa fa-birthday-cake', 'aria-hidden' => true]) . ' ' . date('d.m.y', strtotime($model->birthdate));
+            }
+            if (isset($model->phone) && $model->phone !== '') {
+                $userInfo[] = Html::tag('i', '', ['class' => 'fa fa-phone', 'aria-hidden' => true]) . ' ' . Html::encode($model->phone);
+            }
+            if (preg_match('/.+@.+/', $model->email ?? '')) {
+                $userInfo[] = Html::tag('i', '', ['class' => 'fa fa-envelope', 'aria-hidden' => true]) . ' ' . Html::encode($model->email);
+            }
+        ?>
+		<?= Html::tag('h4', implode(' :: ', $userInfo)) ?>
         <div class="row">
           <div class="<?= (($model->description || $model->address) && ($contracts && !empty($contracts))) ? 'col-sm-6' : 'col-sm-12' ?>">
             <?php if($model->description || $model->address): ?>

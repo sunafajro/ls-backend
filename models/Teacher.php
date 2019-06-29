@@ -10,6 +10,7 @@ use \yii\data\Pagination;
  *
  * @property integer $id
  * @property string $name
+ * @property string $birthdate
  * @property string $phone
  * @property string $address
  * @property integer $visible
