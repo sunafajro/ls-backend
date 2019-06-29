@@ -57,15 +57,15 @@
             <?= Yii::$app->session->getFlash('error') ?>
         </div>
         <?php } ?>
-   
+
         <?php if(Yii::$app->session->hasFlash('success')) { ?>
         <div class="alert alert-success" role="alert">
             <?= Yii::$app->session->getFlash('success') ?>
         </div>
         <?php } ?>
 
-        <?php 
-            // первый элемент страницы 
+        <?php
+            // первый элемент страницы
             $start = 1;
             // последний элемент страницы
             $end = 20;
@@ -130,7 +130,7 @@
                 } ?>
                 </p>
                 </td>
-                <td><?= isset($student['birthdate']) && $student['birthdate'] !== '' ? date('d.m.y', strtotime($student['birthdate'])) : null ?></td>
+                <td><?= isset($student['birthdate']) && $student['birthdate'] !== '' && $student['birthdate'] !== '0000-00-00' ? date('d.m.y', strtotime($student['birthdate'])) : null ?></td>
                 <td><?= Html::encode($student['phone']) ?></td>
                 <td>
                     <?php if (isset($student['description'])) : ?>

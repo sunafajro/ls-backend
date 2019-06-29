@@ -213,7 +213,7 @@ if (Yii::$app->request->get('tab')) {
         <?= Html::tag('h3', '[#' . $model->id . '] ' .  Html::encode($model->name)) ?>
         <?php
             $userInfo = [];
-            if (isset($model->birthdate) && $model->birthdate !== '') {
+            if (isset($model->birthdate) && $model->birthdate !== '' && $model->birthdate !== '0000-00-00') {
                 $userInfo[] = Html::tag('i', '', ['class' => 'fa fa-birthday-cake', 'aria-hidden' => true]) . ' ' . date('d.m.y', strtotime($model->birthdate));
             }
             if (isset($model->phone) && $model->phone !== '') {
