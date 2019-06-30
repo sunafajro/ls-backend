@@ -13,13 +13,13 @@ class m181013_221000_create_student_office_table extends Migration
     public function safeUp()
     {
         $this->createTable('student_office', [
-            'id' => $this->integer()->unsigned()->notNull(),
+            'id' => $this->primaryKey(),
             'student_id' => $this->integer()->unsigned()->notNull(),
             'office_id' => $this->integer()->unsigned()->notNull(),
             'is_main' => $this->boolean()->notNull()->defaultValue(false),
         ]);
 
-        $this->addPrimaryKey('PRIMARY', 'student_office', 'id');
+        $this->alterColumn('student_office', 'id', $this->integer()->unsigned()->notNull() . ' AUTO_INCREMENT');
 
         $this->createIndex(
             'idx-student_office-student_id',
