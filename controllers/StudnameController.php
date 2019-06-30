@@ -175,7 +175,7 @@ class StudnameController extends Controller
             ])
             ->from(['s' => 'calc_studname']);
             if ($oid) {
-                $students = $students->innerJoin('calc_student_office so', 'so.student_id=s.id');
+                $students = $students->innerJoin('student_office so', 'so.student_id=s.id');
             }
             $students = $students->where(['s.visible' => 1])
             ->andFilterWhere(['s.active' => $state_id])
@@ -759,7 +759,7 @@ class StudnameController extends Controller
         if ($action === 'add') {
             $db = (new \yii\db\Query())
             ->createCommand()
-            ->insert('calc_student_office',
+            ->insert('student_office',
             [
                 'student_id' => $sid,
                 'office_id' => $oid,
@@ -769,14 +769,14 @@ class StudnameController extends Controller
         } else if ($action === 'delete') {
             $db = (new \yii\db\Query())
             ->createCommand()
-            ->delete('calc_student_office',
+            ->delete('student_office',
                 'student_id=:sid AND office_id=:oid',
                 [':sid' => $sid, ':oid' => $oid]
             )->execute();
         } else if ($action === 'set-main') {
             $db = (new \yii\db\Query())
             ->createCommand()
-            ->update('calc_student_office',
+            ->update('student_office',
             [
                 'is_main' => false,
             ],
@@ -789,7 +789,7 @@ class StudnameController extends Controller
             ->execute();
             $db = (new \yii\db\Query())
             ->createCommand()
-            ->update('calc_student_office',
+            ->update('student_office',
             [
                 'is_main' => true,
             ],

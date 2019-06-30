@@ -227,7 +227,7 @@ class Student extends \yii\db\ActiveRecord
     {
         return (new \yii\db\Query())
         ->select(['id' => 'o.id', 'name' => 'o.name', 'isMain' => 'so.is_main'])
-        ->from(['so' => 'calc_student_office'])
+        ->from(['so' => 'student_office'])
         ->innerJoin('calc_office o', 'o.id=so.office_id')
         ->where(['so.student_id' => $this->id])
         ->orderBy(['is_main' => SORT_DESC, 'o.name' => SORT_ASC])

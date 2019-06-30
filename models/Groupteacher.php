@@ -132,7 +132,7 @@ class Groupteacher extends \yii\db\ActiveRecord
         ->innerJoin('calc_groupteacher gt', 'gt.calc_service=i.calc_service')
         ->leftJoin('calc_studgroup sg', 's.id=sg.calc_studname and gt.id=sg.calc_groupteacher');
         if ((int)Yii::$app->session->get('user.ustatus') === 4) {
-          $students = $students->innerJoin('calc_student_office so', 's.id=so.student_id');
+          $students = $students->innerJoin('student_office so', 's.id=so.student_id');
         }
         $students = $students->where([
             'gt.id' => $id,

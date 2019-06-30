@@ -18,7 +18,7 @@ class StudentController extends Controller
         $cnt = (new \yii\db\Query())
         ->select('count(s.id) as num')
         ->from(['s' => 'calc_studname'])
-        ->leftJoin('calc_student_office so', 's.id=so.student_id')
+        ->leftJoin('student_office so', 's.id=so.student_id')
         ->where(['so.office_id' => NULL])
         ->one();
         if (isset($cnt) && isset($cnt['num']) && (int)$cnt['num'] > 1) {
@@ -28,7 +28,7 @@ class StudentController extends Controller
                 $students = (new \yii\db\Query())
                 ->select(['id' => 's.id'])
                 ->from(['s' => 'calc_studname'])
-                ->leftJoin('calc_student_office so', 's.id=so.student_id')
+                ->leftJoin('student_office so', 's.id=so.student_id')
                 ->where(['so.office_id' => NULL])
                 ->limit($limit)
                 ->offset($offset)
@@ -45,7 +45,7 @@ class StudentController extends Controller
                         if (isset($office) && isset($office['id']) && (int)$office['id'] > 0) {
                             $associate = (new \yii\db\Query())
                             ->select(['id' => 'id'])
-                            ->from(['calc_student_office'])
+                            ->from(['student_office'])
                             ->where(['student_id' => $s['id'], 'office_id' => $office['id']])
                             ->one();
                             if (isset($associate) && isset($associate['id']) && (int)$associate['id'] > 0) {
@@ -53,13 +53,13 @@ class StudentController extends Controller
                             } else {
                                 $db = (new \yii\db\Query())
                                 ->createCommand()
-                                ->insert('calc_student_office',
+                                ->insert('student_office',
                                 [
                                     'student_id' => $s['id'],
                                     'office_id' => $office['id'],
                                 ])
                                 ->execute();
-                                echo 'INSERT INTO calc_student_office(student_id, office_id) VALUES(' . $s['id'] . ',' . $office['id'] . ');' . PHP_EOL;
+                                echo 'INSERT INTO student_office(student_id, office_id) VALUES(' . $s['id'] . ',' . $office['id'] . ');' . PHP_EOL;
                             }
                         } else {
                             // search for source call
@@ -74,7 +74,7 @@ class StudentController extends Controller
                             if (isset($call) && isset($call['id']) && (int)$call['id'] > 0) {
                                 $associate = (new \yii\db\Query())
                                 ->select(['id' => 'id'])
-                                ->from(['calc_student_office'])
+                                ->from(['student_office'])
                                 ->where(['student_id' => $s['id'], 'office_id' => $call['id']])
                                 ->one();
                                 if (isset($associate) && isset($associate['id']) && (int)$associate['id'] > 0) {
@@ -82,13 +82,13 @@ class StudentController extends Controller
                                 } else {
                                     $db = (new \yii\db\Query())
                                     ->createCommand()
-                                    ->insert('calc_student_office',
+                                    ->insert('student_office',
                                     [
                                         'student_id' => $s['id'],
                                         'office_id' => $call['id'],
                                     ])
                                     ->execute();
-                                    echo 'INSERT INTO calc_student_office(student_id, office_id) VALUES(' . $s['id'] . ',' . $call['id'] . ');' . PHP_EOL;
+                                    echo 'INSERT INTO student_office(student_id, office_id) VALUES(' . $s['id'] . ',' . $call['id'] . ');' . PHP_EOL;
                                 }
                             } else {
                                 echo "Not found call for student " . $s['id'] . PHP_EOL;

@@ -943,7 +943,7 @@ class ReportController extends Controller
         ->select(['id' => 'sn.id', 'name' => 'sn.name', 'debt' => 'sn.debt'])
         ->from(['sn' => Student::tableName()]);
         if ($oid) {
-            $stds = $stds->innerJoin(['so' => 'calc_student_office'], 'sn.id = so.student_id');
+            $stds = $stds->innerJoin(['so' => 'student_office'], 'sn.id = so.student_id');
         }
         $stds = $stds
         ->where([
