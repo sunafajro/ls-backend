@@ -41,7 +41,8 @@ class StudnameController extends Controller
                     'inactive',
                     'merge',
                     'change-office',
-                    'update-debt'
+                    'update-debt',
+                    'offices',
                 ],
                 'rules' => [
                     [
@@ -56,7 +57,8 @@ class StudnameController extends Controller
                             'inactive',
                             'merge',
                             'change-office',
-                            'update-debt'
+                            'update-debt',
+                            'offices',
                         ],
                         'allow' => false,
                         'roles' => ['?'],
@@ -73,7 +75,8 @@ class StudnameController extends Controller
                             'inactive',
                             'merge',
                             'change-office',
-                            'update-debt'
+                            'update-debt',
+                            'offices',
                         ],
                         'allow' => true,
                         'roles' => ['@'],
@@ -819,6 +822,16 @@ class StudnameController extends Controller
         } else {
             throw new NotFoundHttpException(Yii::t('app', 'Client not found!'));
         }
+    }
+
+    public function actionOffices($id)
+    {
+        $student = Student::findOne($id);
+        if ($student === NULL) {
+            throw new NotFoundHttpException(Yii::t('app', 'Client not found!'));
+        }
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        return $student->getStudentOffices();
     }
 
     //public function actionCalculate($id)
