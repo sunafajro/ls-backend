@@ -113,9 +113,15 @@ $(document).ready(function() {
             }
           });
           if (mainOfficeId) {
-            $selectOfficeElement.val(mainOfficeId);
+            var $option = $('#moneystud-calc_office').find('option[value="' + mainOfficeId + '"]');
+            if ($option.length === 1) {
+              $selectOfficeElement.val(mainOfficeId);
+            }
           } else {
-            $selectOfficeElement.val(result[0].id);  
+            var $option = $('#moneystud-calc_office').find('option[value="' + result[0].id + '"]');
+            if ($option.length === 1) {
+              $selectOfficeElement.val(result[0].id);
+            }  
           }
         }
       });
