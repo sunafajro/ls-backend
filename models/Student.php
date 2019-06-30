@@ -223,15 +223,15 @@ class Student extends \yii\db\ActiveRecord
         return $result;
     }
 
-    public static function getStudentOffices($id = 0)
+    public function getStudentOffices()
     {
-        $offices = (new \yii\db\Query())
-        ->select(['id' => 'o.id', 'name' => 'o.name'])
+        return (new \yii\db\Query())
+        ->select(['id' => 'o.id', 'name' => 'o.name', 'isMain' => 'so.is_main'])
         ->from(['so' => 'calc_student_office'])
         ->innerJoin('calc_office o', 'o.id=so.office_id')
-        ->where(['so.student_id' => $id])
+        ->where(['so.student_id' => $this->id])
+        ->orderBy(['is_main' => SORT_DESC, 'o.name' => SORT_ASC])
         ->all();
-        return $offices;
     }
 
     public function getStudentSales() : array
