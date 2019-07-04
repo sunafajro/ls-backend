@@ -1,28 +1,55 @@
 <?php
-    use yii\helpers\Html;
-	use yii\widgets\ActiveForm;
-	use yii\widgets\Breadcrumbs;
-	$this->title = 'Система учета :: '.Yii::t('app','Journals report');
-	$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
-	$this->params['breadcrumbs'][] = Yii::t('app','Journals report');
+
+/**
+ * @var yii\web\View $this
+ * @var string       $corp
+ * @var array        $group
+ * @var array        $lcount
+ * @var array        $lessons
+ * @var array        $offices
+ * @var string       $oid
+ * @var array        $reportlist
+ * @var array        $teachers
+ * @var array        $teacher_names
+ * @var string       $tid
+ * @var string       $userInfoBlock
+ */
+
+use yii\helpers\Html;
+use yii\widgets\ActiveForm;
+use app\widgets\Alert;
+use yii\widgets\Breadcrumbs;
+
+$this->title = Yii::$app->params['appTitle'] . Yii::t('app','Journals report');
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
+$this->params['breadcrumbs'][] = Yii::t('app','Journals report');
 ?>
 
 <div class="row row-offcanvas row-offcanvas-left report-journals">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
-		<?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
-        <div id="main-menu"></div>
-        <?php endif; ?>	
+		<?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
+            <div id="main-menu"></div>
+        <?php } ?>	
         <?= $userInfoBlock ?>
-        <?php if(!empty($reportlist)): ?>
-        <div class="dropdown">
-			<?= Html::button('<span class="fa fa-list-alt" aria-hidden="true"></span> ' . Yii::t('app', 'Reports') . ' <span class="caret"></span>', ['class' => 'btn btn-default dropdown-toggle btn-sm btn-block', 'type' => 'button', 'id' => 'dropdownMenu', 'data-toggle' => 'dropdown', 'aria-haspopup' => 'true', 'aria-expanded' => 'true']) ?>
-            <ul class="dropdown-menu" aria-labelledby="dropdownMenu">
-                <?php foreach($reportlist as $key => $value): ?>
-                <li><?= Html::a($key, $value, ['class'=>'dropdown-item']) ?></li>
-                <?php endforeach; ?>
-			</ul>            
-		</div>
-        <?php endif; ?>
+        <?php if (!empty($reportlist)) { ?>
+            <div class="dropdown">
+                <?= Html::button(
+                        Html::tag('i', '', ['class' => 'fa fa-list-alt', 'aria-hidden' => true]) . ' ' . Yii::t('app', 'Reports') . ' ' . Html::tag('i', '', ['class' => 'caret']),
+                        [
+                            'class' => 'btn btn-default dropdown-toggle btn-sm btn-block',
+                            'type' => 'button',
+                            'id' => 'dropdownMenu',
+                            'data-toggle' => 'dropdown',
+                            'aria-haspopup' => 'true',
+                            'aria-expanded' => 'true'
+                    ]) ?>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenu">
+                    <?php foreach($reportlist as $key => $value) { ?>
+                    <li><?= Html::a($key, $value, ['class'=>'dropdown-item']) ?></li>
+                    <?php } ?>
+                </ul>            
+            </div>
+        <?php } ?>
 		<h4>Фильтры</h4>
         <?php 
             $form = ActiveForm::begin([
@@ -31,11 +58,23 @@
             ]);
         ?>
         <div class="form-group">
-            <input type="checkbox" name="corp" value="1" <?= (int)$corp === 1 ? 'checked' : '' ?>> Корпоративные занятия
+            <input type="checkbox" name="corp" value="1" <?= (int)$corp === 1 ? 'checked' : '' ?> /> Корпоративные занятия
         </div>
+        <?php if (!empty($offices)) { ?>
+            <div class="form-group">
+                <select name="oid" class="form-control input-sm">
+                    <option value><?= Yii::t('app', '-all offices-') ?></option>
+                    <?php foreach ($offices as $key => $value) { ?>
+                        <option value="<?= $key ?>" <?= (int)$oid === (int)$key ? 'selected' : ''?>>
+                            <?= mb_substr($value, 0, 16) ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
+        <?php } ?>
         <div class="form-group">
             <select class="form-control input-sm" name="tid">
-                <option value="all"><?= Yii::t('app', '-all teachers-') ?></option>
+                <option value><?= Yii::t('app', '-all teachers-') ?></option>
                 <?php if(!empty($teachers)) : ?>
                     <?php foreach($teachers as $key => $value) : ?>
                         <option value="<?= $key ?>"<?= ((int)$key === (int)$tid) ? ' selected' : ''?>>
@@ -51,7 +90,16 @@
         <?php ActiveForm::end(); ?>
 	</div>
     <div class="col-sm-10">
-        <?php if($teacher_names) : ?>
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
+            <?= Breadcrumbs::widget([
+                'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+            ]); ?>
+        <?php } ?>
+		<p class="pull-left visible-xs">
+			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
+        </p>
+        <?= Alert::widget() ?>
+        <?php if ($teacher_names) : ?>
         <?php
             // первый элемент страницы 
             $start = 1;
@@ -62,8 +110,8 @@
             // предыдущая страница
             $prevpage = 0;
             // проверяем не задан ли номер страницы
-            if(Yii::$app->request->get('page')){
-                    if(Yii::$app->request->get('page')>1){
+            if (Yii::$app->request->get('page')) {
+                    if (Yii::$app->request->get('page') > 1) {
                     // считаем номер первой строки с учетом страницы
                         $start = (10 * (Yii::$app->request->get('page') - 1) + 1);
                     // считаем номер последней строки с учетом страницы
