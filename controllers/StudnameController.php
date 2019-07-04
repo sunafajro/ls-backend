@@ -30,18 +30,64 @@ class StudnameController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['index', 'view', 'create', 'update', 'delete', 'detail', 'active', 'inactive', 'merge', 'change-office', 'update-debt'],
+                'only' => [
+                    'index',
+                    'view',
+                    'create',
+                    'update',
+                    'delete',
+                    'detail',
+                    'active',
+                    'inactive',
+                    'merge',
+                    'change-office',
+                    'update-debt',
+                    'offices',
+                ],
                 'rules' => [
                     [
-                        'actions' => ['index', 'view', 'create', 'update', 'delete', 'detail', 'active', 'inactive', 'merge', 'change-office', 'update-debt'],
+                        'actions' => [
+                            'index',
+                            'view',
+                            'create',
+                            'update',
+                            'delete',
+                            'detail',
+                            'active',
+                            'inactive',
+                            'merge',
+                            'change-office',
+                            'update-debt',
+                            'offices',
+                        ],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index', 'view', 'create', 'update', 'delete', 'detail', 'active', 'inactive', 'merge', 'change-office', 'update-debt'],
+                        'actions' => [
+                            'index',
+                            'view',
+                            'create',
+                            'update',
+                            'delete',
+                            'detail',
+                            'active',
+                            'inactive',
+                            'merge',
+                            'change-office',
+                            'update-debt',
+                            'offices',
+                        ],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
+                ],
+            ],
+            'verbs' => [
+                'class' => VerbFilter::className(),
+                'actions' => [
+                    'change-office'   => ['post'],
+                    'update-debt'     => ['post'],
                 ],
             ],
         ];
@@ -132,7 +178,7 @@ class StudnameController extends Controller
             ])
             ->from(['s' => 'calc_studname']);
             if ($oid) {
-                $students = $students->innerJoin('calc_student_office so', 'so.student_id=s.id');
+                $students = $students->innerJoin('student_office so', 'so.student_id=s.id');
             }
             $students = $students->where(['s.visible' => 1])
             ->andFilterWhere(['s.active' => $state_id])
@@ -436,8 +482,9 @@ class StudnameController extends Controller
             $lessons = [];
         }
         $office = new Office();
+        $student = $this->findModel($id);
         return $this->render('view', [
-            'model'         => $this->findModel($id),
+            'model'         => $student,
             'invoices'      => $invoices,
             'payments'      => $payments,
             'groups'        => $groups,
@@ -451,7 +498,7 @@ class StudnameController extends Controller
             'permsale'      => $permsale,
             'userInfoBlock' => User::getUserInfoBlock(),
             'offices'       => [
-                'added' => Student::getStudentOffices($id),
+                'added' => $student->getStudentOffices($id),
                 'all'   => $office->getOfficesList(),
             ],
             'contracts'     => Contract::getClientContracts($id)
@@ -703,28 +750,63 @@ class StudnameController extends Controller
         ]);
     }
 
-    public function actionChangeOffice($sid, $oid = 0, $action)
+    public function actionChangeOffice($sid, $action)
     {
-        if (Yii::$app->request->isPost) {
-            if ($action === 'add') {
-                $db = (new \yii\db\Query())
-                ->createCommand()
-                ->insert('calc_student_office',
-                [
-                    'student_id' => $sid,
-                    'office_id' => Yii::$app->request->post('office'),
-                ])
-                ->execute();
-                $this->redirect(['studname/view', 'id' => $sid]);
-            } else if ($action === 'delete') {
-                $db = (new \yii\db\Query())
-                ->createCommand()
-                ->delete('calc_student_office', 'student_id=:sid AND office_id=:oid', [':sid' => $sid, ':oid' => $oid])->execute();
-                $this->redirect(['studname/view', 'id' => $sid]);
-            }
-        } else {
-            return $this->redirect(Yii::$app->request->referrer);
+        $oid = Yii::$app->request->post('office', 0);
+        if (Student::findOne($sid) === NULL) {
+            throw new NotFoundHttpException(Yii::t('app', 'Client not found!'));
         }
+        if (Office::findOne($oid) === NULL) {
+            throw new NotFoundHttpException(Yii::t('app', 'Office not found!'));
+        }
+        if ($action === 'add') {
+            $db = (new \yii\db\Query())
+            ->createCommand()
+            ->insert('student_office',
+            [
+                'student_id' => $sid,
+                'office_id' => $oid,
+                'is_main' => false,
+            ])
+            ->execute();
+        } else if ($action === 'delete') {
+            $db = (new \yii\db\Query())
+            ->createCommand()
+            ->delete('student_office',
+                'student_id=:sid AND office_id=:oid',
+                [':sid' => $sid, ':oid' => $oid]
+            )->execute();
+        } else if ($action === 'set-main') {
+            $db = (new \yii\db\Query())
+            ->createCommand()
+            ->update('student_office',
+            [
+                'is_main' => false,
+            ],
+            'student_id=:sid AND office_id!=:oid AND is_main=TRUE',
+            [
+                ':sid' => $sid,
+                ':oid' => $oid,
+            ]
+            )
+            ->execute();
+            $db = (new \yii\db\Query())
+            ->createCommand()
+            ->update('student_office',
+            [
+                'is_main' => true,
+            ],
+            'student_id=:sid AND office_id=:oid',
+            [
+                ':sid' => $sid,
+                ':oid' => $oid,
+            ]
+            )
+            ->execute();
+        } else {
+            throw new NotFoundHttpException(Yii::t('app', 'Action not exists!'));
+        }
+        $this->redirect(['studname/view', 'id' => $sid]);
     }
 
     public function actionUpdateDebt($sid)
@@ -738,8 +820,18 @@ class StudnameController extends Controller
             }
             $this->redirect(['studname/view', 'id' => $sid]);
         } else {
-            throw new NotFoundHttpException('Student not found!');
+            throw new NotFoundHttpException(Yii::t('app', 'Client not found!'));
         }
+    }
+
+    public function actionOffices($id)
+    {
+        $student = Student::findOne($id);
+        if ($student === NULL) {
+            throw new NotFoundHttpException(Yii::t('app', 'Client not found!'));
+        }
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        return $student->getStudentOffices();
     }
 
     //public function actionCalculate($id)

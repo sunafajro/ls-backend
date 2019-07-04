@@ -675,7 +675,7 @@ class CallController extends Controller
                         // формируем связь студента с офисом
                         $db = (new \yii\db\Query())
                         ->createCommand()
-                        ->insert('calc_student_office',
+                        ->insert('student_office',
                         [
                             'student_id' => $student->id,
                             'office_id' => $office_id,

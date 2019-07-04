@@ -28,7 +28,9 @@ $(document).ready(function() {
             $("#js--autocomplete-list li").on("click", function() {
               var $this = $(this);
               $studentField.val($this.data("id"));
+              $studentField.trigger('change');
               $("#js--autocomplete").val($this.text());
+
             });
           } else {
             $studentListBlock.hide();

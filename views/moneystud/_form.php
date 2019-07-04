@@ -40,7 +40,7 @@ use app\widgets\autocomplete\AutoCompleteWidget;
     <div class="alert alert-success"><b>Итог:</b> <span id="total_payment">0</span> р.</div>
     <?= $form->field($model, 'receipt')->textInput() ?>
     <?php if ((int)Yii::$app->session->get('user.ustatus') !== 4) { ?>
-        <?= $form->field($model, 'calc_office')->dropDownList($offices, ['prompt' => Yii::t('app','-select-')]) ?>
+        <?= $form->field($model, 'calc_office')->dropDownList($offices, ['prompt' => Yii::t('app','-select-'), 'style' => 'font-family: FontAwesome, sans-serif']) ?>
     <?php } ?>
     <div class="form-group">
         <div class="row">
@@ -86,3 +86,47 @@ $(document).ready(function() {
 });
 SCRIPT;
 $this->registerJs($js);
+
+if ((int)Yii::$app->session->get('user.ustatus') === 11) {
+$js = <<< 'SCRIPT'
+$(document).ready(function() {
+  var $officeListTemplate = $('#moneystud-calc_office').clone();
+  $('#js--autocomplete-hidden').on('change', function () {
+      var $this = $(this);
+      $.ajax({
+        method: "GET",
+        url: "/studname/offices?id=" + $this.val(),
+      }).done(function(result) {
+        $('#moneystud-calc_office').html('');
+        $('#moneystud-calc_office').append($officeListTemplate.find('option').clone());
+        $('#moneystud-calc_office').val(null);
+        if (Array.isArray(result) && result.length) {
+          $selectOfficeElement = $('#moneystud-calc_office');
+          var mainOfficeId = null;
+          result.forEach(function (item) {
+            var $option = $('#moneystud-calc_office').find('option[value="' + item.id + '"]');
+            if ($option.length === 1) {
+                $option.html((item.isMain === '1' ? '&#xf005;' : '&#xf006') + ' ' + $option.text());
+            }
+            if (item.isMain === '1') {
+                mainOfficeId = item.id;
+            }
+          });
+          if (mainOfficeId) {
+            var $option = $('#moneystud-calc_office').find('option[value="' + mainOfficeId + '"]');
+            if ($option.length === 1) {
+              $selectOfficeElement.val(mainOfficeId);
+            }
+          } else {
+            var $option = $('#moneystud-calc_office').find('option[value="' + result[0].id + '"]');
+            if ($option.length === 1) {
+              $selectOfficeElement.val(result[0].id);
+            }  
+          }
+        }
+      });
+  });
+});
+SCRIPT;
+$this->registerJs($js);
+}

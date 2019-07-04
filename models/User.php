@@ -279,6 +279,14 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
                         case 3: $result = true; break;
                         default: $result = false;
                     }
+                } else if($action === 'offices') {
+                    switch(Yii::$app->session->get('user.ustatus')) {
+                        case 3: $result  = true; break;
+                        case 4: $result  = true; break;
+                        case 8: $result  = true; break;
+                        case 11: $result = true; break;
+                        default: $result = false;
+                    }
                 } else {
                     $result = false;
                 }

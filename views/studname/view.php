@@ -123,7 +123,12 @@ if (Yii::$app->request->get('tab')) {
             <?= Html::a(
                 '<i class="fa fa-refresh" aria-hidden="true"></i> ' . Yii::t('app', 'Update balance'),
                 ['studname/update-debt', 'sid' => $model->id],
-                ['class' => 'btn btn-default btn-sm btn-block'])
+                [
+                    'class' => 'btn btn-default btn-sm btn-block',
+                    'data' => [
+                        'method' => 'post',
+                    ],
+                ])
             ?>
             <?= Html::a(
                 '<i class="fa fa-pencil" aria-hidden="true"></i> ' . Yii::t('app', 'Edit'),
@@ -160,13 +165,36 @@ if (Yii::$app->request->get('tab')) {
                             (int)Yii::$app->session->get('user.ustatus') === 3 ||
                             (int)Yii::$app->session->get('user.ustatus') === 4
                         ) && (int)$model->active === 1
-                    ) { ?>
-                    <?= Html::a(
-                        '<i class="fa fa-trash" aria-hidden="true"></i>',
-                        ['studname/change-office', 'sid' => $model->id, 'oid' => $o['id'], 'action' => 'delete'],
-                        ['data' => ['method' => 'post']])
-                    ?>
-                    <?php } ?>
+                    ) {
+                        echo Html::a(
+                            Html::tag('i', '', ['class' => 'fa fa-trash', 'aria-hidden' => true]),
+                            ['studname/change-office', 'sid' => $model->id, 'action' => 'delete'],
+                            [
+                                'data' => [
+                                    'method' => 'post',
+                                    'params' => [
+                                        'office' => $o['id'],
+                                    ]
+                                ],
+                                'title' => Yii::t('app', 'Unbind office'),
+                            ]);
+                        if ($o['isMain'] !== '1') {
+                            echo ' ' . Html::a(
+                                Html::tag('i', '', ['class' => 'fa fa-star-o', 'aria-hidden' => true]),
+                                ['studname/change-office', 'sid' => $model->id, 'action' => 'set-main'],
+                                [
+                                    'data' => [
+                                        'method' => 'post',
+                                        'params' => [
+                                            'office' => $o['id'],
+                                        ]
+                                    ],
+                                    'title' => Yii::t('app', 'Set main office'),
+                                ]);
+                        } else {
+                            echo ' ' . Html::tag('i', '', ['class' => 'fa fa-star', 'aria-hidden' => true, 'title' => Yii::t('app', 'Main office')]);
+                        }
+                    } ?>
                     <?= $o['name'] ?>
                 </li>
                 <?php $filtered_offices[] = $o['id'] ?>
