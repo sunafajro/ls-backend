@@ -1,5 +1,6 @@
 $(function() {
-  var startTime = 1 * 60;
+  var $rootBlock = $("#navigation-panel");
+  var startTime = $rootBlock.data("limit-time") * 60;
   var $counterBlock = $("#navigation-timer");
 
   function decrementTime() {
@@ -14,13 +15,17 @@ $(function() {
   function timeFormat(time) {
     $minutes = ~~(time / 60);
     $seconds = time % 60;
-    return ($minutes < 10 ? '0' + $minutes : $minutes) + ':' + ($seconds < 10 ? '0' + $seconds : $seconds);
+    return (
+      ($minutes < 10 ? "0" + $minutes : $minutes) +
+      ":" +
+      ($seconds < 10 ? "0" + $seconds : $seconds)
+    );
   }
 
   function logout() {
     $.ajax({
       method: "POST",
-      url: "/site/logout"
+      url: $rootBlock.data("logout-url")
     }).done(function() {
       window.location.reload();
     });

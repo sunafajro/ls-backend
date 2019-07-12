@@ -5,9 +5,10 @@
  * @var array        $items
  */
 
+use app\widgets\navigation\NavigationWidget;
 use yii\helpers\Html;
 ?>
-<div id="navigation-panel">
+<div id="navigation-panel" data-limit-time="<?= NavigationWidget::LIMIT_TIME ?>" data-logout-url="<?= NavigationWidget::LOGOUT_URL ?>">
     <nav id="top-nav" class="navbar navbar-default navbar-fixed-top">
         <div class="container-fluid">
             <div class="navbar-header">
