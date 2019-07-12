@@ -1071,7 +1071,7 @@ class ReportController extends Controller
     * метод выборки данных для построения отчета по Журналам 
     */
     
-    public function actionJournals($corp = 0, $oid = NULL, $tid = NULL) 
+    public function actionJournals($corp = 0, $oid = NULL, $tid = NULL, $page = NULL) 
     {
         /* всех кроме руководителей, менеджеров редиректим обратно */
         if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
@@ -1079,7 +1079,7 @@ class ReportController extends Controller
         }
         // для менеджеров задаем переменную с id офиса
         if ((int)Yii::$app->session->get('user.ustatus') === 4) {
-            $oid = Yii::$app->session->get('user.uoffice_id');
+            $oid = $oid ?? Yii::$app->session->get('user.uoffice_id');
             if ($corp) {
                 $oid = NULL;
             }
@@ -1095,18 +1095,18 @@ class ReportController extends Controller
             'gt.visible' => 1,
             'tg.visible' => 1
         ])
-        ->andFilterWhere(['t.id' => $tid === 'all' ? NULL : $tid])
-        ->andFilterWhere(['gt.calc_office' => $oid])
-        ->andFilterWhere(['gt.corp' => !$corp ? NULL : $corp]);
+        ->andFilterWhere(['t.id' => $tid ?? NULL])
+        ->andFilterWhere(['gt.calc_office' => $oid ?? NULL])
+        ->andFilterWhere(['gt.corp' => $corp ?? NULL]);
         // делаем клон запроса
         $countQuery = clone $teachers;
         // получаем данные для паджинации
         $pages = new Pagination(['totalCount' => $countQuery->count()]);
         $limit = 10;
         $offset = 0;
-        if(Yii::$app->request->get('page')){
-            if(Yii::$app->request->get('page') > 1 && Yii::$app->request->get('page') <= $pages->totalCount){
-                $offset = 10 * (Yii::$app->request->get('page') - 1);
+        if ($page) {
+            if ($page > 1 && $page <= $pages->totalCount) {
+                $offset = 10 * ($page - 1);
             }
         }
         // доделываем запрос и выполняем
@@ -1118,7 +1118,7 @@ class ReportController extends Controller
         $teacher_names = NULL;
         $lcount = [];
         // формируем массив с id преподавателей, для ситуации когда фильтр по преподавателю не задан
-        if(!$tid || ($tid && $tid === 'all')) {
+        if (!$tid) {
             $i = 0;
             foreach($teachers as $t) {
                 // массив id-шников для запроса занятий
@@ -1152,10 +1152,10 @@ class ReportController extends Controller
                 'jg.visible' => 1
             ])
             ->andWhere(['>', 'jg.user', 0])
-            ->andFilterWhere(['gt.calc_office' => $oid])
-            ->andFilterWhere(['jg.calc_teacher' => $tid === 'all' ? NULL : $tid])
+            ->andFilterWhere(['gt.calc_office' => $oid ?? NULL])
+            ->andFilterWhere(['jg.calc_teacher' => $tid ?? NULL])
             ->andFilterWhere(['in', 'jg.calc_teacher', $tids])
-            ->andFilterWhere(['gt.corp' => !$corp ? NULL : $corp])
+            ->andFilterWhere(['gt.corp' => $corp ?? NULL])
             ->orderby(['t.name' => SORT_ASC, 'jg.data' => SORT_DESC])
             ->all();
 
@@ -1168,11 +1168,11 @@ class ReportController extends Controller
             ->leftJoin('calc_timenorm tn', 'tn.id=s.calc_timenorm')
             ->leftJoin('calc_edulevel el', 'el.id=gt.calc_edulevel')
             ->where(['gt.visible' => 1])
-            ->andFilterWhere(['gt.calc_office' => $oid])
-            ->andFilterWhere(['tg.calc_teacher' => $tid === 'all' ?  NULL : $tid])
+            ->andFilterWhere(['gt.calc_office' => $oid ?? NULL])
+            ->andFilterWhere(['tg.calc_teacher' => $tid ?? NULL])
             ->andFilterWhere(['in', 'tg.calc_teacher', $tids])
-            ->andFilterWhere(['gt.corp' => !$corp ? NULL : $corp])
-            ->orderby(['tg.id'=>SORT_ASC])
+            ->andFilterWhere(['gt.corp' => $corp ?? NULL])
+            ->orderby(['tg.id' => SORT_ASC])
             ->all();
             
             foreach($groups as $g) {
