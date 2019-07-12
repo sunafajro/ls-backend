@@ -4,10 +4,8 @@ namespace app\models;
 
 use Yii;
 use yii\base\Model;
-//use app\models\Kaslibro;
 use app\models\Message;
 use app\models\Salestud;
-use app\models\Ticket;
 
 /**
  * Модель горизонтального меню навигации
@@ -49,18 +47,6 @@ class Navigation extends Model
                 'title' => Yii::t('app', 'Reports'),
                 'hasBadge' => false
             ];
-            /* ссылка на раздел Расходы*/
-            // DEPRECATED
-            // if (Yii::$app->params['appMode'] === 'standalone') {
-            //     $menu[] = [
-            //         'id' => 'expenses',
-            //         'url' => '/kaslibro/index',
-            //         'classes' => 'fa fa-money',
-            //         'title' => Yii::t('app', 'Expenses'),
-            //         'hasBadge' => true,
-            //         'cnt' => Kaslibro::getExpensesCount()
-            //     ];
-            // }
         }
 
         if ((int)Yii::$app->session->get('user.ustatus') === 11) {
@@ -88,19 +74,6 @@ class Navigation extends Model
             ];
         }
 
-        /* ссылка на раздел Задачи */
-        // DEPRECATED
-        // if (Yii::$app->params['appMode'] === 'standalone') {
-        //     $menu[] = [
-        //         'id' => 'tasks',
-        //         'url' => '/ticket/index',
-        //         'classes' => 'fa fa-tasks',
-        //         'title' => Yii::t('app', 'Tickets'),
-        //         'hasBadge' => true,
-        //         'cnt' => Ticket::getTasksCount()
-        //     ];
-        // }
-        
         if (Yii::$app->params['appMode'] === 'standalone') {
             /* ссылка на раздел Сообщения */
             $menu[] = [
@@ -226,33 +199,6 @@ class Navigation extends Model
             'hasBadge' => false
         ];
 
-        $sale = Salestud::getLastUnapprovedSale();
-        if (!empty($sale)) {
-            $sale['title'] = 'Подтвердить скидку для клиента.';
-        }
-        return [
-            'navElements' => $menu,
-            'message' => Message::getLastUnreadMessage(),
-            'task' => Ticket::getLastUnreadTask(),
-            'sale' => $sale
-        ];
-    }
-
-    public static function getCounters()
-    {
-        $sale = Salestud::getLastUnapprovedSale();
-        if (!empty($sale)) {
-            $sale['title'] = 'Подтвердить скидку для клиента.';
-        }
-        return [
-            'message' => Message::getLastUnreadMessage(),
-            'task' => Ticket::getLastUnreadTask(),
-            'sale' => $sale,
-            'cnts' => [
-                'messages' => Message::getMessagesCount(),
-                'tasks' => Ticket::getTasksCount(),
-                'sales' => Salestud::getSalesCount(),
-            ]
-        ];
+        return $menu;
     }
 }

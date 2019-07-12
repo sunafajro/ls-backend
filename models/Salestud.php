@@ -101,6 +101,10 @@ class Salestud extends \yii\db\ActiveRecord
             ->where('ss.approved=:zero and ss.visible=:one', [':one'=>1, ':zero'=> 0])
             ->one();
 
+            if (!empty($sale)) {
+                $sale['title'] = 'Подтвердить скидку для клиента.';
+            }
+
             return (!empty($sale)) ? $sale : null;
         } else {
             return null;

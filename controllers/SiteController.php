@@ -7,14 +7,9 @@ use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
 use yii\web\Response;
-use app\models\ContactForm;
-use app\models\Kaslibro;
 use app\models\LoginForm;
 use app\models\LoginLog;
-use app\models\Navigation;
-use app\models\Message;
 use app\models\News;
-use app\models\Ticket;
 use app\models\Tool;
 use app\models\User;
 
@@ -33,12 +28,7 @@ class SiteController extends Controller
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index', 'nav'],
-                        'allow' => false,
-                        'roles' => ['?'],
-                    ],
-                    [
-                        'actions' => ['logout', 'index', 'sidebar', 'nav', 'csrf'],
+                        'actions' => ['logout', 'index', 'sidebar', 'csrf'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -46,7 +36,9 @@ class SiteController extends Controller
             ],
             'verbs' => [
                 'class' => VerbFilter::className(),
-                'actions' => [],
+                'actions' => [
+                    'logout' => ['POST'],
+                ],
             ],
         ];
     }
@@ -164,19 +156,6 @@ class SiteController extends Controller
             default: Yii::$app->session->set('user.sidebar', 1); break;
         }
         return $this->redirect(Yii::$app->request->referrer);
-    }
-
-    /* метод возвращает массив со списком элементов навигации */
-    public function actionNav($type = null)
-    {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        if ($type) {
-            /* запрашиваем только счетчики */
-            return Navigation::getCounters();
-        } else {
-            /* запрашиваем из модели элементы навигации и возвращаем массив */
-            return Navigation::getItems();
-        }
     }
 
     public function actionCsrf()
