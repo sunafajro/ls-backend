@@ -115,46 +115,28 @@ class SalestudController extends Controller
         /* включаем формат ответа JSON */
         Yii::$app->response->format = Response::FORMAT_JSON;
         
-        $id = (int)Yii::$app->request->post('id');
-        $status = Yii::$app->request->post('status');
+        $id = (int)Yii::$app->request->post('id', NULL);
+        $status = Yii::$app->request->post('status', 'approve');
         if ($id && $status) {
             if ($status === 'accept') {
                 if (($sale = Salestud::findOne($id)) !== NULL) {
                     $sale->approved = 1;
-                    if ($sale->save()) {
-                        return [ 'result' => true ];
-                    } else {
-                        return [
-                            'result' => false,
-                            'errMessage' => 'Не удалось поддтвердить скидку.'
-                        ];
+                    if (!$sale->save()) {
+                        Yii::$app->session->setFlash('error', 'Не удалось поддтвердить скидку.');
                     }
                 } else {
-                    return [
-                        'result' => false,
-                        'errMessage' => 'Скидка №' . $id . ' не найдена.'
-                    ];
+                    throw new NotFoundHttpException(Yii::t('yii', 'The requested page does not exist.'));
                 }
             } else if ($status === 'refuse') {
-                if ($this->deleteModel($id)) {
-                    return [ 'result' => true ];
-                } else {
-                    return [
-                        'result' => false,
-                        'errMessage' => 'Скидка №' . $id . ' не найдена.'
-                    ];
+                if (!$this->deleteModel($id)) {
+                    Yii::$app->session->setFlash('error', 'Не удалось аннулировать скидку.');
                 }
             } else {
-                return [
-                    'result' => false,
-                    'errMessage' => 'Неизвеcтное действие (' . $status . ').'
-                ];
-            }            
+                throw new BadRequestHttpException(Yii::t('yii', 'Missing required arguments: { status }'));
+            }
+            return $this->redirect(Yii::$app->request->referrer);        
         } else {
-            return [
-                'result' => false,
-                'errMessage' => 'Идентификатор скидки не задан.'
-            ];
+            throw new BadRequestHttpException(Yii::t('yii', 'Missing required arguments: { id }'));
         }
     }
 

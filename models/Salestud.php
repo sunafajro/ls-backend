@@ -102,7 +102,7 @@ class Salestud extends \yii\db\ActiveRecord
             ->one();
 
             if (!empty($sale)) {
-                $sale['title'] = 'Подтвердить скидку для клиента.';
+                $sale['title'] = 'Подтвердить скидку для клиента';
             }
 
             return (!empty($sale)) ? $sale : null;

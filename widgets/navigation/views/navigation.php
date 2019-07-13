@@ -3,6 +3,8 @@
 /**
  * @var yii\web\View $this
  * @var array        $items
+ * @var array        $message
+ * @var array        $sale
  */
 
 use app\widgets\navigation\NavigationWidget;
@@ -36,15 +38,29 @@ use yii\helpers\Html;
                             }
                         ?>
                         <li>
-                            <?= Html::a(
-                                $linkContent,
-                                $item['url'],
-                                $options
-                            ) ?>
+                            <?= Html::a($linkContent, $item['url'], $options) ?>
                         </li>
                     <?php } ?>
                 </ul>
             </div>
         </div>
     </nav>
+    <?php
+        if (!empty($message)) {
+            echo $this->render('_modal', [
+                'data' => $message,
+                'id'   => 'navigation-message-modal',
+                'type' => 'message',
+                'url'  => 'message/response',
+            ]);
+        }
+        if (!empty($sale)) {
+            echo $this->render('_modal', [
+                'data' => $sale,
+                'id'   => 'navigation-sale-modal',
+                'type' => 'sale',
+                'url'  => '/salestud/approve',
+            ]);
+        }
+    ?>
 </div>

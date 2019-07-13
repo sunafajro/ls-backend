@@ -33,5 +33,16 @@ $(function() {
 
   $(document).ready(function() {
     decrementTime();
+    var $navMessageModal = $("#navigation-message-modal");
+    var $navSaleModal = $("#navigation-sale-modal");
+    if ($navMessageModal.length) {
+      $navMessageModal.modal("show");
+    }
+    if ($navSaleModal.length) {
+      $navSaleModal.modal("show");
+      $('#navigation-modal-refuse-button').on('click', function () {
+        $('#navigation-modal-status-input').val('refuse');
+      });
+    }
   });
 });
