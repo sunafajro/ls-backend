@@ -22,7 +22,10 @@ use yii\widgets\ActiveForm;
                 <p>
                     <strong>От кого:</strong> <span class="text-primary"><?= $type === 'message' ? ($data['sender'] ?? '') : ($data['user'] ?? '') ?></span>
                 </p>
-                    <?php if ($type === 'message') { ?>
+                <?php if ($type === 'message') { ?>
+                    <p>
+                        <strong>Кому:</strong> <span class="text-primary"><?= $data['groupName'] ?? '' ?></span>
+                    </p>
                     <p>
                         <strong>Текст:</strong>
                     </p>

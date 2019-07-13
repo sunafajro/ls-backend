@@ -87,7 +87,7 @@ class MessageController extends Controller
         $incomingRaw = Message::getUserMessages($start, $end, 'in');
         $outcoming = Message::getUserMessages($start, $end, 'out');
 
-        $outcomingIds = !empty($outcoming) ? [] : NULL;
+        $outcomingIds = [];
         foreach ($outcoming as &$out) {
             $outcomingIds[] = $out['id'];
             $out['direction'] = 'out';
