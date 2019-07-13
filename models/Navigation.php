@@ -199,6 +199,10 @@ class Navigation extends Model
             'hasBadge' => false
         ];
 
-        return $menu;
+        return [
+            'navElements' => $menu,
+            'message' => Message::getLastUnreadMessage(),
+            'sale' => Salestud::getLastUnapprovedSale(),
+        ];
     }
 }

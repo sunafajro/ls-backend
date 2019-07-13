@@ -2,9 +2,7 @@
 
 namespace app\widgets\navigation;
 
-use app\models\Message;
 use app\models\Navigation;
-use app\models\Salestud;
 use yii\base\Widget;
 
 class NavigationWidget extends Widget {
@@ -13,10 +11,11 @@ class NavigationWidget extends Widget {
 
     public function run() {
         NavigationWidgetAsset::register($this->view);
+        $data = Navigation::getItems();
         return $this->render('navigation', [
-            'items'   => Navigation::getItems(),
-            'message' => Message::getMessagesCount(),
-            'sale'    => Salestud::getLastUnapprovedSale(),
+            'items'   => $data['navElements'] ?? [],
+            'message' => $data['message'],
+            'sale'    => $data['sale'],
         ]);
     }
 }

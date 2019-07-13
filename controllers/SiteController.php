@@ -9,6 +9,7 @@ use yii\web\Controller;
 use yii\web\Response;
 use app\models\LoginForm;
 use app\models\LoginLog;
+use app\models\Navigation;
 use app\models\News;
 use app\models\Tool;
 use app\models\User;
@@ -28,7 +29,7 @@ class SiteController extends Controller
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['logout', 'index', 'sidebar', 'csrf'],
+                        'actions' => ['logout', 'index', 'sidebar', 'nav', 'csrf'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -38,6 +39,7 @@ class SiteController extends Controller
                 'class' => VerbFilter::className(),
                 'actions' => [
                     'logout' => ['POST'],
+                    'nav' => ['POST'],
                 ],
             ],
         ];
@@ -156,6 +158,13 @@ class SiteController extends Controller
             default: Yii::$app->session->set('user.sidebar', 1); break;
         }
         return $this->redirect(Yii::$app->request->referrer);
+    }
+
+    /* метод возвращает массив со списком элементов навигации */
+    public function actionNav()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        return Navigation::getItems();
     }
 
     public function actionCsrf()
