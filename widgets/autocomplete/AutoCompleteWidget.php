@@ -2,7 +2,7 @@
 
 namespace app\widgets\autocomplete;
 
-use yii\base\widget;
+use yii\base\Widget;
 
 class AutoCompleteWidget extends Widget {
     public $hiddenField;

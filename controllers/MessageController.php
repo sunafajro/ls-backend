@@ -87,7 +87,7 @@ class MessageController extends Controller
         $incomingRaw = Message::getUserMessages($start, $end, 'in');
         $outcoming = Message::getUserMessages($start, $end, 'out');
 
-        $outcomingIds = !empty($outcoming) ? [] : NULL;
+        $outcomingIds = [];
         foreach ($outcoming as &$out) {
             $outcomingIds[] = $out['id'];
             $out['direction'] = 'out';
@@ -228,18 +228,12 @@ class MessageController extends Controller
                     ->createCommand()
                     ->update('calc_messreport', ['ok' => '1'], ['id'=>$message['id']])
                     ->execute();
-                    return [ 'result' => true ];
                 } else {
-                    return [
-                        'result' => false,
-                        'errMessage' => 'Сообщение №' . $id . ' не найдено.'
-                    ];
+                    Yii::$app->session->setFlash('error', 'Сообщение №' . $id . ' не найдено.');
                 }
+                return $this->redirect(Yii::$app->request->referrer);
             } else {
-                return [
-                    'result' => false,
-                    'errMessage' => 'Идентификатор сообщения не задан.'
-                ];
+                throw new NotFoundHttpException(Yii::t('yii', 'The requested page does not exist.'));
             }
         } else {
             if ($rid) {
@@ -253,7 +247,7 @@ class MessageController extends Controller
                     ->execute();
                     return $this->redirect(['message/index']);
                 } else {
-                    throw new NotFoundHttpException(Yii::t('yii', 'The requested page does not exist.'));    
+                    throw new NotFoundHttpException(Yii::t('yii', 'The requested page does not exist.'));
                 }
             } else {
                 throw new BadRequestHttpException(Yii::t('yii', 'Missing required arguments: { rid }'));

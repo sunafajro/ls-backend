@@ -1,11 +1,11 @@
 <?php
-    use yii\helpers\Html;
-    use yii\bootstrap\Nav;
-    use yii\bootstrap\NavBar;
-    use yii\widgets\Breadcrumbs;
-    use app\assets\AppAsset;
-    $uid = !Yii::$app->user->isGuest ? Yii::$app->session->get('user.uid') : NULL;
-    AppAsset::register($this);
+
+use yii\helpers\Html;
+use yii\widgets\Breadcrumbs;
+use app\assets\AppAsset;
+use app\widgets\navigation\NavigationWidget;
+
+AppAsset::register($this);
 ?>
 
 <?php $this->beginPage() ?>
@@ -21,30 +21,7 @@
     <body>
 <?php $this->beginBody() ?>
     <?php if(Yii::$app->params['appMode'] !== 'bitrix' && !Yii::$app->user->isGuest): ?>
-        <div id="react-navigation-root">
-            <nav id="top-nav" class="navbar navbar-default navbar-fixed-top">
-                <div class="container-fluid">
-                    <div class="navbar-header">
-                        <button type="button" data-toggle="collapse" data-target="#top-nav-collapse" class="navbar-toggle">
-                            <span class="sr-only">Toggle navigation</span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                        </button>
-                    </div>
-                    <div id="top-nav-collapse" class="collapse navbar-collapse">
-                        <ul id="nav-links" class="navbar-nav nav">
-                            <li style="padding: 13px 10px">
-                                <span class="label label-default" title="Время до автоматического выхода из системы">14:53</span>
-                            </li>
-                            <li>
-                                <span class="navbar-text">Загружаем панель навигации...</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </nav>
-        </div>
+        <?= NavigationWidget::widget() ?>
     <?php endif; ?>
     <div class="container-fluid">
         <?php if (Yii::$app->params['appMode'] !== 'bitrix' && !Yii::$app->user->isGuest) : ?>
@@ -62,11 +39,6 @@
     </footer>
     <?php endif; ?>
 <?php $this->endBody() ?>
-<?php
-    if(Yii::$app->params['appMode'] !== 'bitrix' && !Yii::$app->user->isGuest) {
-        $this->registerJsFile('/js/navigation/bundle.js',  ['position' => yii\web\View::POS_END]);
-    }
-?>
 </body>
 </html>
 <?php $this->endPage() ?>

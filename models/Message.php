@@ -267,16 +267,31 @@ class Message extends \yii\db\ActiveRecord
         $mess = [];
 
         $message = (new \yii\db\Query())
-        ->select('m.id as mid, mr.id as mrid, m.name as mtitle, m.files as mfile, m.description as mtext, u.name as employee, s.name as student, m.calc_messwhomtype as group_id, mwt.name as group_name')
-        ->from('calc_messreport mr')
-        ->leftjoin('calc_message m', 'm.id=mr.calc_message')
-        ->leftjoin('user u', 'u.id=m.user')
-        ->leftjoin('calc_studname s', 's.id=m.user')
-        ->leftjoin('calc_messwhomtype mwt', 'mwt.id=m.calc_messwhomtype')
-        ->where('mr.send=:send and mr.user=:user and mr.ok=:ok', [':send'=>1, ':user'=>$id, ':ok'=> 0])
+        ->select([
+            'mid'        => 'm.id',
+            'mrid'       => 'mr.id',
+            'mtitle'     => 'm.name',
+            'mfile'      => 'm.files',
+            'mtext'      => 'm.description',
+            'employee'   => 'u.name',
+            'student'    => 's.name',
+            'group_id'   => 'm.calc_messwhomtype',
+            'group_name' => 'mwt.name',
+        ])
+        ->from(['mr'      => 'calc_messreport'])
+        ->leftjoin(['m'   => 'calc_message'], 'm.id = mr.calc_message')
+        ->leftjoin(['u'   => 'user'], 'u.id = m.user')
+        ->leftjoin(['s'   => 'calc_studname'], 's.id = m.user')
+        ->leftjoin(['mwt' => 'calc_messwhomtype'], 'mwt.id = m.calc_messwhomtype')
+        ->where([
+            'mr.send' => 1,
+            'mr.user' => $id,
+            'mr.ok' => 0
+        ])
         ->one();
 
         if(!empty($message)){
+            $groupName = Yii::$app->session->get('user.uname');
             if((int)$message['group_id'] === 100) {
                 /* сообщение от студента */
                 $sender = $message['student'];
@@ -284,7 +299,8 @@ class Message extends \yii\db\ActiveRecord
                 /* сообщение от пользователя */
                 $sender = $message['employee'];
             } else {
-                $sender = $message['group_name'];
+                $sender = $message['employee'];
+                $groupName = $message['group_name'];
             }
             
             if($message['mfile']!=NULL && $message['mfile']!='0'){
@@ -298,6 +314,7 @@ class Message extends \yii\db\ActiveRecord
                 'mid' => $message['mid'],
                 'rid' => $message['mrid'],
                 'sender' => $sender, 
+                'groupName' => $groupName,
                 'title' => $message['mtitle'],
                 'body' => $message['mtext'],
                 'image' => ($image) ? '/uploads/calc_message/' . $message['mid'] . '/fls/' . $image : NULL,

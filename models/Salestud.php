@@ -93,13 +93,27 @@ class Salestud extends \yii\db\ActiveRecord
         if ((int)Yii::$app->session->get('user.ustatus') === 3) {
 
             $sale = (new \yii\db\Query())
-            ->select('ss.id as sid, ss.calc_studname as clientId, sn.name as clientName, ss.calc_sale as saleId, s.name as saleName, u.name as user')
-            ->from('calc_salestud ss')
-            ->innerJoin('calc_studname sn', 'sn.id=ss.calc_studname')
-            ->innerJoin('calc_sale s', 's.id=ss.calc_sale')
-            ->innerJoin('user u', 'u.id=ss.user')
-            ->where('ss.approved=:zero and ss.visible=:one', [':one'=>1, ':zero'=> 0])
+            ->select([
+                'sid'        => 'ss.id',
+                'clientId'   => 'ss.calc_studname',
+                'clientName' => 'sn.name',
+                'saleId'     => 'ss.calc_sale',
+                'saleName'   => 's.name',
+                'user'       => 'u.name'
+            ])
+            ->from(['ss'      => 'calc_salestud'])
+            ->innerJoin(['sn' => 'calc_studname'], 'sn.id = ss.calc_studname')
+            ->innerJoin(['s'  => 'calc_sale'], 's.id = ss.calc_sale')
+            ->innerJoin(['u'  => 'user'], 'u.id = ss.user')
+            ->where([
+                'ss.approved' => 0,
+                'ss.visible'  => 1
+            ])
             ->one();
+
+            if (!empty($sale)) {
+                $sale['title'] = 'Подтвердить скидку для клиента';
+            }
 
             return (!empty($sale)) ? $sale : null;
         } else {
