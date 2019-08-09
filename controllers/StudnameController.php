@@ -747,7 +747,7 @@ class StudnameController extends Controller
                             $account2->money = 0;
                             $account2->debt = 0;
                             $account2->visible = 0;
-                            $model->active = 0;
+                            $account2->active = 0;
                             $account2->description = 'Данные перенесены в уч. запись №' . $id;
                             if (!$account2->save()) {
                                 throw new \Exception('Произошла ошибка!');
