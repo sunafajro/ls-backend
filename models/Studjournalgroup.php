@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use app\traits\StudentMergeTrait;
 use Yii;
 
 /**
@@ -18,6 +19,8 @@ use Yii;
  */
 class Studjournalgroup extends \yii\db\ActiveRecord
 {
+    use StudentMergeTrait;
+    
     const STATUS_PRESENT = 1;
     const STATUS_ABSENT  = 2;
     /**
@@ -57,8 +60,13 @@ class Studjournalgroup extends \yii\db\ActiveRecord
             'user' => Yii::t('app', 'User'),
         ];
     }
+
     /**
-     *  метод подменяет в строках идентификатор одного студента на идентификатор другого
+     * @deprecated
+     * метод подменяет в строках идентификатор одного студента на идентификатор другого
+     * @param integer @id1
+     * @param integer @id2
+     * @return boolean
      */
     public static function changeStudentId($id1, $id2)
     {

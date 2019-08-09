@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use app\traits\StudentMergeTrait;
 use Yii;
 
 use yii\data\ActiveDataProvider;
@@ -22,6 +23,8 @@ use yii\data\ActiveDataProvider;
 
 class StudentGrade extends \yii\db\ActiveRecord
 {
+    use StudentMergeTrait;
+    
     const EXAM_YLE_STARTERS = 'yleStarters';
     const EXAM_YLE_MOVERS   = 'yleMovers';
     const EXAM_YLE_FLYERS   = 'yleFlyers';

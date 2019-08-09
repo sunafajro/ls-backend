@@ -327,6 +327,16 @@ class StudnameController extends Controller
                 case 2: $tab = 2; $vis = 0; break;
                 case 3: $tab = 3; break;
                 case 4: $tab = 4; break;
+                default: {
+                    // для менеджеров и руководителей по умолчанию раздел счетов
+                    if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4) {
+                        $tab = 3;
+                    } else {
+                        // всем остальным раздел активных групп
+                        $tab = 1;
+                    }
+                    $vis = 1;
+                }
             }
         } else {
             // для менеджеров и руководителей по умолчанию раздел счетов
@@ -717,23 +727,38 @@ class StudnameController extends Controller
             if((int)Yii::$app->request->post('StudentMergeForm')['id2'] > 0) {
                 $id2 = (int)Yii::$app->request->post('StudentMergeForm')['id2'];
                 if($id != $id2) {
-                    $log = Student::mergeStudentAccounts($id, $id2);
-                    $account2 = $this->findModel($id2);
-
-                    $student->invoice = $student->getStudentTotalInvoicesSum();
-                    $student->money = $student->getStudentTotalPaymentsSum();
-                    $student->debt = $student->money - $student->invoice;
-                    $student->description .= $account2->description;
-                    $student->save();
-                    
-                    $account2->invoice = 0;
-                    $account2->money = 0;
-                    $account2->debt = 0;
-                    $account2->visible = 0;
-                    $account2->description = 'Данные перенесены в уч. запись №' . $id;
-                    $account2->save();
-                    
-                    Yii::$app->session->setFlash('success', 'Процесс переноса данных прошел успешно!');
+                    $transaction = \Yii::$app->db->beginTransaction();
+                        try {
+                            // пернос данных таблиц от одного пользоватя к другому
+                            $log = Student::mergeStudentAccounts($id, $id2);
+                            $account2 = $this->findModel($id2);
+                            // пересчет баланса
+                            $student->invoice = $student->getStudentTotalInvoicesSum();
+                            $student->money = $student->getStudentTotalPaymentsSum();
+                            $student->debt = $student->money - $student->invoice;
+                            // объединение описания
+                            $student->description .= $account2->description;
+                            if (!$student->save()) {
+                                throw new \Exception('Произошла ошибка!');
+                            }
+                            
+                            // очистка дубликата пользователя
+                            $account2->invoice = 0;
+                            $account2->money = 0;
+                            $account2->debt = 0;
+                            $account2->visible = 0;
+                            $model->active = 0;
+                            $account2->description = 'Данные перенесены в уч. запись №' . $id;
+                            if (!$account2->save()) {
+                                throw new \Exception('Произошла ошибка!');
+                            }
+                            
+                            $transaction->commit();
+                            Yii::$app->session->setFlash('success', 'Процесс переноса данных прошел успешно!');
+                        } catch (\Exception $e) {
+                            $transaction->rollBack();
+                            Yii::$app->session->setFlash('error', 'Не удалось перенести данные студента!');
+                        }
                 } else {
                     Yii::$app->session->setFlash('error', 'Идентификаторы студентов не могут быть одинаковыми!');
                 }

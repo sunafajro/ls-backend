@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use app\traits\StudentMergeTrait;
 use Yii;
 
 /**
@@ -20,6 +21,8 @@ use Yii;
  */
 class Studphone extends \yii\db\ActiveRecord
 {
+    use StudentMergeTrait;
+    
     /**
      * @inheritdoc
      */
@@ -59,18 +62,6 @@ class Studphone extends \yii\db\ActiveRecord
             'delete_user' => Yii::t('app', 'Delete User'),
         ];
     }
-    /**
-     *  метод подменяет в строках идентификатор одного студента на идентификатор другого
-     */
-    public static function changeStudentId($id1, $id2)
-    {
-        $sql = (new \yii\db\Query())
-        ->createCommand()
-        ->update(self::tableName(), ['calc_studname' => $id1], ['calc_studname' => $id2])
-        ->execute();
-
-        return ($sql == 0) ? false : true;
-    }
     
     /**
      *  метод отдает список телефонов студента по его id
@@ -84,5 +75,22 @@ class Studphone extends \yii\db\ActiveRecord
         ->all();
         
         return ($phones === NULL) ? [] : $phones;
+    }
+
+    /**
+     * @deprecated
+     * метод подменяет в строках идентификатор одного студента на идентификатор другого
+     * @param integer @id1
+     * @param integer @id2
+     * @return boolean
+     */
+    public static function changeStudentId($id1, $id2)
+    {
+        $sql = (new \yii\db\Query())
+        ->createCommand()
+        ->update(self::tableName(), ['calc_studname' => $id1], ['calc_studname' => $id2])
+        ->execute();
+
+        return ($sql == 0) ? false : true;
     }
 }

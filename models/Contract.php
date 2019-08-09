@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use app\traits\StudentMergeTrait;
 use Yii;
 
 /**
@@ -15,6 +16,8 @@ use Yii;
  */
 class Contract extends \yii\db\ActiveRecord
 {
+    use StudentMergeTrait;
+
     /**
      * @inheritdoc
      */
@@ -66,5 +69,22 @@ class Contract extends \yii\db\ActiveRecord
         ->orderBy(['date' => SORT_DESC])
         ->all();
         return $contracts;
+    }
+
+    /**
+     * @deprecated
+     * метод подменяет в строках идентификатор одного студента на идентификатор другого
+     * @param integer $id1
+     * @param integer $id2
+     * @return boolean
+     */
+    public static function changeStudentId($id1, $id2)
+    {
+        $sql = (new \yii\db\Query())
+        ->createCommand()
+        ->update(self::tableName(), ['calc_studname' => $id1], ['calc_studname' => $id2])
+        ->execute();
+
+        return ($sql == 0) ? false : true;
     }
 }

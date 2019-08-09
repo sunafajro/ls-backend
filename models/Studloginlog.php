@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use app\traits\StudentMergeTrait;
 use Yii;
 
 /**
@@ -13,6 +14,8 @@ use Yii;
  */
 class Studloginlog extends \yii\db\ActiveRecord
 {
+    use StudentMergeTrait;
+
     /**
      * @inheritdoc
      */
@@ -44,8 +47,13 @@ class Studloginlog extends \yii\db\ActiveRecord
             'calc_studname' => Yii::t('app', 'Calc Studname'),
         ];
     }
+    
     /**
-     *  метод подменяет в строках идентификатор одного студента на идентификатор другого
+     * @deprecated
+     * метод подменяет в строках идентификатор одного студента на идентификатор другого
+     * @param integer @id1
+     * @param integer @id2
+     * @return boolean
      */
     public static function changeStudentId($id1, $id2)
     {
