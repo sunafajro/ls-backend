@@ -2,8 +2,10 @@
 
 namespace app\models;
 
-use Yii;
 use app\models\Sale;
+use app\traits\StudentMergeTrait;
+use Yii;
+
 /**
  * This is the model class for table "calc_salestud".
  *
@@ -20,6 +22,8 @@ use app\models\Sale;
  */
 class Salestud extends \yii\db\ActiveRecord
 {
+    use StudentMergeTrait;
+    
     /**
      * @inheritdoc
      */
@@ -314,8 +318,8 @@ class Salestud extends \yii\db\ActiveRecord
     }
 
     /**
+     * @deprecated
      * метод подменяет в строках идентификатор одного студента на идентификатор другого
-     * вызывается из StudnameContoller.php actionMerge
      * @param integer @id1
      * @param integer @id2
      * @return boolean

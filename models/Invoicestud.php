@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use app\traits\StudentMergeTrait;
 use Yii;
 
 /**
@@ -32,6 +33,8 @@ use Yii;
  */
 class Invoicestud extends \yii\db\ActiveRecord
 {
+    use StudentMergeTrait;
+
     // обычный счет
     const TYPE_NORMAL = 0;
     // не засчитывается в сумму общего отчета и отчета по счетам
@@ -91,18 +94,6 @@ class Invoicestud extends \yii\db\ActiveRecord
             'data_remain' => 'Data Remain',
         ];
     }
-    /**
-     *  метод подменяет в строках идентификатор одного студента на идентификатор другого
-     */
-    public static function changeStudentId($id1, $id2)
-    {
-        $sql = (new \yii\db\Query())
-        ->createCommand()
-        ->update(self::tableName(), ['calc_studname' => $id1], ['calc_studname' => $id2])
-        ->execute();
-
-        return ($sql == 0) ? false : true;
-    }
 
     /**
      *  метод возвращает массив с счетами студента по его id
@@ -155,5 +146,22 @@ class Invoicestud extends \yii\db\ActiveRecord
         ->all();
 
         return $invoices;
+    }
+
+    /**
+     * @deprecated
+     * метод подменяет в строках идентификатор одного студента на идентификатор другого
+     * @param integer $id1
+     * @param integer $id2
+     * @return boolean
+     */
+    public static function changeStudentId($id1, $id2)
+    {
+        $sql = (new \yii\db\Query())
+        ->createCommand()
+        ->update(self::tableName(), ['calc_studname' => $id1], ['calc_studname' => $id2])
+        ->execute();
+
+        return ($sql == 0) ? false : true;
     }
 }

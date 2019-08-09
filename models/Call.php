@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use app\traits\StudentMergeTrait;
 use Yii;
 
 /**
@@ -43,6 +44,8 @@ use Yii;
  */
 class Call extends \yii\db\ActiveRecord
 {
+    use StudentMergeTrait;
+
     /**
      * @inheritdoc
      */
@@ -105,8 +108,13 @@ class Call extends \yii\db\ActiveRecord
             'data_visible' => 'Data Visible',
         ];
     }
+    
     /**
-     *  метод подменяет в строках идентификатор одного студента на идентификатор другого
+     * @deprecated
+     * метод подменяет в строках идентификатор одного студента на идентификатор другого
+     * @param integer $id1
+     * @param integer $id2
+     * @return boolean
      */
     public static function changeStudentId($id1, $id2)
     {

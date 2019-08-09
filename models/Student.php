@@ -5,11 +5,13 @@ namespace app\models;
 use Yii;
 use app\models\Call;
 use app\models\ClientAccess;
+use app\models\Contract;
 use app\models\Invoicestud;
 use app\models\Message;
 use app\models\Moneystud;
 use app\models\Sale;
 use app\models\Salestud;
+use app\models\StudentGrade;
 use app\models\Studgroup;
 use app\models\Studjournalgroup;
 use app\models\Studjournalgrouphistory;
@@ -18,6 +20,7 @@ use app\models\Studloginlog;
 use app\models\Smslog;
 use app\models\Studnamehistory;
 use app\models\User;
+use app\traits\StudentMergeTrait;
 use yii\helpers\ArrayHelper;
 
 /**
@@ -46,6 +49,9 @@ use yii\helpers\ArrayHelper;
  */
 class Student extends \yii\db\ActiveRecord
 {
+
+    use StudentMergeTrait;
+
     /**
      * @inheritdoc
      */
@@ -64,7 +70,7 @@ class Student extends \yii\db\ActiveRecord
             [['name', 'fname', 'lname', 'mname', 'email', 'phone', 'address', 'description'], 'string'],
             [['visible', 'history', 'calc_sex', 'calc_cumulativediscount', 'active', 'calc_way'], 'integer'],
             [['debt', 'debt2', 'invoice', 'money'], 'number'],
-            [['birthdate'], 'date', 'format'=>'yyyy-mm-dd'],
+            //[['birthdate'], 'date', 'format'=>'yyyy-mm-dd'],
         ];
     }
 
@@ -311,25 +317,26 @@ class Student extends \yii\db\ActiveRecord
      *  метод переносит данные из профиля студента с id2 в профиль студента с id1
      */
 
-    public static function mergeStudentAccounts($id1, $id2)
+    public static function mergeStudentAccounts(int $id1, int $id2) : array
     {
         $result = [];
-        if(Yii::$app->session->get('user.ustatus') == 3) {        
-            /* main tables */
-            $result['update_calls'] = Call::changeStudentId($id1, $id2);
-            $result['update_invoices'] = Invoicestud::changeStudentId($id1, $id2);
-            $result['update_payments'] = Moneystud::changeStudentId($id1, $id2);
-            $result['update_sales'] = Salestud::changeStudentId($id1, $id2);
-            $result['update_groups'] = Studgroup::changeStudentId($id1, $id2);
-            $result['update_journals'] = Studjournalgroup::changeStudentId($id1, $id2);
-            $result['update_journals_history'] = Studjournalgrouphistory::changeStudentId($id1, $id2);
-            $result['update_messages'] = Message::changeStudentId($id1, $id2);
-            /* optional tables */
-            $result['update_studphones'] = Studphone::changeStudentId($id1, $id2);
-            $result['update_logins_log'] = Studloginlog::changeStudentId($id1, $id2);
-            $result['update_clientaccess'] = ClientAccess::mergeClientAccounts($id1, $id2);
-            $result['update_sms_log'] = Smslog::changeStudentId($id1, $id2);
-            $result['update_studname_history'] = Studnamehistory::changeStudentId($id1, $id2);
+        if ((int)Yii::$app->session->get('user.ustatus') === 3) {
+            $result['update_calls']            = Call::mergeStudents($id1, $id2);
+            $result['update_contracts']        = Contract::mergeStudents($id1, $id2);
+            $result['update_invoices']         = Invoicestud::mergeStudents($id1, $id2);
+            $result['update_messages']         = Message::mergeStudents($id1, $id2, 'user', ['calc_messwhomtype' => 100]);
+            $result['update_payments']         = Moneystud::mergeStudents($id1, $id2);
+            $result['update_sales']            = Salestud::mergeStudents($id1, $id2);
+            $result['update_grades']           = StudentGrade::mergeStudents($id1, $id2);
+            $result['update_groups']           = Studgroup::mergeStudents($id1, $id2);
+            $result['update_journals']         = Studjournalgroup::mergeStudents($id1, $id2);
+            $result['update_journals_history'] = Studjournalgrouphistory::mergeStudents($id1, $id2);
+            $result['update_studphones']       = Studphone::mergeStudents($id1, $id2);
+            $result['update_logins_log']       = Studloginlog::mergeStudents($id1, $id2);
+            $result['update_clientaccess']     = ClientAccess::mergeClientAccounts($id1, $id2);
+            $result['update_sms_log']          = Smslog::mergeStudents($id1, $id2);
+            $result['update_studname_history'] = Studnamehistory::mergeStudents($id1, $id2);
+            $result['update_offices']          = self::mergeStudents($id1, $id2, 'student_id', [], 'student_office');
         }
         return $result;
     }    

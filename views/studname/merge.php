@@ -1,21 +1,32 @@
 <?php
-    use yii\helpers\Html;
-    use yii\widgets\ActiveForm;
-    use yii\widgets\Breadcrumbs;
-    use yii\jui\AutoComplete;
-    use yii\helpers\Url;
-    use yii\web\JsExpression;
-    $this->title = 'Система учета :: '.Yii::t('app','Merge account');
-    $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Students'), 'url' => ['studname/index']];
-    $this->params['breadcrumbs'][] = ['label' => $student->name, 'url' => ['studname/view', 'id'=>$student->id]];
-    $this->params['breadcrumbs'][] = Yii::t('app','Merge account');
+
+/**
+ * @var yii\web\View     $this
+ * @var ActiveForm       $form
+ * @var Student          $student
+ * @var StudentMergeForm $model
+ * @var array            $log
+ * @var string           $userInfoBlock
+ */
+
+use app\models\Student;
+use app\models\StudentMergeForm;
+use app\widgets\Alert;
+use yii\helpers\Html;
+use yii\widgets\ActiveForm;
+use yii\widgets\Breadcrumbs;
+
+$this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Merge account');
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Students'), 'url' => ['studname/index']];
+$this->params['breadcrumbs'][] = ['label' => $student->name, 'url' => ['studname/view', 'id' => $student->id]];
+$this->params['breadcrumbs'][] = Yii::t('app', 'Merge account');
 ?>
 
 <div class="row row-offcanvas row-offcanvas-left student_phone-create">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
-        <div id="main-menu"></div>
-        <?php endif; ?>
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
+            <div id="main-menu"></div>
+        <?php } ?>
 		<?= $userInfoBlock ?>
 		<ul>
 			<li>Укажите студента, данные которого необходимо присвоить текущему студенту и нажмите кнопку Перенос.</li>
@@ -23,35 +34,21 @@
 		</ul>
 	</div>
 	<div id="content" class="col-sm-6">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
-        <?= Breadcrumbs::widget([
-            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
-        ]); ?>
-        <?php endif; ?>
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
+            <?= Breadcrumbs::widget([
+                'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+            ]); ?>
+        <?php } ?>
+
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
 		</p>        
-        <?php if(Yii::$app->session->hasFlash('error')): ?>
-		    <div class="alert alert-danger" role="alert"><?= Yii::$app->session->getFlash('error') ?></div>
-        <?php endif; ?>    
-        <?php if(Yii::$app->session->hasFlash('success')): ?>
-		    <div class='alert alert-success' role='alert'><?= Yii::$app->session->getFlash('success'); ?></div>
-        <?php endif; ?>
         
+        <?= Alert::widget() ?>
+
 		<?php $form = ActiveForm::begin(); ?>
 
-        <?= $form->field($model, 'id2')->widget(
-            AutoComplete::className(), [
-                'clientOptions' => [
-                    'source' =>Url::to(['call/autocomplete']),
-                    'minLength'=>'3',				
-                ],
-                'options'=>[
-                    'class'=>'form-control',
-                    'placeholder' => 'Начните набирать имя...',
-                ]
-            ]);
-        ?>
+        <?= $form->field($model, 'id2')->textInput() ?>
         
 		<div class="form-group">
             <?= Html::submitButton(Yii::t('app','Transfer'), [

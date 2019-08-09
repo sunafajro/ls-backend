@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use app\traits\StudentMergeTrait;
 use Yii;
 
 /**
@@ -29,6 +30,8 @@ use Yii;
  */
 class Moneystud extends \yii\db\ActiveRecord
 {
+    use StudentMergeTrait;
+
     const PAYMENT_TYPE_CASH = 'cash';
     const PAYMENT_TYPE_CARD = 'card';
     const PAYMENT_TYPE_BANK = 'bank';
@@ -285,23 +288,6 @@ class Moneystud extends \yii\db\ActiveRecord
         return $result;
     }
 
-    /**
-     * метод подменяет в строках идентификатор одного студента на идентификатор другого
-     * вызывается из StudnameController.php actionMerge
-     * @param integer $id1
-     * @param integer $id2
-     * @return boolean
-     */
-    public static function changeStudentId($id1, $id2)
-    {
-        $sql = (new \yii\db\Query())
-        ->createCommand()
-        ->update(self::tableName(), ['calc_studname' => $id1], ['calc_studname' => $id2])
-        ->execute();
-
-        return ($sql == 0) ? false : true;
-    }
-
     public function getLastPaymentsByCreator(int $limit = 5, int $userId = NULL) : array
     {
         if (!$userId) {
@@ -327,5 +313,22 @@ class Moneystud extends \yii\db\ActiveRecord
         ->limit($limit)
         ->all();
         return $payments;
+    }
+
+    /**
+     * @deprecated
+     * метод подменяет в строках идентификатор одного студента на идентификатор другого
+     * @param integer $id1
+     * @param integer $id2
+     * @return boolean
+     */
+    public static function changeStudentId($id1, $id2)
+    {
+        $sql = (new \yii\db\Query())
+        ->createCommand()
+        ->update(self::tableName(), ['calc_studname' => $id1], ['calc_studname' => $id2])
+        ->execute();
+
+        return ($sql == 0) ? false : true;
     }
 }

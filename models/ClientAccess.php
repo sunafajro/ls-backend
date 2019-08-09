@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use app\traits\StudentMergeTrait;
 use Yii;
 
 /**
@@ -16,6 +17,8 @@ use Yii;
  */
 class ClientAccess extends \yii\db\ActiveRecord
 {
+    use StudentMergeTrait;
+
     /**
      * @inheritdoc
      */
@@ -54,6 +57,7 @@ class ClientAccess extends \yii\db\ActiveRecord
             'date' => 'Date',
         ];
     }
+    
     /**
      *  метод находит данные по личным кабинетам одинаковых уч. записей и оставляет только одну
      */
@@ -66,14 +70,19 @@ class ClientAccess extends \yii\db\ActiveRecord
             return true;
         }
         elseif($client1 === NULL && $client2 !== NULL) {
-            return self::changeStudentId($id1, $id2);
+            return self::mergeStudents($id1, $id2);
         }
         else {
             return false;
         }
     }
+
     /**
-     *  метод подменяет в строках идентификатор одного студента на идентификатор другого
+     * @deprecated
+     * метод подменяет в строках идентификатор одного студента на идентификатор другого
+     * @param integer $id1
+     * @param integer $id2
+     * @return boolean
      */
     protected static function changeStudentId($id1, $id2)
     {
