@@ -307,10 +307,11 @@ class Moneystud extends \yii\db\ActiveRecord
         ->innerJoin(['o' => Office::tableName()], 'o.id = ms.calc_office')
         ->where([
             'ms.user' => $userId,
-            'ms.visible' => 1
+            'ms.visible' => 1,
+            'ms.data' => date('Y-m-d'),
         ])
         ->orderby(['ms.id' => SORT_DESC])
-        ->limit($limit)
+        //->limit($limit)
         ->all();
         return $payments;
     }
