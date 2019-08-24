@@ -203,13 +203,13 @@ class StudnameController extends Controller
         } else {
             // формируем запрос
             $students = (new \yii\db\Query())
-            ->select('cst.id as stid, cst.name as stname, cst.visible as visible, cst.phone as stphone, cst.description as description, cst.invoice as stinvoice, cst.money as stmoney, cst.debt2 as debt, cst.calc_sex as stsex, cst.active as active')
+            ->select('s.id as stid, s.name as stname, s.visible as visible, s.phone as stphone, s.description as description, s.invoice as stinvoice, s.money as stmoney, s.debt2 as debt, s.calc_sex as stsex, s.active as active')
             ->distinct()
-            ->from('calc_studname cst')
-            ->leftjoin('calc_studgroup sg', 'sg.calc_studname=cst.id')
+            ->from(['s' => 'calc_studname'])
+            ->leftjoin('calc_studgroup sg', 'sg.calc_studname=s.id')
             ->leftjoin('calc_teachergroup tg', 'tg.calc_groupteacher=sg.calc_groupteacher')
-            ->where('cst.visible=:vis and tg.calc_teacher=:tid', [':vis'=> 1, ':tid'=>Yii::$app->session->get('user.uteacher')])
-            ->andFilterWhere(['cst.active'=>$state_id])
+            ->where('s.visible=:vis and tg.calc_teacher=:tid', [':vis'=> 1, ':tid'=>Yii::$app->session->get('user.uteacher')])
+            ->andFilterWhere(['s.active'=>$state_id])
             ->andFilterWhere($tss_condition);
             // делаем клон запроса
             $countQuery = clone $students;
@@ -224,7 +224,7 @@ class StudnameController extends Controller
                 }
             }
             // доделываем запрос и выполняем
-            $students = $students->orderBy(['cst.name'=>SORT_ASC])->limit($limit)->offset($offset)->all();
+            $students = $students->orderBy(['s.name'=>SORT_ASC])->limit($limit)->offset($offset)->all();
         }
 		// задаем переменную которая будет ключами для массива
 		$i = 0;
