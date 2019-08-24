@@ -1,32 +1,25 @@
 <?php
-    use yii\helpers\Html;
-    use yii\widgets\ActiveForm;
-    use yii\widgets\Breadcrumbs;
-    $this->title = 'Система учета :: '.Yii::t('app','Teachers');
-    $this->params['breadcrumbs'][] = Yii::t('app','Teachers');
-    //составляем список языков для селектов
-    foreach ($teacherlangs as $lang) {
-        $templangs[$lang['lid']]=$lang['lname'];
-    }
-    $slangs = array_unique($templangs);
-    unset($templangs);
-    unset($lang);
-    //составляем список офисов для селектов
-    foreach ($teacheroffices as $office) {
-        $tempoffices[$office['oid']]=$office['oname'];
-    }
-    $soffices = array_unique($tempoffices);
-    unset($tempoffices);
-    unset($office);
-    unset($teacheroffices);
-    //составляем список форм трудоустройства для селектов
-    foreach ($teacherjobstates as $jobstate) {
-        $tempjobstates[$jobstate['fid']]=$jobstate['fname'];
-    }
-    $sjobstates = array_unique($tempjobstates);
-    unset($tempjobstates);
-    unset($jobstate);
-    unset($teacherjobstates);
+
+/**
+ * @var yii\web\View $this
+ * @var array        $teacherlangs
+ * @var array        $teacheroffices
+ */
+
+use yii\helpers\Html;
+use yii\helpers\ArrayHelper;
+use yii\widgets\ActiveForm;
+use yii\widgets\Breadcrumbs;
+
+$this->title = 'Система учета :: '.Yii::t('app','Teachers');
+$this->params['breadcrumbs'][] = Yii::t('app','Teachers');
+
+//составляем список языков для селектов
+$slangs = ArrayHelper::map($teacherlangs ?? [], 'lid', 'lname');
+//составляем список офисов для селектов
+$soffices = ArrayHelper::map($teacheroffices ?? [], 'oid', 'oname');
+//составляем список форм трудоустройства для селектов
+$sjobstates = ArrayHelper::map($teacherjobstates ?? [], 'fid', 'fname');
 ?>
 
 <div class="row row-offcanvas row-offcanvas-left schedule-index">
@@ -58,30 +51,22 @@
                 <option value="3" <?= $params['STATE'] == 3 ? 'selected' : '' ?>>В декрете</option>
             </select>
         </div>
-		<div class="form-group">
+        <div class="form-group">
             <select class='form-control input-sm' name='TOID'>";
-			    <option value='all'><?= Yii::t('app', '-all offices-') ?></option>
-			    <?php foreach($soffices as $key => $value): ?>
-			    <option value="<?= $key ?>"<?= $key == $params['TOID'] ? ' selected' : '' ?>><?= mb_substr($value,0,13,'UTF-8') ?></option>
-			    <?php endforeach; ?>
-		    </select>
-		</div>
-		<div class="form-group">
-			<select class="form-control input-sm" name="TLID">
-			    <option value="all"><?= Yii::t('app', '-all languages-') ?></option>
-			    <?php foreach($slangs as $key => $value): ?>
-			    <option value="<?= $key ?>"<?= $key == $params['TLID'] ? ' selected' : '' ?>><?= mb_substr($value,0,13,'UTF-8') ?></option>
-			    <?php endforeach; ?>
-		    </select>
-        </div>
-        <!--<div class="form-group">
-            <select class="form-control input-sm" name="JPID">
-                <option value="all"><?php /* Yii::t('app', '-all places-') */ ?></option>";
-                <?php /* foreach($jobPlace as $key => $value): */ ?>
-                <option value="<?= $key ?>"<?php /* $key == $params['JPID'] ? ' selected' : '' */ ?>><?php /* mb_substr($value,0,13,'UTF-8') */ ?></option>
-                <?php /* endforeach; */ ?>
+                <option value='all'><?= Yii::t('app', '-all offices-') ?></option>
+                <?php foreach ($soffices as $key => $value) { ?>
+                    <option value="<?= $key ?>"<?= $key == $params['TOID'] ? ' selected' : '' ?>><?= mb_substr($value,0,13,'UTF-8') ?></option>
+                <?php } ?>
             </select>
-        </div> -->
+        </div>
+        <div class="form-group">
+            <select class="form-control input-sm" name="TLID">
+                <option value="all"><?= Yii::t('app', '-all languages-') ?></option>
+                <?php foreach($slangs as $key => $value) { ?>
+                    <option value="<?= $key ?>"<?= $key == $params['TLID'] ? ' selected' : '' ?>><?= mb_substr($value,0,13,'UTF-8') ?></option>
+                <?php } ?>
+            </select>
+        </div>
         <?php if(Yii::$app->session->get('user.ustatus') == 3): ?>
 		<div class="form-group">
 			<select class="form-control input-sm" name="TJID">

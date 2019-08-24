@@ -20,6 +20,7 @@ use yii\web\Response;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use yii\data\Pagination;
+use yii\helpers\ArrayHelper;
 /*
  * StudnameController implements the CRUD actions for CalcStudname model.
  */
@@ -203,7 +204,7 @@ class StudnameController extends Controller
         } else {
             // формируем запрос
             $students = (new \yii\db\Query())
-            ->select('s.id as stid, s.name as stname, s.visible as visible, s.phone as stphone, s.description as description, s.invoice as stinvoice, s.money as stmoney, s.debt2 as debt, s.calc_sex as stsex, s.active as active')
+            ->select('s.id as stid, s.name as stname, s.visible as visible, s.birthdate as birthdate, s.phone as phone, s.description as description, s.invoice as stinvoice, s.money as stmoney, s.debt2 as debt, s.calc_sex as stsex, s.active as active')
             ->distinct()
             ->from(['s' => 'calc_studname'])
             ->leftjoin('calc_studgroup sg', 'sg.calc_studname=s.id')
@@ -529,29 +530,18 @@ class StudnameController extends Controller
 
         $userInfoBlock = User::getUserInfoBlock();
         $model = new Student();
-        
+
         $sexes = (new \yii\db\Query())
         ->select('id as id, name as name')
         ->from('calc_sex')
         ->all();
-        
-        foreach($sexes as $s){
-            $sex[$s['id']] = $s['name'];
-        }
-        unset($s);
-        unset($sexes);
+        $sex = ArrayHelper::map($sexes ?? [], 'id', 'name');
 
         $ways = (new \yii\db\Query())
         ->select('id as id, name as name')
         ->from('calc_way')
         ->all();
-
-       foreach($ways as $w){
-            $way[$w['id']] = $w['name'];
-        }
-        unset($w);
-        unset($ways);
-
+        $way = ArrayHelper::map($ways ?? [], 'id', 'name');
 
         if ($model->load(Yii::$app->request->post())) {
             $model->fname = trim($model->fname);
@@ -594,23 +584,13 @@ class StudnameController extends Controller
         ->select('id as id, name as name')
         ->from('calc_sex')
         ->all();
-
-        foreach($sexes as $s){
-            $sex[$s['id']] = $s['name'];
-        }
-        unset($s);
-        unset($sexes);
+        $sex = ArrayHelper::map($sexes ?? [], 'id', 'name');
 
         $ways = (new \yii\db\Query())
         ->select('id as id, name as name')
         ->from('calc_way')
         ->all();
-
-       foreach($ways as $w){
-            $way[$w['id']] = $w['name'];
-        }
-        unset($w);
-        unset($ways);
+        $way = ArrayHelper::map($ways ?? [], 'id', 'name');
 
         if ($model->load(Yii::$app->request->post())) {
             if(isset($model->fname)  && $model->fname!='') {

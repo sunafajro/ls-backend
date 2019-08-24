@@ -1,13 +1,19 @@
 <?php
-	use yii\helpers\Html;
-	use yii\widgets\Breadcrumbs;
-	$this->title = Yii::t('app', 'Add teacher');
-	$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Teachers'), 'url' => ['index']];
-	$this->params['breadcrumbs'][] = $this->title;
-	foreach ($statusjob as $stjob) {
-		$sjob[$stjob['id']] = $stjob['name'];
-	}
-	$statusjobs = array_unique($sjob);
+
+/**
+ * @var yii\web\View $this
+ * @var array        $statusjob
+ */
+
+use yii\helpers\Html;
+use yii\helpers\ArrayHelper;
+use yii\widgets\Breadcrumbs;
+
+$this->title = Yii::t('app', 'Add teacher');
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Teachers'), 'url' => ['index']];
+$this->params['breadcrumbs'][] = $this->title;
+
+$statusjobs = ArrayHelper::map($statusjob, 'id', 'name');
 ?>
 
 <div class="row row-offcanvas row-offcanvas-left teacher-create">

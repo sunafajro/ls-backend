@@ -1,20 +1,28 @@
 <?php
-    use yii\helpers\Html;
-    use yii\widgets\Breadcrumbs;
-    $this->title = 'Система учета :: ' . Yii::t('app','Teacher languages');
-    $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Teachers'), 'url' => ['teacher/index']];
-    $this->params['breadcrumbs'][] = ['label' => $teacher['tname'], 'url' => ['teacher/view','id'=>$teacher['tid']]];
-    $this->params['breadcrumbs'][] = Yii::t('app','Teacher languages');
-    //составляем список преподавателей для селекта
-    foreach ($slangs as $slang) {
-        $langs[$slang['lid']] = $slang['lname'];
+
+/**
+ * @var yii\web\View $this
+ * @var array        $langs
+ * @var array        $tlangs
+ */
+
+use yii\helpers\Html;
+use yii\helpers\ArrayHelper;
+use yii\widgets\Breadcrumbs;
+
+$this->title = 'Система учета :: ' . Yii::t('app','Teacher languages');
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Teachers'), 'url' => ['teacher/index']];
+$this->params['breadcrumbs'][] = ['label' => $teacher['tname'], 'url' => ['teacher/view','id'=>$teacher['tid']]];
+$this->params['breadcrumbs'][] = Yii::t('app','Teacher languages');
+
+//составляем список преподавателей для селекта
+$langs = ArrayHelper::map($slangs ?? [], 'lid', 'lname');
+foreach ($tlangs as $tlang) {
+    while (array_search($tlang['lname'], $langs)) {
+       $key = array_search($tlang['lname'], $langs);
+       unset($langs[$key]);
     }
-    foreach ($tlangs as $tlang) {
-        while (array_search($tlang['lname'], $langs)) {
-            $key = array_search($tlang['lname'], $langs);
-            unset($langs[$key]);
-        }
-    }
+}
 ?>
 
 <div class="row row-offcanvas row-offcanvas-left langteacher-create">
