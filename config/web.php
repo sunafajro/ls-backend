@@ -11,11 +11,11 @@ $config = [
     'components' => [
         'request' => [
             'enableCsrfValidation' => false,
-            'cookieValidationKey' => 'secret random string goes here',
+            'cookieValidationKey' => '',
             'parsers' => [
                 'application/json' => 'yii\web\JsonParser',
-            ]
-	],
+            ],
+	    ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
         ],
@@ -33,30 +33,35 @@ $config = [
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,
             'targets' => [
-		    'file' => [
-                	'class' => 'yii\log\FileTarget',
-                	'levels' => ['error', 'warning','profile'],
-		    ],
+                'file' => [
+                        'class' => 'yii\log\FileTarget',
+                        'levels' => ['error', 'warning','profile'],
+                    ],
                 ],
             ],
         'db' => require(__DIR__ . '/db.php'),
     	'i18n' => [
-        	    'translations' => [
-            		'app*' => [
-            		    'class' => 'yii\i18n\PhpMessageSource',
-                    	    'fileMap' => ['app' => 'app.php','app/error'=>'error.php'],
-            		],
-        	    ],
+            'translations' => [
+                'app*' => [
+                    'class' => 'yii\i18n\PhpMessageSource',
+                    'fileMap' => [
+                        'app' => 'app.php',
+                        'app/error'=>'error.php'
+                    ],
+                ],
+            ],
         ],
         'urlManager' => [
             'class' => 'yii\web\UrlManager',
             'showScriptName' => false,
             'enablePrettyUrl' => true,
             'rules' => [
-                '/schedule' => '/schedule/index',
-                '/schedule/<action>' => '/schedule/index',
-                '/api/schedule/<tag>' => '/schedule/api-<tag>',
-                '/api/user/<tag>' => '/user/api-<tag>',
+                '/schedule'                => '/schedule/index',
+                '/schedule/<action>'       => '/schedule/index',
+                '/api/schedule/<tag>'      => '/schedule/api-<tag>',
+                '/api/user/<tag>'          => '/user/api-<tag>',
+                '/api/sale/<tag>/<id:\d+>' => '/sale/api-<tag>',
+                '/api/sale/<tag>'          => '/sale/api-<tag>',
             ]
         ],
     ],
@@ -65,10 +70,13 @@ $config = [
 ];
 
 if (YII_ENV_DEV) {
-    // configuration adjustments for 'dev' environment
     $config['bootstrap'][] = 'debug';
     $config['modules']['debug']['class'] = 'yii\debug\Module';
-    $config['modules']['debug']['allowedIPs'] = ['127.0.0.1','::1', '*'];
+    $config['modules']['debug']['allowedIPs'] = ['127.0.0.1','::1'];
+}
+
+if (file_exists(__DIR__ . '/local/web.php')) {
+    $config = array_merge($config, require(__DIR__ . '/local/web.php'));
 }
 
 return $config;
