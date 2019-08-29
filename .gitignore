@@ -28,6 +28,7 @@ tests/_support/_generated
 
 composer.phar
 
+/config/local
 /data/db
 /data/files
 /runtime
