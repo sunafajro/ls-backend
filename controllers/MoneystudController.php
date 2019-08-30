@@ -191,7 +191,7 @@ class MoneystudController extends Controller
     public function actionEnable($id)
     {
         // оплаты могут восстановить только менеджеры или руководители
-        if ((int)Yii::$app->session->get('user.ustatus') !==3 && Yii::$app->session->get('user.ustatus') !== 4) {
+        if ((int)Yii::$app->session->get('user.ustatus') !==3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
         $model = $this->findModel($id);
