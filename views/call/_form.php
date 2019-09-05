@@ -66,7 +66,7 @@ $sex = [1=>Yii::t('app','Male'), 2=>Yii::t('app','Female')];
         'searchField' => [
             'label' => Yii::t('app','Link to Client'),
             'url' => Url::to(['call/autocomplete']),
-            'minLength' => 3,
+            'minLength' => 1,
             'error' => NULL,
         ],
     ]) ?>
