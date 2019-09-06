@@ -5,17 +5,12 @@ Yii::setAlias('@tests', dirname(__DIR__) . '/tests');
 $params = require(__DIR__ . '/params.php');
 $db = require(__DIR__ . '/db.php');
 
-return [
+$config = [
     'id' => 'basic-console',
     'basePath' => dirname(__DIR__),
-    'bootstrap' => ['log', 'gii', 'dbtool'],
+    'bootstrap' => ['log'],
     'controllerNamespace' => 'app\commands',
-    'modules' => [
-        'gii' => 'yii\gii\Module',
-        'dbtool' => [
-            'class' => 'app\modules\dbtool\Module'
-        ]
-    ],
+    'modules' => [],
     'components' => [
         'cache' => [
             'class' => 'yii\caching\FileCache',
@@ -35,3 +30,9 @@ return [
     ],
     'params' => $params,
 ];
+
+if (file_exists(__DIR__ . '/local/console.php')) {
+    $config = array_merge($config, require(__DIR__ . '/local/console.php'));
+}
+
+return $config;
