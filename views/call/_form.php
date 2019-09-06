@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * @var yii\web\View $this
+ * @var array $age
+ * @var array $eduform
+ * @var array $language
+ * @var array $level
+ * @var array $office
+ * @var array $servicetype
+ * @var array $way
+ */
+
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\ActiveForm;
@@ -9,7 +20,7 @@ $sex = [1=>Yii::t('app','Male'), 2=>Yii::t('app','Female')];
 
 ?>
 
-<div class="calc-call-form">
+<div class="calc-call-form" style="padding-bottom: 140px">
 
     <?php $form = ActiveForm::begin(); ?>
 
@@ -55,7 +66,7 @@ $sex = [1=>Yii::t('app','Male'), 2=>Yii::t('app','Female')];
         'searchField' => [
             'label' => Yii::t('app','Link to Client'),
             'url' => Url::to(['call/autocomplete']),
-            'minLength' => 3,
+            'minLength' => 1,
             'error' => NULL,
         ],
     ]) ?>

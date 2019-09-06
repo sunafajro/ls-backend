@@ -23,7 +23,7 @@ use app\widgets\autocomplete\AutoCompleteWidget;
             'searchField' => [
                 'label' => Yii::t('app', 'Student'),
                 'url' => Url::to(['moneystud/autocomplete']),
-                'minLength' => 3,
+                'minLength' => 1,
                 'error' => $model->getFirstError('calc_studname'),
             ],
         ]);

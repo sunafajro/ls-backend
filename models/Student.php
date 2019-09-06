@@ -3,24 +3,9 @@
 namespace app\models;
 
 use Yii;
-use app\models\Call;
-use app\models\ClientAccess;
-use app\models\Contract;
-use app\models\Invoicestud;
-use app\models\Message;
-use app\models\Moneystud;
-use app\models\Sale;
-use app\models\Salestud;
-use app\models\StudentGrade;
-use app\models\Studgroup;
-use app\models\Studjournalgroup;
-use app\models\Studjournalgrouphistory;
-use app\models\Studphone;
-use app\models\Studloginlog;
-use app\models\Smslog;
-use app\models\Studnamehistory;
-use app\models\User;
 use app\traits\StudentMergeTrait;
+use yii\db\ActiveRecord;
+use yii\db\Query;
 use yii\helpers\ArrayHelper;
 
 /**
@@ -47,7 +32,7 @@ use yii\helpers\ArrayHelper;
  * @property integer $calc_way
  * @property string $description
  */
-class Student extends \yii\db\ActiveRecord
+class Student extends ActiveRecord
 {
 
     use StudentMergeTrait;
@@ -108,7 +93,7 @@ class Student extends \yii\db\ActiveRecord
 
     public function getStudentTotalInvoicesSum()
     {
-        $invoices_sum = (new \yii\db\Query())
+        $invoices_sum = (new Query())
         ->select(['money' => 'sum(value)'])
         ->from(Invoicestud::tableName())
         ->where([
@@ -126,7 +111,7 @@ class Student extends \yii\db\ActiveRecord
 
     public function getStudentTotalPaymentsSum()
     {
-        $payments_sum = (new \yii\db\Query())
+        $payments_sum = (new Query())
         ->select('sum(value) as money')
         ->from(Moneystud::tableName())
         ->where([
@@ -231,7 +216,7 @@ class Student extends \yii\db\ActiveRecord
 
     public function getStudentOffices()
     {
-        return (new \yii\db\Query())
+        return (new Query())
         ->select(['id' => 'o.id', 'name' => 'o.name', 'isMain' => 'so.is_main'])
         ->from(['so' => 'student_office'])
         ->innerJoin('calc_office o', 'o.id=so.office_id')
@@ -242,7 +227,7 @@ class Student extends \yii\db\ActiveRecord
 
     public function getStudentSales() : array
     {
-        $sales = (new \yii\db\Query())
+        $sales = (new Query())
         ->select([
             'id' => 'ss.id',
             'name' => 's.name',
@@ -274,12 +259,12 @@ class Student extends \yii\db\ActiveRecord
             $columnName = 's.value';
             $operator = '=';
         }
-        $usedSales = (new \yii\db\Query())
+        $usedSales = (new Query())
         ->select(['id' => 'calc_sale'])
         ->from(Salestud::tableName())
         ->where(['calc_studname' => $this->id])
         ->all();
-        $salesRaw = (new \yii\db\Query())
+        $salesRaw = (new Query())
         ->select(['id' => 's.id', 'name' => 's.name', 'type' => 's.procent', 'value' => 's.value'])
         ->from(['s' => Sale::tableName()])
         ->where(['s.visible' => 1])
@@ -302,14 +287,19 @@ class Student extends \yii\db\ActiveRecord
 
     public static function getStudentsAutocomplete(string $term = NULL) : array
     {
-        return (new \yii\db\Query())
+        $whereClause = ['like', 'name', $term];
+        // проверим возможно в запросе id, а не ФИО
+        if (!preg_match( '/[^0-9]/',$term)) {
+            $whereClause = ['id' => (int)$term];
+        }
+        return (new Query())
         ->select(['label' => 'CONCAT("#", id, " ", name, " ", COALESCE(DATE_FORMAT(birthdate, "%d.%m.%y"), ""), " ", "(", phone, ")")', 'value' => 'id'])
 		->from(Student::tableName())
         ->where([
             'visible' => 1
         ])
-        ->andFilterWhere(['like', 'name', $term])
-        ->limit(8)
+        ->andFilterWhere($whereClause)
+        ->limit(15)
         ->all();
     }
 
