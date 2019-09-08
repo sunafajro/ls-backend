@@ -22,21 +22,6 @@ $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Group').' №' . $pa
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Lesson').' №' . $model->id];
 $this->params['breadcrumbs'][] = Yii::t('app', 'Update lesson');
 
-$script = <<< JS
-function updateEndTime(time) {
-    if (typeof time === 'string' && time.length === 5) {
-        var startTime = time.split(':');
-        var endHour = parseInt(startTime[0], 10) + 1;
-        endHour = endHour < 10 ? ('0' + endHour) : endHour;
-        $("#js--lesson-end-time").val(endHour + ':' + startTime[1]);        
-    }
-}
-$("#js--lesson-start-time").on('change', function (e) {
-    updateEndTime(e.target.value);
-});
-JS;
-$this->registerJs($script, yii\web\View::POS_READY);
-
 $groupParams = [];
 foreach($groupInfo as $key => $value) {
     $groupParams[] = '<span class="small"><b>' . $key . ':</b></span> <span class="text-muted small">' . $value . '</span>';

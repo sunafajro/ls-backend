@@ -19,15 +19,11 @@ function updateEndTime(time) {
         var startTime = time.split(':');
         var endHour = parseInt(startTime[0], 10) + 1;
         endHour = endHour < 10 ? ('0' + endHour) : endHour;
-        $("#js--lesson-end-time").val(endHour + ':' + startTime[1]);        
+        $("#journalgroup-time_end").val(endHour + ':' + startTime[1]);        
     }
 }
-$(".js--student-status").on('change', function() {
-    var _this = $(this);
-    _this.closest('.row').find('.js--comment-for-student').prop('required', _this.val() === '1');
-});
-$("#js--lesson-start-time").on('change', function (e) {
-    updateEndTime(e.target.value);
+$("#journalgroup-time_begin").on('change', function (e) {
+    //updateEndTime(e.target.value);
 });
 JS;
 $this->registerJs($script, yii\web\View::POS_READY);
@@ -65,7 +61,6 @@ $endTime->modify('+1 hour');
     <div class="row">
         <div class="col-sm-6">
             <?= $form->field($model, 'time_begin')->widget(TimePicker::class, [
-                'id' => 'js--lesson-start-time',
                 'pluginOptions' => [
                     'showMeridian' => false,
                     'defaultTime' => $model->isNewRecord ? $startTime->format('H:i') : $model->time_begin,
@@ -74,7 +69,6 @@ $endTime->modify('+1 hour');
         </div>
         <div class="col-sm-6">
             <?= $form->field($model, 'time_end')->widget(TimePicker::class, [
-                'id' => 'js--lesson-end-time',
                 'pluginOptions' => [
                     'showMeridian' => false,
                     'defaultTime' => $model->isNewRecord ? $endTime->format('H:i') : $model->time_end,
