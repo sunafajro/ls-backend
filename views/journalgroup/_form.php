@@ -68,7 +68,7 @@ $endTime->modify('+1 hour');
                 'id' => 'js--lesson-start-time',
                 'pluginOptions' => [
                     'showMeridian' => false,
-                    'defaultTime' => $model->isNewRecord ? $endTime->format('H:i') : $model->time_begin,
+                    'defaultTime' => $model->isNewRecord ? $startTime->format('H:i') : $model->time_begin,
                 ],
             ]) ?>
         </div>
