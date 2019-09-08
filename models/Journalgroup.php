@@ -115,7 +115,7 @@ class Journalgroup extends \yii\db\ActiveRecord
             'description_audit' => Yii::t('app', 'Description Audit'),
             'calc_teacher' => Yii::t('app', 'Teacher'),
             'time_begin' => Yii::t('app', 'Start time'),
-            'end_begin' => Yii::t('app', 'end time'),
+            'time_end' => Yii::t('app', 'End time'),
         ];
     }
 
