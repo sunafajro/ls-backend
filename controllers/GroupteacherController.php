@@ -92,7 +92,7 @@ class GroupteacherController extends Controller
 		
         // выбираем занятия
         $lessons = (new \yii\db\Query())
-        ->select('jg.id as jid, jg.data as jdate, jg.description as jdesc, jg.homework as jhwork, jg.visible as jvisible, u.name as uname, data_visible as visible_date, u2.name as jvuser, jg.data_edit as edit_date, u3.name as jeuser, jg.data_done as done_date, jg.done as jdone, u4.name as jduser, jg.data_view as view_date, jg.view as jview, u5.name as view_user, jg.calc_accrual as accrual, t.name as tname, jg.calc_edutime as edutime')
+        ->select('jg.id as jid, jg.data as jdate, jg.time_begin as time_begin, jg.description as jdesc, jg.homework as jhwork, jg.visible as jvisible, u.name as uname, data_visible as visible_date, u2.name as jvuser, jg.data_edit as edit_date, u3.name as jeuser, jg.data_done as done_date, jg.done as jdone, u4.name as jduser, jg.data_view as view_date, jg.view as jview, u5.name as view_user, jg.calc_accrual as accrual, t.name as tname, jg.calc_edutime as edutime')
         ->from('calc_journalgroup jg')
         ->leftJoin('calc_teacher t', 't.id=jg.calc_teacher')
         ->leftJoin('user u', 'u.id=jg.user')
@@ -154,12 +154,12 @@ class GroupteacherController extends Controller
 
         return $this->render('view', [
             'model' => $this->findModel($id),
-            'groupinfo' => Groupteacher::getGroupInfoById($id),
+            'groupInfo' => Groupteacher::getGroupInfoById($id),
             'lessons' => $lessons,
             'pages' => $pages,
             'page' => $page,
             'state' => $state,
-			'check_teachers' => Groupteacher::getGroupTeacherListSimple($id),
+			'checkTeachers' => Groupteacher::getGroupTeacherListSimple($id),
             'students' => $students,
             'lesattend' => $lesattend,
             'items' => Groupteacher::getMenuItemList($id, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
