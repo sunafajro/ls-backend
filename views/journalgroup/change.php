@@ -9,11 +9,11 @@
  * @var array                  $history
  * @var array                  $items
  * @var array                  $params
- * @var array                  $statuses
  * @var array                  $students
  * @var string                 $userInfoBlock
  */
 
+use app\models\Journalgroup;
 use app\widgets\Alert;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
@@ -44,7 +44,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Edit lesson');
 		<h4>Параметры группы №<?= $params['gid']; ?></h4>
 		<div class="well well-sm">
 		<?php $i = 0; ?>
-        <?php foreach($groupinfo as $key => $value): ?>
+        <?php foreach($groupInfo as $key => $value): ?>
 		    <?php if($i != 0): ?>
 			<br>
             <?php endif; ?>			
@@ -82,17 +82,11 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Edit lesson');
 				    echo "</div>";
 				    echo "<div class='col-sm-6'>";
 						echo "<select class='form-control' id='studjournalgroup-status_".$student['sid']."' name='Studjournalgroup[status_".$student['sid']."]'>";
-							foreach($statuses as $status){
+							foreach(Journalgroup::getAttendanceAllStatuses() as $key => $status){
 								echo "<option";
-								echo ($student['status']==$status['id']) ? " selected" : "";
-								echo " value='" . $status['id'] . "'>";
-								if ((int)$status['id'] === 3) {
-									echo 'не было';
-								} else if((int)$status['id'] === 2) {
-									echo "не было (принес справку)";
-								} else {
-									echo $status['name'];
-								}
+								echo ((int)$student['status'] === $key) ? " selected" : "";
+								echo " value='" . $key . "'>";
+								echo $status;
 								echo "</option>";
 							}
 						echo "</select>";

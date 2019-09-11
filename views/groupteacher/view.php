@@ -1,17 +1,40 @@
 <?php
 
+use app\models\Groupteacher;
+use app\widgets\Alert;
+use yii\data\Pagination;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
-/* @var $this yii\web\View */
-/* @var $model app\models\CalcGroupteacher */
+use yii\widgets\Breadcrumbs;
 
-$this->title = "Система учета :: Группа №" . $model->id;
+/**
+ * @var yii\web\View $this
+ * @var Groupteacher $model
+ * @var Pagination   $pages
+ * @var array        $checkTeachers
+ * @var array        $groupInfo
+ * @var array        $lesattend
+ * @var array        $lessons
+ * @var int          $page
+ * @var int          $state
+ * @var array        $students
+ * @var string       $userInfoBlock
+ */
+
+$this->title = Yii::$app->params['appTitle'] . ' Группа №' . $model->id;
 $this->params['breadcrumbs'][] = Yii::t('app','Group') . ' №' . $model->id;
 $this->params['breadcrumbs'][] = Yii::t('app', 'Journal');
-?>
 
+$groupParams = [];
+foreach($groupInfo as $key => $value) {
+    $groupParams[] = '<span class="small"><b>' . $key . ':</b></span> <span class="text-muted small">' . $value . '</span>';
+}
+?>
 <div class="row row-offcanvas row-offcanvas-left group-index">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
+            <div id="main-menu"></div>
+        <?php } ?>
         <?= $userInfoBlock ?>
         <?php if($model->visible == 1): ?>
             <?php
@@ -19,7 +42,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Journal');
                    (int)Yii::$app->session->get('user.ustatus') === 4 ||
                    (int)Yii::$app->session->get('user.uid') === 296 ||
                    (int)Yii::$app->session->get('user.ustatus') === 10 ||
-                   array_key_exists(Yii::$app->session->get('user.uteacher'), $check_teachers)) : ?>
+                   array_key_exists(Yii::$app->session->get('user.uteacher'), $checkTeachers)) : ?>
                    <?= Html::a('<span class="fa fa-plus" aria-hidden="true"></span> '.Yii::t('app','Add lesson'), ['journalgroup/create','gid' => $model->id], ['class' => 'btn btn-default btn-block']) ?>
             <?php endif; ?>
             <?php foreach($items as $item): ?>
@@ -47,32 +70,20 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Journal');
         </div>
         <?php ActiveForm::end(); ?>
         <h4>Параметры группы №<?= $model->id; ?></h4>
-		<div class="well well-sm">
-		<?php $i = 0; ?>
-        <?php foreach($groupinfo as $key => $value): ?>
-		    <?php if($i != 0): ?>
-			<br>
-            <?php endif; ?>
-            <span class="small"><b><?= $key ?>:</b></span> <span class="text-muted small"><?= $value ?></span>
-			<?php $i++; ?>
-        <?php endforeach; ?>
-	    </div>
+        <div class="well well-sm"><?= join('<br />', $groupParams) ?></div>
     </div>
 	<div class="col-sm-10">
-		<p class="pull-left visible-xs">
-			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
-		</p>
-		<?php if(Yii::$app->session->hasFlash('error')): ?>
-			<div class="alert alert-danger" role="alert">
-				<?= Yii::$app->session->getFlash('error') ?>
-			</div>
-		<?php endif; ?>
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
+            <?= Breadcrumbs::widget([
+                'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+            ]); ?>
+        <?php } ?>
 
-		<?php if(Yii::$app->session->hasFlash('success')): ?>
-			<div class="alert alert-success" role="alert">
-				<?= Yii::$app->session->getFlash('success') ?>
-			</div>
-		<?php endif; ?>
+        <p class="pull-left visible-xs">
+            <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
+        </p>
+
+        <?= Alert::widget() ?>
 
         <?php
         echo "<h4>Журнал группы №" . $model->id . "</h4>";
@@ -114,7 +125,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Journal');
         }
         }
         echo ($lesson['jvisible']!=1) ? " <del>" : "";
-        echo " Занятие #".$lesson['jid']." от ".date('d-m-Y', strtotime($lesson['jdate']))." (".Yii::t('app',date("l",strtotime($lesson['jdate']))).")";
+        echo " Занятие #".$lesson['jid']." от " . date('d.m.Y', strtotime($lesson['jdate'])) . ($lesson['time_begin'] !== '00:00' ? ' ' . $lesson['time_begin'] : '') . " (".Yii::t('app',date("l",strtotime($lesson['jdate']))).")";
         echo ($lesson['visible_date']!='0000-00-00') ? "</del> " : " ";
         echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
         if($lesson['jvisible']==1){
@@ -124,7 +135,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Journal');
                     if((int)Yii::$app->session->get('user.ustatus') === 3 ||
                        (int)Yii::$app->session->get('user.ustatus') === 4 ||
                        (int)Yii::$app->session->get('user.ustatus') === 10 ||
-                       array_key_exists(Yii::$app->session->get('user.uteacher'), $check_teachers)) {
+                       array_key_exists(Yii::$app->session->get('user.uteacher'), $checkTeachers)) {
                         echo Html::a(Yii::t('app','Edit'), ['journalgroup/update', 'id'=>$lesson['jid'], 'gid'=>$model->id]);
                     }
                     // проверить занятие могут только менеджер или руководитель
@@ -145,7 +156,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Journal');
                 if((int)Yii::$app->session->get('user.ustatus') === 3 ||
                    (int)Yii::$app->session->get('user.ustatus') === 4 ||
                    (int)Yii::$app->session->get('user.ustatus') === 10 ||
-                   array_key_exists(Yii::$app->session->get('user.uteacher'), $check_teachers)) {
+                   array_key_exists(Yii::$app->session->get('user.uteacher'), $checkTeachers)) {
                         echo " | " . Html::a("Исключить из журнала",['journalgroup/delete','gid'=>$model->id,'id'=>$lesson['jid']]);
                 }
             }

@@ -34,9 +34,21 @@ use app\models\Studjournalgroup;
  * @property string $data_audit
  * @property string $description_audit
  * @property integer $calc_teacher
+ * @property string $time_begin
+ * @property string $time_end
  */
 class Journalgroup extends \yii\db\ActiveRecord
 {
+    // время проведения занятия
+    const EDUCATION_TIME_WORK = 1;
+    const EDUCATION_TIME_EVENING = 2;
+    const EDUCATION_TIME_HALFWORK = 3;
+
+    // статусы посещения занятия
+    const STUDENT_STATUS_PRESENT = 1;
+    const STUDENT_STATUS_ABSENT_WARNED = 2;
+    const STUDENT_STATUS_ABSENT_UNWARNED = 3;
+
     /**
      * @inheritdoc
      */
@@ -51,10 +63,23 @@ class Journalgroup extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['calc_groupteacher', 'data', 'user', 'visible', 'description', 'homework', 'calc_edutime', 'calc_teacher'], 'required'],
-            [['view', 'user_view', 'calc_groupteacher', 'user', 'visible', 'user_visible', 'done', 'user_done', 'calc_accrual', 'calc_edutime', 'edit', 'user_edit', 'audit', 'user_audit', 'calc_teacher'], 'integer'],
+            [
+                [
+                    'calc_groupteacher', 'data', 'user', 'visible',
+                    'description', 'homework', 'calc_edutime', 'calc_teacher',
+                    'time_begin', 'time_end',
+                ], 'required',
+            ],
+            [
+                [
+                    'view', 'user_view', 'calc_groupteacher', 'user',
+                    'visible', 'user_visible', 'done', 'user_done',
+                    'calc_accrual', 'calc_edutime', 'edit', 'user_edit',
+                    'audit', 'user_audit', 'calc_teacher',
+                ], 'integer',
+            ],
             [['data_view', 'data', 'data_visible', 'data_done', 'data_edit', 'data_audit'], 'safe'],
-            [['description', 'homework', 'description_audit'], 'string'],
+            [['description', 'homework', 'description_audit', 'time_begin', 'time_end'], 'string'],
         ];
     }
 
@@ -89,6 +114,37 @@ class Journalgroup extends \yii\db\ActiveRecord
             'data_audit' => Yii::t('app', 'Data Audit'),
             'description_audit' => Yii::t('app', 'Description Audit'),
             'calc_teacher' => Yii::t('app', 'Teacher'),
+            'time_begin' => Yii::t('app', 'Start time'),
+            'time_end' => Yii::t('app', 'End time'),
+        ];
+    }
+
+    public static function getEducationTimes()
+    {
+        return [
+            self::EDUCATION_TIME_WORK => 'рабочее (с 9:00 до 17:30 для менеджеров и руководителей)',
+            self::EDUCATION_TIME_EVENING => 'вечернее (после 17:30 для преподавателей, менеджеров и руководителей)',
+            self::EDUCATION_TIME_HALFWORK => 'полурабочее время (с 16:00 для руководителей)',
+        ];
+    }
+
+    public static function getAttendanceScopedStatuses()
+    {
+        return [
+            self::STUDENT_STATUS_PRESENT => 'присутствовал',
+            // (не предупредил)
+            self::STUDENT_STATUS_ABSENT_UNWARNED => 'не было',
+        ];
+    }
+
+    public static function getAttendanceAllStatuses()
+    {
+        return [
+            self::STUDENT_STATUS_PRESENT => 'присутствовал',
+            // (предупредил)
+            self::STUDENT_STATUS_ABSENT_WARNED => 'не было (принес справку)',
+            // (не предупредил)
+            self::STUDENT_STATUS_ABSENT_UNWARNED => 'не было',
         ];
     }
 
