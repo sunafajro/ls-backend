@@ -3,17 +3,9 @@
 namespace app\models;
 
 use Yii;
-use app\models\AccrualTeacher;
-use app\models\Edunormteacher;
-use app\models\Groupteacher;
-use app\models\Journalgroup;
-use app\models\Moneystud;
-use app\models\Service;
-use app\models\Studjournalgroup;
-use app\models\Teacher;
-use app\models\Timenorm;
 use yii\base\Model;
 use yii\data\Pagination;
+use yii\db\Expression;
 use yii\helpers\ArrayHelper;
 
 /**
@@ -365,8 +357,16 @@ class Report extends Model
 
     public function getTeacherHours(array $params) : array
     {
+        $startOfWeek = \DateTime::createFromFormat('Y-m-d', $params['start']);
+        if (!$startOfWeek) {
+            $startOfWeek = (new \DateTime())->modify('monday this week');
+        }
+        $endOfWeek = \DateTime::createFromFormat('Y-m-d', $params['end']);
+        if (!$endOfWeek) {
+            $endOfWeek = (new \DateTime())->modify('sunday this week');
+        }
         $teachers = (new \yii\db\Query())
-        ->select(['tid' => 't.id'])
+        ->select(['id' => 't.id', 'name' => 't.name'])
         ->from(['t' => Teacher::tableName()])
         ->innerJoin(['j' => 'calc_journalgroup'], 'j.calc_teacher = t.id')
         ->where([
@@ -374,35 +374,21 @@ class Report extends Model
             't.old'     => 0,
             'j.visible' => 1,
         ])
-        ->andFilterWhere(['>=', 'j.data', $params['start'] ?? NULL])
-        ->andFilterWhere(['<=', 'j.data', $params['end'] ?? NULL])
-        ->groupBy(['t.id'])
-        ->orderBy(['t.id' => SORT_ASC]);
-
-        $countQuery = clone $teachers;
-        $pager = new Pagination(['totalCount' => $countQuery->count()]);
-
-        $teachers = $teachers
-        ->limit($params['limit']   ?? Report::DEFAULT_LIMIT)
-        ->offset($params['offset'] ?? Report::DEFAULT_OFFSET)
+        ->andFilterWhere(['>=', 'j.data', $startOfWeek->format('Y-m-d')])
+        ->andFilterWhere(['<=', 'j.data', $endOfWeek->format('Y-m-d')])
+        ->groupBy(['t.id', 't.name'])
+        ->orderBy(['t.name' => SORT_ASC])
         ->all();
         $ids = ArrayHelper::getColumn($teachers, 'tid');
-
-        $studCountQuery = (new \yii\db\Query())
-        ->select('count(id)')
-        ->from(['sj' => Studjournalgroup::tableName()])
-        ->where('sj.calc_journalgroup = j.id')
-        ->andWhere([
-            'sj.calc_statusjournal' => Studjournalgroup::STATUS_PRESENT,
-        ]);
 
         $lessons = (new \yii\db\Query())
         ->select([
             'teacherId' => 't.id',
             'teacher'   => 't.name',
+            'date'      => 'j.data',
+            'period'    => new Expression('CONCAT(j.time_begin, " - ", j.time_end)'),
             'hours'     => 'tn.value'
         ])
-        ->addSelect(['students' => $studCountQuery])
         ->from(['j' => Journalgroup::tableName()])
         ->innerJoin(['t' => Teacher::tableName()], 'j.calc_teacher = t.id')
         ->innerJoin(['g' => Groupteacher::tableName()], 'j.calc_groupteacher = g.id')
@@ -412,26 +398,29 @@ class Report extends Model
             'j.visible' => 1,
         ])
         ->andFilterWhere(['j.calc_teacher' => $params['tid'] ?? $ids])
-        ->andFilterWhere(['>=', 'j.data', $params['start'] ?? NULL])
-        ->andFilterWhere(['<=', 'j.data', $params['end'] ?? NULL])
-        ->orderBy(['t.name' => SORT_ASC])
+        ->andFilterWhere(['>=', 'j.data', $startOfWeek->format('Y-m-d')])
+        ->andFilterWhere(['<=', 'j.data', $endOfWeek->format('Y-m-d')])
+        ->orderBy(['j.data' => SORT_ASC, 'j.time_begin' => SORT_ASC])
         ->all();
 
         $result = [];
-        foreach ($lessons ?? [] as $lesson) {
-            if (!isset($result[$lesson['teacherId']])) {
-                $result[$lesson['teacherId']] = [
-                    'name'     => $lesson['teacher'],
-                    'hours'    => $lesson['hours'],
-                    'students' => $lesson['students'],
-                ];
-            } else {
-                $result[$lesson['teacherId']]['hours']    += $lesson['hours'];
-                $result[$lesson['teacherId']]['students'] += $lesson['students'];
+        $nextMonday = clone($endOfWeek)->modify('+1 day');
+        while ($startOfWeek->format('Y-m-d') < $nextMonday->format('Y-m-d')) {
+            foreach ($lessons ?? [] as $lesson) {
+                if ($lesson['date'] === $startOfWeek->format('Y-m-d')) {
+                    if (!isset($result[$lesson['date']])) {
+                        $result[$lesson['date']] = [];
+                    }
+                    if (!isset($result[$lesson['date']][$lesson['teacherId']])) {
+                        $result[$lesson['date']][$lesson['teacherId']] = [];
+                    }
+                    $result[$lesson['date']][$lesson['teacherId']][] = $lesson;
+                }
             }
+            $startOfWeek->modify('+1 day');
         }
         return [
-            'count' => $pager->totalCount,
+            'teachers' => ArrayHelper::map($teachers, 'id', 'name'),
             'hours' => $result
         ];
     }
