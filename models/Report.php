@@ -358,12 +358,17 @@ class Report extends Model
     public function getTeacherHours(array $params) : array
     {
         $startOfWeek = \DateTime::createFromFormat('Y-m-d', $params['start']);
+        $endOfWeek = \DateTime::createFromFormat('Y-m-d', $params['end']);
         if (!$startOfWeek) {
             $startOfWeek = (new \DateTime())->modify('monday this week');
         }
-        $endOfWeek = \DateTime::createFromFormat('Y-m-d', $params['end']);
         if (!$endOfWeek) {
             $endOfWeek = (new \DateTime())->modify('sunday this week');
+        }
+        $checkEndOfWeek = clone($startOfWeek);
+        $checkEndOfWeek = $checkEndOfWeek->modify('+6 day');
+        if ($endOfWeek->format('Y-m-d') > $checkEndOfWeek->format('Y-m-d')) {
+            $endOfWeek = clone($checkEndOfWeek);
         }
         $teachers = (new \yii\db\Query())
         ->select(['id' => 't.id', 'name' => 't.name'])
@@ -376,6 +381,7 @@ class Report extends Model
         ])
         ->andFilterWhere(['>=', 'j.data', $startOfWeek->format('Y-m-d')])
         ->andFilterWhere(['<=', 'j.data', $endOfWeek->format('Y-m-d')])
+        ->andFilterWhere(['t.id' => $params['tid'] ?? null])
         ->groupBy(['t.id', 't.name'])
         ->orderBy(['t.name' => SORT_ASC])
         ->all();
@@ -404,13 +410,14 @@ class Report extends Model
         ->all();
 
         $result = [];
-        $nextMonday = clone($endOfWeek)->modify('+1 day');
+        $nextMonday = clone($endOfWeek);
+        $nextMonday = $nextMonday->modify('+1 day');
         while ($startOfWeek->format('Y-m-d') < $nextMonday->format('Y-m-d')) {
+            if (!isset($result[$startOfWeek->format('Y-m-d')])) {
+                $result[$startOfWeek->format('Y-m-d')] = [];
+            }
             foreach ($lessons ?? [] as $lesson) {
                 if ($lesson['date'] === $startOfWeek->format('Y-m-d')) {
-                    if (!isset($result[$lesson['date']])) {
-                        $result[$lesson['date']] = [];
-                    }
                     if (!isset($result[$lesson['date']][$lesson['teacherId']])) {
                         $result[$lesson['date']][$lesson['teacherId']] = [];
                     }

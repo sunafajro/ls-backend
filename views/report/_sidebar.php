@@ -4,6 +4,7 @@
  * @var yii\widgets\ActiveForm $form
  * @var array                  $actionUrl
  * @var string                 $end
+ * @var array                  $hints
  * @var array                  $offices
  * @var string                 $oid
  * @var array                  $reportList
@@ -32,6 +33,14 @@ use kartik\datetime\DateTimePicker;
             <?php } ?>
         </ul>            
     </div>
+    <?php } ?>
+    <?php if (!empty($hints)) { ?>
+        <h4><?= Yii::t('app', 'Подсказки') ?></h4>
+        <div class="text-muted" style="margin-bottom: 20px">
+            <?php foreach ($hints as $hint) { ?>
+                <i><?= $hint ?></i>
+            <?php } ?>
+        </div>
     <?php } ?>
     <h4><?= Yii::t('app', 'Filters') ?></h4>
     <?php 

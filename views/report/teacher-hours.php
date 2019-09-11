@@ -29,6 +29,9 @@ $this->params['breadcrumbs'][] = Yii::t('app','Teacher hours');
         'tid'           => $tid,
         'start'         => $start,
         'userInfoBlock' => $userInfoBlock,
+        'hints'         => [
+            'При установке интервала более недели, отчет будет ограничен выборкой в 7 дней от даты начала периода.'
+        ],
     ]) ?>
     <div class="col-xs-12 col-sm-10">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
