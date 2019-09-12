@@ -370,6 +370,7 @@ class Report extends Model
         if ($endOfWeek->format('Y-m-d') > $checkEndOfWeek->format('Y-m-d')) {
             $endOfWeek = clone($checkEndOfWeek);
         }
+
         $teachers = (new \yii\db\Query())
         ->select(['id' => 't.id', 'name' => 't.name'])
         ->from(['t' => Teacher::tableName()])
@@ -385,7 +386,7 @@ class Report extends Model
         ->groupBy(['t.id', 't.name'])
         ->orderBy(['t.name' => SORT_ASC])
         ->all();
-        $ids = ArrayHelper::getColumn($teachers, 'tid');
+        $ids = ArrayHelper::getColumn($teachers, 'id');
 
         $lessons = (new \yii\db\Query())
         ->select([
