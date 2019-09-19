@@ -282,6 +282,7 @@ return array(
 'Logout'=>'Выход',
 'Low'=>'Низкий',
 'Make active' => 'Перевести в активные',
+'Make corporative'=> 'Перевести в корп.',
 'Make inactive' =>'Перевести в неактивные',
 'Make normal' => 'Установить как обычн.',
 'Male'=>'Мужской',
