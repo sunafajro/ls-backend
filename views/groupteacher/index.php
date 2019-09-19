@@ -28,6 +28,9 @@ $this->params['breadcrumbs'][] = Yii::t('app','Groups');
             <div id="main-menu"></div>
         <?php } ?>
         <?= $userInfoBlock ?>
+        <ul style="margin-top: 1rem">
+            <li>Информация по расписанию занятий группы, берется из раздела Расписание.</li>
+        </ul>
     </div>
     <div class="col-sm-10">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
