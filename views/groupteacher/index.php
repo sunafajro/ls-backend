@@ -1,96 +1,150 @@
 <?php
 
+use app\models\Teacher;
+use app\models\Schedule;
+use app\models\search\GroupSearch;
+use app\widgets\Alert;
+use yii\data\ActiveDataProvider;
 use yii\helpers\Html;
+use yii\helpers\ArrayHelper;
 use yii\grid\GridView;
-use yii\widgets\ActiveForm;
-/* @var $this yii\web\View */
-/* @var $searchModel app\models\CalcGroupteacherSearch */
-/* @var $dataProvider yii\data\ActiveDataProvider */
+use yii\web\View;
+use yii\widgets\Breadcrumbs;
 
-$this->title = \Yii::t('app','Groups');
-$this->params['breadcrumbs'][] = $this->title;
+/**
+ * @var View               $this
+ * @var GroupSearch        $searchModel
+ * @var ActiveDataProvider $dataProvider
+ * @var array              $offices
+ * @var string             $userInfoBlock
+ */
 
-//составляем список преподавателей для селектов
-foreach($steachers as $steacher){
-$tempteachers[$steacher['tid']]=$steacher['tname'];
-}
-$teachers = array_unique($tempteachers);
-
-//составляем список языков для селектов
-foreach($teacherlangs as $lang){
-$templangs[$lang['lid']]=$lang['lname'];
-}
-$slangs = array_unique($templangs);
-
-//обрабатываем GET
-//$oid = Yii::$app->request->get('OID') ? Yii::$app->request->get('oid') : NULL;
-$lid = Yii::$app->request->get('LID') ? Yii::$app->request->get('LID') : NULL;
-//$eid = Yii::$app->request->get('EID') ? Yii::$app->request->get('eid') : NULL;
-//$aid = Yii::$app->request->get('AID') ? Yii::$app->request->get('aid') : NULL;
-$tid = Yii::$app->request->get('TID') ? Yii::$app->request->get('TID') : NULL;
-
+$this->title = Yii::$app->params['appTitle'] . Yii::t('app','Groups');
+$this->params['breadcrumbs'][] = Yii::t('app','Groups');
 ?>
-<div class="calc-groupteacher-index">
+<div class="row row-offcanvas row-offcanvas-left group-index">
+    <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
+            <div id="main-menu"></div>
+        <?php } ?>
+        <?= $userInfoBlock ?>
+    </div>
+    <div class="col-sm-10">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
+            <?= Breadcrumbs::widget([
+                'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+            ]); ?>
+        <?php } ?>
 
-<nav class="navbar navbar-default">
-    <div class="container-fluid">
-        <?= Html::a("<span class='glyphicon glyphicon-plus' aria-hidden='true'></span>", ['create'], ['class' => 'btn btn-default navbar-btn']) ?>
-        <?php 
-                $form = ActiveForm::begin([
-                    'method' => 'get',
-                    'options' => ['class' => 'navbar-form navbar-right'],
-                    'action' => 'index.php?r=groupteacher/index',
-                    ]);
-                    ?>
-	    <div class="form-group">
-		 <select class="form-control input-sm" name="LID">
-                        <option value="all">-все языки-</option>
-                    <?php
-                        // распечатываем список языков в селект
-                        foreach($slangs as $lkey => $slang){
-                            echo "<option ";
-                            if($lkey==$lid){ echo "selected";}
-                            echo " value='".$lkey."'>".mb_substr($slang,0,13,'UTF-8')."</option>";
+        <p class="pull-left visible-xs">
+            <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
+        </p>
+
+        <?= Alert::widget() ?>
+
+        <?= GridView::widget([
+            'dataProvider' => $dataProvider,
+            'filterModel'  => $searchModel,
+            'layout'       => "{pager}\n{items}\n{pager}",
+            'columns'      => [
+                'id' => [
+                    'attribute' => 'id',
+                    'format' => 'raw',
+                    'headerOptions' => ['style' => 'width: 5%'],
+                    'value'     => function (array $group) {
+                        return Html::a($group['id'], ['groupteacher/view', 'id' => $group['id']]);
+                    }
+                ],
+                'service' => [
+                    'attribute' => 'service',
+                    'headerOptions' => ['style' => 'width: 25%'],
+                ],
+                'teachers' => [
+                    'attribute' => 'teachers',
+                    'format' => 'raw',
+                    'headerOptions' => ['style' => 'width: 20%'],
+                    'value' => function (array $group) {
+                        $teacherTable = Teacher::tableName();
+                        $teachers = (new \yii\db\Query())
+                                ->select(['name' => 't.name'])
+                                ->from('calc_teachergroup tg')
+                                ->innerJoin("$teacherTable t", "t.id = tg.calc_teacher")
+                                ->where(['tg.calc_groupteacher' => $group['id']])
+                                ->orderBy(['t.name' => SORT_ASC])
+                                ->column() ?? [];
+                        return join(Html::tag('br'), $teachers);
+                    }
+                ],
+                'schedule' => [
+                    'attribute' => 'schedule',
+                    'format' => 'raw',
+                    'headerOptions' => ['style' => 'width: 20%'],
+                    'value' => function (array $group) {
+                        $scheduleTable = Schedule::tableName();
+                        $schedule = (new \yii\db\Query())
+                            ->select([
+                                'dayName' => 'd.name',
+                                'timeStart' => 's.time_begin',
+                                'timeEnd' => "s.time_end"
+                            ])
+                            ->from("$scheduleTable s")
+                            ->innerJoin("calc_denned d", "d.id = s.calc_denned")
+                            ->where([
+                                's.calc_groupteacher' => $group['id'],
+                                's.visible' => 1
+                            ])
+                            ->orderBy(['s.calc_denned' => SORT_ASC, 's.time_begin' => SORT_ASC])
+                            ->all() ?? [];
+                        if (empty($schedule)) {
+                            return '';
+                        } else {
+                            $schedule = ArrayHelper::index($schedule, null, 'dayName');
+                            $result = [];
+                            foreach ($schedule as $day => $lessons) {
+                                if (!empty($lessons)) {
+                                    $result[] = Html::tag('b', $day);
+                                    foreach ($lessons as $lesson) {
+                                        $result[] = Html::tag(
+                                            'i',
+                                            substr($lesson['timeStart'], 0, 5) . '-' . substr($lesson['timeEnd'], 0, 5));
+                                    }
+                                }
+                            }
+                            return join(Html::tag('br'), $result);
                         }
-                    ?>
-                    </select>
-
-		<select class="form-control input-sm" name="TID">
-                        <option value="all">-все преподаватели-</option>
-                    <?php 
-                        foreach($teachers as $tkey => $teacher){
-                            echo "<option ";
-                            if($tkey==$tid){ echo "selected";}
-                            echo " value='".$tkey."'>".mb_substr($teacher,0,22,'UTF-8')."</option>";
-                        }
-                    ?>
-                    </select>
-	    </div>
-	    <button type="submit" class="btn btn-default btn-sm">GO</button>
-        <?php ActiveForm::end(); ?>
-    </div><!-- /.container-fluid -->
-</nav>
-
-
-    <?php
-	echo "<table class='table table-stripped table-bordered'>";
-        echo "<thead>";
-        echo "<tr><th>Услуга</th><th>Уровень</th><th>Преподаватель</th><th>Офис</th><th>Дата</th><th>Кол-во</th><th>Действия</th></tr>";
-        echo "</thead>";
-        foreach($groups as $group)
-        {
-        echo "<tr>";
-        echo "<td>".Html::a($group['sname'],['groupteacher/view','id'=>$group['gid']])."</td><td>".$group['ename']."</td>";
-	echo "<td>".Html::a($group['tname'],['teacher/view','id'=>$group['tid']])."</td><td>".$group['oname']."</td><td>".date('d-m-Y', strtotime($group['sdate']))."</td>";
-	echo "<td>";
-	foreach($pupils as $pupil){
-	if($pupil['gid']==$group['gid']){echo $pupil['pcount'];}
-	}
-	echo "</td>";
-        echo "<td><span class='glyphicon glyphicon-pencil'></span></a></td>";
-        echo "</tr>";
-        } //end of foreach statement
-        echo "</table>";
-    ?>
-
+                    }
+                ],
+                'office' => [
+                    'attribute' => 'office',
+                    'headerOptions' => ['style' => 'width: 20%'],
+                    'filter' => $offices,
+                    'value'     => function (array $group) use ($offices) {
+                        return $offices[$group['office']] ?? '';
+                    }
+                ],
+                'visible' => [
+                    'attribute' => 'visible',
+                    'filter' => [
+                        0 => Yii::t('app', 'Finished'),
+                        1 => Yii::t('app', 'Active')
+                    ],
+                    'format' => 'raw',
+                    'headerOptions' => ['style' => 'width: 10%'],
+                    'value'     => function (array $group) {
+                        return $group['visible'] ?
+                            Html::tag(
+                                'span',
+                                Yii::t('app', 'Active'),
+                                ['class' => 'label label-success']
+                            ) :
+                            Html::tag(
+                                'span',
+                                Yii::t('app', 'Finished'),
+                                ['class' => 'label label-danger']
+                            );
+                    }
+                ],
+            ]
+        ]) ?>
+    </div>
 </div>

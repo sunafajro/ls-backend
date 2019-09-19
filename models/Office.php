@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use yii\helpers\ArrayHelper;
 use Yii;
 
 /**
@@ -155,17 +156,7 @@ class Office extends \yii\db\ActiveRecord
      */
     public static function getOfficesListSimple($id = null)
     {
-        $offices = [];
-        $office = new Office();
-        $tmp_offices = $office->getOfficesList($id);
-        
-        /* если массив не пустой, формируем из него простой одномерный */
-        if(!empty($tmp_offices)) {
-            foreach($tmp_offices as $o) {
-                $offices[$o['id']] = $o['name'];
-            }
-        }
-        /* если массив не пустой, формируем из него простой одномерный */
+        $offices = ArrayHelper::map((new Office())->getOfficesList($id) ?? [], 'id', 'name');
 
         return !empty($offices) ? $offices : NULL;
     }

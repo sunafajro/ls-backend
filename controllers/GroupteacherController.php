@@ -2,6 +2,8 @@
 
 namespace app\controllers;
 
+use app\models\Office;
+use app\models\search\GroupSearch;
 use Yii;
 use yii\data\Pagination;
 use yii\filters\AccessControl;
@@ -22,18 +24,24 @@ class GroupteacherController extends Controller
 {
     public function behaviors()
     {
+        $rules = [
+            'index', 'view', 'create', 'update',
+            'status', 'addteacher', 'delteacher',
+            'restoreteacher', 'addstudent', 'delstudent',
+            'restorestudent', 'corp'
+        ];
         return [
 	        'access' => [
-                'class' => AccessControl::className(),
-                'only' => ['view', 'create', 'update', 'status', 'addteacher', 'delteacher', 'restoreteacher', 'addstudent', 'delstudent', 'restorestudent', 'corp'],
+                'class' => AccessControl::class,
+                'only' => $rules,
                 'rules' => [
                     [
-                        'actions' => ['view', 'create', 'update', 'status', 'addteacher', 'delteacher', 'restoreteacher', 'addstudent', 'delstudent', 'restorestudent', 'corp'],
+                        'actions' => $rules,
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['view', 'create', 'update', 'status', 'addteacher', 'delteacher', 'restoreteacher', 'addstudent', 'delstudent', 'restorestudent', 'corp'],
+                        'actions' => $rules,
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -42,8 +50,20 @@ class GroupteacherController extends Controller
         ];
     }
 
+    public function actionIndex()
+    {
+        $searchModel = new GroupSearch();
+        $dataProvider = $searchModel->search(Yii::$app->request->get());
+        return $this->render('index', [
+            'dataProvider' => $dataProvider,
+            'offices' => Office::getOfficesListSimple(),
+            'searchModel' => $searchModel,
+            'userInfoBlock' => User::getUserInfoBlock(),
+        ]);
+    }
+
     /**
-     * Displays a single CalcGroupteacher model.
+     * Displays a single Groupteacher model.
      * @param integer $id
      * @return mixed
      */

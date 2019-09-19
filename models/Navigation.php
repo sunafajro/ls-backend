@@ -87,6 +87,18 @@ class Navigation extends Model
         }
 
         if((int)Yii::$app->session->get('user.ustatus') === 3 ||
+           (int)Yii::$app->session->get('user.ustatus') === 4) {
+            /* ссылка на раздел Группы */
+            $menu[] = [
+                'id' => 'groups',
+                'url' => '/groupteacher/index',
+                'classes' => 'fa fa-users',
+                'title' => Yii::t('app', 'Groups'),
+                'hasBadge' => false
+            ];
+        }
+
+        if((int)Yii::$app->session->get('user.ustatus') === 3 ||
            (int)Yii::$app->session->get('user.ustatus') === 4 ||
            (int)Yii::$app->session->get('user.ustatus') === 5 ||
            (int)Yii::$app->session->get('user.ustatus') === 6) {

@@ -213,6 +213,7 @@ return array(
 'File successfully uploaded!' => 'Файл успешно загружен!',
 'Filters'=>'Фильтры',
 'Finish'=>'Завершить',
+'Finished' => 'Завершена',
 'Finished groups'=>'Завершенные группы',
 'First name'=>'Имя',
 'Fixed'=>'Фиксированная', 
