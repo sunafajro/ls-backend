@@ -3,9 +3,8 @@
 /**
  * @var yii\web\View $this
  * @var string       $end
- * @var array        $hours
+ * @var array        $data
  * @var array        $reportList
- * @var array        $pager
  * @var string       $start
  * @var array        $teachers
  * @var string       $tid
@@ -30,6 +29,9 @@ $this->params['breadcrumbs'][] = Yii::t('app','Teacher hours');
         'tid'           => $tid,
         'start'         => $start,
         'userInfoBlock' => $userInfoBlock,
+        'hints'         => [
+            'При установке интервала более недели, отчет будет ограничен выборкой в 7 дней от даты начала периода.'
+        ],
     ]) ?>
     <div class="col-xs-12 col-sm-10">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
@@ -44,36 +46,28 @@ $this->params['breadcrumbs'][] = Yii::t('app','Teacher hours');
         <table class="table table-striped table-bordered table-hover table-condensed small">
             <thead>
                 <th style="width: 5%">№</th>
-                <th style="width: 50%"><?= Yii::t('app', 'Teacher') ?></th>
-                <th style="width: 15%"><?= Yii::t('app', 'Hours') ?></th>
-                <th style="width: 15%"><?= Yii::t('app', 'Students') ?></th>
-                <th style="width: 15%"><?= Yii::t('app', 'Human/hour') ?></th>
+                <th style="width: 25%"><?= Yii::t('app', 'Teacher') ?></th>
+                <?php foreach (array_keys($data['hours'] ?? []) as $date) { ?>
+                    <th style="width: 10%"><?= date('d.m.Y', strtotime($date)) ?></th>
+                <?php } ?>
             </thead>
             <tbody>
                 <?php $i = 1; ?>
-                <?php foreach ($hours as $key => $row) { ?>
+                <?php foreach ($data['teachers'] ?? [] as $id => $name) { ?>
                     <tr>
-                        <td><?= $i + $pager['offset'] ?></td>
-                        <td><?= Html::a($row['name'],['teacher/view', 'id' => $key]) ?></td>
-                        <td><?= $row['hours'] ?></td>
-                        <td><?= $row['students'] ?></td>
-                        <td><?= number_format($row['students'] / $row['hours'], 1, '.', ' ') ?></td>
+                        <td style="width: 5%"><?= $i ?></td>
+                        <td style="width: 25%"><?= Html::a($name, ['teacher/view', 'id' => $id]) ?></td>
+                        <?php foreach (array_keys($data['hours'] ?? []) as $date) { ?>
+                            <td style="width: 10%">
+                                <?php foreach ($data['hours'][$date][$id] ?? [] as $lesson) { ?>
+                                    <div><?= $lesson['period'] ?></div>
+                                <?php } ?>
+                            </td>
+                        <?php } ?>
                     </tr>
                     <?php $i++; ?>
                 <?php } ?>
             </tbody>
         </table>
-        <?php if (!$tid && count($hours) > 0) { ?>
-            <?= $this->render('_pager', [
-                'pager'  => $pager,
-                'url'    => [
-                    'report/teacher-hours',
-                    'start' => $start ?? NULL,
-                    'end'   => $end   ?? NULL,
-                    'tid'   => $tid   ?? NULL,
-                    'limit' => $pager['limit'],
-                ],
-            ]) ?>
-        <?php } ?>
     </div>
 </div>

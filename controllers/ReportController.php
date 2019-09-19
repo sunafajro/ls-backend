@@ -1209,7 +1209,7 @@ class ReportController extends Controller
     }
 
     // Отчет по оплатам
-    public function actionTeacherHours()
+    public function actionTeacherHours($start = null, $end = null, $tid = null, $limit = 10, $offset = 0)
     {
         if ((int)Yii::$app->session->get('user.ustatus') !== 3 &&
             (int)Yii::$app->session->get('user.ustatus') !== 4 &&
@@ -1217,33 +1217,22 @@ class ReportController extends Controller
             (int)Yii::$app->session->get('user.uid') !== 296) {
                 throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
-        $req    = Yii::$app->request;
-        $start  = $req->get('start',  NULL);
-        $end    = $req->get('end',    NULL);
-        $tid    = $req->get('tid',    NULL);
-        $limit  = $req->get('limit',  NULL);
-        $offset = $req->get('offset', NULL);
 
         if (!($start && $end)) {
             $start = date("Y-m-d", strtotime('monday last week'));
             $end = date("Y-m-d", strtotime('sunday last week'));
         }
         $report = new Report();
-        $result = $report->getTeacherHours([
-            'end'    => $end    ? $end    : NULL,
-            'start'  => $start  ? $start  : NULL,
-            'tid'    => $tid    ? $tid    : NULL,
-            'limit'  => $limit  ? $limit  : 10,
-            'offset' => $offset ? $offset : 0,
+        $data = $report->getTeacherHours([
+            'end'    => $end,
+            'start'  => $start,
+            'tid'    => $tid,
+            'limit'  => $limit,
+            'offset' => $offset,
         ]);
         return $this->render('teacher-hours', [
+            'data'          => $data,
             'end'           => $end,
-            'hours'         => $result['hours'],
-            'pager'         => [
-                'limit'  => $limit  ? $limit  : Report::DEFAULT_LIMIT,
-                'offset' => $offset ? $offset : Report::DEFAULT_OFFSET,
-                'total'  => $result['count'],
-            ],
             'reportList'    => Report::getReportTypeList(),
             'start'         => $start,
             'teachers'      => Teacher::getTeachersInUserListSimple(),
