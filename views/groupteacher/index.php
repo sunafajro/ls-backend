@@ -72,7 +72,10 @@ $this->params['breadcrumbs'][] = Yii::t('app','Groups');
                                 ->select(['name' => 't.name'])
                                 ->from('calc_teachergroup tg')
                                 ->innerJoin("$teacherTable t", "t.id = tg.calc_teacher")
-                                ->where(['tg.calc_groupteacher' => $group['id']])
+                                ->where([
+                                    'tg.visible' => 1,
+                                    'tg.calc_groupteacher' => $group['id'],
+                                ])
                                 ->orderBy(['t.name' => SORT_ASC])
                                 ->column() ?? [];
                         return join(Html::tag('br'), $teachers);
