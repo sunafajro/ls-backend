@@ -55,6 +55,7 @@ class GroupSearch extends Groupteacher
         $query = (new \yii\db\Query());
         $query->select([
             'id'      => "$groupTable.id",
+            'serviceId' => "$groupTable.calc_service",
             'service' => "$serviceTable.name",
             'office'  => "$groupTable.calc_office",
             'visible' => "$groupTable.visible",
@@ -72,7 +73,11 @@ class GroupSearch extends Groupteacher
         if ($this->validate()) {
             $query->andFilterWhere(["{$groupTable}.id" => $this->id ?? null]);
             $query->andFilterWhere(["{$groupTable}.visible" => $this->visible ?? null]);
-            $query->andFilterWhere(['like', "{$serviceTable}.name", $this->service ?? null]);
+            if ((int)$this->service > 0) {
+                $query->andFilterWhere(["{$groupTable}.calc_service" => $this->service ?? null]);
+            } else {
+                $query->andFilterWhere(['like', "{$serviceTable}.name", $this->service ?? null]);
+            }
             $query->andFilterWhere(["{$groupTable}.calc_office" => $this->office]);
         } else {
             $query->andWhere(new Expression("(0 = 1)"));
@@ -93,6 +98,7 @@ class GroupSearch extends Groupteacher
                         'asc' => ["$groupTable.visible" => SORT_ASC],
                         'desc' => ["$groupTable.visible" => SORT_DESC],
                     ],
+                    'serviceId',
                     'service' => [
                         'asc' => ["$serviceTable.name" => SORT_ASC],
                         'desc' => ["$serviceTable.name" => SORT_DESC],

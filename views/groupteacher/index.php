@@ -30,6 +30,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Groups');
         <?= $userInfoBlock ?>
         <ul style="margin-top: 1rem">
             <li>Информация по расписанию занятий группы, берется из раздела Расписание.</li>
+            <li>В поле Услуга, при вводе числа фильтрация очуществляется по услуге, при вводе текста - по имени.</li>
         </ul>
     </div>
     <div class="col-sm-10">
@@ -61,6 +62,9 @@ $this->params['breadcrumbs'][] = Yii::t('app','Groups');
                 'service' => [
                     'attribute' => 'service',
                     'headerOptions' => ['style' => 'width: 25%'],
+                    'value' => function (array $group) {
+                        return '#' . $group['serviceId'] . ' ' . $group['service'];
+                    }
                 ],
                 'teachers' => [
                     'attribute' => 'teachers',
