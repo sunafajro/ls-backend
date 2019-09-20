@@ -2,24 +2,21 @@
 
 namespace app\controllers;
 
+use app\models\Eduage;
+use app\models\Lang;
 use app\models\Office;
 use app\models\search\GroupSearch;
 use Yii;
 use yii\data\Pagination;
 use yii\filters\AccessControl;
-use yii\filters\VerbFilter;
 use app\models\Groupteacher;
 use app\models\Studgroup;
 use app\models\Teachergroup;
-use app\models\Tool;
 use app\models\User;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 
-/**
- * GroupteacherController implements the CRUD actions for CalcGroupteacher model.
- */
 class GroupteacherController extends Controller
 {
     public function behaviors()
@@ -55,7 +52,9 @@ class GroupteacherController extends Controller
         $searchModel = new GroupSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->get());
         return $this->render('index', [
+            'ages' => Eduage::getEduAgesSimple(),
             'dataProvider' => $dataProvider,
+            'languages' => Lang::getLanguagesSimple(),
             'offices' => Office::getOfficesListSimple(),
             'searchModel' => $searchModel,
             'userInfoBlock' => User::getUserInfoBlock(),

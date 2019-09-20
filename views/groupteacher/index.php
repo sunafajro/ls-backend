@@ -16,6 +16,8 @@ use yii\widgets\Breadcrumbs;
  * @var GroupSearch        $searchModel
  * @var ActiveDataProvider $dataProvider
  * @var array              $offices
+ * @var array              $ages
+ * @var array              $languages
  * @var string             $userInfoBlock
  */
 
@@ -66,29 +68,26 @@ $this->params['breadcrumbs'][] = Yii::t('app','Groups');
                         return '#' . $group['serviceId'] . ' ' . $group['service'];
                     }
                 ],
-                'teachers' => [
-                    'attribute' => 'teachers',
-                    'format' => 'raw',
-                    'headerOptions' => ['style' => 'width: 20%'],
-                    'value' => function (array $group) {
-                        $teacherTable = Teacher::tableName();
-                        $teachers = (new \yii\db\Query())
-                                ->select(['name' => 't.name'])
-                                ->from('calc_teachergroup tg')
-                                ->innerJoin("$teacherTable t", "t.id = tg.calc_teacher")
-                                ->where([
-                                    'tg.visible' => 1,
-                                    'tg.calc_groupteacher' => $group['id'],
-                                ])
-                                ->orderBy(['t.name' => SORT_ASC])
-                                ->column() ?? [];
-                        return join(Html::tag('br'), $teachers);
+                'age' => [
+                    'attribute' => 'age',
+                    'filter' => $ages,
+                    'headerOptions' => ['style' => 'width: 10%'],
+                    'value' => function (array $group) use ($ages) {
+                        return $ages[$group['age']] ?? '';
+                    }
+                ],
+                'language' => [
+                    'attribute' => 'language',
+                    'filter' => $languages,
+                    'headerOptions' => ['style' => 'width: 10%'],
+                    'value' => function (array $group) use ($languages) {
+                        return $languages[$group['language']] ?? '';
                     }
                 ],
                 'schedule' => [
                     'attribute' => 'schedule',
                     'format' => 'raw',
-                    'headerOptions' => ['style' => 'width: 20%'],
+                    'headerOptions' => ['style' => 'width: 10%'],
                     'value' => function (array $group) {
                         $scheduleTable = Schedule::tableName();
                         $schedule = (new \yii\db\Query())
@@ -124,9 +123,28 @@ $this->params['breadcrumbs'][] = Yii::t('app','Groups');
                         }
                     }
                 ],
+                'teachers' => [
+                    'attribute' => 'teachers',
+                    'format' => 'raw',
+                    'headerOptions' => ['style' => 'width: 15%'],
+                    'value' => function (array $group) {
+                        $teacherTable = Teacher::tableName();
+                        $teachers = (new \yii\db\Query())
+                            ->select(['name' => 't.name'])
+                            ->from('calc_teachergroup tg')
+                            ->innerJoin("$teacherTable t", "t.id = tg.calc_teacher")
+                            ->where([
+                                'tg.visible' => 1,
+                                'tg.calc_groupteacher' => $group['id'],
+                            ])
+                            ->orderBy(['t.name' => SORT_ASC])
+                            ->column() ?? [];
+                        return join(Html::tag('br'), $teachers);
+                    }
+                ],
                 'office' => [
                     'attribute' => 'office',
-                    'headerOptions' => ['style' => 'width: 20%'],
+                    'headerOptions' => ['style' => 'width: 15%'],
                     'filter' => $offices,
                     'value'     => function (array $group) use ($offices) {
                         return $offices[$group['office']] ?? '';

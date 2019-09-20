@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "calc_lang".
@@ -51,8 +52,8 @@ class Lang extends \yii\db\ActiveRecord
         $languages = (new \yii\db\Query())
         ->select(['id'=>'id', 'name'=>'name'])
         ->from('calc_lang')
-        ->where('visible=:vis', [':vis'=>1])
-        ->orderby(['name'=>SORT_ASC])
+        ->where(['visible' => 1])
+        ->orderby(['name' => SORT_ASC])
         ->all();
 
         return $languages;
@@ -61,15 +62,6 @@ class Lang extends \yii\db\ActiveRecord
     /* возвращает список языков в виде одномерного массива */
     public static function getLanguagesSimple()
     {
-        $tmp_languages = self::getLanguages();
-        
-        $languages = [];
-        foreach($tmp_languages as $l) {
-            if ((int)$l['id'] !== 16) {
-                $languages[$l['id']] = $l['name'];
-            }
-        }
-
-        return $languages;
+        return ArrayHelper::map(self::getLanguages() ?? [], 'id', 'name');
     }
 }

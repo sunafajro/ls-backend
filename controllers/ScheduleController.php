@@ -171,8 +171,6 @@ class ScheduleController extends Controller
     public function actionApiFilters()
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        $eduage = new Eduage();
-        $eduages = $eduage->getEduages();
         $eduform = new Eduform();
         $eduforms = $eduform->getEduforms();
         $office = new Office();
@@ -184,7 +182,7 @@ class ScheduleController extends Controller
         $tool = new Tool();
         return [
             'filters' => [
-                'eduages' => $tool->prepareDataForSelectElement($eduages),
+                'eduages' => $tool->prepareDataForSelectElement(Eduage::getEduAges()),
                 'eduforms' => $tool->prepareDataForSelectElement($eduforms),
                 'languages' => $tool->prepareDataForSelectElement($languages),
                 'offices' => $tool->prepareDataForSelectElement($offices),

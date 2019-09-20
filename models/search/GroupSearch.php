@@ -3,7 +3,9 @@
 
 namespace app\models\search;
 
+use app\models\Eduage;
 use app\models\Groupteacher;
+use app\models\Lang;
 use app\models\Office;
 use app\models\Service;
 use yii\data\ActiveDataProvider;
@@ -18,8 +20,12 @@ class GroupSearch extends Groupteacher
     public $visible;
     /** @var srtring */
     public $service;
-    /** @var srtring */
+    /** @var int */
     public $office;
+    /** @var int */
+    public $age;
+    /** @var int */
+    public $language;
 
     /**
      * @inheritdoc
@@ -27,7 +33,7 @@ class GroupSearch extends Groupteacher
     public function rules()
     {
         return [
-            [['id', 'office', 'visible'], 'integer'],
+            [['id', 'office', 'visible', 'age', 'language'], 'integer'],
             [['service'], 'string'],
         ];
     }
@@ -40,28 +46,37 @@ class GroupSearch extends Groupteacher
         return [
             'id' => '№',
             'teachers' => Yii::t('app', 'Teachers'),
-            'service' => Yii::t('app', 'Service'),
+            'service'  => Yii::t('app', 'Service'),
             'schedule' => Yii::t('app', 'Schedule'),
-            'office'  => Yii::t('app', 'Office'),
-            'visible' => Yii::t('app', 'Status'),
+            'office'   => Yii::t('app', 'Office'),
+            'age'      => Yii::t('app', 'Age'),
+            'language' => Yii::t('app', 'Language'),
+            'visible'  => Yii::t('app', 'Status'),
         ];
     }
     public function search(array $params = ['visible' => 1]) : ActiveDataProvider
     {
-        $groupTable = Groupteacher::tableName();
-        $serviceTable = Service::tableName();
-        $officeTable = Office::tableName();
+        $gt = Groupteacher::tableName();
+        $st = Service::tableName();
+        $ot = Office::tableName();
+        $at = Eduage::tableName();
+        $lt = Lang::tableName();
 
         $query = (new \yii\db\Query());
         $query->select([
-            'id'      => "$groupTable.id",
-            'serviceId' => "$groupTable.calc_service",
-            'service' => "$serviceTable.name",
-            'office'  => "$groupTable.calc_office",
-            'visible' => "$groupTable.visible",
+            'id'        => "$gt.id",
+            'serviceId' => "$gt.calc_service",
+            'service'   => "$st.name",
+            'age'       => "$st.calc_eduage",
+            'language'  => "$st.calc_lang",
+            'office'    => "$gt.calc_office",
+            'visible'   => "$gt.visible",
         ]);
-        $query->from($groupTable);
-        $query->innerJoin($serviceTable, "$serviceTable.id = $groupTable.calc_service");
+        $query->from($gt);
+        $query->innerJoin($st, "$st.id = $gt.calc_service");
+        $query->innerJoin($ot, "$ot.id = $gt.calc_office");
+        $query->innerJoin($at, "$at.id = $st.calc_eduage");
+        $query->innerJoin($lt, "$lt.id = $st.calc_lang");
 
 
         $this->load($params);
@@ -71,14 +86,16 @@ class GroupSearch extends Groupteacher
             $this->visible = 1;
         }
         if ($this->validate()) {
-            $query->andFilterWhere(["{$groupTable}.id" => $this->id ?? null]);
-            $query->andFilterWhere(["{$groupTable}.visible" => $this->visible ?? null]);
+            $query->andFilterWhere(["{$gt}.id" => $this->id ?? null]);
+            $query->andFilterWhere(["{$gt}.visible" => $this->visible ?? null]);
             if ((int)$this->service > 0) {
-                $query->andFilterWhere(["{$groupTable}.calc_service" => $this->service ?? null]);
+                $query->andFilterWhere(["{$gt}.calc_service" => $this->service ?? null]);
             } else {
-                $query->andFilterWhere(['like', "{$serviceTable}.name", $this->service ?? null]);
+                $query->andFilterWhere(['like', "{$st}.name", $this->service ?? null]);
             }
-            $query->andFilterWhere(["{$groupTable}.calc_office" => $this->office]);
+            $query->andFilterWhere(["{$gt}.calc_office" => $this->office]);
+            $query->andFilterWhere(["{$st}.calc_eduage" => $this->age]);
+            $query->andFilterWhere(["{$st}.calc_lang" => $this->language]);
         } else {
             $query->andWhere(new Expression("(0 = 1)"));
         }
@@ -91,21 +108,29 @@ class GroupSearch extends Groupteacher
             'sort'=> [
                 'attributes' => [
                     'id' => [
-                        'asc' => ["$groupTable.id" => SORT_ASC],
-                        'desc' => ["$groupTable.id" => SORT_DESC],
+                        'asc' => ["$gt.id" => SORT_ASC],
+                        'desc' => ["$gt.id" => SORT_DESC],
                     ],
                     'visible' => [
-                        'asc' => ["$groupTable.visible" => SORT_ASC],
-                        'desc' => ["$groupTable.visible" => SORT_DESC],
+                        'asc' => ["$gt.visible" => SORT_ASC],
+                        'desc' => ["$gt.visible" => SORT_DESC],
                     ],
                     'serviceId',
                     'service' => [
-                        'asc' => ["$serviceTable.name" => SORT_ASC],
-                        'desc' => ["$serviceTable.name" => SORT_DESC],
+                        'asc' => ["$st.name" => SORT_ASC],
+                        'desc' => ["$st.name" => SORT_DESC],
                     ],
                     'office' => [
-                        'asc' => ["$officeTable.name" => SORT_ASC],
-                        'desc' => ["$officeTable.name" => SORT_DESC],
+                        'asc' => ["$ot.name" => SORT_ASC],
+                        'desc' => ["$ot.name" => SORT_DESC],
+                    ],
+                    'age' => [
+                        'asc' => ["$at.name" => SORT_ASC],
+                        'desc' => ["$at.name" => SORT_DESC],
+                    ],
+                    'language' => [
+                        'asc' => ["$lt.name" => SORT_ASC],
+                        'desc' => ["$lt.name" => SORT_DESC],
                     ]
                 ],
                 'defaultOrder' => [
