@@ -1,6 +1,8 @@
 <?php
 namespace app\models;
 use Yii;
+use yii\helpers\ArrayHelper;
+
 /**
  * This is the model class for table "calc_eduage".
  *
@@ -40,14 +42,20 @@ class Eduage extends \yii\db\ActiveRecord
         ];
     }
 
-    public function getEduages()
+    public static function getEduAges()
     {
     	$data = (new \yii\db\Query())
     	->select('id as id, name as name')
     	->from(static::tableName())
-    	->orderBy(['name'=>SORT_ASC])
+        ->where(['visible' => 1])
+    	->orderBy(['name' => SORT_ASC])
         ->all();
         
         return $data;
+    }
+
+    public static function getEduAgesSimple()
+    {
+        return ArrayHelper::map(self::getEduAges(), 'id', 'name');
     }
 }
