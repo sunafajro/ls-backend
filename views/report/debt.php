@@ -94,7 +94,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Debt report');
         <?php if ($totalDebt < 0) { ?>
             <div class="alert alert-danger" style="text-align: center">
                 <b>
-                    Итого: <?= number_format($totalDebt, 2, '.', ' ') ?>
+                    Итого: <?= number_format($totalDebt, 2, '.', ' ') ?> р.
                 </b>
             </div>
         <?php } ?>
@@ -140,7 +140,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Debt report');
         <?php foreach ($stds as $st) : ?>
 	        <div class="<?= $st['debt'] >= 0 ? 'bg-success text-success' : 'bg-danger text-danger' ?>" style="padding: 15px">
                 <div style="float: left"><strong><?= Html::a("#".$st['id']." ".$st['name']." →", ['studname/view', 'id'=>$st['id']]) ?></strong></div>
-                <div class="text-right"><strong>(баланс: <?= $st['debt'] ?> р.)</strong></div>
+                <div class="text-right"><strong>(баланс: <?= number_format($st['debt'], 2, '.', ' ') ?> р.)</strong></div>
             </div>
             <table class="table table-bordered table-stripped table-hover table-condensed" style="margin-bottom: 0.5rem">
                 <tbody>
