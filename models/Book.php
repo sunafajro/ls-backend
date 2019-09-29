@@ -47,16 +47,22 @@ class Book extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
-            'name' => 'Name',
-            'author' => 'Author',
-            'isbn' => 'Isbn',
-            'description' => 'Description',
-            'user' => 'User',
-            'data' => 'Data',
+            'id' => '№',
+            'name' => Yii::t('app', 'Name'),
+            'author' => Yii::t('app', 'Author'),
+            'isbn' => Yii::t('app', 'ISBN'),
+            'description' => Yii::t('app', 'Description'),
+            'user' => Yii::t('app', 'User'),
+            'data' => Yii::t('app', 'Date'),
             'visible' => 'Visible',
-            'calc_bookpublisher' => 'Calc Bookpublisher',
-            'calc_lang' => 'Calc Lang',
+            'calc_bookpublisher' => Yii::t('app', 'Publisher'),
+            'calc_lang' => Yii::t('app', 'Language'),
         ];
+    }
+
+    public function delete()
+    {
+        $this->visible = 0;
+        return $this->save();
     }
 }

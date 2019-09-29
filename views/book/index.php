@@ -1,68 +1,57 @@
 <?php
 
-use yii\helpers\Html;
+use app\models\search\BookSearch;
+use app\widgets\Alert;
+use yii\data\ActiveDataProvider;
 use yii\grid\GridView;
+use yii\helpers\Html;
+use yii\web\View;
+use yii\widgets\Breadcrumbs;
 
-/* @var $this yii\web\View */
-/* @var $searchModel app\models\CalcBookSearch */
-/* @var $dataProvider yii\data\ActiveDataProvider */
+/**
+ * @var View               $this
+ * @var ActiveDataProvider $dataProvider
+ * @var BookSearch         $searchModel
+ * @var string             $userInfoBlock
+ */
 
-$this->title = \Yii::t('app','Books');
-$this->params['breadcrumbs'][] = $this->title;
+$this->title = Yii::$app->params['appTitle'] . Yii::t('app','Books');
+$this->params['breadcrumbs'][] = Yii::t('app','Books');
 ?>
-<div class="calc-book-index">
-
-    <nav class="navbar navbar-default">
-    <div class="container-fluid">
-    <?= Html::a("<span class='glyphicon glyphicon-plus' aria-hidden='true'></span>", ['create'], ['class' => 'btn btn-default navbar-btn']) ?>
+<div class="row row-offcanvas row-offcanvas-left book-index">
+    <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
+            <div id="main-menu"></div>
+        <?php } ?>
+        <?= $userInfoBlock ?>
     </div>
-    </nav>
+    <div class="col-sm-10">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
+            <?= Breadcrumbs::widget([
+                'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+            ]); ?>
+        <?php } ?>
 
-    <!--<h1><?php /*Html::encode($this->title);*/ ?></h1>-->
-    <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
+        <p class="pull-left visible-xs">
+            <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
+        </p>
 
-   <!-- <p>
-        <?php /* Html::a('Create Calc Book', ['create'], ['class' => 'btn btn-success']); */ ?>
-    </p>
--->
+        <?= Alert::widget() ?>
 
-    <?php 
+        <?= GridView::widget([
+            'dataProvider' => $dataProvider,
+            'filterModel'  => $searchModel,
+            'layout'       => "{pager}\n{items}\n{pager}",
+            'columns'      => [
+                'id',
+                'name',
+                'author',
+                'description',
+                'isbn',
+                'publisher',
+                'language',
+            ]
+        ]) ?>
 
-    // var_dump($sQuery);
-
-    echo "<table class='table table-stripped table-bordered'>";
-    echo "<thead>";
-    echo "<tr><th>Название</th><th>ISBN</th><th>Издательство</th><th>Язык</th><th>Колич.шт.</th><th>Цена р.</th><th>Действия</th></tr>";
-    echo "</thead>";
-    foreach($books as $book)
-    {
-    echo "<tr>";
-    echo "<td>".$book['bname']."</td><td>".$book['isbn']."</td><td>".$book['bpname']."</td><td>".$book['lname']."</td><td>".$book['bcount']."</td><td>".$book['bprice']."</td>";
-    echo "<td><a title='Изменить' href='/index.php?r=teacher%2Fupdate&id=".$book['bid']."'><span class='glyphicon glyphicon-pencil'></span></a></td>";
-    echo "</tr>";
-    }
-    echo "</table>";
-    ?>
-
-    <?php /* GridView::widget([
-        'dataProvider' => $dataProvider,
-        'filterModel' => $searchModel,
-        'columns' => [
-            ['class' => 'yii\grid\SerialColumn'],
-
-            'id',
-            'name:ntext',
-            'author:ntext',
-            'isbn:ntext',
-            'description:ntext',
-            // 'user',
-            // 'data',
-            // 'visible',
-            // 'calc_bookpublisher',
-            // 'calc_lang',
-
-            ['class' => 'yii\grid\ActionColumn'],
-        ],
-    ]); */ ?>
-
+    </div>
 </div>

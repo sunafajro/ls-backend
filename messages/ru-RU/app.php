@@ -364,6 +364,7 @@ return array(
 'Publish'=>'Опубликовать',
 'Published'=>'Опубликован',
 'Publish date'=>'Дата добавления',
+'Publisher' => 'Издательство',
 'Queue' => 'Очередь',
 'Rate'=>'Ставка',
 'Receipt'=>'Квитанция',
