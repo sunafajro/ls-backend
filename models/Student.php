@@ -285,6 +285,27 @@ class Student extends ActiveRecord
         return $sales;
     }
 
+    public static function getDebtsTotalSum(string $office = null) : float
+    {
+        $debt = (new \yii\db\Query())
+        ->select(['debt' => 's.debt'])
+        ->from(['s' => Student::tableName()]);
+        if ($office) {
+            $debt = $debt
+                ->innerJoin(['so' => 'student_office'], 's.id = so.student_id')
+                ->andWhere(['so.office_id' => $office]);
+        }
+        $result = $debt
+            ->andWhere([
+                's.active' => 1,
+                's.visible' => 1
+            ])
+            ->andWhere(['<', 's.debt', 0])
+            ->sum('debt');
+
+        return $result ?? 0;
+    }
+
     public static function getStudentsAutocomplete(string $term = NULL) : array
     {
         $whereClause = ['like', 'name', $term];

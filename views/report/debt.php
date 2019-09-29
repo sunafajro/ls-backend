@@ -10,18 +10,20 @@
  * @var string              $state
  * @var array               $stds
  * @var array               $students
+ * @var float               $totalDebt
  * @var string              $tss
  * @var string              $userInfoBlock
  */
 
+use app\widgets\Alert;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use yii\widgets\Breadcrumbs;
+
 $this->title = 'Система учета :: '.Yii::t('app','Debt report');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
 $this->params['breadcrumbs'][] = Yii::t('app','Debt report');
 ?>
-
 <div class="row row-offcanvas row-offcanvas-left report-debt">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
 		<?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
@@ -78,27 +80,26 @@ $this->params['breadcrumbs'][] = Yii::t('app','Debt report');
         <?php ActiveForm::end(); ?>
 	</div>
 	<div class="col-sm-10">
-		<?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+		<?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
         <?= Breadcrumbs::widget([
             'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
         ]); ?>
-        <?php endif; ?>
+        <?php } ?>
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
 		</p>
-		<?php if(Yii::$app->session->hasFlash('error')) { ?>
-			<div class="alert alert-danger" role="alert">
-				<?= Yii::$app->session->getFlash('error') ?>
-			</div>
-		<?php } ?>
 
-		<?php if(Yii::$app->session->hasFlash('success')) { ?>
-			<div class="alert alert-success" role="alert">
-				<?= Yii::$app->session->getFlash('success') ?>
-			</div>
-		<?php } ?>
+        <?= Alert::widget() ?>
 
-		<?php
+        <?php if ($totalDebt < 0) { ?>
+            <div class="alert alert-danger" style="text-align: center">
+                <b>
+                    Итого: <?= number_format($totalDebt, 2, '.', ' ') ?> р.
+                </b>
+            </div>
+        <?php } ?>
+
+        <?php
 			// первый элемент страницы 
 			$start = (int)$pages->totalCount > 0 ? 1 : 0;
 			// последний элемент страницы
@@ -139,7 +140,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Debt report');
         <?php foreach ($stds as $st) : ?>
 	        <div class="<?= $st['debt'] >= 0 ? 'bg-success text-success' : 'bg-danger text-danger' ?>" style="padding: 15px">
                 <div style="float: left"><strong><?= Html::a("#".$st['id']." ".$st['name']." →", ['studname/view', 'id'=>$st['id']]) ?></strong></div>
-                <div class="text-right"><strong>(баланс: <?= $st['debt'] ?> р.)</strong></div>
+                <div class="text-right"><strong>(баланс: <?= number_format($st['debt'], 2, '.', ' ') ?> р.)</strong></div>
             </div>
             <table class="table table-bordered table-stripped table-hover table-condensed" style="margin-bottom: 0.5rem">
                 <tbody>

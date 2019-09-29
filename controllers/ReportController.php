@@ -1032,6 +1032,7 @@ class ReportController extends Controller
             'state'         => $state,
             'stds'          => $stds,
             'students'      => $students,
+            'totalDebt'     => Student::getDebtsTotalSum($oid),
             'tss'           => $tss,
 			'userInfoBlock' => User::getUserInfoBlock(),
         ]);
