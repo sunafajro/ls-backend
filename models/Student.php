@@ -55,7 +55,7 @@ class Student extends ActiveRecord
             [['name', 'fname', 'lname', 'mname', 'email', 'phone', 'address', 'description'], 'string'],
             [['visible', 'history', 'calc_sex', 'calc_cumulativediscount', 'active', 'calc_way'], 'integer'],
             [['debt', 'debt2', 'invoice', 'money'], 'number'],
-            //[['birthdate'], 'date', 'format'=>'yyyy-mm-dd'],
+            [['birthdate'], 'safe'],
         ];
     }
 
