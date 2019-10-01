@@ -2,6 +2,9 @@
 
 namespace app\controllers;
 
+use app\models\BookProvider;
+use app\models\BookPublisher;
+use app\models\Lang;
 use app\models\User;
 use Yii;
 use app\models\Book;
@@ -80,11 +83,18 @@ class BookController extends Controller
     {
         $model = new Book();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
+            if ($model->save()) {
+                return $this->redirect(['book/index']);
+            } else {
+                var_dump($model->getErrors()); die();
+            }
         } else {
             return $this->render('create', [
-                'model' => $model,
+                'model'         => $model,
+                'publishers'    => BookPublisher::getPublishersSimple(),
+                'languages'     => Lang::getLanguagesSimple(),
+                'userInfoBlock' => User::getUserInfoBlock(),
             ]);
         }
     }
@@ -103,7 +113,10 @@ class BookController extends Controller
             return $this->redirect(['view', 'id' => $model->id]);
         } else {
             return $this->render('update', [
-                'model' => $model,
+                'model'         => $model,
+                'publishers'    => BookPublisher::getPublishersSimple(),
+                'languages'     => Lang::getLanguagesSimple(),
+                'userInfoBlock' => User::getUserInfoBlock(),
             ]);
         }
     }

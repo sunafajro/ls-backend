@@ -24,6 +24,13 @@ $this->params['breadcrumbs'][] = Yii::t('app','Books');
             <div id="main-menu"></div>
         <?php } ?>
         <?= $userInfoBlock ?>
+        <h4><?= Yii::t('app', 'Actions') ?></h4>
+        <?= Html::a(
+                Html::tag('i', '', ['class' => 'fa fa-plus', 'aria-hidden' => 'true']) .
+                ' ' .
+                Yii::t('app', 'Add'), ['book/create'],
+                ['class' => 'btn btn-success btn-sm btn-block']
+        ) ?>
     </div>
     <div class="col-sm-10">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
@@ -50,6 +57,26 @@ $this->params['breadcrumbs'][] = Yii::t('app','Books');
                 'isbn',
                 'publisher',
                 'language',
+                'actions' => [
+                    'attribute' => 'actions',
+                    'format'    => 'raw',
+                    'label'     => Yii::t('app', 'Act.'),
+                    'value'     => function (array $book) {
+                        $actions = [
+                            Html::a(
+                                Html::tag('i', '', ['class' => 'fa fa-edit', 'aria-hidden' => 'true']),
+                                ['book/update', 'id' => $book['id']]
+                            ),
+                            Html::a(
+                                Html::tag('i', '', ['class' => 'fa fa-trash', 'aria-hidden' => 'true']),
+                                ['book/delete', 'id' => $book['id']],
+                                ['data-method' => 'POST']
+                            ),
+                        ];
+
+                        return join(' ', $actions);
+                    }
+                ]
             ]
         ]) ?>
 

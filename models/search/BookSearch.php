@@ -4,6 +4,7 @@
 namespace app\models\search;
 
 use app\models\Book;
+use app\models\BookPublisher;
 use app\models\Lang;
 use yii\data\ActiveDataProvider;
 use yii\db\Expression;
@@ -50,7 +51,7 @@ class BookSearch extends Book
     public function search(array $params = []) : ActiveDataProvider
     {
         $bt = Book::tableName();
-        $bpt = 'calc_bookpublisher';
+        $bpt = BookPublisher::tableName();
         $lt = Lang::tableName();
 
         $query = (new \yii\db\Query());
@@ -64,8 +65,8 @@ class BookSearch extends Book
             'language'    => "{$lt}.name",
         ]);
         $query->from($bt);
-        $query->innerJoin($bpt, "{$bpt}.id = {$bt}.calc_bookpublisher");
-        $query->innerJoin($lt, "{$lt}.id = {$bt}.calc_lang");
+        $query->innerJoin($bpt, "{$bpt}.id = {$bt}.book_publisher_id");
+        $query->innerJoin($lt, "{$lt}.id = {$bt}.language_id");
 
         $this->load($params);
         if ($this->validate()) {

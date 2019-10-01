@@ -1,21 +1,47 @@
 <?php
 
+use app\models\Book;
+use app\widgets\Alert;
 use yii\helpers\Html;
+use yii\web\View;
+use yii\widgets\Breadcrumbs;
 
-/* @var $this yii\web\View */
-/* @var $model app\models\CalcBook */
+/**
+ * @var View       $this
+ * @var Book       $model
+ * @var array      $publishers
+ * @var array      $languages
+ * @var string     $userInfoBlock
+ */
 
-$this->title = 'Update Calc Book: ' . ' ' . $model->name;
-$this->params['breadcrumbs'][] = ['label' => 'Calc Books', 'url' => ['index']];
-$this->params['breadcrumbs'][] = ['label' => $model->name, 'url' => ['view', 'id' => $model->id]];
-$this->params['breadcrumbs'][] = 'Update';
+$this->title = Yii::$app->params['appTitle'] . Yii::t('app','Update book');
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Books'), 'url' => ['book/index']];
+$this->params['breadcrumbs'][] = Yii::t('app','Update');
 ?>
-<div class="calc-book-update">
+<div class="row row-offcanvas row-offcanvas-left book-update">
+    <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
+            <div id="main-menu"></div>
+        <?php } ?>
+        <?= $userInfoBlock ?? '' ?>
+    </div>
+    <div class="col-sm-10">
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
+            <?= Breadcrumbs::widget([
+                'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+            ]); ?>
+        <?php } ?>
 
-    <h1><?= Html::encode($this->title) ?></h1>
+        <p class="pull-left visible-xs">
+            <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
+        </p>
 
-    <?= $this->render('_form', [
-        'model' => $model,
-    ]) ?>
+        <?= Alert::widget() ?>
 
+        <?= $this->render('_form', [
+                'model'      => $model ?? null,
+                'publishers' => $publishers ?? [],
+                'languages'  => $languages ?? [],
+        ]) ?>
+    </div>
 </div>
