@@ -140,13 +140,13 @@ class Schedule extends \yii\db\ActiveRecord
                 ],
                 [
                     'id' => 'group',
-                    'style' => 'width: 35%',
+                    'style' => 'width: 30%',
                     'title' => Yii::t('app', 'Group'),
                     'show' => true
                 ],
                 [
                     'id' => 'notes',
-                    'style' => 'width: 10%',
+                    'style' => 'width: 15%',
                     'title' => Yii::t('app', 'Notes'),
                     'show' => true
                 ],

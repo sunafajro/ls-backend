@@ -28,6 +28,7 @@ class ScheduleController extends Controller
                 'only' => [
                     'api-actions',
                     'api-create',
+                    'api-update',
                     'api-delete',
                     'api-filters',
                     'api-groups',
@@ -44,6 +45,7 @@ class ScheduleController extends Controller
                         'actions' => [
                             'api-actions',
                             'api-create',
+                            'api-update',
                             'api-delete',
                             'api-filters',
                             'api-groups',
@@ -62,6 +64,7 @@ class ScheduleController extends Controller
                         'actions' => [
                             'api-actions',
                             'api-create',
+                            'api-update',
                             'api-delete',
                             'api-filters',
                             'api-groups',
@@ -92,7 +95,7 @@ class ScheduleController extends Controller
         }
     }
     /**
-     * Lists all CalcSchedule models.
+     * Главная страница раздела Расписание
      * @return mixed
      */
     public function actionIndex()
@@ -115,10 +118,9 @@ class ScheduleController extends Controller
     }
 
     /**
-     * Метод позволяет преподавателям, менеджерам и руководителям 
-     * создавать записи занятий в расписании.
+     * Создание записи в расписании
      */
-    public function actionApiCreate($t = null, $tid = null, $oid = null)
+    public function actionApiCreate()
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         $model = new Schedule();
@@ -139,11 +141,42 @@ class ScheduleController extends Controller
         }
     }
 
+    /**
+     * Обновление записи в расписании
+     * @param int $id
+     */
+    public function actionApiUpdate($id)
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        /** @var Schedule $model */
+        $model = $this->findModel($id);
+        if ((int)Yii::$app->session->get('user.ustatus') === 5 && (int)$model->calc_teacher !== (int)Yii::$app->session->get('user.uteacher')) {
+            Yii::$app->response->statusCode = 403;
+            return [
+                "message" => "Вам не разрешено производить это действие!"
+            ];
+        }
+        ;
+        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            return [
+                "message" => "Занятие успешно обновлено!"
+            ];
+        } else {
+            return [
+                "message" => "Не удалось обновить занятие!"
+            ];
+        }
+    }
+
+    /**
+     * Удаление записи из расписания
+     * @param int $id
+     */
     public function actionApiDelete($id)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         $model = $this->findModel($id);
-        if((int)Yii::$app->session->get('user.ustatus') === 5 && (int)$model->calc_teacher !== (int)Yii::$app->session->get('user.uteacher')) {
+        if ((int)Yii::$app->session->get('user.ustatus') === 5 && (int)$model->calc_teacher !== (int)Yii::$app->session->get('user.uteacher')) {
             Yii::$app->response->statusCode = 403;
             return [
                 "message" => "Вам не разрешено производить это действие!"
@@ -182,11 +215,11 @@ class ScheduleController extends Controller
         $tool = new Tool();
         return [
             'filters' => [
-                'eduages' => $tool->prepareDataForSelectElement(Eduage::getEduAges()),
-                'eduforms' => $tool->prepareDataForSelectElement($eduforms),
+                'eduages'   => $tool->prepareDataForSelectElement(Eduage::getEduAges()),
+                'eduforms'  => $tool->prepareDataForSelectElement($eduforms),
                 'languages' => $tool->prepareDataForSelectElement($languages),
-                'offices' => $tool->prepareDataForSelectElement($offices),
-                'teachers' => $tool->prepareDataForSelectElement($teachers),
+                'offices'   => $tool->prepareDataForSelectElement($offices),
+                'teachers'  => $tool->prepareDataForSelectElement($teachers),
             ]
         ];
     }
@@ -271,103 +304,10 @@ class ScheduleController extends Controller
     }
 
     /**
-     * Метод позволяет менеджерам, преподавателям и руководителям
-     * изменять записии занятий в расписании.
-     * Требуется ID записи.
-     */
-    public function actionApiUpdate($id)
-    {
-        // находим запись о занятии
-        $model = $this->findModel($id);
-        if(!Yii::$app->session->get('user.ustatus') ==3 && !Yii::$app->session->get('user.ustatus') == 4 && $model->calc_teacher != Yii::$app->session->get('user.uteacher')){
-            return $this->redirect(Yii::$app->request->referrer);
-        }
-        
-        $userInfoBlock = User::getUserInfoBlock();
-        // определяем фильтр выборки
-        if(Yii::$app->session->get('user.ustatus')==5){
-            // для преподавателей
-            $teacher = Yii::$app->session->get('user.uteacher');
-        } else {
-            //  для менеджеров и руководителей
-            $teacher = NULL;
-        }
-        
-        $steachers = (new \yii\db\Query())
-        ->select('ctch.id as tid, ctch.name as tname')
-        ->from('calc_teacher ctch')
-        ->leftJoin('calc_groupteacher cgt','cgt.calc_teacher=ctch.id')
-        ->where('ctch.visible=:vis and ctch.old=:old and cgt.visible=:vis',[':vis'=>1,':old'=>0])
-        ->andFilterWhere(['ctch.id'=>$teacher])
-        ->orderBy(['ctch.name'=>SORT_ASC])
-        ->all();
-        //составляем список преподавателей для селекта
-        foreach($steachers as $steacher){
-            $tempteachers[$steacher['tid']] = $steacher['tname'];
-        }
-        $teachers = array_unique($tempteachers);
-        unset($tempteachers);
-        unset($steacher);
-        unset($steachers);
-        $teacheroffices = (new \yii\db\Query())
-        ->select('co.id as oid, co.name as oname')
-        ->from('calc_office co')
-        ->where('co.visible=:vis', [':vis'=>1])
-        ->orderBy(['co.id'=>SORT_ASC])
-        ->all();
-        //составляем массив офисов для селекта
-        foreach($teacheroffices as $teacheroffice){
-            $offices[$teacheroffice['oid']]=$teacheroffice['oname'];
-        }
-        unset($teacheroffice);
-        unset($teacheroffices);
-        
-        $teachgroups = (new \yii\db\Query())
-        ->select('cgt.id as gid, cs.id as sid, cs.name as gname')
-        ->from('calc_groupteacher cgt')
-        ->leftJoin('calc_service cs','cs.id=cgt.calc_service')
-        ->where('cgt.visible=:vis and cgt.calc_teacher=:tid',[':vis'=>1,':tid'=>$model->calc_teacher])
-        ->all();
-        
-        //составляем массив групп для селекта
-        foreach($teachgroups as $teachergroup){
-            $groups[$teachergroup['gid']] = "#".$teachergroup['gid']." ".$teachergroup['gname'];
-        }
-        unset($teachergroup);
-        unset($teachgroups);
-        // выбираем список кабинетов
-        $officecabinets = (new \yii\db\Query())
-        ->select('cco.id as cid, co.id as oid, cco.name as cname')
-        ->from('calc_cabinetoffice cco')
-        ->leftJoin('calc_office co','co.id=cco.calc_office')
-        ->where('cco.visible=:vis and co.visible=:vis and cco.calc_office=:oid',[':vis'=>1,':oid'=>$model->calc_office])
-        ->all();
-        //составляем массив кабинетов для селекта
-        foreach($officecabinets as $officecabinet){
-            $cabinets[$officecabinet['cid']]=$officecabinet['cname'];
-        }
-        unset($officecabinet);
-        unset($officecabinets);
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['index']);
-        } else {
-            return $this->render('update', [
-                'model' => $model,
-                'offices'=>$offices,
-                'teachers'=>$teachers,
-                'groups'=>$groups,
-                'cabinets'=>$cabinets,
-                'days' => Tool::getDayOfWeekSimple(),
-                'userInfoBlock' => $userInfoBlock
-            ]);
-        }
-    }
-
-    /**
-     * Finds the CalcSchedule model based on its primary key value.
+     * Finds the Schedule model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return CalcSchedule the loaded model
+     * @return Schedule the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
