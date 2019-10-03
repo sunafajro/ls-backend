@@ -41,13 +41,12 @@ class JournalgroupController extends Controller
     }
 	
     /**
-    * метод позволяет менеджеру,и руководителю
-    * или преподавателю назначенному в группу
-    * добавить занятие в журнал
-    **/
-	
+    * Метод добавления занятия в журнал группы
+    * @param int $gid
+    */	
     public function actionCreate($gid)
     {
+        /** @var Groupteacher group */
         $group = Groupteacher::findOne($gid);
         $params['gid'] = $gid;
         $params['active'] = Groupteacher::getGroupStateById($gid);
@@ -183,8 +182,8 @@ class JournalgroupController extends Controller
                     'model'          => $model,
                     'params'         => $params,
                     'students'       => $students,
+                    'timeHints'      => Journalgroup::getLastLessonTimesByGroup($gid),
                     'userInfoBlock'  => User::getUserInfoBlock(),
-                    
                 ]);
             }
         }
