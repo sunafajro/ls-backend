@@ -186,6 +186,7 @@ class Journalgroup extends \yii\db\ActiveRecord
             ]
         ])
         ->limit(10)
+        ->orderBy(['id' => SORT_DESC])
         ->indexBy(['begin'])
         ->all();
 
