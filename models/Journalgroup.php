@@ -171,7 +171,10 @@ class Journalgroup extends \yii\db\ActiveRecord
         $lessons = (new \yii\db\Query())
         ->select(['begin' => 'time_begin', 'end' => 'time_end'])
         ->from(['j' => self::tableName()])
-        ->where(['visible' => 1])
+        ->where([
+            'visible' => 1,
+            'calc_groupteacher' => $gid,
+        ])
         ->andWhere([
             'and',
             [
