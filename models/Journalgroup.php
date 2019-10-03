@@ -172,8 +172,19 @@ class Journalgroup extends \yii\db\ActiveRecord
         ->select(['begin' => 'time_begin', 'end' => 'time_end'])
         ->from(['j' => self::tableName()])
         ->where(['visible' => 1])
-        ->andWhere(['not', ['time_begin' => null]])
-        ->andWhere(['not', ['time_end' => null]])
+        ->andWhere([
+            'and',
+            [
+                'and',
+                ['not', ['time_begin' => null]],
+                ['not', ['time_begin' => '00:00']],
+            ],
+            [
+                'and',
+                ['not', ['time_end' => null]],
+                ['not', ['time_end' => '00:00']],
+            ]
+        ])
         ->limit(10)
         ->indexBy(['begin'])
         ->all();
