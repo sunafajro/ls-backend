@@ -2,14 +2,12 @@
 
 use app\models\Book;
 use app\widgets\Alert;
-use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\Breadcrumbs;
 
 /**
  * @var View   $this
  * @var Book   $model
- * @var array  $publishers
  * @var array  $languages
  * @var string $userInfoBlock
  */
@@ -40,7 +38,6 @@ $this->params['breadcrumbs'][] = Yii::t('app','Create');
 
         <?= $this->render('_form', [
                 'model'      => $model ?? null,
-                'publishers' => $publishers ?? [],
                 'languages'  => $languages ?? [],
         ]) ?>
     </div>

@@ -4,7 +4,6 @@
 namespace app\models\search;
 
 use app\models\Book;
-use app\models\BookPublisher;
 use app\models\Lang;
 use yii\data\ActiveDataProvider;
 use yii\db\Expression;
@@ -33,7 +32,7 @@ class BookSearch extends Book
     public function rules()
     {
         return [
-            [['name', 'isbn'], 'string']
+            [['name', 'isbn', 'author', 'publisher'], 'string']
         ];
     }
 
@@ -43,7 +42,6 @@ class BookSearch extends Book
     public function attributeLabels()
     {
         return array_merge(parent::attributeLabels(), [
-            'publisher' => Yii::t('app', 'Publisher'),
             'language' => Yii::t('app', 'Language'),
         ]);
     }
@@ -51,7 +49,6 @@ class BookSearch extends Book
     public function search(array $params = []) : ActiveDataProvider
     {
         $bt = Book::tableName();
-        $bpt = BookPublisher::tableName();
         $lt = Lang::tableName();
 
         $query = (new \yii\db\Query());
@@ -61,18 +58,19 @@ class BookSearch extends Book
             'author'      => "{$bt}.author",
             'description' => "{$bt}.description",
             'isbn'        => "{$bt}.isbn",
-            'publisher'   => "{$bpt}.name",
+            'publisher'   => "{$bt}.publisher",
             'language'    => "{$lt}.name",
         ]);
         $query->from($bt);
-        $query->innerJoin($bpt, "{$bpt}.id = {$bt}.book_publisher_id");
         $query->innerJoin($lt, "{$lt}.id = {$bt}.language_id");
 
         $this->load($params);
         if ($this->validate()) {
             $query->andWhere(["{$bt}.visible" => 1]);
-            $query->andFilterWhere(["{$bt}.name" => $this->name]);
+            $query->andFilterWhere(['like', "{$bt}.name", $this->name]);
             $query->andFilterWhere(["{$bt}.isbn" => $this->isbn]);
+            $query->andFilterWhere(['like', "{$bt}.author", $this->author]);
+            $query->andFilterWhere(['like', "{$bt}.publisher", $this->publisher]);
         } else {
             $query->andWhere(new Expression("(0 = 1)"));
         }
@@ -89,10 +87,7 @@ class BookSearch extends Book
                     'author',
                     'description',
                     'isbn',
-                    'publisher' => [
-                        'asc' => ["{$bpt}.name" => SORT_ASC],
-                        'desc' => ["{$bpt}.name" => SORT_DESC],
-                    ],
+                    'publisher',
                     'language' => [
                         'asc' => ["{$lt}.name" => SORT_ASC],
                         'desc' => ["{$lt}.name" => SORT_DESC],

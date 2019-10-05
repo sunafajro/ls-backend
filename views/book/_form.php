@@ -9,7 +9,6 @@ use yii\widgets\ActiveForm;
  * @var View       $this
  * @var Book       $model
  * @var ActiveForm $form
- * @var array      $publishers
  * @var array      $languages
  */
 ?>
@@ -22,9 +21,7 @@ use yii\widgets\ActiveForm;
     <?= $form->field($model, 'author')->textInput() ?>
     <?= $form->field($model, 'isbn')->textInput() ?>
     <?= $form->field($model, 'description')->textarea(['rows' => 6]) ?>
-    <?= $form->field($model, 'book_publisher_id')->dropDownList($publishers ?? [], [
-            'prompt' => Yii::t('app', '-select-')
-    ]) ?>
+    <?= $form->field($model, 'publisher')->textInput() ?>
     <?= $form->field($model, 'language_id')->dropDownList($languages ?? [], [
         'prompt' => Yii::t('app', '-select-')
     ]) ?>

@@ -5,30 +5,30 @@ namespace app\models;
 use Yii;
 
 /**
- * This is the model class for table "books".
+ * This is the model class for table "book_costs".
  *
  * @property integer $id
- * @property string  $name
- * @property string  $author
- * @property string  $isbn
- * @property string  $description
- * @property string  $publisher
- * @property integer $language_id
+ * @property integer $book_id
+ * @property float   $cost
+ * @property string  $type
  * @property integer $user_id
  * @property string  $created_at
  * @property integer $visible
  * 
- * @property Lang $language
+ * @property Book $book
  * @property User $user
  */
-class Book extends \yii\db\ActiveRecord
+class BookCost extends \yii\db\ActiveRecord
 {
+    const TYPE_PURCHASE = 'purchase';
+    const TYPE_SELLING  = 'selling';
+
     /**
      * @inheritdoc
      */
     public static function tableName()
     {
-        return 'books';
+        return 'book_costs';
     }
 
     /**
@@ -37,9 +37,10 @@ class Book extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'author', 'isbn', 'publisher', 'language_id'], 'required'],
-            [['name', 'author', 'isbn', 'description', 'publisher'], 'string'],
-            [['user_id', 'visible', 'language_id'], 'integer'],
+            [['cost', 'book_id', 'type'], 'required'],
+            [['type'], 'string'],
+            [['cost'], 'number'],
+            [['user_id', 'visible', 'book_id'], 'integer'],
             [['visible'],    'default', 'value'=> 1],
             [['created_at'], 'default', 'value'=> date('Y-m-d')],
             [['user_id'],    'default', 'value'=> Yii::$app->user->identity->id],
@@ -54,12 +55,8 @@ class Book extends \yii\db\ActiveRecord
     {
         return [
             'id'          => '№',
-            'name'        => Yii::t('app', 'Name'),
-            'author'      => Yii::t('app', 'Author'),
-            'isbn'        => Yii::t('app', 'ISBN'),
-            'description' => Yii::t('app', 'Description'),
-            'publisher'   => Yii::t('app', 'Publisher'),
-            'language_id' => Yii::t('app', 'Language ID'),
+            'book_id'     => Yii::t('app', 'Book ID'),
+            'type'        => Yii::t('app', 'Cost type'),
             'user_id'     => Yii::t('app', 'User ID'),
             'created_at'  => Yii::t('app', 'Created at'),
             'visible'     => Yii::t('app', 'Active'),
@@ -72,9 +69,23 @@ class Book extends \yii\db\ActiveRecord
         return $this->save();
     }
 
-    public function getLanguage()
+    public static function getTypeLabels(): array
     {
-        $this->hasOne(Lang::class, ['id', 'language_id']);
+        return [
+            self::TYPE_PURCHASE => Yii::t('app', 'Purchase cost'),
+            self::TYPE_SELLING => Yii::t('app', 'Selling cost'),
+        ];
+    }
+
+    public static function getTypeLabel(string $key) : string
+    {
+        $statuses = self::getTypeLabels();
+        return $statuses[key] ?? '';
+    }
+
+    public function getBook()
+    {
+        $this->hasOne(Book::class, ['id', 'book_id']);
     }
 
     public function getUser()

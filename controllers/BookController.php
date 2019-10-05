@@ -2,8 +2,6 @@
 
 namespace app\controllers;
 
-use app\models\BookProvider;
-use app\models\BookPublisher;
 use app\models\Lang;
 use app\models\User;
 use Yii;
@@ -47,7 +45,6 @@ class BookController extends Controller
     }
 
     /**
-     * Lists all Book models.
      * @return mixed
      */
     public function actionIndex()
@@ -63,7 +60,6 @@ class BookController extends Controller
     }
 
     /**
-     * Displays a single CalcBook model.
      * @param integer $id
      * @return mixed
      */
@@ -75,8 +71,6 @@ class BookController extends Controller
     }
 
     /**
-     * Creates a new Book model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
     public function actionCreate()
@@ -92,7 +86,6 @@ class BookController extends Controller
         } else {
             return $this->render('create', [
                 'model'         => $model,
-                'publishers'    => BookPublisher::getPublishersSimple(),
                 'languages'     => Lang::getLanguagesSimple(),
                 'userInfoBlock' => User::getUserInfoBlock(),
             ]);
@@ -100,8 +93,6 @@ class BookController extends Controller
     }
 
     /**
-     * Updates an existing Book model.
-     * If update is successful, the browser will be redirected to the 'view' page.
      * @param integer $id
      * @return mixed
      */
@@ -114,7 +105,6 @@ class BookController extends Controller
         } else {
             return $this->render('update', [
                 'model'         => $model,
-                'publishers'    => BookPublisher::getPublishersSimple(),
                 'languages'     => Lang::getLanguagesSimple(),
                 'userInfoBlock' => User::getUserInfoBlock(),
             ]);
@@ -122,8 +112,6 @@ class BookController extends Controller
     }
 
     /**
-     * Deletes an existing Book model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param integer $id
      * @return mixed
      */
@@ -135,7 +123,7 @@ class BookController extends Controller
     }
 
     /**
-     * Finds the CalcBook model based on its primary key value.
+     * Finds the Book model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
      * @return Book the loaded model
