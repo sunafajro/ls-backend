@@ -14,7 +14,7 @@ use yii\widgets\Breadcrumbs;
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app','Create book');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Books'), 'url' => ['book/index']];
-$this->params['breadcrumbs'][] = Yii::t('app','Create');
+$this->params['breadcrumbs'][] = Yii::t('app', 'Create');
 ?>
 <div class="row row-offcanvas row-offcanvas-left book-create">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
@@ -23,7 +23,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Create');
         <?php } ?>
         <?= $userInfoBlock ?? '' ?>
     </div>
-    <div class="col-sm-10">
+    <div class="col-sm-6">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
             <?= Breadcrumbs::widget([
                 'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],

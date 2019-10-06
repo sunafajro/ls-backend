@@ -36,11 +36,26 @@ $this->params['breadcrumbs'][] = Yii::t('app','Books');
                     Yii::t('app', 'Add'), ['book/create'],
                     ['class' => 'btn btn-success btn-sm btn-block']
             );
+            if (empty($bookOrder)) {
+               echo Html::a(
+                    Html::tag('i', '', ['class' => 'fa fa-plus', 'aria-hidden' => 'true']) .
+                    ' ' .
+                    Yii::t('app', 'Open new order'), ['book-order/create'],
+                    ['class' => 'btn btn-info btn-sm btn-block']
+               );
+            } else {
+                echo Html::a(
+                    Html::tag('i', '', ['class' => 'fa fa-times', 'aria-hidden' => 'true']) .
+                    ' ' .
+                    Yii::t('app', 'Close current order'), ['book-order/close', 'id' => $bookOrder->id],
+                    ['class' => 'btn btn-danger btn-sm btn-block', 'data-method' => 'POST']
+               );
+            }
         } ?>
         <h4>Текущий заказ:</h4>
         <?php if (!empty($bookOrder)) { ?>
-            <p><b>Дата начала:</b> <?= $bookOrder->date_start ?></p>
-            <p><b>Дата окончания:</b> <?= $bookOrder->date_end ?></p>
+            <p><b>Дата начала:</b> <?= date('d.m.Y', strtotime($bookOrder->date_start)) ?></p>
+            <p><b>Дата окончания:</b> <?= date('d.m.Y', strtotime($bookOrder->date_end)) ?></p>
         <?php } else { ?>
             <i>В данный момент нет открытых заказов учебников...</i>
         <?php } ?>

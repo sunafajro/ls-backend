@@ -45,10 +45,13 @@ class BookOrder extends \yii\db\ActiveRecord
             [['date_start', 'date_end'], 'required'],
             [['count', 'user_id', 'visible'], 'integer'],
             [['purchase_cost', 'selling_cost'], 'number'],
-            [['status'],     'default', 'value'=> self::STATUS_OPENED],
-            [['user_id'],    'default', 'value'=> Yii::$app->user->identity->id],
-            [['created_at'], 'default', 'value'=> date('Y-m-d')],
-            [['visible'],    'default', 'value'=> 1],
+            [['count'],         'default', 'value'=> 0],
+            [['purchase_cost'], 'default', 'value'=> 0],
+            [['selling_cost'],  'default', 'value'=> 0],
+            [['status'],        'default', 'value'=> self::STATUS_OPENED],
+            [['user_id'],       'default', 'value'=> Yii::$app->user->identity->id],
+            [['created_at'],    'default', 'value'=> date('Y-m-d')],
+            [['visible'],       'default', 'value'=> 1],
             [['date_start', 'date_end', 'created_at'], 'safe'],
         ];
     }
@@ -70,6 +73,12 @@ class BookOrder extends \yii\db\ActiveRecord
             'created_at'    => Yii::t('app', 'Created at'),
             'visible'       => Yii::t('app', 'Active'),
         ];
+    }
+
+    public function close()
+    {
+        $this->status = self::STATUS_CLOSED;
+        return $this->save();
     }
 
     public function restore()
@@ -103,8 +112,16 @@ class BookOrder extends \yii\db\ActiveRecord
         return $this->hasOne(User::class, ['id' => 'user_id']);
     }
 
-    public static function getPositions()
+    public function getPositions()
     {
         return $this->hasMany(BookOrderPosition::class, ['book_order_id' => 'id']);
+    }
+
+    public static function getCurrentOrder()
+    {
+        return self::find()->andWhere([
+            'visible' => 1,
+            'status'  => self::STATUS_OPENED,
+        ])->one();
     }
 }

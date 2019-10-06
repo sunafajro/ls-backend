@@ -12,8 +12,7 @@ use yii\widgets\ActiveForm;
  * @var array      $languages
  */
 ?>
-
-<div class="calc-book-form">
+<div class="book-form">
 
     <?php $form = ActiveForm::begin(); ?>
 
