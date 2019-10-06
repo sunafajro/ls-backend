@@ -23,12 +23,22 @@ class BookOrderController extends Controller
                 'only' => ['close', 'create', 'update', 'delete'],
                 'rules' => [
                     [
-                        'actions' => ['close', 'create', 'update', 'delete'],
+                        'actions' => [
+                            'close',
+                            'create',
+                            'update',
+                            'delete',
+                        ],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['close', 'create', 'update', 'delete'],
+                        'actions' => [
+                            'close',
+                            'create',
+                            'update',
+                            'delete',
+                        ],
                         'allow' => true,
                         'roles' => ['@'],
                     ],

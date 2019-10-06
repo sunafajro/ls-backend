@@ -59,14 +59,14 @@ class BookOrderPosition extends \yii\db\ActiveRecord
     {
         return [
             'id'               => '№',
-            'book_order_id'    => Yii::t('app', 'Book order ID'),
+            'book_order_id'    => Yii::t('app', 'Book order'),
             'book_id'          => Yii::t('app', 'Book ID'),
-            'purchase_cost_id' => Yii::t('app', 'Purchase cost ID'),
-            'selling_cost_id'  => Yii::t('app', 'Selling cost ID'),
+            'purchase_cost_id' => Yii::t('app', 'Purchase cost'),
+            'selling_cost_id'  => Yii::t('app', 'Selling cost'),
             'count'            => Yii::t('app', 'Count'),
             'paid'             => Yii::t('app', 'Paid'),
-            'office_id'        => Yii::t('app', 'Office ID'),
-            'user_id'          => Yii::t('app', 'User ID'),
+            'office_id'        => Yii::t('app', 'Office'),
+            'user_id'          => Yii::t('app', 'User'),
             'created_at'       => Yii::t('app', 'Created at'),
             'visible'          => Yii::t('app', 'Active'),
         ];

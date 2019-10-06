@@ -11,9 +11,6 @@ use Yii;
  * @property integer $id
  * @property string  $date_start
  * @property string  $date_end
- * @property int     $count
- * @property float   $purchase_cost
- * @property float   $selling_cost
  * @property string  $status
  * @property integer $user_id
  * @property string  $created_at
@@ -43,11 +40,7 @@ class BookOrder extends \yii\db\ActiveRecord
     {
         return [
             [['date_start', 'date_end'], 'required'],
-            [['count', 'user_id', 'visible'], 'integer'],
-            [['purchase_cost', 'selling_cost'], 'number'],
-            [['count'],         'default', 'value'=> 0],
-            [['purchase_cost'], 'default', 'value'=> 0],
-            [['selling_cost'],  'default', 'value'=> 0],
+            [['user_id', 'visible'], 'integer'],
             [['status'],        'default', 'value'=> self::STATUS_OPENED],
             [['user_id'],       'default', 'value'=> Yii::$app->user->identity->id],
             [['created_at'],    'default', 'value'=> date('Y-m-d')],
@@ -65,9 +58,6 @@ class BookOrder extends \yii\db\ActiveRecord
             'id'            => '№',
             'date_start'    => Yii::t('app', 'Start date'),
             'date_end'      => Yii::t('app', 'End date'),
-            'count'         => Yii::t('app', 'Count'),
-            'purchase_cost' => Yii::t('app', 'Purchase cost'),
-            'selling_cost'  => Yii::t('app', 'Selling cost'),
             'status'        => Yii::t('app', 'Status'),
             'user_id'       => Yii::t('app', 'User ID'),
             'created_at'    => Yii::t('app', 'Created at'),
@@ -114,7 +104,32 @@ class BookOrder extends \yii\db\ActiveRecord
 
     public function getPositions()
     {
-        return $this->hasMany(BookOrderPosition::class, ['book_order_id' => 'id']);
+        $officeId = (int)Yii::$app->session->get('user.ustatus') === 4
+        ? (int)Yii::$app->session->get('user.uoffice_id')
+        : null;
+
+        return $this->hasMany(BookOrderPosition::class, ['book_order_id' => 'id'])
+        ->andFilterWhere(['office_id' => $officeId]);
+    }
+
+    public function getPositionsCount()
+    {
+        return $this->getPositions()->count();
+    }
+
+    public function getOrderCounters()
+    {
+        $bct = BookCost::tableName();
+        $bopt = BookOrderPosition::tableName();
+        return $this->getPositions()
+            ->select([
+                'total_count' => "SUM({$bopt}.count)",
+                'total_purchase_cost' => "SUM({$bopt}.count * {$bct}.cost)",
+                'total_selling_cost' => "SUM({$bopt}.paid)",
+            ])
+            ->innerJoin($bct, "{$bct}.id = {$bopt}.purchase_cost_id")
+            ->asArray()
+            ->one();
     }
 
     public static function getCurrentOrder()
