@@ -71,6 +71,12 @@ class BookOrder extends \yii\db\ActiveRecord
         return $this->save();
     }
 
+    public function open()
+    {
+        $this->status = self::STATUS_OPENED;
+        return $this->save();
+    }
+
     public function restore()
     {
         $this->visible = 1;
@@ -94,7 +100,7 @@ class BookOrder extends \yii\db\ActiveRecord
     public static function getStatusLabel(string $key) : string
     {
         $statuses = self::getStatusLabels();
-        return $statuses[key] ?? '';
+        return $statuses[$key] ?? '';
     }
 
     public function getUser()
@@ -105,8 +111,8 @@ class BookOrder extends \yii\db\ActiveRecord
     public function getPositions()
     {
         $officeId = (int)Yii::$app->session->get('user.ustatus') === 4
-        ? (int)Yii::$app->session->get('user.uoffice_id')
-        : null;
+            ? (int)Yii::$app->session->get('user.uoffice_id')
+            : null;
 
         return $this->hasMany(BookOrderPosition::class, ['book_order_id' => 'id'])
         ->andFilterWhere(['office_id' => $officeId]);

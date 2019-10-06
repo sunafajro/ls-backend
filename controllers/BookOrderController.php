@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use app\models\BookOrder;
+use app\models\search\BookOrderSearch;
 use app\models\User;
 use Yii;
 use yii\filters\AccessControl;
@@ -20,12 +21,14 @@ class BookOrderController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::class,
-                'only' => ['close', 'create', 'update', 'delete'],
+                'only' => ['close', 'create', 'index', 'open', 'update', 'delete'],
                 'rules' => [
                     [
                         'actions' => [
                             'close',
                             'create',
+                            'index',
+                            'open',
                             'update',
                             'delete',
                         ],
@@ -36,6 +39,8 @@ class BookOrderController extends Controller
                         'actions' => [
                             'close',
                             'create',
+                            'index',
+                            'open',
                             'update',
                             'delete',
                         ],
@@ -47,11 +52,31 @@ class BookOrderController extends Controller
             'verbs' => [
                 'class' => VerbFilter::class,
                 'actions' => [
-                    'close' => ['post'],
+                    'close'  => ['post'],
                     'delete' => ['post'],
+                    'open'   => ['post'],
                 ],
             ],
         ];
+    }
+
+    /**
+     * @return mixed
+     */
+    public function actionIndex()
+    {
+
+        $searchModel = new BookOrderSearch();
+        $dataProvider = $searchModel->search(Yii::$app->request->get());
+        $bookOrder = BookOrder::getCurrentOrder();
+
+        return $this->render('index', [
+            'bookOrder'         => $bookOrder ?? null,
+            'bookOrderCounters' => $bookOrder ? $bookOrder->getOrderCounters() : [],
+            'dataProvider'      => $dataProvider,
+            'searchModel'       => $searchModel,
+            'userInfoBlock'     => User::getUserInfoBlock(),
+        ]);
     }
 
     /**
@@ -93,6 +118,21 @@ class BookOrderController extends Controller
         return $this->render('update', [
             'userInfoBlock' => User::getUserInfoBlock(),
         ]);
+    }
+
+    /**
+     * @param integer $id
+     * @return mixed
+     */
+    public function actionOpen($id)
+    {
+        if (!in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        }
+
+        $this->findModel($id)->open();
+
+        return $this->redirect(['book/index']);
     }
 
     /**

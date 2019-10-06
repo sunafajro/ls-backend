@@ -27,18 +27,11 @@ $this->params['breadcrumbs'][] = $title;
             <div id="main-menu"></div>
         <?php } ?>
         <?= $userInfoBlock ?? '' ?>
-        <h4>Заказ №<?= $bookOrder->id ?></h4>
-        <p><b>Дата начала:</b> <?= date('d.m.Y', strtotime($bookOrder->date_start)) ?></p>
-            <p><b>Дата окончания:</b> <?= date('d.m.Y', strtotime($bookOrder->date_end)) ?></p>
-            <p><b>Количество позиций:</b> <?= Html::a(
-                    $bookOrder->positionsCount ?? 0,
-                    ['book-order-position/index', 'id' => $bookOrder->id]
-                ) ?></p>
-            <p><b>Итого учебников:</b> <?= $bookOrderCounters['total_count'] ?? 0 ?></p>
-            <?php if (in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7])) { ?>
-                <p><b>Итого (закупочная цена):</b> <?= $bookOrderCounters['total_purchase_cost'] ?? 0 ?> р.</p>
-            <?php } ?>
-            <p><b>Итого:</b> <?= $bookOrderCounters['total_selling_cost'] ?? 0 ?> р.</p>
+        <?= $this->render('../book-order/_order_info', [
+                'current'           => false,
+                'bookOrder'         => $bookOrder ?? null,
+                'bookOrderCounters' => $bookOrderCounters ?? [],
+        ]) ?>
     </div>
     <div class="col-sm-6">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>

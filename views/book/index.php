@@ -15,6 +15,7 @@ use yii\widgets\Breadcrumbs;
  * @var BookOrder          $bookOrder
  * @var ActiveDataProvider $dataProvider
  * @var BookSearch         $searchModel
+ * @var array              $bookOrderCounters
  * @var array              $languages
  * @var string             $userInfoBlock
  */
@@ -51,18 +52,19 @@ $this->params['breadcrumbs'][] = Yii::t('app','Books');
                     ['class' => 'btn btn-danger btn-sm btn-block', 'data-method' => 'POST']
                );
             }
-        } ?>
-        <h4>Текущий заказ:</h4>
-        <?php if (!empty($bookOrder)) { ?>
-            <p><b>Дата начала:</b> <?= date('d.m.Y', strtotime($bookOrder->date_start)) ?></p>
-            <p><b>Дата окончания:</b> <?= date('d.m.Y', strtotime($bookOrder->date_end)) ?></p>
-            <p><b>Количество позиций:</b> <?= Html::a(
-                    $bookOrder->positionsCount ?? 0,
-                    ['book-order-position/index', 'id' => $bookOrder->id]
-                ) ?></p>
-        <?php } else { ?>
-            <i>В данный момент нет открытых заказов учебников...</i>
-        <?php } ?>
+            echo Html::a(
+                Html::tag('i', '', ['class' => 'fa fa-list', 'aria-hidden' => 'true']) .
+                ' ' .
+                Yii::t('app', 'Order history'), ['book-order/index'],
+                ['class' => 'btn btn-warning btn-sm btn-block']
+            );
+        }
+        echo $this->render('../book-order/_order_info', [
+                'current'           => true,
+                'bookOrder'         => $bookOrder ?? null,
+                'bookOrderCounters' => $bookOrderCounters ?? [],
+        ]);
+        ?>
     </div>
     <div class="col-sm-10">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
@@ -116,11 +118,13 @@ $this->params['breadcrumbs'][] = Yii::t('app','Books');
                 'label'     => Yii::t('app', 'Act.'),
                 'value'     => function (array $book) use ($bookOrder) {
                     $actions = [];
-                    $actions[] = Html::a(
-                        Html::tag('i', '', ['class' => 'fa fa-plus', 'aria-hidden' => 'true']),
-                        ['book-order-position/create', 'id' => $bookOrder->id, 'book_id' => $book['id']],
-                        ['title' => Yii::t('app', 'Add to the order')]
-                    );
+                    if (!empty($bookOrder)) {
+                        $actions[] = Html::a(
+                            Html::tag('i', '', ['class' => 'fa fa-plus', 'aria-hidden' => 'true']),
+                            ['book-order-position/create', 'id' => $bookOrder->id, 'book_id' => $book['id']],
+                            ['title' => Yii::t('app', 'Add to the order')]
+                        );
+                    }
                     if (in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7])) {
                         $actions[] = Html::a(
                             Html::tag('i', '', ['class' => 'fa fa-edit', 'aria-hidden' => 'true']),
