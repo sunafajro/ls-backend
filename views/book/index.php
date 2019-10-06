@@ -1,5 +1,7 @@
 <?php
 
+use app\models\BookCost;
+use app\models\BookOrder;
 use app\models\search\BookSearch;
 use app\widgets\Alert;
 use yii\data\ActiveDataProvider;
@@ -10,8 +12,10 @@ use yii\widgets\Breadcrumbs;
 
 /**
  * @var View               $this
+ * @var BookOrder          $bookOrder
  * @var ActiveDataProvider $dataProvider
  * @var BookSearch         $searchModel
+ * @var array              $languages
  * @var string             $userInfoBlock
  */
 
@@ -24,13 +28,22 @@ $this->params['breadcrumbs'][] = Yii::t('app','Books');
             <div id="main-menu"></div>
         <?php } ?>
         <?= $userInfoBlock ?>
-        <h4><?= Yii::t('app', 'Actions') ?></h4>
-        <?= Html::a(
-                Html::tag('i', '', ['class' => 'fa fa-plus', 'aria-hidden' => 'true']) .
-                ' ' .
-                Yii::t('app', 'Add'), ['book/create'],
-                ['class' => 'btn btn-success btn-sm btn-block']
-        ) ?>
+        <?php if (in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7])) {
+            echo Html::tag('h4', Yii::t('app', 'Actions'));
+            echo Html::a(
+                    Html::tag('i', '', ['class' => 'fa fa-plus', 'aria-hidden' => 'true']) .
+                    ' ' .
+                    Yii::t('app', 'Add'), ['book/create'],
+                    ['class' => 'btn btn-success btn-sm btn-block']
+            );
+        } ?>
+        <h4>Текущий заказ:</h4>
+        <?php if (!empty($bookOrder)) { ?>
+            <p><b>Дата начала:</b> <?= $bookOrder->date_start ?></p>
+            <p><b>Дата окончания:</b> <?= $bookOrder->date_end ?></p>
+        <?php } else { ?>
+            <i>В данный момент нет открытых заказов учебников...</i>
+        <?php } ?>
     </div>
     <div class="col-sm-10">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
@@ -45,40 +58,66 @@ $this->params['breadcrumbs'][] = Yii::t('app','Books');
 
         <?= Alert::widget() ?>
 
-        <?= GridView::widget([
-            'dataProvider' => $dataProvider,
-            'filterModel'  => $searchModel,
-            'layout'       => "{pager}\n{items}\n{pager}",
-            'columns'      => [
-                'id',
-                'name',
-                'author',
-                'description',
-                'isbn',
-                'publisher',
-                'language',
-                'actions' => [
-                    'attribute' => 'actions',
-                    'format'    => 'raw',
-                    'label'     => Yii::t('app', 'Act.'),
-                    'value'     => function (array $book) {
-                        $actions = [
-                            Html::a(
-                                Html::tag('i', '', ['class' => 'fa fa-edit', 'aria-hidden' => 'true']),
-                                ['book/update', 'id' => $book['id']]
-                            ),
-                            Html::a(
-                                Html::tag('i', '', ['class' => 'fa fa-trash', 'aria-hidden' => 'true']),
-                                ['book/delete', 'id' => $book['id']],
-                                ['data-method' => 'POST']
-                            ),
-                        ];
+        <?php
+            $columns = [];
+            $columns['id']          = ['attribute' => 'id'];
+            $columns['name']        = ['attribute' => 'name'];
+            $columns['author']      = ['attribute' => 'author'];
+            $columns['isbn']        = ['attribute' => 'isbn'];
+            $columns['description'] = ['attribute' => 'description'];
+            $columns['publisher']   = ['attribute' => 'publisher'];
+            $columns['language']    = [
+                'attribute' => 'language',
+                'filter' => $languages,
+                'value' => function (array $book) use ($languages) {
+                    return $languages[$book['language']] ?? '';
+                }
+            ];
 
-                        return join(' ', $actions);
+            if (in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7])) {
+                $columns['purchase_cost'] = [
+                    'attribute' => 'purchase_cost',
+                    'value'     => function (array $book) {
+                        $bookCost = BookCost::find()->andWhere(['book_id' => $book['id'], 'type' => BookCost::TYPE_PURCHASE, 'visible' => 1])->one();
+                        return $bookCost->cost ?? null;
                     }
-                ]
-            ]
-        ]) ?>
+                ];
+            }
+            $columns['selling_cost'] = [
+                'attribute' => 'selling_cost',
+                'label'     => in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7]) ? 'Цена продажи' : 'Цена',
+                'value'     => function (array $book) {
+                    $bookCost = BookCost::find()->andWhere(['book_id' => $book['id'], 'type' => BookCost::TYPE_SELLING, 'visible' => 1])->one();
+                    return $bookCost->cost ?? null;
+                }
+            ];
+            $columns['actions'] = [
+                'attribute' => 'actions',
+                'format'    => 'raw',
+                'label'     => Yii::t('app', 'Act.'),
+                'value'     => function (array $book) {
+                    $actions = [];
+                    if (in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7])) {
+                        $actions[] = Html::a(
+                            Html::tag('i', '', ['class' => 'fa fa-edit', 'aria-hidden' => 'true']),
+                            ['book/update', 'id' => $book['id']]
+                        );
+                        $actions[] = Html::a(
+                            Html::tag('i', '', ['class' => 'fa fa-trash', 'aria-hidden' => 'true']),
+                            ['book/delete', 'id' => $book['id']],
+                            ['data-method' => 'POST']
+                        );
+                    }
+
+                    return join(' ', $actions);
+                }
+            ];
+            echo GridView::widget([
+                'dataProvider' => $dataProvider,
+                'filterModel'  => $searchModel,
+                'layout'       => "{pager}\n{items}\n{pager}",
+                'columns'      => $columns,
+            ]) ?>
 
     </div>
 </div>

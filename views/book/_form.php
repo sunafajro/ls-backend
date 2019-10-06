@@ -1,13 +1,13 @@
 <?php
 
-use app\models\Book;
+use app\models\BookForm;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
 
 /**
  * @var View       $this
- * @var Book       $model
+ * @var BookForm   $model
  * @var ActiveForm $form
  * @var array      $languages
  */
@@ -25,11 +25,13 @@ use yii\widgets\ActiveForm;
     <?= $form->field($model, 'language_id')->dropDownList($languages ?? [], [
         'prompt' => Yii::t('app', '-select-')
     ]) ?>
+    <?= $form->field($model, 'purchase_cost')->textInput() ?>
+    <?= $form->field($model, 'selling_cost')->textInput() ?>
 
     <div class="form-group">
         <?= Html::submitButton(
-                $model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app','Update'),
-                ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']
+                !$model->id ? Yii::t('app', 'Create') : Yii::t('app','Update'),
+                ['class' => !$model->id ? 'btn btn-success' : 'btn btn-primary']
         ) ?>
     </div>
 

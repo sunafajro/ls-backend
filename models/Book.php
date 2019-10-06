@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use yii\db\ActiveQuery;
 
 /**
  * This is the model class for table "books".
@@ -18,8 +19,12 @@ use Yii;
  * @property string  $created_at
  * @property integer $visible
  * 
- * @property Lang $language
- * @property User $user
+ * @property Lang       $language
+ * @property BookCost   $purchaseCost
+ * @property BookCost[] $purchaseCosts
+ * @property BookCost   $sellingCost
+ * @property BookCost[] $sellingCosts
+ * @property User       $user
  */
 class Book extends \yii\db\ActiveRecord
 {
@@ -59,26 +64,113 @@ class Book extends \yii\db\ActiveRecord
             'isbn'        => Yii::t('app', 'ISBN'),
             'description' => Yii::t('app', 'Description'),
             'publisher'   => Yii::t('app', 'Publisher'),
-            'language_id' => Yii::t('app', 'Language ID'),
-            'user_id'     => Yii::t('app', 'User ID'),
+            'language_id' => Yii::t('app', 'Language'),
+            'user_id'     => Yii::t('app', 'User'),
             'created_at'  => Yii::t('app', 'Created at'),
             'visible'     => Yii::t('app', 'Active'),
         ];
     }
 
-    public function delete()
+    public function restore() : bool
+    {
+        $this->visible = 1;
+        return $this->save();
+    }
+
+    public function delete() : bool
     {
         $this->visible = 0;
         return $this->save();
     }
 
-    public function getLanguage()
+    public function getLanguage() : ActiveQuery
     {
-        $this->hasOne(Lang::class, ['id', 'language_id']);
+        return $this->hasOne(Lang::class, ['id' => 'language_id']);
     }
 
-    public function getUser()
+    public function getUser() : ActiveQuery
     {
-        $this->hasOne(User::class, ['id', 'user_id']);
+        return $this->hasOne(User::class, ['id' => 'user_id']);
+    }
+
+    public function getPurchaseCosts() : ActiveQuery
+    {
+        return $this->hasMany(BookCost::class, ['book_id' => 'id'])
+        ->andOnCondition([
+            'type' => BookCost::TYPE_PURCHASE,
+        ]);
+    }
+
+    public function getPurchaseCost() : BookCost
+    {
+        return $this->getPurchaseCosts()->andWhere(['visible' => 1])->one();
+    }
+   
+    public function getSellingCosts() : ActiveQuery
+    {
+        return $this->hasMany(BookCost::class, ['book_id' => 'id'])
+        ->andOnCondition([
+            'type' => BookCost::TYPE_SELLING,
+        ]);
+    }
+
+
+    public function getSellingCost() : BookCost
+    {
+        return $this->getSellingCosts()->andWhere(['visible' => 1])->one();
+    }
+
+    // Обновляет цену учебника
+    public function updateCost($newCost, $type) : bool
+    {
+        if ($newCost !== '' && $newCost !== 0) {
+            $cost = BookCost::find()->andWhere([
+                'book_id' => $this->id,
+                'cost'    => $newCost,
+                'type'    => $type,
+            ])->one();
+            if (!empty($cost)) {
+                if ($cost->visible) {
+                    // Цена не изменилась
+                    return true;
+                } else {
+                    // Новая цена уже была у данного учебника
+                    $oldCost = $type === BookCost::TYPE_PURCHASE
+                        ? ($this->purchaseCost ?? null)
+                        : ($this->sellingCost ?? null);
+                    if (!empty($oldCost)) {
+                        if (!$oldCost->delete()) {
+                            return false;
+                        }
+                    }
+                    if (!$cost->restore()) {
+                        return false;
+                    }
+                    return true;
+                }
+            } else {
+                // Новая цена, ранее у данного учебника такой не было
+                $oldCost = $type === BookCost::TYPE_PURCHASE
+                    ? ($this->purchaseCost ?? null)
+                    : ($this->sellingCost ?? null);
+                $newBookCost = new BookCost();
+                $newBookCost->book_id = $this->id;
+                $newBookCost->cost = $newCost;
+                $newBookCost->type = $type;
+                if (!empty($oldCost)) {
+                    if (!$oldCost->delete()) {
+                        return false;
+                    }
+                }
+                if (!$newBookCost->save()) {
+                    var_dump($newBookCost->getErrors()); die();
+                    return false;
+                }
+
+                return true;
+            }
+        } else {
+            return true;
+        }
     }
 }

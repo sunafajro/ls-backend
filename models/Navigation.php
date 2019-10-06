@@ -155,6 +155,19 @@ class Navigation extends Model
             ];
         }
         if((int)Yii::$app->session->get('user.ustatus') === 3 ||
+           (int)Yii::$app->session->get('user.ustatus') === 4 ||
+           (int)Yii::$app->session->get('user.ustatus') === 7) {
+            /* ссылка на раздел Учебники */
+            $menu[] = [
+                'id' => 'books',
+                'url' => '/book/index',
+                'classes' => 'fa fa-book',
+                'title' => Yii::t('app', 'Books'),
+                'hasBadge' => false,
+                'cnt' => false
+            ];
+        }        
+        if((int)Yii::$app->session->get('user.ustatus') === 3 ||
            (int)Yii::$app->session->get('user.ustatus') === 4) {
             /* ссылка на раздел Скидки */
             $menu[] = [
@@ -195,9 +208,9 @@ class Navigation extends Model
             $menu[] = [
                 'id' => 'references',
                 'url' => '/reference/index',
-                'classes' => 'fa fa-book',
+                'classes' => 'fa fa-cog',
                 'title' => Yii::t('app', 'References'),
-                'hasBadge' => true
+                'hasBadge' => false
             ];
         }
 

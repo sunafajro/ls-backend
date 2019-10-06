@@ -1,6 +1,5 @@
 <?php
 
-
 namespace app\models\search;
 
 use app\models\Book;
@@ -23,7 +22,7 @@ class BookSearch extends Book
     public $isbn;
     /** @var string */
     public $publisher;
-    /** @var string */
+    /** @var int */
     public $language;
 
     /**
@@ -32,7 +31,8 @@ class BookSearch extends Book
     public function rules()
     {
         return [
-            [['name', 'isbn', 'author', 'publisher'], 'string']
+            [['name', 'isbn', 'author', 'description', 'publisher'], 'string'],
+            [['language'], 'integer'],
         ];
     }
 
@@ -42,7 +42,9 @@ class BookSearch extends Book
     public function attributeLabels()
     {
         return array_merge(parent::attributeLabels(), [
-            'language' => Yii::t('app', 'Language'),
+            'language'      => Yii::t('app', 'Language'),
+            'purchase_cost' => Yii::t('app', 'Purchase cost'),
+            'selling_cost'  => Yii::t('app', 'Selling cost'),
         ]);
     }
 
@@ -59,7 +61,7 @@ class BookSearch extends Book
             'description' => "{$bt}.description",
             'isbn'        => "{$bt}.isbn",
             'publisher'   => "{$bt}.publisher",
-            'language'    => "{$lt}.name",
+            'language'    => "{$bt}.language_id",
         ]);
         $query->from($bt);
         $query->innerJoin($lt, "{$lt}.id = {$bt}.language_id");
@@ -70,7 +72,9 @@ class BookSearch extends Book
             $query->andFilterWhere(['like', "{$bt}.name", $this->name]);
             $query->andFilterWhere(["{$bt}.isbn" => $this->isbn]);
             $query->andFilterWhere(['like', "{$bt}.author", $this->author]);
+            $query->andFilterWhere(['like', "{$bt}.description", $this->description]);
             $query->andFilterWhere(['like', "{$bt}.publisher", $this->publisher]);
+            $query->andFilterWhere(["{$bt}.language_id" => $this->language]);
         } else {
             $query->andWhere(new Expression("(0 = 1)"));
         }

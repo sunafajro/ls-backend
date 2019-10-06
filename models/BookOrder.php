@@ -72,6 +72,12 @@ class BookOrder extends \yii\db\ActiveRecord
         ];
     }
 
+    public function restore()
+    {
+        $this->visible = 1;
+        return $this->save();
+    }
+
     public function delete()
     {
         $this->visible = 0;
@@ -94,11 +100,11 @@ class BookOrder extends \yii\db\ActiveRecord
 
     public function getUser()
     {
-        $this->hasOne(User::class, ['id', 'user_id']);
+        return $this->hasOne(User::class, ['id' => 'user_id']);
     }
 
     public static function getPositions()
     {
-        return $this->hasMany(BookOrderPosition::class, ['book_order_id', 'id']);
+        return $this->hasMany(BookOrderPosition::class, ['book_order_id' => 'id']);
     }
 }

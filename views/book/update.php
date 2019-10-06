@@ -1,15 +1,15 @@
 <?php
 
-use app\models\Book;
+use app\models\BookForm;
 use app\widgets\Alert;
 use yii\web\View;
 use yii\widgets\Breadcrumbs;
 
 /**
- * @var View       $this
- * @var Book       $model
- * @var array      $languages
- * @var string     $userInfoBlock
+ * @var View     $this
+ * @var BookForm $model
+ * @var array    $languages
+ * @var string   $userInfoBlock
  */
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app','Update book');

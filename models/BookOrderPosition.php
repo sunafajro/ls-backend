@@ -72,6 +72,12 @@ class BookOrderPosition extends \yii\db\ActiveRecord
         ];
     }
 
+    public function restore()
+    {
+        $this->visible = 1;
+        return $this->save();
+    }
+
     public function delete()
     {
         $this->visible = 0;
@@ -80,25 +86,27 @@ class BookOrderPosition extends \yii\db\ActiveRecord
 
     public function getUser()
     {
-        $this->hasOne(User::class, ['id', 'user_id']);
+        return $this->hasOne(User::class, ['id' => 'user_id']);
     }
 
     public function getBook()
     {
-        $this->hasOne(Book::class, ['id', 'book_id']);
+        return $this->hasOne(Book::class, ['id' => 'book_id']);
     }
 
     public function getOrder()
     {
-        $this->hasOne(BookOrder::class, ['id', 'book_order_id']);
+        return $this->hasOne(BookOrder::class, ['id' => 'book_order_id']);
     }
 
     public function getPurchaseCost()
     {
-        $this->hasOne(BookCost::class, ['id', 'purchase_cost_id']);
+        return $this->hasOne(BookCost::class, ['id' => 'purchase_cost_id'])
+        ->andOnCondition(['type' => BookCost::TYPE_PURCHASE]);
     }
     public function getSellingCost()
     {
-        $this->hasOne(BookCost::class, ['id', 'selling_cost_id']);
+        return $this->hasOne(BookCost::class, ['id' => 'selling_cost_id'])
+        ->andOnCondition(['type' => BookCost::TYPE_SELLING]);
     }
 }

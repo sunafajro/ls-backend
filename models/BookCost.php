@@ -63,6 +63,12 @@ class BookCost extends \yii\db\ActiveRecord
         ];
     }
 
+    public function restore()
+    {
+        $this->visible = 1;
+        return $this->save();
+    }
+
     public function delete()
     {
         $this->visible = 0;
@@ -85,11 +91,11 @@ class BookCost extends \yii\db\ActiveRecord
 
     public function getBook()
     {
-        $this->hasOne(Book::class, ['id', 'book_id']);
+        return $this->hasOne(Book::class, ['id' => 'book_id']);
     }
 
     public function getUser()
     {
-        $this->hasOne(User::class, ['id', 'user_id']);
+        return $this->hasOne(User::class, ['id' => 'user_id']);
     }
 }
