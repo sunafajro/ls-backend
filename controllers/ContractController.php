@@ -58,14 +58,13 @@ class ContractController extends Controller
 
     public function actionCreate($sid)
     {
-        $client = Student::findOne($sid);
-        if (!$client) {
+        $student = Student::findOne($sid);
+        if (!$student) {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
-        $contracts = Contract::getClientContracts($sid);
         $model = new Contract();
         if ($model->load(Yii::$app->request->post())) {
-            $model->calc_studname = $sid;
+            $model->student_id = $sid;
             if($model->save()) {
                 Yii::$app->session->setFlash('success', Yii::t('app','Договор успешно добавлен!'));
             } else {
@@ -73,10 +72,11 @@ class ContractController extends Controller
             }
             return $this->redirect(['contract/create', 'sid' => $sid]);
         }
+
         return $this->render('create', [
-            'client' => $client,
-            'contracts' => $contracts,
-            'model' => $model,
+            'student'       => $student,
+            'contracts'     => $student->contracts ?? [],
+            'model'         => $model,
             'userInfoBlock' => User::getUserInfoBlock(),
         ]);
     }
@@ -84,7 +84,7 @@ class ContractController extends Controller
     public function actionDelete($id)
     {
         $contract = $this->findModel($id);
-        $sid = $contract->calc_studname;
+        $sid = $contract->student_id;
         if ($contract->delete()) {
             Yii::$app->session->setFlash('success', Yii::t('app','Договор успешно удален!'));
         } else {

@@ -12,7 +12,6 @@ use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
-use kartik\mpdf\Pdf;
 
 /**
  * ReceiptController implements the CRUD actions for receipt model.
@@ -23,7 +22,7 @@ class ReceiptController extends Controller
     {
         return [
             'access' => [
-                'class' => AccessControl::className(),
+                'class' => AccessControl::class,
                 'only' => ['index', 'create', 'delete', 'download-receipt'],
                 'rules' => [
                     [
@@ -40,7 +39,7 @@ class ReceiptController extends Controller
                 ],
             ],
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'create' => ['post'],
                     'delete' => ['post'],
@@ -71,11 +70,14 @@ class ReceiptController extends Controller
         $student = Student::findOne($sid);
         $receipt = new Receipt();
         $receipt->name = $student->name;
+        $contracts = $student->contracts ?? [];
+
         return $this->render('index', [
             'formReceiptData' => Receipt::receiptFormParams(),
             'receipt'         => $receipt,
             'receipts'        => $receipt->getReceipts(intval($sid)),
             'student'         => $student,
+            'contract'        => array_pop($contracts),
             'userInfoBlock'   => User::getUserInfoBlock(),
         ]);
     }
@@ -86,9 +88,7 @@ class ReceiptController extends Controller
         if ($receipt->load(Yii::$app->request->post())) {
             $sum = str_replace(',', '.', $receipt->sum);
             $receipt->sum = $sum * 100;
-            $receipt->date = date('Y-m-d');
-            $receipt->user = Yii::$app->session->get('user.uid');
-            $receipt->studentId = $sid;
+            $receipt->student_id = $sid;
             // добавляем id клиента для идентификации
             $receipt->purpose = $receipt->purpose . '. Клиент №' . $sid . '.';
             $receipt->qrdata = Receipt::receiptParamsStringified() . '|';
@@ -118,7 +118,7 @@ class ReceiptController extends Controller
             } else {
                 Yii::$app->session->setFlash('error', "Квитанция не является действующей!");
             }
-            return $this->redirect(['receipt/index', 'sid' => $receipt->studentId]);
+            return $this->redirect(['receipt/index', 'sid' => $receipt->student_id]);
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');
         }

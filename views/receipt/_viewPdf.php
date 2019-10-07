@@ -32,10 +32,10 @@ $qrCode = isset($receipt['qrdata']) ? (new QrCode($receipt['qrdata'])) : NULL;
 						<div class="clearfix"></div>
 					</div>
 					<div class="line-top-margin">
-							<div class="font-weight-bold right-block-line text-center">
-								<?= Receipt::RECEIPT_COMPANY['value'] ?>
-							</div>
-							<div class="small-text-size text-center">(наименование получателя платежа)</div>
+						<div class="font-weight-bold right-block-line text-center">
+							<?= Receipt::RECEIPT_COMPANY['value'] ?>
+						</div>
+						<div class="small-text-size text-center">(наименование получателя платежа)</div>
 					</div>
 					<div class="line-top-margin">
 						<div class="font-weight-bold right-block-line">
@@ -44,14 +44,14 @@ $qrCode = isset($receipt['qrdata']) ? (new QrCode($receipt['qrdata'])) : NULL;
 							<div class="clearfix"></div>
 						</div>
 						<div class="small-text-size">
-								<div class="float-left left-half-width margin-left">(инн получателя платежа)</div>
-								<div class="float-left right-half-width margin-left">(номер счёта получателя платежа)</div>
-								<div class="clearfix"></div>
+							<div class="float-left left-half-width margin-left">(инн получателя платежа)</div>
+							<div class="float-left right-half-width margin-left">(номер счёта получателя платежа)</div>
+							<div class="clearfix"></div>
 						</div>
 					</div>
 					<div class="line-top-margin">
 						<div class="font-weight-bold right-block-line text-center">
-              <?= Receipt::RECEIPT_BIC['title'] ?> <?= Receipt::RECEIPT_BIC['value'] ?> (<?= Receipt::RECEIPT_BANK_NAME['value'] ?>)
+                            <?= Receipt::RECEIPT_BIC['title'] ?> <?= Receipt::RECEIPT_BIC['value'] ?> (<?= Receipt::RECEIPT_BANK_NAME['value'] ?>)
 						</div>
 						<div class="small-text-size text-center">
 								(наименование банка получателя платежа)
@@ -66,6 +66,14 @@ $qrCode = isset($receipt['qrdata']) ? (new QrCode($receipt['qrdata'])) : NULL;
 						</div>
 					</div>
 					<div class="line-top-margin">
+						<div class="font-weight-bold right-block-line text-center">
+							<?= $receipt['payer'] ?? '' ?>
+						</div>
+						<div class="small-text-size text-center">
+								(Ф.И.О. плательщика)
+						</div>
+					</div>
+					<div class="line-top-margin">
 						<div class="sum-text">
 							Сумма: <?= substr($receipt['sum'] ?? '', 0, -2) ?> руб. <?= substr($receipt['sum'] ?? '', -2) ?> коп.
 						</div>
@@ -74,12 +82,12 @@ $qrCode = isset($receipt['qrdata']) ? (new QrCode($receipt['qrdata'])) : NULL;
 						</div>
 					</div>
 					<div class="line-top-margin small-text-size line-bottom-padding">
-							<div class="margin-left">С условиями приёма указанной в платёжном документе суммы, в т.ч. с суммой взимаемой платы за услуги</div>
-							<div>
-								<div class="float-left left-half-width margin-left">банка, ознакомлен и согласен.</div>
-								<div class="float-left right-half-width margin-left">Подпись плательщика ______________\</div>
-								<div class="clearfix"></div>
-							</div>
+						<div class="margin-left">С условиями приёма указанной в платёжном документе суммы, в т.ч. с суммой взимаемой платы за услуги</div>
+						<div>
+							<div class="float-left left-half-width margin-left">банка, ознакомлен и согласен.</div>
+							<div class="float-left right-half-width margin-left">Подпись плательщика ______________\</div>
+							<div class="clearfix"></div>
+						</div>
 					</div>
 			</div>
 			<div class="clearfix"></div>
