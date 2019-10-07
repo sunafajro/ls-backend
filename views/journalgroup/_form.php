@@ -9,28 +9,18 @@ use yii\widgets\ActiveForm;
 /**
  * @var yii\web\View $this
  * @var Journalgroup $model
- * @var ActiveForm $form
- * @var array $teachers
+ * @var ActiveForm   $form
+ * @var array        $teachers
+ * @var array        $timeHints
  */
 
 $script = <<< JS
-function updateEndTime(time) {
-    if (typeof time === 'string' && time.length === 5) {
-        var startTime = time.split(':');
-        var endHour = parseInt(startTime[0], 10) + 1;
-        endHour = endHour < 10 ? ('0' + endHour) : endHour;
-        $("#journalgroup-time_end").val(endHour + ':' + startTime[1]);        
-    }
-}
-$("#journalgroup-time_begin").on('change', function (e) {
-    //updateEndTime(e.target.value);
+$(".js--previous-times").on('click', function () {
+    $("#journalgroup-time_begin").val($(this).data('begin'));
+    $("#journalgroup-time_end").val($(this).data('end'));
 });
 JS;
 $this->registerJs($script, yii\web\View::POS_READY);
-
-$startTime = new \DateTime();
-$endTime = new \DateTime();
-$endTime->modify('+1 hour');
 ?>
 <?php $form = ActiveForm::begin(); ?>
     <?= $form->field($model, 'data')->widget(DateTimePicker::class, [
@@ -59,21 +49,46 @@ $endTime->modify('+1 hour');
         <?= $form->field($model, 'calc_edutime')->dropDownList(Journalgroup::getEducationTimes(), ['options' => ['2' => ['selected' => true]]]) ?>
     <?php } ?>
     <div class="row">
-        <div class="col-sm-6">
+        <div class="col-sm-4">
             <?= $form->field($model, 'time_begin')->widget(TimePicker::class, [
-                'pluginOptions' => [
-                    'showMeridian' => false,
-                    'defaultTime' => $model->isNewRecord ? $startTime->format('H:i') : $model->time_begin,
-                ],
+                    'pluginOptions' => [
+                        'showMeridian' => false,
+                        'defaultTime' => $model->isNewRecord ? '' : $model->time_begin,
+                    ],
             ]) ?>
         </div>
-        <div class="col-sm-6">
+        <div class="col-sm-4">
             <?= $form->field($model, 'time_end')->widget(TimePicker::class, [
-                'pluginOptions' => [
-                    'showMeridian' => false,
-                    'defaultTime' => $model->isNewRecord ? $endTime->format('H:i') : $model->time_end,
-                ],
+                    'pluginOptions' => [
+                        'showMeridian' => false,
+                        'defaultTime' => $model->isNewRecord ? '' : $model->time_end,
+                    ],
             ]) ?>
+        </div>
+        <div class="col-sm-4">
+            <label class="control-label">Предыдущие занятия:</label>
+            <div class="form-group">
+                <?php
+                    $result = [];
+                    foreach ($timeHints ?? [] as $times) {
+                        $result[] = Html::tag('h4',
+                            Html::a(
+                                $times['begin'] . ' - ' . $times['end'],
+                                'javascript:void(0)',
+                                [
+                                    'class' => 'label label-default js--previous-times',
+                                    'data' => [
+                                        'begin' => $times['begin'],
+                                        'end'   => $times['end'],
+                                    ]
+                                ]
+                            ),
+                            ['style' => 'float: left; margin: 5px']
+                        );
+                    }
+                    echo !empty($result) ? join(' ', $result) : Html::tag('h4', 'Нет информации...');
+                ?>
+            </div>
         </div>
     </div>
     <?= $form->field($model, 'description')->textArea(['rows' => 3]) ?>

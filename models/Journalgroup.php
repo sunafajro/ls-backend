@@ -165,4 +165,34 @@ class Journalgroup extends \yii\db\ActiveRecord
         ->all();
         return $comments;
     }
+
+    public static function getLastLessonTimesByGroup(int $gid): array
+    {
+        $lessons = (new \yii\db\Query())
+        ->select(['begin' => 'time_begin', 'end' => 'time_end'])
+        ->from(['j' => self::tableName()])
+        ->where([
+            'visible' => 1,
+            'calc_groupteacher' => $gid,
+        ])
+        ->andWhere([
+            'and',
+            [
+                'and',
+                ['not', ['time_begin' => null]],
+                ['not', ['time_begin' => '00:00']],
+            ],
+            [
+                'and',
+                ['not', ['time_end' => null]],
+                ['not', ['time_end' => '00:00']],
+            ]
+        ])
+        ->limit(10)
+        ->orderBy(['id' => SORT_DESC])
+        ->indexBy(['begin'])
+        ->all();
+
+        return $lessons;
+    }
 }

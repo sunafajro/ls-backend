@@ -8,11 +8,12 @@ use yii\widgets\Breadcrumbs;
 /**
  * @var yii\web\View $this
  * @var Journalgroup $model
- * @var array $teachers
- * @var array $groupInfo
- * @var array $items
- * @var array $params
- * @var array $students
+ * @var array  $teachers
+ * @var array  $groupInfo
+ * @var array  $items
+ * @var array  $params
+ * @var array  $students
+ * @var array  $timeHints
  * @var string $userInfoBlock
  */
 
@@ -61,9 +62,10 @@ foreach($groupInfo as $key => $value) {
 
         <h4><?= Yii::t('app', 'Add lesson to journal of group') . ' #'. $params['gid'] ?></h4>
         <?= $this->render('_form', [
-            'model'    => $model,
-            'students' => $students,
-            'teachers' => $teachers,
+            'model'     => $model,
+            'students'  => $students,
+            'teachers'  => $teachers,
+            'timeHints' => $timeHints,
         ]) ?>
     </div>
 </div>
