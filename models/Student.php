@@ -110,6 +110,7 @@ class Student extends ActiveRecord
             'remain' => [Invoicestud::TYPE_NORMAL, Invoicestud::TYPE_REMAIN]
         ])
         ->one();
+        
         return $invoices_sum['money'] ?? 0;
     }
 
@@ -127,6 +128,7 @@ class Student extends ActiveRecord
             'calc_studname' => $this->id
         ])
         ->one();
+
         return $payments_sum['money'] ?? 0;
     }
 
@@ -138,13 +140,10 @@ class Student extends ActiveRecord
     public function updateInvMonDebt()
     {
         $this->invoice = $this->getStudentTotalInvoicesSum();
-        $this->money = $this->getStudentTotalPaymentsSum();
-        $this->debt = $this->money - $this->invoice;
-        if ($this->save()) {
-            return true;
-        } else {
-            return false;
-        }
+        $this->money   = $this->getStudentTotalPaymentsSum();
+        $this->debt    = $this->money - $this->invoice;
+
+        return $this->save(true, ['invoice', 'money', 'debt']);
     }
 
     /**
