@@ -4,6 +4,7 @@ namespace app\models;
 
 use Yii;
 use app\traits\StudentMergeTrait;
+use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
 use yii\db\Query;
 use yii\helpers\ArrayHelper;
@@ -31,6 +32,8 @@ use yii\helpers\ArrayHelper;
  * @property integer $active
  * @property integer $calc_way
  * @property string $description
+ * 
+ * @property Contract[] $contracts
  */
 class Student extends ActiveRecord
 {
@@ -85,6 +88,11 @@ class Student extends ActiveRecord
             'calc_way' => Yii::t('app','Way to Attract'),
             'description' => Yii::t('app', 'Description'),
         ];
+    }
+
+    public function getContracts() : ActiveQuery
+    {
+        return $this->hasMany(Contract::class, ['student_id' => 'id'])->andWhere(['visible' => 1]);
     }
 
     /**

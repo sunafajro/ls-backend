@@ -6,13 +6,16 @@ use app\traits\StudentMergeTrait;
 use Yii;
 
 /**
- * This is the model class for table "calc_student_contract".
+ * This is the model class for table "student_contracts".
  *
  * @property integer $id
- * @property string $calc_studname
- * @property string $number
- * @property string $date
- * @property string $signer
+ * @property string  $student_id
+ * @property string  $number
+ * @property string  $date
+ * @property string  $signer
+ * @property integer $user_id
+ * @property string  $created_at
+ * @property integer $visible
  */
 class Contract extends \yii\db\ActiveRecord
 {
@@ -23,7 +26,7 @@ class Contract extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'calc_student_contract';
+        return 'student_contracts';
     }
 
     /**
@@ -32,10 +35,13 @@ class Contract extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['calc_studname', 'number', 'date', 'signer'], 'required'],
+            [['student_id', 'number', 'date', 'signer'], 'required'],
             [['number', 'signer'], 'string'],
-            [['calc_studname'], 'integer'],
-            [['date'], 'safe']
+            [['student_id', 'user_id', 'visible'], 'integer'],
+            [['created_at', 'date'], 'safe'],
+            [['visible'],    'default', 'value' => 1],
+            [['user_id'],    'default', 'value' => Yii::$app->user->identity->id],
+            [['created_at'], 'default', 'value' => date('Y-m-d')],
         ];
     }
 
@@ -45,27 +51,38 @@ class Contract extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id'            => 'ID',
-            'calc_studname' => Yii::t('app', 'Student'),
-            'number'        => Yii::t('app', 'Contract number'),
-            'date'          => Yii::t('app', 'Contract date'),
-            'signer'        => Yii::t('app', 'Contract signer'),
+            'id'         => 'ID',
+            'student_id' => Yii::t('app', 'Student'),
+            'number'     => Yii::t('app', 'Contract number'),
+            'date'       => Yii::t('app', 'Contract date'),
+            'signer'     => Yii::t('app', 'Contract signer'),
+            'user_id'    => Yii::t('app', 'User'),
+            'created_at' => Yii::t('app', 'Created at'),
+            'visible'    => Yii::t('app', 'Active'),
         ];
+    }
+
+    public function delete()
+    {
+        $this->visible = 0;
+
+        return $this->save(true, ['visible']);
     }
 
     public static function getClientContracts($sid = null)
     {
-        $criteria = is_array($sid) ? ['in', 'calc_studname', $sid] : ['calc_studname' => $sid];
+        $criteria = is_array($sid) ? ['in', 'student_id', $sid] : ['student_id' => $sid];
         $contracts = (new \yii\db\Query())
         ->select([
             'id'      => 'id',
             'number'  => 'number',
             'date'    => 'date',
             'signer'  => 'signer',
-            'student' => 'calc_studname'
+            'student' => 'student_id'
         ])
         ->from(['c' => static::tableName()])
         ->where($criteria)
+        ->andWhere(['visible' => 1])
         ->orderBy(['date' => SORT_DESC])
         ->all();
         return $contracts;
@@ -82,7 +99,7 @@ class Contract extends \yii\db\ActiveRecord
     {
         $sql = (new \yii\db\Query())
         ->createCommand()
-        ->update(self::tableName(), ['calc_studname' => $id1], ['calc_studname' => $id2])
+        ->update(self::tableName(), ['student_id' => $id1], ['student_id' => $id2])
         ->execute();
 
         return ($sql == 0) ? false : true;

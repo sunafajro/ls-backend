@@ -339,6 +339,7 @@ return array(
 'Passwords did not match!'=>'Пароли не совпадают!',
 'Password must be at least 8 symbols!'=>'Пароль должен быть не менее 8 символов!',
 'Payed lessons count'=>'Количество оплаченных и учтенных занятий',
+'Payer' => 'Плательщик',
 'Payment'=>'Оплата',
 'Payment by cash' => 'Оплата наличными',
 'Payment by card' => 'Оплата по карте',
