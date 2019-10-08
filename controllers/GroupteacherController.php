@@ -3,16 +3,18 @@
 namespace app\controllers;
 
 use app\models\Eduage;
+use app\models\Groupteacher;
 use app\models\Lang;
 use app\models\Office;
+use app\models\Student;
+use app\models\Studgroup;
+use app\models\Teachergroup;
+use app\models\User;
 use app\models\search\GroupSearch;
 use Yii;
 use yii\data\Pagination;
 use yii\filters\AccessControl;
-use app\models\Groupteacher;
-use app\models\Studgroup;
-use app\models\Teachergroup;
-use app\models\User;
+use yii\helpers\ArrayHelper;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
@@ -171,19 +173,31 @@ class GroupteacherController extends Controller
             $lesattend = [];
         }
 
+        $groupStudents = ArrayHelper::map($students, 'sid', 'sname');
+        foreach ($groupStudents as $studentId => $studentName) {
+            $student = Student::findOne($studentId);
+            if (!empty($student)) {
+                $data = $student->getServicesBalance($group->calc_service, null);
+                $groupStudents[$studentId] = $data[0]['num'] ?? 0;
+            } else {
+                $groupStudents[$studentId] = 0;
+            }
+        }
+
         return $this->render('view', [
-            'model' => $this->findModel($id),
-            'groupInfo' => Groupteacher::getGroupInfoById($id),
-            'lessons' => $lessons,
-            'pages' => $pages,
-            'page' => $page,
-            'state' => $state,
+            'model'         => $this->findModel($id),
+            'groupInfo'     => Groupteacher::getGroupInfoById($id),
+            'groupStudents' => $groupStudents,
+            'lessons'       => $lessons,
+            'pages'         => $pages,
+            'page'          => $page,
+            'state'         => $state,
 			'checkTeachers' => Groupteacher::getGroupTeacherListSimple($id),
-            'students' => $students,
-            'lesattend' => $lesattend,
-            'items' => Groupteacher::getMenuItemList($id, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
+            'students'      => $students,
+            'lesattend'     => $lesattend,
+            'items'         => Groupteacher::getMenuItemList($id, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
             'userInfoBlock' => User::getUserInfoBlock(),
-            'jobPlace' => [ 1 => 'ШИЯ', 2 => 'СРР' ]
+            'jobPlace'      => [ 1 => 'ШИЯ', 2 => 'СРР' ]
         ]);
     }
 

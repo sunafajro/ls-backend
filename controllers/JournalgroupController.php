@@ -450,15 +450,6 @@ class JournalgroupController extends Controller
         // находим запись по id
         $model = $this->findModel($id);
 		
-		/* проверяем что со времени проведения занятия прошло не более 3 дней
-		$dt = new \DateTime('-3 days');
-		if($model->data <= $dt->format('Y-m-d') && Yii::$app->session->get('user.ustatus')==4){
-			// если более 3 дней, задаем сообщение об ошибке
-			Yii::$app->session->setFlash('error', 'Не удалось проверить занятие. С указанной даты прошло более 3 дней. Пожалуйста обратитесь к руководителю.');
-			// возвращаемся в журнал
-			return $this->redirect(['groupteacher/view', 'id' => $gid]);
-		}
-		*/
 		// получаем список id студентов
 		$query = (new \yii\db\Query())
 		->select('sjg.calc_studname as sid, sn.name as name, gt.calc_service as service')
@@ -471,7 +462,7 @@ class JournalgroupController extends Controller
 		->all();
 
 		$i = 0;
-		$snames = '';
+		$snames = [];
 		$sids = [];
 		foreach($query as $q) {
 			// запрашиваем услуги назначенные студенту
@@ -502,47 +493,34 @@ class JournalgroupController extends Controller
 				$services['num'] = $services['num'] - $lessons['cnt'];
 				unset($lessons);
 			}
-			if($services['num'] <= 0){
-				$snames .= $q['name'].', ';
+			if ($services['num'] <= 0) {
+				$snames[] = $q['name'];
 			}
-			$sids[$i] = $q['sid'];
+			// $sids[$i] = $q['sid'];
 			$i++;
 		}
-		unset($query);
-		// проверяем что занятие действительно не проверено и нет студентов должников
-		if($model->view != 1 && $snames == '') {
-			// меняем параметр проверки на 1
+		if ((int)$model->view !== 1 && empty($snames)) {
+			// помечаем занятие как проверенное
 			$model->view = 1;
-			// указываем пользователя проверившего занятия
 			$model->user_view = Yii::$app->session->get('user.uid');
-			// указывае дату проверки
 			$model->data_view = date('Y-m-d');
-			// если должников нет, и модель сохранилась
-			if($model->save()) {
-				// добавлем сообщение об успешной проверке занятия
+			if ($model->save(true, ['view', 'user_view', 'data_view'])) {
 				Yii::$app->session->setFlash('success', 'Занятие успешно переведено в проверенные.');
 			}
 		} else {
-			$snames = mb_substr($snames, 0, -2);
-			$snames .= '.';
-			// если должники есть, задаем сообщение об невозможности проверки занятия
-			Yii::$app->session->setFlash('error', 'Невозможно проверить занятие. Выставите счета студентам: '.$snames);
+			Yii::$app->session->setFlash('error', 'Невозможно проверить занятие. Выставите счета студентам: ' . join(', ', $snames) . '.');
 		}
-		// обновляем балансы клиентов
-		foreach($sids as $key => $value) {
+		// @deprecated обновляем балансы клиентов
+		// foreach($sids as $key => $value) {
 			// находим информацию по клиенту
-			$student = Student::findOne($value);
+			// $student = Student::findOne($value);
 			// пересчитываем баланс клиента новой функцией
-			$student->debt2 = $this->studentDebt($student->id);
+			// $student->debt2 = $this->studentDebt($student->id);
 			// сохраняем данные
-			$student->save();
-			unset($student);
-	    }
-		unset($key);
-		unset($value);
-		unset($sids);
-        // возвращаемся на страницу добавления студентов в группу
-        return $this->redirect(['groupteacher/view', 'id'=>$gid]);
+			// $student->save();
+	    // }
+
+        return $this->redirect(['groupteacher/view', 'id' => $gid]);
     }
 	
 	/**

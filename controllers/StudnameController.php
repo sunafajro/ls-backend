@@ -321,6 +321,10 @@ class StudnameController extends Controller
      */
     public function actionView($id)
     {
+        $student = $this->findModel($id);
+        if (empty($student)) {
+            throw new NotFoundHttpException('Page not found');
+        }
         // проверяем какие данные выводить в карочку преподавателя: 1 - активные группы, 2 - завершенные группы, 3 - счета; 4 - оплаты
         if(Yii::$app->request->get('tab')){
             switch(Yii::$app->request->get('tab')){
@@ -361,45 +365,7 @@ class StudnameController extends Controller
             // расписание студента
             $schedule = new Schedule();
             $studentSchedule = $schedule->getStudentSchedule($id);
-
-            // запрашиваем услуги назначенные студенту
-            $services = (new \yii\db\Query())
-            ->select('s.id as sid, s.name as sname, SUM(is.num) as num')
-            ->distinct()
-            ->from('calc_service s')
-            ->leftjoin(['is' => Invoicestud::tableName()], 'is.calc_service = s.id')
-            ->where([
-                'is.remain' => [Invoicestud::TYPE_NORMAL, Invoicestud::TYPE_NETTING],
-                'is.visible' => 1
-            ])
-            ->andWhere(['is.calc_studname' => $id])
-            ->groupby(['is.calc_studname', 's.id'])
-            ->orderby(['s.id' => SORT_ASC])
-            ->all();
-         
-            // проверяем что у студента есть назначенные услуги
-            if (!empty($services)) {
-                $i = 0;
-                // распечатываем массив
-                foreach($services as $service){
-                    // запрашиваем из базы колич пройденных уроков
-                    $lessons = (new \yii\db\Query())
-                    ->select('COUNT(sjg.id) AS cnt')
-                    ->from('calc_studjournalgroup sjg')
-                    ->leftjoin('calc_groupteacher gt', 'sjg.calc_groupteacher=gt.id')
-                    ->leftjoin('calc_journalgroup jg', 'sjg.calc_journalgroup=jg.id')
-                    ->where('jg.view=:vis and jg.visible=:vis and (sjg.calc_statusjournal=:vis or sjg.calc_statusjournal=:stat) and gt.calc_service=:sid and sjg.calc_studname=:stid', [':vis'=>1, 'stat'=>3, ':sid'=>$service['sid'], ':stid'=>$id])
-                    ->one();
-                    
-                    // считаем остаток уроков
-                    $cnt = $services[$i]['num'] - $lessons['cnt'];
-                    $services[$i]['num'] = $cnt;
-                    $services[$i]['npd'] = Moneystud::getNextPaymentDay($studentSchedule, $service['sid'], $cnt);
-                    $i++;
-                }
-                unset($service);
-                unset($lessons);
-            }
+            $services = $student->getServicesBalance(null, $studentSchedule);
         } else {
             $studsales = [];
             $permsale = [];
@@ -493,7 +459,7 @@ class StudnameController extends Controller
             $lessons = [];
         }
         $office = new Office();
-        $student = $this->findModel($id);
+
         return $this->render('view', [
             'model'         => $student,
             'invoices'      => $invoices,

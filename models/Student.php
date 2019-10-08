@@ -331,6 +331,57 @@ class Student extends ActiveRecord
         ->all();
     }
 
+    public function getServicesBalance(int $serviceId = null, array $schedule = null)
+    {
+        // запрашиваем услуги назначенные студенту
+        $services = (new \yii\db\Query())
+        ->select('s.id as sid, s.name as sname, SUM(is.num) as num')
+        ->distinct()
+        ->from(['s' => Service::tableName()])
+        ->leftjoin(['is' => Invoicestud::tableName()], 'is.calc_service = s.id')
+        ->where([
+            'is.remain' => [Invoicestud::TYPE_NORMAL, Invoicestud::TYPE_NETTING],
+            'is.visible' => 1
+        ])
+        ->andWhere(['is.calc_studname' => $this->id])
+        ->andFilterWhere(['s.id' => $serviceId])
+        ->groupby(['is.calc_studname', 's.id'])
+        ->orderby(['s.id' => SORT_ASC])
+        ->all();
+        
+        // проверяем что у студента есть назначенные услуги
+        if (!empty($services)) {
+            $i = 0;
+            // распечатываем массив
+            foreach($services as $service){
+                // запрашиваем из базы колич пройденных уроков
+                $lessons = (new \yii\db\Query())
+                ->select('COUNT(sjg.id) AS cnt')
+                ->from('calc_studjournalgroup sjg')
+                ->leftjoin('calc_groupteacher gt', 'sjg.calc_groupteacher=gt.id')
+                ->leftjoin('calc_journalgroup jg', 'sjg.calc_journalgroup=jg.id')
+                ->where([
+                    'jg.view'                => 1,
+                    'jg.visible'             => 1,
+                    'sjg.calc_statusjournal' => [Journalgroup::STUDENT_STATUS_PRESENT, Journalgroup::STUDENT_STATUS_ABSENT_UNWARNED],
+                    'gt.calc_service'        => $service['sid'],
+                    'sjg.calc_studname'      => $this->id,
+                ])
+                ->one();
+                
+                // считаем остаток уроков
+                $cnt = $services[$i]['num'] - $lessons['cnt'];
+                $services[$i]['num'] = $cnt;
+                if (!empty($schedule)) {
+                    $services[$i]['npd'] = Moneystud::getNextPaymentDay($schedule, $service['sid'], $cnt);
+                } 
+                $i++;
+            }
+        }
+
+        return $services;
+    }
+
     /**
      *  метод переносит данные из профиля студента с id2 в профиль студента с id1
      */
