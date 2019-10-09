@@ -1,6 +1,7 @@
 <?php
 
 use app\models\Groupteacher;
+use app\models\Journalgroup;
 use app\widgets\Alert;
 use yii\data\Pagination;
 use yii\helpers\Html;
@@ -33,6 +34,26 @@ foreach($groupInfo as $key => $value) {
 }
 $userRoleId = (int)Yii::$app->session->get('user.ustatus');
 $userId = (int)Yii::$app->session->get('user.uid');
+function getStudentOptions($lesson, $lessonBalance) {
+    $options = [
+        'class' => 'text-default',
+        'data' => [
+            'toggle' => 'tooltip',
+            'placement' => 'top',
+            'title' => 'Доступно занятий ' . ($lessonBalance ?? 0)
+        ],
+    ];
+    if ((int)$lesson['jvisible'] === 1
+        && (int)$lesson['jdone'] !== 1
+        && (int)$lesson['jview'] === 0) {
+            if ($lessonBalance === 0) {
+                $options['class'] = 'text-danger';
+            }
+            return $options;
+    } else {
+        return [];
+    }
+}
 ?>
 <div class="row row-offcanvas row-offcanvas-left group-index">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
@@ -115,53 +136,55 @@ $userId = (int)Yii::$app->session->get('user.uid');
         } else {
             $color = 'default';
         }
-        echo "<div class='panel panel-" . $color . "'>";
-        echo "<div class='panel-heading'>";
+        echo Html::beginTag('div', ['class' => 'panel panel-' . $color]);
+        echo Html::beginTag('div', ['class' => 'panel-heading']);
         switch ($lesson['edutime']){
             case 1: echo Html::img('/images/day.png',['title'=>Yii::t('app','Work time')]);break;
             case 2: echo Html::img('/images/night.png',['title'=>Yii::t('app','Evening time')]);break;
             case 3: echo Html::img('/images/halfday.png',['title'=>Yii::t('app','Halfday time')]);break;
         }
         if ($lesson['jview']==1) {
-        echo " <span class='text-success' title='".Yii::t('app','Lesson viewed')."'>&#10003;</span>";
-        if ($lesson['jdone']==0) {
-            echo " <span class='text-danger' title='".Yii::t('app','Lesson undone')."'>&diams;</span>";
-        } else { echo " <span class='text-info' title='".Yii::t('app','Lesson done')."'>&hearts;</span>";
-        }
+            echo " <span class='text-success' title='".Yii::t('app','Lesson viewed')."'>&#10003;</span>";
+            if ($lesson['jdone']==0) {
+                echo " <span class='text-danger' title='".Yii::t('app','Lesson undone')."'>&diams;</span>";
+            } else {
+                echo " <span class='text-info' title='".Yii::t('app','Lesson done')."'>&hearts;</span>";
+            }
         }
         echo ($lesson['jvisible']!=1) ? " <del>" : "";
         echo " Занятие #".$lesson['jid']." от " . date('d.m.Y', strtotime($lesson['jdate'])) . ($lesson['time_begin'] !== '00:00' ? ' ' . $lesson['time_begin'] : '') . " (".Yii::t('app',date("l",strtotime($lesson['jdate']))).")";
         echo ($lesson['visible_date']!='0000-00-00') ? "</del> " : " ";
         echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+        $actions = [];
         if($lesson['jvisible']==1){
             if($lesson['jdone']!=1){
                 if ($lesson['jview']==0) {
                     // занятие могут отредактировать только  преподаватель назначенный в группу, менеджер или руководитель
-                    if (in_array($userRoleId, [3, 4, 10]) ||
-                        array_key_exists(Yii::$app->session->get('user.uteacher'), $checkTeachers)) {
-                        echo Html::a(Yii::t('app','Edit'), ['journalgroup/update', 'id'=>$lesson['jid'], 'gid'=>$model->id]);
+                    if (in_array($userRoleId, [3, 4, 10]) || array_key_exists(Yii::$app->session->get('user.uteacher'), $checkTeachers)) {
+                        $actions[] = Html::a(Yii::t('app','Edit'), ['journalgroup/update', 'id' => $lesson['jid'], 'gid' => $model->id]);
                     }
                     // проверить занятие могут только менеджер или руководитель
                     if (in_array($userRoleId, [3, 4]) || $userId === 296) {
-                        echo " | " . Html::a("Так и есть :)",['journalgroup/view','id'=>$lesson['jid'], 'gid'=>$model->id]);
+                        $actions[] = Html::a("Так и есть :)",['journalgroup/view','id' => $lesson['jid'], 'gid' => $model->id]);
                     }
                 } else if((int)$lesson['jview'] === 1 && (in_array($userRoleId, [3, 4]) || $userId === 296)) {
                     // отменить проверку занятия могут только менеджер или руководитель
-                    echo " | " . Html::a("Отменить 'проверено'",['journalgroup/unview','gid'=>$model->id,'id'=>$lesson['jid']]);
+                    $actions[] = Html::a("Отменить 'проверено'",['journalgroup/unview','gid' => $model->id,'id' => $lesson['jid']]);
                 }
                 // занятие могут исключить только преподаватель назначенный в группу, менеджер или руководитель
                 if (in_array($userRoleId, [3, 4, 10]) || array_key_exists(Yii::$app->session->get('user.uteacher'), $checkTeachers)) {
-                    echo " | " . Html::a("Исключить из журнала",['journalgroup/delete','gid'=>$model->id,'id'=>$lesson['jid']]);
+                    $actions[] = Html::a("Исключить из журнала",['journalgroup/delete','gid' => $model->id,'id' => $lesson['jid']]);
                 }
             }
         } else {
-            echo Html::a("Восстановить в журнал",['journalgroup/restore','gid'=>$model->id,'id'=>$lesson['jid']]);
+            $actions[] = Html::a("Восстановить в журнал",['journalgroup/restore','gid'=>$model->id,'id'=>$lesson['jid']]);
             if (in_array($userRoleId, [3, 4])) {
-                " | ".Html::a("Удалить",['journalgroup/remove','gid'=>$model->id,'id'=>$lesson['jid']]);
+                $actions[] = Html::a(Yii::t('app', 'Delete'), ['journalgroup/remove','gid' => $model->id,'id' => $lesson['jid']]);
             }
         }
-        echo "</div>";
-        echo "<div class='panel-body'>";
+        echo join(' | ', $actions);
+        echo Html::endTag('div');
+        echo Html::beginTag('div', ['class' => 'panel-body']);
         echo "<p><strong>Описание:</strong> <br />".$lesson['jdesc']."</p>";
         echo "<p><strong>Д/з:</strong> <br />".$lesson['jhwork']."</p>";
         echo Html::beginTag('p', ['class' => 'small']);
@@ -222,7 +245,6 @@ $userId = (int)Yii::$app->session->get('user.uid');
                 ['class' => 'small']
             );
         }
-        $labelClass = 'text-default';
         // проверяем есть ли массив со списком присутствовавших студентов для занятия
         if (isset($lesattend[$lesson['jid']]['id'])) {
             // сверяем идентификаторы занятия между двумя массивами
@@ -231,14 +253,11 @@ $userId = (int)Yii::$app->session->get('user.uid');
                 $arr = [];
                 foreach ($students as $student) {
                     // проверяем что студент присутствовал на занятии
-                    if ($student['jid']==$lesson['jid'] && $student['status']==1) {
-                        if ((int)$lesson['jvisible']=== 1 && (int)$lesson['jdone'] !== 1 && (int)$lesson['jview'] === 0 && $groupStudents[$student['sid']] === 0) {
-                            $labelClass = 'text-danger';
-                        }
+                    if ((int)$student['jid'] === (int)$lesson['jid'] && (int)$student['status'] === Journalgroup::STUDENT_STATUS_PRESENT) {
                         $arr[] = '(' . Html::a(
                             $student['sname'],
                             ['studname/view', 'id' => $student['sid']],
-                            ['class' => $labelClass]
+                            getStudentOptions($lesson, $groupStudents[$student['sid']])
                         ) . ')';
                     }
                 }
@@ -250,11 +269,11 @@ $userId = (int)Yii::$app->session->get('user.uid');
                 echo Html::tag('br');
                 $arr = [];
                 foreach ($students as $student) {
-                    if ($student['jid']==$lesson['jid'] && $student['status']==2) {
+                    if ((int)$student['jid'] === (int)$lesson['jid'] && (int)$student['status'] === Journalgroup::STUDENT_STATUS_ABSENT_WARNED) {
                         $arr[] = '(' . Html::a(
                             $student['sname'],
                             ['studname/view', 'id' => $student['sid']],
-                            ['class' => $labelClass]
+                            getStudentOptions($lesson, $groupStudents[$student['sid']])
                         ) . ')';
                     }
                 }
@@ -267,17 +286,18 @@ $userId = (int)Yii::$app->session->get('user.uid');
                 echo Html::tag('br');
                 $arr = [];
                 foreach ($students as $student) {
-                    if($student['jid']==$lesson['jid'] && $student['status']==3){
-                        if ((int)$lesson['jvisible']=== 1 && (int)$lesson['jdone'] !== 1 && (int)$lesson['jview'] === 0 && $groupStudents[$student['sid']] === 0) {
-                            $labelClass = 'text-danger';
-                        }
+                    if ((int)$student['jid'] === (int)$lesson['jid'] && (int)$student['status'] === Journalgroup::STUDENT_STATUS_ABSENT_UNWARNED){
                         $link = '(' . Html::a(
                             $student['sname'],
                             ['studname/view', 'id' => $student['sid']],
-                            ['class' => $labelClass]
+                            getStudentOptions($lesson, $groupStudents[$student['sid']])
                         );
-                        if (((int)Yii::$app->session->get('user.ustatus') === 4 || (int)Yii::$app->session->get('user.ustatus') === 3) && (int)$lesson['jview'] === 1) {
-                            $link .= ' ' . Html::a('<i class="fa fa-times" aria-hidden="true"></i>', ['journalgroup/absent', 'jid' => $lesson['jid'], 'sid' => $student['sid'], 'gid' => $model->id], ['title' => Yii::t('app', 'To absent (was ill)')]);
+                        if (in_array($userRoleId, [3, 4]) && (int)$lesson['jview'] === 1) {
+                            $link .= ' ' . Html::a(
+                                Html::tag('span', null, ['class' => 'fa fa-times', 'aria-hidden' => 'true']),
+                                ['journalgroup/absent', 'jid' => $lesson['jid'], 'sid' => $student['sid'], 'gid' => $model->id],
+                                ['title' => Yii::t('app', 'To absent (was ill)')]
+                            );
                         }
                         $arr[] = $link . ')';
                     }
@@ -286,8 +306,8 @@ $userId = (int)Yii::$app->session->get('user.uid');
             }
         }
         echo Html::endTag('p');
-        echo "</div>";
-        echo "</div>";
+        echo Html::endTag('div');
+        echo Html::endTag('div');
     }
     ?>
         <?= $this->render('_lesson_pager', [
@@ -295,3 +315,11 @@ $userId = (int)Yii::$app->session->get('user.uid');
         ]) ?>
     </div>
 </div>
+<?php
+$js = <<< 'SCRIPT'
+$(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+})
+SCRIPT;
+$this->registerJs($js);
+?>
