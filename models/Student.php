@@ -374,7 +374,9 @@ class Student extends ActiveRecord
                 $services[$i]['num'] = $cnt;
                 if (!empty($schedule)) {
                     $services[$i]['npd'] = Moneystud::getNextPaymentDay($schedule, $service['sid'], $cnt);
-                } 
+                } else {
+                    $services[$i]['npd'] = 'none';
+                }
                 $i++;
             }
         }
