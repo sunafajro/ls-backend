@@ -42,12 +42,12 @@ class Book extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'author', 'isbn', 'publisher', 'language_id'], 'required'],
+            [['name', 'isbn', 'publisher', 'language_id'], 'required'],
             [['name', 'author', 'isbn', 'description', 'publisher'], 'string'],
             [['user_id', 'visible', 'language_id'], 'integer'],
             [['visible'],    'default', 'value'=> 1],
             [['created_at'], 'default', 'value'=> date('Y-m-d')],
-            [['user_id'],    'default', 'value'=> Yii::$app->user->identity->id],
+            [['user_id'],    'default', 'value'=> Yii::$app->user->identity->id ?? 0],
             [['created_at'], 'safe'],
         ];
     }
