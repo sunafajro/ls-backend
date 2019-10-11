@@ -5,8 +5,10 @@ namespace app\controllers;
 use app\models\Book;
 use app\models\BookOrder;
 use app\models\BookOrderPosition;
+use app\models\Lang;
 use app\models\Office;
 use app\models\User;
+use app\models\search\BookOrderPositionSearch;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -65,11 +67,16 @@ class BookOrderPositionController extends Controller
 
         /** @var BookOrder $bookOrder */
         $bookOrder = BookOrder::find()->andWhere(['id' => $id])->one();
+        $searchModel = new BookOrderPositionSearch();
+        $dataProvider = $searchModel->search($bookOrder, Yii::$app->request->get());
 
         return $this->render('index', [
             'bookOrder'         => $bookOrder,
             'bookOrderCounters' => $bookOrder->getOrderCounters(),
+            'dataProvider'      => $dataProvider,
+            'languages'         => Lang::getLanguagesSimple(),
             'positions'         => $bookOrder->positions ?? [],
+            'searchModel'       => $searchModel,
             'userInfoBlock'     => User::getUserInfoBlock(),
         ]);
     }

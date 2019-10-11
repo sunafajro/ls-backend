@@ -51,32 +51,32 @@ $this->params['breadcrumbs'][] = $title;
         <?php
             $columns = [];
             $columns['id'] = [
-                'attribute' => 'id'
+                'attribute' => 'id',
             ];
             $columns['date_start'] = [
                 'attribute' => 'date_start',
                 'value'     => function (array $order) {
                     return date('d.m.Y', strtotime($order['date_start']));
-                }
+                },
             ];
             $columns['date_end'] = [
                 'attribute' => 'date_end',
                 'value'     => function (array $order) {
                     return date('d.m.Y', strtotime($order['date_end']));
-                }
+                },
             ];
             $columns['total_book_count'] = [
                 'attribute' => 'total_book_count',
                 'value'     => function (array $order) {
                     return ($order['total_book_count'] ?? 0).  ' шт.';
-                }
+                },
             ];
             if (in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7])) {
                 $columns['total_purchase_cost'] = [
                     'attribute' => 'total_purchase_cost',
                     'value'     => function (array $order) {
                         return ($order['total_purchase_cost'] ?? 0).  ' р.';
-                    }
+                    },
                 ];
             }
             $columns['total_selling_cost'] = [
@@ -84,7 +84,7 @@ $this->params['breadcrumbs'][] = $title;
                 'label'     => in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7]) ? 'Цена продажи' : 'Цена',
                 'value'     => function (array $order) {
                     return ($order['total_selling_cost'] ?? 0).  ' р.';
-                }
+                },
             ];
             $columns['status'] = [
                 'attribute' => 'status',
@@ -97,7 +97,7 @@ $this->params['breadcrumbs'][] = $title;
                             'class' => $order['status'] === BookOrder::STATUS_OPENED
                                 ? 'label label-success' : 'label label-danger',
                         ]);
-                }
+                },
             ];
             if (in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7])) {
                 $columns['actions'] = [
@@ -106,6 +106,11 @@ $this->params['breadcrumbs'][] = $title;
                     'label'     => Yii::t('app', 'Act.'),
                     'value'     => function (array $order) use ($bookOrder) {
                         $actions = [];
+                        $actions[] = Html::a(
+                            Html::tag('i', '', ['class' => 'fa fa-eye', 'aria-hidden' => 'true']),
+                            ['book-order-position/index', 'id' => $order['id']],
+                            ['title' => Yii::t('app', 'View book order positions')]
+                        );
                         if (empty($bookOrder) && $order['status'] === BookOrder::STATUS_CLOSED) {
                             $actions[] = Html::a(
                                 Html::tag('i', '', ['class' => 'fa fa-check', 'aria-hidden' => 'true']),

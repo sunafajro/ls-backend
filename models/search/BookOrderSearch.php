@@ -5,7 +5,6 @@ namespace app\models\search;
 use app\models\BookOrder;
 use app\models\BookOrderPosition;
 use yii\data\ActiveDataProvider;
-use yii\db\Expression;
 use Yii;
 
 class BookOrderSearch extends BookOrder
