@@ -15,7 +15,6 @@ class NavigationWidget extends Widget {
         return $this->render('navigation', [
             'items'   => $data['navElements'] ?? [],
             'message' => $data['message'],
-            'sale'    => $data['sale'],
         ]);
     }
 }

@@ -64,7 +64,7 @@
                     <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse-<?= $s['sale_id'] ?>" aria-expanded="true" aria-controls="collapse-<?= $s['sale_id'] ?>">
                         <?= $s['sale'] ?>
                     </a>
-                    <?= Html::a('<span class="fa fa-trash" aria-hidden="true"></span>', ['salestud/disableall', 'sid' => $s['sale_id']], ['class'=>'btn btn-danger btn-xs pull-right', 'title' => Yii::t('app', 'Disable all')]) ?>
+                    <?= Html::a('<span class="fa fa-trash" aria-hidden="true"></span>', ['salestud/disable-all', 'sid' => $s['sale_id']], ['class'=>'btn btn-danger btn-xs pull-right', 'title' => Yii::t('app', 'Disable all')]) ?>
                 </div>
                 <div id="collapse-<?= $s['sale_id'] ?>" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-<?= $s['sale_id'] ?>">
                     <div class="panel-body">
