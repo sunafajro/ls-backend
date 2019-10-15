@@ -2,12 +2,13 @@
 
 namespace app\models;
 
+use app\traits\StudentMergeTrait;
 use Yii;
 
 use yii\data\ActiveDataProvider;
 
 /**
- * This is the model class for table "student_grades".
+ * This is the model class for table "receipts".
  *
  * @property integer $id
  * @property string  $visible
@@ -23,6 +24,8 @@ use yii\data\ActiveDataProvider;
 
 class Receipt extends \yii\db\ActiveRecord
 {
+    use StudentMergeTrait;
+    
     /**
      * @inheritdoc
      */
