@@ -93,6 +93,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Approve discounts');
                                 Html::tag('span', null, ['class' => 'fa fa-check', 'aria-hidden' => true]),
                                 ['salestud/approve'],
                                 [
+                                    'class' => 'btn btn-success btn-xs',
                                     'data' => [
                                         'method' => 'POST',
                                         'params' => [
@@ -100,6 +101,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Approve discounts');
                                             'status' => 'accept',
                                         ],
                                     ],
+                                    'style' => 'margin-right: 5px',
                                     'title' => Yii::t('app', 'Approve discount'),
                                 ]
                             ),
@@ -107,6 +109,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Approve discounts');
                                 Html::tag('span', null, ['class' => 'fa fa-times', 'aria-hidden' => true]),
                                 ['salestud/approve'],
                                 [
+                                    'class' => 'btn btn-danger btn-xs',
                                     'data' => [
                                         'method' => 'POST',
                                         'params' => [
