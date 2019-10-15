@@ -25,7 +25,7 @@ $this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Approve discounts'
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Discounts'), 'url' => ['sale/index']];
 $this->params['breadcrumbs'][] = Yii::t('app', 'Approve discounts');
 ?>
-<div class="row row-offcanvas row-offcanvas-left group-index">
+<div class="row row-offcanvas row-offcanvas-left discount-index">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
             <div id="main-menu"></div>
