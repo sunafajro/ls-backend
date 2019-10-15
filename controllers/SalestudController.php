@@ -2,12 +2,13 @@
 
 namespace app\controllers;
 
+use app\models\Salestud;
+use app\models\search\StudentDiscountSearch;
+use app\models\Student;
+use app\models\User;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
-use app\models\Salestud;
-use app\models\Student;
-use app\models\User;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
@@ -23,15 +24,15 @@ class SalestudController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['create','disable','enable'],
+                'only' => ['approve', 'autocomplete', 'create', 'disable', 'disable-all', 'enable', 'index'],
                 'rules' => [
                     [
-                        'actions' => ['create', 'disable', 'enable', 'approve', 'disableall', 'autocomplete'],
+                        'actions' => ['approve', 'autocomplete', 'create', 'disable', 'disable-all', 'enable', 'index'],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['create','disable','enable', 'approve','disableall', 'autocomplete'],
+                        'actions' => ['approve', 'autocomplete', 'create', 'disable', 'disable-all', 'enable', 'index'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -50,6 +51,9 @@ class SalestudController extends Controller
     public function beforeAction($action)
 	{
 		if(parent::beforeAction($action)) {
+            if ((int)Yii::$app->session->get('user.uid') === 389 && in_array($action->id, ['approve', 'index'])) {
+                return true;
+            }
 			if (User::checkAccess($action->controller->id, $action->id) == false) {
 				throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
 			}
@@ -57,21 +61,28 @@ class SalestudController extends Controller
 		} else {
 			return false;
 		}
-	}
+    }
+    
+    public function actionIndex()
+    {
+        $searchModel = new StudentDiscountSearch();
+        $dataProvider = $searchModel->search(Yii::$app->request->get());
+
+        return $this->render('index', [
+            'dataProvider'  => $dataProvider,
+            'searchModel'   => $searchModel,
+            'userInfoBlock' => User::getUserInfoBlock(),
+        ]);
+    }
     
     /**
-     * Метод позволяет менеджеру или руководителю назначить студенту скидку. 
-     * Для назначения необходим ID клиента.
-     * Одному клиенту может быть назначено несколько активных скидок.
-    **/
+     * Links sale to the student
+     * @return mixed
+     */
     public function actionCreate($sid)
     {
-        $userInfoBlock = User::getUserInfoBlock();
-        // создаем пустую запись
         $model = new Salestud();
-        // находим данные по клиенту
         $student = Student::findOne($sid);
-        // получаем список доступных скидок
         $sales = $student->getStudentSales();
 
         // если данные пришли и успешно залились в модель
@@ -101,34 +112,37 @@ class SalestudController extends Controller
                 Yii::$app->session->setFlash('error', 'Скидка уже назначена!');
             }
         }
+
         return $this->render('create', [
             'model' => $model,
             'sales' => $sales,
             'student' => $student,
-            'userInfoBlock' => $userInfoBlock
+            'userInfoBlock' => User::getUserInfoBlock(),
         ]);
     }
     
-    /* метод подтверждает скидку назначенную клиенту */
+    /**
+     * Approves client discount
+     * @return mixed
+     */
     public function actionApprove()
     {
-        /* включаем формат ответа JSON */
         Yii::$app->response->format = Response::FORMAT_JSON;
         
         $id = (int)Yii::$app->request->post('id', NULL);
         $status = Yii::$app->request->post('status', 'approve');
         if ($id && $status) {
-            if ($status === 'accept') {
-                if (($sale = Salestud::findOne($id)) !== NULL) {
-                    $sale->approved = 1;
-                    if (!$sale->save()) {
-                        Yii::$app->session->setFlash('error', 'Не удалось поддтвердить скидку.');
-                    }
-                } else {
-                    throw new NotFoundHttpException(Yii::t('yii', 'The requested page does not exist.'));
+            $sale = Salestud::findOne($id);
+            if (empty($sale)) {
+                throw new NotFoundHttpException(Yii::t('yii', 'The requested page does not exist.'));
+            }
+            if ($status === 'accept') {                
+                $sale->approved = 1;
+                if (!$sale->save()) {
+                    Yii::$app->session->setFlash('error', 'Не удалось поддтвердить скидку.');
                 }
             } else if ($status === 'refuse') {
-                if (!$this->deleteModel($id)) {
+                if (!$sale->delete()) {
                     Yii::$app->session->setFlash('error', 'Не удалось аннулировать скидку.');
                 }
             } else {
@@ -141,55 +155,51 @@ class SalestudController extends Controller
     }
 
     /**
-    * Метод позволяет менеджерам и руководителям восстановить аннулированые скидки клиента.
-    * Для восстановления скидки необходим id скидки.
-    **/
+     * Restores client discount
+     * @return mixed
+     */
     public function actionEnable($id)
     {
         $model = $this->findModel($id);
-        // проверяем что скидка аннулирована
-        if($model->visible != 1) {
-            // помечаем скидку как действующую 
+        if((int)$model->visible !== 1) {
             $model->visible = 1;
-            // указываем пользователя восстановившего скидки
             $model->user_visible = Yii::$app->session->get('user.uid');
-            // указываем дату восстановления скидки
             $model->data_visible = date('Y-m-d');
-            /* если скидку восстанавливает руководитель */
             if ((int)Yii::$app->session->get('user.ustatus') === 3) {
-                /* автоматически подтверждаем скидку */
                 $model->approved = 1;
             }
-            // если запись успешно сохранилась
-            if($model->save()) {
-                // если успешно, задаем сообщение об успешности
+            if ($model->save()) {
                 Yii::$app->session->setFlash('success', 'Скидка успешно восстановлена!');
             } else {
-                // если не успешно задаем сообщение об ошибке
                 Yii::$app->session->setFlash('error', 'Не удалось восстановить скидку!');
             }
         }
-        // возвращаемся обратно
+
         return $this->redirect(Yii::$app->request->referrer);
     }
 
 
     /**
-    * Метод позволяет менеджерам и руководителям аннулировать назначенные клиенту скидки.
-    * Для аннулировать скидки необходим id скидки.
-    **/
+     * Removes client discount
+     * @return mixed
+     */
     public function actionDisable($id)
     {
-        if ($this->deleteModel($id)) {
+        $discount = $this->findModel($id);
+        if ($discount->delete()) {
             Yii::$app->session->setFlash('success', 'Скидка успешно аннулирована!');
         } else {
             Yii::$app->session->setFlash('error', 'Не удалось аннулировать скидку!');
         }
-        // возвращаемся обратно
+        
         return $this->redirect(Yii::$app->request->referrer);
     }
 
-    public function actionDisableall($sid)
+    /**
+     * Removes all client discounts
+     * @return mixed
+     */
+    public function actionDisableAll($sid)
     {
         $sql = (new \yii\db\Query())
         ->createCommand()
@@ -202,29 +212,7 @@ class SalestudController extends Controller
 			Yii::$app->session->setFlash('error', 'Не удалось аннулировать скидку!');
 		}
 		
-        // возвращаемся обратно
         return $this->redirect(Yii::$app->request->referrer);
-    }
-
-    protected function deleteModel($id)
-    {
-        if (($model = $this->findModel($id)) !== NULL) {
-            // помечаем оплату как аннулированную
-            $model->visible = 0;
-            // указываем пользователя аннулировавшего оплату
-            $model->user_visible = Yii::$app->session->get('user.uid');
-            // указываем дату анулирования оплаты
-            $model->data_visible = date('Y-m-d');
-            /* снимаем подтверждение с скидки */
-            $model->approved = 0;
-            if ($model->save()) {
-                return true;    
-            } else {
-                return false;
-            }
-        } else {
-            return false;
-        }
     }
 
     public function actionAutocomplete(string $sid)
@@ -232,6 +220,7 @@ class SalestudController extends Controller
         $student = Student::findOne($sid);
         $sales = $student->getStudentAvailabelSales(['term' => Yii::$app->request->post('term') ?? NULL]);
         Yii::$app->response->format = Response::FORMAT_JSON;
+
         return $sales;
     }
     

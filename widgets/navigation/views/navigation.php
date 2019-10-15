@@ -1,14 +1,14 @@
 <?php
 
-/**
- * @var yii\web\View $this
- * @var array        $items
- * @var array        $message
- * @var array        $sale
- */
-
 use app\widgets\navigation\NavigationWidget;
 use yii\helpers\Html;
+use yii\web\View;
+
+/**
+ * @var View  $this
+ * @var array $items
+ * @var array $message
+ */
 ?>
 <div id="navigation-panel" data-limit-time="<?= NavigationWidget::LIMIT_TIME ?>" data-logout-url="<?= NavigationWidget::LOGOUT_URL ?>">
     <nav id="top-nav" class="navbar navbar-default navbar-fixed-top">
@@ -52,14 +52,6 @@ use yii\helpers\Html;
                 'id'   => 'navigation-message-modal',
                 'type' => 'message',
                 'url'  => 'message/response',
-            ]);
-        }
-        if (!empty($sale)) {
-            echo $this->render('_modal', [
-                'data' => $sale,
-                'id'   => 'navigation-sale-modal',
-                'type' => 'sale',
-                'url'  => '/salestud/approve',
             ]);
         }
     ?>

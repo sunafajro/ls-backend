@@ -134,8 +134,8 @@ class Navigation extends Model
                 'hasBadge' => false
             ];
         }
-        if((int)Yii::$app->session->get('user.ustatus') === 3 ||
-           (int)Yii::$app->session->get('user.ustatus') === 4) {
+        if ((int)Yii::$app->session->get('user.ustatus') === 3 ||
+            (int)Yii::$app->session->get('user.ustatus') === 4) {
             /* ссылка на раздел Услуги */
             $menu[] = [
                 'id' => 'services',
@@ -144,6 +144,10 @@ class Navigation extends Model
                 'title' => Yii::t('app', 'Services'),
                 'hasBadge' => false
             ];
+        }
+        if ((int)Yii::$app->session->get('user.ustatus') === 3 ||
+            (int)Yii::$app->session->get('user.ustatus') === 4 ||
+            (int)Yii::$app->session->get('user.uid') === 389) {
             /* ссылка на раздел Скидки */
             $menu[] = [
                 'id' => 'sales',
@@ -154,8 +158,8 @@ class Navigation extends Model
                 'cnt' => Salestud::getSalesCount()
             ];
         }
-        if((int)Yii::$app->session->get('user.ustatus') === 3 ||
-           (int)Yii::$app->session->get('user.ustatus') === 4) {
+        if ((int)Yii::$app->session->get('user.ustatus') === 3 ||
+            (int)Yii::$app->session->get('user.ustatus') === 4) {
             /* ссылка на раздел Скидки */
             $menu[] = [
                 'id' => 'documents',
@@ -166,8 +170,8 @@ class Navigation extends Model
                 'cnt' => false
             ];
         }
-        if((int)Yii::$app->session->get('user.ustatus') === 3 ||
-           (int)Yii::$app->session->get('user.ustatus') === 9) {
+        if ((int)Yii::$app->session->get('user.ustatus') === 3 ||
+            (int)Yii::$app->session->get('user.ustatus') === 9) {
             /* ссылка на раздел Переводы */
             $menu[] = [
                 'id' => 'translations',
@@ -177,7 +181,8 @@ class Navigation extends Model
                 'hasBadge' => false
             ];
         }
-        if((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.uid') === 296) {
+        if ((int)Yii::$app->session->get('user.ustatus') === 3 ||
+            (int)Yii::$app->session->get('user.uid') === 296) {
             /* ссылка на раздел Пользователи */
             $menu[] = [
                 'id' => 'users',
@@ -188,9 +193,9 @@ class Navigation extends Model
             ];
         }
 
-        if((int)Yii::$app->session->get('user.ustatus') === 3 ||
-           (int)Yii::$app->session->get('user.ustatus') === 4 ||
-           (int)Yii::$app->session->get('user.ustatus') === 9) {
+        if ((int)Yii::$app->session->get('user.ustatus') === 3 ||
+            (int)Yii::$app->session->get('user.ustatus') === 4 ||
+            (int)Yii::$app->session->get('user.ustatus') === 9) {
             /* ссылка на раздел Справочники */
             $menu[] = [
                 'id' => 'references',
@@ -213,8 +218,8 @@ class Navigation extends Model
 
         return [
             'navElements' => $menu,
-            'message' => Message::getLastUnreadMessage(),
-            'sale' => Salestud::getLastUnapprovedSale(),
+            'message'     => Message::getLastUnreadMessage(),
+            'sale'        => Salestud::getLastUnapprovedSale(),
         ];
     }
 }
