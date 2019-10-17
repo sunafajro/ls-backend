@@ -119,6 +119,32 @@ class Journalgroup extends \yii\db\ActiveRecord
         ];
     }
 
+    /** 
+     * Lesson is correct and available for accrual
+     * @return bool
+     */
+    public function view()
+    {
+        $this->view = 1;
+        $this->user_view = Yii::$app->user->identity->id;
+        $this->data_view = date('Y-m-d');
+
+        return $this->save(true, ['view', 'user_view', 'data_view']);
+    }
+
+    /** 
+     * Lesson is need to be checked
+     * @return bool
+     */
+    public function unview()
+    {
+        $this->view = 0;
+        $this->user_view = Yii::$app->user->identity->id;
+        $this->data_view = date('Y-m-d');
+
+        return $this->save(true, ['view', 'user_view', 'data_view']);
+    }
+
     public static function getEducationTimes()
     {
         return [

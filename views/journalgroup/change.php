@@ -1,23 +1,24 @@
 <?php
 
-/**
- * @var yii\web\View           $this
- * @var yii\widgets\ActiveForm $form
- * @var array                  $checkTeachers
- * @var array                  $dates
- * @var array                  $groupInfo
- * @var array                  $history
- * @var array                  $items
- * @var array                  $params
- * @var array                  $students
- * @var string                 $userInfoBlock
- */
-
 use app\models\Journalgroup;
 use app\widgets\Alert;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use yii\widgets\Breadcrumbs;
+use yii\web\View;
+
+/**
+ * @var View       $this
+ * @var ActiveForm $form
+ * @var array      $checkTeachers
+ * @var array      $dates
+ * @var array      $groupInfo
+ * @var array      $history
+ * @var array      $items
+ * @var array      $params
+ * @var array      $students
+ * @var string     $userInfoBlock
+ */
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Edit lesson');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Group').' №' . $params['gid'], 'url' => ['groupteacher/view', 'id' => $params['gid']]];
@@ -66,7 +67,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Edit lesson');
 		<h4><?= Yii::t('app', 'Change lesson members') . ' #' . $params['gid'] ?></h4>
 		<hr>
 		<p>
-			<strong>дата добавления состава:</strong> <?= !empty($students) ? $students[0]['ldate'] : '' ?><br>
+			<strong>дата добавления состава:</strong> <?= !empty($students) ? date('d.m.Y', strtotime($students[0]['ldate'])) : '' ?><br>
 			<strong>кто добавил состав:</strong> <?= !empty($students) ? $students[0]['user'] : '' ?></p>
 		</p>
     	<?php $form = ActiveForm::begin(); ?>
@@ -102,20 +103,15 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Edit lesson');
     <?php ActiveForm::end(); ?>
     <h4><?= Yii::t('app', 'Lesson members history') . ' #' . $params['gid'] ?></h4>
     <hr>
-	<?php
-        foreach($dates as $key => $value){
-			echo "<strong>".$value."</strong>";
-			echo "<p>";
-			foreach($history as $h){
-				if($h['timestamp']==$key) {
-				    echo $h['sname'].": <em><small>".$h['stname']."</small></em><br>";
-				}
-			}
-			unset($h);
-			echo "</p>";
-		}
-		unset($key);
-		unset($value);
-	?>
+	<?php foreach ($dates as $key => $value) { ?>
+		<strong><?= date('d.m.Y', strtotime($value)) ?></strong>
+		<p>
+		<?php foreach($history as $h) { ?>
+			<?php if ($h['timestamp']==$key) { ?>
+				<?= $h['sname'] ?>: <em><small><?= $h['stname'] ?></small></em><br>
+			<?php } ?>
+		<?php } ?>
+		</p>
+	<?php } ?>
    </div>
 </div>

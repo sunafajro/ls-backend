@@ -340,10 +340,13 @@ class Student extends ActiveRecord
         ->from(['s' => Service::tableName()])
         ->leftjoin(['is' => Invoicestud::tableName()], 'is.calc_service = s.id')
         ->where([
-            'is.remain' => [Invoicestud::TYPE_NORMAL, Invoicestud::TYPE_NETTING],
-            'is.visible' => 1
+            'is.remain' => [
+                Invoicestud::TYPE_NORMAL,
+                Invoicestud::TYPE_NETTING
+            ],
+            'is.visible' => 1,
+            'is.calc_studname' => $this->id,
         ])
-        ->andWhere(['is.calc_studname' => $this->id])
         ->andFilterWhere(['s.id' => $serviceId])
         ->groupby(['is.calc_studname', 's.id'])
         ->orderby(['s.id' => SORT_ASC])
@@ -357,13 +360,16 @@ class Student extends ActiveRecord
                 // запрашиваем из базы колич пройденных уроков
                 $lessons = (new \yii\db\Query())
                 ->select('COUNT(sjg.id) AS cnt')
-                ->from('calc_studjournalgroup sjg')
-                ->leftjoin('calc_groupteacher gt', 'sjg.calc_groupteacher=gt.id')
-                ->leftjoin('calc_journalgroup jg', 'sjg.calc_journalgroup=jg.id')
+                ->from(['sjg' => 'calc_studjournalgroup'])
+                ->leftjoin(['gt' => Groupteacher::tableName()], 'sjg.calc_groupteacher = gt.id')
+                ->leftjoin(['jg' => Journalgroup::tableName()], 'sjg.calc_journalgroup = jg.id')
                 ->where([
                     'jg.view'                => 1,
                     'jg.visible'             => 1,
-                    'sjg.calc_statusjournal' => [Journalgroup::STUDENT_STATUS_PRESENT, Journalgroup::STUDENT_STATUS_ABSENT_UNWARNED],
+                    'sjg.calc_statusjournal' => [
+                        Journalgroup::STUDENT_STATUS_PRESENT,
+                        Journalgroup::STUDENT_STATUS_ABSENT_UNWARNED
+                    ],
                     'gt.calc_service'        => $service['sid'],
                     'sjg.calc_studname'      => $this->id,
                 ])
