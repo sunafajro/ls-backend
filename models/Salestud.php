@@ -64,13 +64,27 @@ class Salestud extends \yii\db\ActiveRecord
         ];
     }
     
+    public function delete()
+    {
+        $this->visible = 0;
+        $this->user_visible = Yii::$app->session->get('user.uid');
+        $this->data_visible = date('Y-m-d');
+        $this->approved = 0;
+        if ($this->save()) {
+            return true;    
+        } else {
+            return false;
+        }
+    }
+
     /**
      * возвращает количество неподтвержденных скидок для панели навигации
      * @return integer
      */
     public static function getSalesCount()
     {
-        if ((int)Yii::$app->session->get('user.ustatus') === 3) {
+        if ((int)Yii::$app->session->get('user.ustatus') === 3 ||
+            (int)Yii::$app->session->get('user.uid') === 389) {
             $id = NULL;
         } else if((int)Yii::$app->session->get('user.ustatus') === 4) {
             $id = (int)Yii::$app->session->get('user.uid');

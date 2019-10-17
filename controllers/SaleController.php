@@ -4,6 +4,7 @@ namespace app\controllers;
 
 use Yii;
 use app\models\Sale;
+use app\models\search\DiscountSearch;
 use app\models\User;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -22,15 +23,15 @@ class SaleController extends Controller
         return [
 	    'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['index', 'create', 'update', 'delete', 'getsales'],
+                'only' => ['index', 'create', 'update', 'delete'],
                 'rules' => [
                     [
-                        'actions' => ['index', 'create', 'update', 'delete', 'getsales'],
+                        'actions' => ['index', 'create', 'update', 'delete'],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index', 'create', 'update', 'getsales', 'delete'],
+                        'actions' => ['index', 'create', 'update', 'delete'],
                         'allow' => true,
                         'roles' => ['@'],
                     ]
@@ -40,9 +41,6 @@ class SaleController extends Controller
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
-                    'getsales' => ['post'],
-                    'create' => ['post'],
-                    'update' => ['post'],
                     'delete' => ['post'],
                 ],
             ],
@@ -52,6 +50,9 @@ class SaleController extends Controller
     public function beforeAction($action)
     {
         if(parent::beforeAction($action)) {
+            if ((int)Yii::$app->session->get('user.uid') === 389 && $action->id === 'index') {
+                return true;
+            }
             if (User::checkAccess($action->controller->id, $action->id) == false) {
                 throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
             }
@@ -67,209 +68,96 @@ class SaleController extends Controller
      */
     public function actionIndex()
     {
-        return $this->render('index');
-    }
+        $searchModel = new DiscountSearch();
+        $dataProvider = $searchModel->search(Yii::$app->request->get());
 
-    /**
-     * Возвращаем данные для React приложения
-     * @param array $formData
-     */
-    public function actionGetsales()
-    {
-        /* включаем формат ответа JSON */
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        /* запрос на все данные для приложения */
-        if(!Yii::$app->request->post('Sale')) {
-            /* готовим данные для блока польователя */
-            $user = new User();
-            $userData = $user->getUserInfo();
-
-            /* типы скидок */
-            $type = [
-              ['key' => 'all', 'value' => Yii::t('app', '-all sales-')],
-              ['key' => '0', 'value' => Yii::t('app', 'Fixed')],
-              ['key' => '1', 'value' => Yii::t('app', 'Procent')],
-              ['key' => '2', 'value' => Yii::t('app', 'Permament')]
-            ];
-
-            return [
-                'showCreateButton' => (int)Yii::$app->session->get('user.ustatus') === 3 ? true : false,
-                'userData' => $userData,
-                'typeList' => $type,
-                'tableHeader' => Sale::getSalesTableHeader(),
-                'tableData' => Sale::getSalesList(['name' => null, 'type' => null]),
-                'tableActions' => (int)Yii::$app->session->get('user.ustatus') === 3 ? true : false,
-            ];         
-        } else {
-            $data = Yii::$app->request->post('Sale');
-            /* запрос на данные для контент области */
-            return [
-                'tableData' => Sale::getSalesList([
-                    'name' => isset($data['name']) ? $data['name'] : null,
-                    'type' => isset($data['type']) ? $data['type'] : null
-                ]),
-                'tableActions' => (int)Yii::$app->session->get('user.ustatus') === 3 ? true : false,
-            ];
-        }
-
-
+        return $this->render('index', [
+            'dataProvider'  => $dataProvider,
+            'searchModel'   => $searchModel,
+            'userInfoBlock' => User::getUserInfoBlock(),
+        ]);
     }
 
     /** 
-     * Метод позволяет руководителям
-     * создать новую скидку
-     * @param array $Sale
+     * Creates discount
      * @return mixed
      */
     public function actionCreate()
     {
-        /* включаем формат ответа JSON */
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        /* проверяем наличие данных в теле запроса */
-        if (Yii::$app->request->post('Sale')) {
-            /* сохраняем данные запроса в переменную */
-            $data = Yii::$app->request->post('Sale');
-            $sale = Sale::createSale($data['name'], $data['type'], $data['value'], $data['base']);
-            if($sale > 0) {
-                /* успешно */
-                return [
-                    'response' => 'success',
-                    'message' => Yii::t('app', 'New sale was successfully added.'),
-                    'id' =>  (string)$sale
-                ];
-            } else {
-                /* безуспешно */
-                Yii::$app->response->statusCode = 500;
-                return [
-                    'response' => 'internal_server_error',
-                    'message' => Yii::t('yii', 'An internal server error occurred.'),
-                    'error' => 'an error occurs'
-                ];
-            }
-        } else {
-            Yii::$app->response->statusCode = 400;
-            return [
-                'response' => 'bad_request',
-                'message' => Yii::t('yii', 'Missing required parameters: {Sale}')
-            ];
-        }
-    }
-
-    /**
-     * Метод позволяет руководителю обновить наименование Скидки, 
-     * остальные параметры не изменяются.
-     * @param array $Sale
-     * @return mixed
-     */
-    public function actionUpdate()
-    {
-        /* включаем формат ответа JSON */
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        /* проверяем наличие данных в теле запроса */
-        if (Yii::$app->request->post('Sale')) {
-            /* сохраняем данные запроса в переменную */
-            $data = Yii::$app->request->post('Sale');
-            /* находим скидку */
-            if (($model = Sale::findOne($data['id'])) !== null) {
-                $model->name = isset($data['name']) ? $data['name'] : $model->name;
-                if ($model->save()) {
-                    return [
-                        'response' => 'success',
-                        'message' => Yii::t('app', 'Sale was successfully updated.'),
-                    ];
+        $model = new Sale();
+        if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
+            if (!Sale::find()->andWhere(['value' => $model->value, 'procent' => $model->procent, 'visible' => 1])->exists()) {
+                $sale = Sale::createSale($model->name, $model->procent, $model->value, $model->base);
+                if ($sale > 0) {
+                    Yii::$app->session->setFlash('success', 'Скидка успешно создана');
+                    return $this->redirect(['sale/index']);
                 } else {
-                    /* возвращаем ошибку */
-                    Yii::$app->response->statusCode = 500;
-                    return [
-                        'response' => 'error',
-                        'message' => Yii::t('app', 'Sale update failed.'),
-                        'error' => $model->getErrors()
-                    ];
+                    Yii::$app->session->setFlash('success', 'Не удалось создать скидку');
                 }
             } else {
-                /* возвращаем "не найдено" */
-                Yii::$app->response->statusCode = 404;
-                return [
-                    'response' => 'not_found',
-                    'message' => Yii::t('yii', 'The requested sale does not exist.')
-                ];
+                Yii::$app->session->setFlash('success', 'Скидка уже существует');
             }
-        } else {
-            /* если не получили параметров */
-            Yii::$app->response->statusCode = 400;
-            return [
-                'response' => 'bad_request',
-                'message' => Yii::t('yii', 'Missing required parameters: {Sale}')
-            ]; 
         }
+        
+        return $this->render('create', [
+            'model'         => $model,
+            'types'         => Sale::getTypeLabels(),
+            'userInfoBlock' => User::getUserInfoBlock(),
+        ]);
     }
 
     /**
-     * Метод позволяет руководителю
-     * пометить действующую скидку удаленной.
-     * Если скидка уже имеет статус "удалена", 
-     * действий не выполняется
+     * Updates discount
+     * @param int $id
+     * @return mixed
+     */
+    public function actionUpdate($id)
+    {
+        $model = $this->findModel($id);
+        if (empty($model)) {
+            throw new NotFoundHttpException('Скидка не найдена');
+        }
+        if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
+            if ($model->save(true, ['name'])) {
+                Yii::$app->session->setFlash('success', 'Скидка успешно обновлена');
+                return $this->redirect(['sale/index']);
+            } else {
+                Yii::$app->session->setFlash('success', 'Не удалось обновить скидку');
+            }
+        }
+        
+        return $this->render('update', [
+            'model'         => $model,
+            'types'         => Sale::getTypeLabels(),
+            'userInfoBlock' => User::getUserInfoBlock(),
+        ]);
+    }
+
+    /**
+     * Deletes discount
      * @param integer $id
      * @return mixed
      */
-    public function actionDelete()
+    public function actionDelete($id)
     {
-        /* включаем формат ответа JSON */
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        /* проверяем наличие данных в теле запроса */
-        if (Yii::$app->request->post('Sale')) {
-            /* сохраняем данные запроса в переменную */
-            $data = Yii::$app->request->post('Sale');
-            /* находим скидку */
-            if (($model = Sale::findOne($data['id'])) !== null) {
-                /* проверяем текущее состояние, чтобы лишний раз неписать данные в базу */
-                if((int)$model->visible !== 0){
-                    $model->visible = 0;
-                    /* пробуем сохранить модель */
-                    if ($model->save()) {
-                        return [
-                            'response' => 'success',
-                            'message' => Yii::t('app', 'Sale was successfully deleted.'),
-                        ];
-                    } else {
-                        /* возвращаем ошибку */
-                        Yii::$app->response->statusCode = 500;
-                        return [
-                            'response' => 'error',
-                            'message' => Yii::t('app', 'Sale delete failed.'),
-                            'error' => $model->getErrors()
-                        ];
-                    }
-                } else {
-                    /* если скидка уже была помечена удаленной */
-                    return [
-                        'response' => 'no_changes',
-                        'message' => Yii::t('app', 'Sale is already in deleted state.'),
-                    ];
-                }
-            } else {
-                /* возвращаем "не найдено" */
-                Yii::$app->response->statusCode = 404;
-                return [
-                    'response' => 'not_found',
-                    'message' => Yii::t('yii', 'The requested sale does not exist.')
-                ];
-            }
-        } else {
-            /* если не получили параметров */
-            Yii::$app->response->statusCode = 400;
-            return [
-                'response' => 'bad_request',
-                'message' => Yii::t('yii', 'Missing required parameters: {Sale}')
-            ];  
+        $model = Sale::findOne($id);
+        if (empty($model)) {
+            throw new NotFoundHttpException('Скидка не найдена');
         }
+        if ($model->delete()) {
+            Yii::$app->session->setFlash('success', Yii::t('app', 'Скидка успешно удалена'));
+        } else {
+            Yii::$app->session->setFlash('error', Yii::t('app', 'Не удалось удалить скидку'));
+        }
+        
+        return $this->redirect(['sale/index']);
     }
 
     /**
-     * Finds the CalcSale model based on its primary key value.
+     * Finds the Sale model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return CalcSale the loaded model
+     * @return Sale the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)

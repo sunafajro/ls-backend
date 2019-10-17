@@ -8,11 +8,12 @@ use Yii;
  * This is the model class for table "calc_sale".
  *
  * @property integer $id
- * @property string $name
+ * @property string  $name
  * @property integer $visible
  * @property integer $procent
- * @property double $value
- * @property string $data
+ * @property integer $base
+ * @property double  $value
+ * @property string  $data
  */
 class Sale extends \yii\db\ActiveRecord
 {
@@ -34,11 +35,14 @@ class Sale extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'visible', 'procent', 'value', 'data'], 'required'],
-            [['name'], 'string'],
+            [['name', 'procent', 'value'], 'required'],
             [['visible', 'procent', 'base'], 'integer'],
-            [['value'], 'number'],
-            [['data'], 'safe']
+            [['name'],    'string'],
+            [['value'],   'number'],
+            [['data'],    'safe'],
+            [['base'],    'default', 'value' => 0],
+            [['visible'], 'default', 'value' => 1],
+            [['data'],    'default', 'value' => date('Y-m-d')],
         ];
     }
 
@@ -48,14 +52,35 @@ class Sale extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
-            'name' => \Yii::t('app','Sale name'),
-            'visible' => 'Visible',
-            'procent' => \Yii::t('app','Sale procent'),
-            'value' => \Yii::t('app','Sale value'),
-			'base'=> \Yii::t('app','Client account size'),
-            'data' => \Yii::t('app','Sale date'),
+            'id' => '№',
+            'name'    => Yii::t('app','Sale name'),
+            'visible' => Yii::t('app','Active'),
+            'procent' => Yii::t('app','Type'),
+            'value'   => Yii::t('app','Value'),
+			'base'    => Yii::t('app','Client account size'),
+            'data'    => Yii::t('app','Created at'),
         ];
+    }
+
+    public static function getTypeLabels()
+    {
+        return [
+            self::TYPE_RUB       => Yii::t('app', 'Ruble sale'),
+            self::TYPE_PERCENT   => Yii::t('app', 'Percent sale'),
+            self::TYPE_PERMAMENT => Yii::t('app', 'Permament sale'),  
+        ];
+    }    
+
+    public static function getTypeLabel($typeId)
+    {
+        $labels = self::getTypeLabels();
+        return $labels[$typeId] ?? '';
+    }
+
+    public function delete()
+    {
+        $this->visible = 0;
+        return $this->save(true, ['visible']);
     }
     
     /* возвращает список назначнных скидок по пользователям с паджинацией */
@@ -141,13 +166,11 @@ class Sale extends \yii\db\ActiveRecord
      */
     public static function createSale($name, $type, $value, $base)
     {
-        $model = new Sale();
-        $model->data = date('Y-m-d');
-        $model->visible = 1;
-        $model->name = $name;
+        $model          = new Sale();
+        $model->name    = $name;
         $model->procent = $type;
-        $model->value = $value;
-        $model->base = $base;
+        $model->value   = $value;
+        $model->base    = $base;
         if($model->save()) {
             return $model->id;
         } else {

@@ -2,26 +2,30 @@
 
 namespace app\models;
 
+use app\traits\StudentMergeTrait;
 use Yii;
 
 use yii\data\ActiveDataProvider;
 
 /**
- * This is the model class for table "student_grades".
+ * This is the model class for table "receipts".
  *
  * @property integer $id
- * @property string $visible
- * @property string $date
- * @property string $user
- * @property string $studentId
- * @property string $purpose
- * @property string $name
+ * @property string  $visible
+ * @property string  $created_at
+ * @property string  $user_id
+ * @property string  $student_id
+ * @property string  $purpose
+ * @property string  $name
+ * @property string  $payer
  * @property integer $sum
- * @property string $qrdata
+ * @property string  $qrdata
  */
 
 class Receipt extends \yii\db\ActiveRecord
 {
+    use StudentMergeTrait;
+    
     /**
      * @inheritdoc
      */
@@ -36,10 +40,13 @@ class Receipt extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['user', 'studentId', 'purpose', 'name', 'sum', 'qrdata'], 'required'],
-            [['studentId', 'user', 'visible'], 'integer'],
-            [['date', 'sum'], 'safe'],
-            [['name', 'purpose', 'qrdata'], 'string'],
+            [['student_id', 'purpose', 'name', 'sum', 'qrdata'], 'required'],
+            [['student_id', 'user_id', 'visible'], 'integer'],
+            [['created_at', 'sum'], 'safe'],
+            [['name', 'purpose', 'payer', 'qrdata'], 'string'],
+            [['visible'],    'default', 'value' => 1],
+            [['user_id'],    'default', 'value' => Yii::$app->user->identity->id],
+            [['created_at'], 'default', 'value' => date('Y-m-d')],
         ];
     }
 
@@ -49,9 +56,13 @@ class Receipt extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'name' => Yii::t('app', 'Full name'),
-            'purpose' => Yii::t('app', 'Destination'),
-            'sum' => Yii::t('app', 'Sum'),
+            'name'       => Yii::t('app', 'Full name'),
+            'purpose'    => Yii::t('app', 'Destination'),
+            'sum'        => Yii::t('app', 'Sum'),
+            'payer'      => Yii::t('app', 'Payer'),
+            'user_id'    => Yii::t('app', 'User'),
+            'created_at' => Yii::t('app', 'Created at'),
+            'visible'    => Yii::t('app', 'Active'),
         ];
     }
 
@@ -125,6 +136,13 @@ class Receipt extends \yii\db\ActiveRecord
         return implode('|', $params);
     }
 
+    public function delete()
+    {
+        $this->visible = 0;
+        
+        return $this->save(true, ['visible']);
+    }
+
     /**
      *  метод возвращает одну квитанцию по id
      */
@@ -132,17 +150,18 @@ class Receipt extends \yii\db\ActiveRecord
     {
         $receipt = (new \yii\db\Query())
         ->select([
-            'id' => 'r.id',
-            'date' => 'r.date',
-            'purpose' => 'r.purpose',
-            'name' => 'r.name',
-            'sum' => 'r.sum',
-            'qrdata' => 'r.qrdata',
-            'studentId' => 'r.studentId',
+            'id'          => 'r.id',
+            'date'        => 'r.created_at',
+            'purpose'     => 'r.purpose',
+            'name'        => 'r.name',
+            'payer'       => 'r.payer',
+            'sum'         => 'r.sum',
+            'qrdata'      => 'r.qrdata',
+            'studentId'   => 'r.student_id',
             'studentName' => 's.name',
         ])
         ->from(['r' => static::tableName()])
-        ->innerJoin(['s' => 'calc_studname'], 'r.studentId = s.id')
+        ->innerJoin(['s' => Student::tableName()], 'r.student_id = s.id')
         ->where([
             'r.id' => $id,
             'r.visible' => 1,
@@ -159,21 +178,22 @@ class Receipt extends \yii\db\ActiveRecord
     {
         $query = (new \yii\db\Query())
         ->select([
-            'id' => 'r.id',
-            'date' => 'r.date',
-            'userName' => 'u.name',
-            'purpose' => 'r.purpose',
-            'name' => 'r.name',
-            'sum' => 'r.sum',
-            'qrdata' => 'r.qrdata',
-            'studentId' => 'r.studentId',
+            'id'          => 'r.id',
+            'date'        => 'r.created_at',
+            'userName'    => 'u.name',
+            'purpose'     => 'r.purpose',
+            'name'        => 'r.name',
+            'payer'       => 'r.payer',
+            'sum'         => 'r.sum',
+            'qrdata'      => 'r.qrdata',
+            'studentId'   => 'r.student_id',
             'studentName' => 's.name',
         ])
         ->from(['r' => static::tableName()])
-        ->innerJoin(['u' => 'user'], 'r.user = u.id')
-        ->innerJoin(['s' => 'calc_studname'], 'r.studentId = s.id')
+        ->innerJoin(['u' => User::tableName()], 'r.user_id = u.id')
+        ->innerJoin(['s' => Student::tableName()], 'r.student_id = s.id')
         ->where([
-            'r.studentId' => $sid,
+            'r.student_id' => $sid,
             'r.visible' => 1,
         ]);
         

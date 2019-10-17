@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 /**
  * This is the model class for table "calc_groupteacher".
@@ -12,9 +13,9 @@ use yii\helpers\Html;
  * @property integer $calc_service
  * @property integer $calc_office
  * @property integer $calc_edulevel
- * @property string $data
+ * @property string  $data
  * @property integer $user
- * @property string $data_visible
+ * @property string  $data_visible
  * @property integer $user_visible
  * @property integer $visible
  * @property integer $corp
@@ -112,14 +113,7 @@ class Groupteacher extends \yii\db\ActiveRecord
 		->orderby(['t.name' => SORT_ASC])
 		->all();
 
-        if(!empty($teachers)) {
-            foreach($teachers as $teacher){
-                $tmpTeachers[$teacher['id']] = $teacher['name'];
-            }
-            $teachers = array_unique($tmpTeachers);
-        }
-
-        return $teachers;
+        return ArrayHelper::map($teachers ?? [], 'id', 'name');
     }
 
     public static function getStudentListSimple($id)
@@ -148,14 +142,7 @@ class Groupteacher extends \yii\db\ActiveRecord
         $students = $students->orderby(['s.name' => SORT_ASC])
         ->all();
 
-        if(!empty($students)) {
-            foreach($students as $student){
-                $tmpStudents[$student['id']] = $student['name'];
-            }
-            $students = array_unique($tmpStudents);
-        }
-
-        return $students;
+        return ArrayHelper::map($students ?? [], 'id', 'name');
     }
 
     public static function getGroupInfoById($id)
@@ -200,20 +187,8 @@ class Groupteacher extends \yii\db\ActiveRecord
 	 */
 	public static function getGroupTeacherListSimple($id)
 	{
-		$data = self::getGroupTeacherList($id);
-		
-		$teachers = [];
-		
-		if(!empty($data)) {
-		    foreach($data as $d) {
-				$teachers[$d['tid']] = $d['tname'];
-			}
-			
-			$teachers = array_unique($teachers);
-		}
-		
-		return $teachers; 
-	}
+		return ArrayHelper::map(self::getGroupTeacherList($id) ?? [], 'tid', 'tname'); 
+    }
 	
 	/**
 	 *  Метод возврашает список преподавателей назначенных группе, в виде строки. Разделитель запятая.

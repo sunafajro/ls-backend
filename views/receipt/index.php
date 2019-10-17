@@ -4,19 +4,21 @@
  * @var yii\widgets\ActiveForm      $form
  * @var app\models\Student          $student
  * @var app\models\Receipt          $receipt
+ * @var app\models\Contract         $contract
  * @var array                       $columns
  * @var array                       $formReceiptData
  * @var yii\data\ActiveDataProvider $receipts
  * @var string                      $userInfoBlock
  */
 
+use app\widgets\Alert;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use yii\widgets\Breadcrumbs;
 use yii\grid\GridView;
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Receipts');
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Clients'), 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Clients'), 'url' => ['studname/index']];
 $this->params['breadcrumbs'][] = ['label' => $student->name, 'url' => ['studname/view', 'id' => $student->id]];
 $this->params['breadcrumbs'][] = Yii::t('app', 'Add receipt');
 
@@ -36,6 +38,11 @@ $columns[] = [
     'attribute' => 'name',
     'format' => 'raw',
     'label' => Yii::t('app', 'Full name'),
+];
+$columns[] = [
+    'attribute' => 'payer',
+    'format' => 'raw',
+    'label' => Yii::t('app', 'Payer'),
 ];
 $columns[] = [
     'attribute' => 'purpose',
@@ -127,16 +134,7 @@ if (((int)Yii::$app->session->get('user.ustatus') === 3 ||
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle</button>
         </p>
-        <?php if (Yii::$app->session->hasFlash('error')) { ?>
-		  <div class="alert alert-danger" role="alert">
-            <?= Yii::$app->session->getFlash('error') ?>
-          </div>
-        <?php } ?>
-        <?php if (Yii::$app->session->hasFlash('success')) { ?>
-		  <div class="alert alert-success" role="alert">
-            <?= Yii::$app->session->getFlash('success'); ?>
-          </div>
-        <?php } ?> 
+        <?= Alert::widget() ?>
         <?php
             $form = ActiveForm::begin([
                 'method' => 'post',
@@ -144,16 +142,43 @@ if (((int)Yii::$app->session->get('user.ustatus') === 3 ||
             ]); ?>
             <div class="row">
                 <div class="col-sm-1">
-                    <?= Html::submitButton('<i class="fa fa-plus" aria-hidden="true"></i>', ['class' => 'btn btn-success btn-block']) ?>   
-                </div>
-                <div class="col-sm-4">
-                    <?= $form->field($receipt, 'name')->textInput(['placeholder' => Yii::t('app', 'Full name')])->label(false) ?>    
-                </div>
-                <div class="col-sm-4">
-                    <?= $form->field($receipt, 'purpose')->textInput(['placeholder' => Yii::t('app', 'Destination')])->label(false) ?>
+                    <?= Html::submitButton(
+                            Html::tag('i', '', ['class' => 'fa fa-plus', 'aria-hidden' => 'true']),
+                            ['class' => 'btn btn-success btn-block']
+                        ) ?>   
                 </div>
                 <div class="col-sm-3">
-                    <?= $form->field($receipt, 'sum')->textInput(['placeholder' => Yii::t('app', 'Sum')])->label(false) ?>
+                    <?= $form->field($receipt, 'name')
+                            ->textInput([
+                                'placeholder' => Yii::t('app', 'Student'),
+                                'title' => Yii::t('app', 'Student'),
+                            ])
+                            ->label(false) ?>    
+                </div>
+                <div class="col-sm-3">
+                    <?= $form->field($receipt, 'payer')
+                            ->textInput([
+                                'value' => $contract->signer ?? null,
+                                'placeholder' => Yii::t('app', 'Payer'),
+                                'title' => Yii::t('app', 'Payer'),
+                            ])
+                            ->label(false) ?>    
+                </div>
+                <div class="col-sm-3">
+                    <?= $form->field($receipt, 'purpose')
+                            ->textInput([
+                                'placeholder' => Yii::t('app', 'Destination'),
+                                'title' => Yii::t('app', 'Destination'),
+                            ])
+                            ->label(false) ?>
+                </div>
+                <div class="col-sm-2">
+                    <?= $form->field($receipt, 'sum')
+                            ->textInput([
+                                'placeholder' => Yii::t('app', 'Sum'),
+                                'title' => Yii::t('app', 'Sum'),
+                            ])
+                            ->label(false) ?>
                 </div>
             </div>
         <?php ActiveForm::end(); ?>
