@@ -6,15 +6,13 @@ use Yii;
 use app\models\Groupteacher;
 use app\models\Journalgroup;
 use app\models\Student;
-use app\models\Tool;
 use app\models\User;
-//use app\models\StudJournalGroup;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
 /**
- * JournalgroupController implements the CRUD actions for CalcJournalgroup model.
+ * JournalgroupController implements the CRUD actions for Journalgroup model.
  */
 class JournalgroupController extends Controller
 {
@@ -22,7 +20,7 @@ class JournalgroupController extends Controller
     {
         return [
 	        'access' => [
-                'class' => AccessControl::className(),
+                'class' => AccessControl::class,
                 'only' => ['create','update','change','view', 'unview','delete','restore','remove', 'absent'],
                 'rules' => [
                     [
@@ -435,149 +433,91 @@ class JournalgroupController extends Controller
     }
 	
 	/**
-    * метод позволяет менеджеру или руководителю отметить
-    * занятие как проверенное
-    **/
+     * Помечает занятие как проверенное
+     * @param int $gid
+     * @param int $id
+     */
     public function actionView($gid, $id)
 	{
-        /* проверяем права доступа (! переделать в поведения !) */
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 &&
-           (int)Yii::$app->session->get('user.ustatus') !== 4 &&
-           (int)Yii::$app->session->get('user.uid') !== 296) {
+        if (!(in_array((int)Yii::$app->session->get('user.ustatus'), [3, 4]) ||
+           (int)Yii::$app->user->identity->id === 296)) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 		
-        // находим запись по id
         $model = $this->findModel($id);
 		
-		// получаем список id студентов
-		$query = (new \yii\db\Query())
-		->select('sjg.calc_studname as sid, sn.name as name, gt.calc_service as service')
-		->from('calc_journalgroup jg')
-		->leftjoin('calc_studjournalgroup sjg', 'sjg.calc_journalgroup=jg.id')
-		->leftjoin('calc_groupteacher gt', 'gt.id=jg.calc_groupteacher')
-		->leftjoin('calc_studname sn' , 'sn.id=sjg.calc_studname')
-		->where('jg.id=:jid and jg.calc_groupteacher=:gid', [':jid'=>$id, ':gid'=>$gid])
-		->andWhere(['in', 'sjg.calc_statusjournal', [1]])
+		$students = (new \yii\db\Query())
+		->select([
+            'id'        => 'sjg.calc_studname',
+            'name'      => 'sn.name',
+            'serviceId' => 'gt.calc_service'
+        ])
+		->from(['jg' => Journalgroup::tableName()])
+		->leftjoin(['sjg' => 'calc_studjournalgroup'],   'sjg.calc_journalgroup = jg.id')
+		->leftjoin(['gt'  => Groupteacher::tableName()], 'gt.id = jg.calc_groupteacher')
+		->leftjoin(['sn'  => Student::tableName()],      'sn.id = sjg.calc_studname')
+		->where([
+            'jg.id'                  => $id,
+            'jg.calc_groupteacher'   => $gid,
+            'sjg.calc_statusjournal' => [
+                Journalgroup::STUDENT_STATUS_PRESENT,
+                Journalgroup::STUDENT_STATUS_ABSENT_UNWARNED,
+            ],
+        ])
 		->all();
 
 		$i = 0;
 		$snames = [];
-		$sids = [];
-		foreach($query as $q) {
-			// запрашиваем услуги назначенные студенту
-			$services = (new \yii\db\Query())
-			->select('s.id as sid, s.name as sname, SUM(is.num) as num')
-			->distinct()
-			->from('calc_service s')
-			->leftjoin('calc_invoicestud is', 'is.calc_service=s.id')
-			->where('is.remain=:rem and is.visible=:vis', [':rem'=>0, ':vis'=>1])
-			->andWhere(['is.calc_studname'=>$q['sid']])
-			->andWhere(['s.id'=>$q['service']])
-			->groupby(['is.calc_studname','s.id'])
-			->orderby(['s.id'=>SORT_ASC])
-			->one();
-            
-			// проверяем что у студента есть назначенные услуги
-			if(!empty($services)){
-				// запрашиваем из базы колич пройденных уроков
-				$lessons = (new \yii\db\Query())
-				->select('COUNT(sjg.id) AS cnt')
-				->from('calc_studjournalgroup sjg')
-				->leftjoin('calc_groupteacher gt', 'sjg.calc_groupteacher=gt.id')
-				->leftjoin('calc_journalgroup jg', 'sjg.calc_journalgroup=jg.id')
-				->where('jg.view=:vis and jg.visible=:vis and (sjg.calc_statusjournal=:vis or sjg.calc_statusjournal=:stat) and gt.calc_service=:sid and sjg.calc_studname=:stid', [':vis'=>1, 'stat'=>3, ':sid'=>$q['service'], ':stid'=>$q['sid']])
-				->one();
-
-				// считаем остаток уроков
-				$services['num'] = $services['num'] - $lessons['cnt'];
-				unset($lessons);
+		foreach($students as $lessonStudent) {
+            $student = Student::findOne($lessonStudent['id']);
+            if (empty($student)) {
+                Yii::$app->session->setFlash('error', 'Студент ' . $lessonStudent['name'] . ' не найден');
+                return $this->redirect(['groupteacher/view', 'id' => $gid]);
+            }
+            $services = $student->getServicesBalance($lessonStudent['serviceId'], null);
+			if ($services[0]['num'] <= 0) {
+				$snames[] = $lessonStudent['name'];
 			}
-			if ($services['num'] <= 0) {
-				$snames[] = $q['name'];
-			}
-			// $sids[$i] = $q['sid'];
 			$i++;
 		}
 		if ((int)$model->view !== 1 && empty($snames)) {
-			// помечаем занятие как проверенное
-			$model->view = 1;
-			$model->user_view = Yii::$app->session->get('user.uid');
-			$model->data_view = date('Y-m-d');
-			if ($model->save(true, ['view', 'user_view', 'data_view'])) {
+			if ($model->view()) {
 				Yii::$app->session->setFlash('success', 'Занятие успешно переведено в проверенные.');
 			}
 		} else {
 			Yii::$app->session->setFlash('error', 'Невозможно проверить занятие. Выставите счета студентам: ' . join(', ', $snames) . '.');
 		}
-		// @deprecated обновляем балансы клиентов
-		// foreach($sids as $key => $value) {
-			// находим информацию по клиенту
-			// $student = Student::findOne($value);
-			// пересчитываем баланс клиента новой функцией
-			// $student->debt2 = $this->studentDebt($student->id);
-			// сохраняем данные
-			// $student->save();
-	    // }
 
-        return $this->redirect(['groupteacher/view', 'id' => $gid]);
+        return $this->redirect(Yii::$app->request->referrer);
     }
 	
 	/**
-    * метод позволяет менеджеру или руководителю
-	* снять с занятия отметку о проверке
-    **/
+     * Снимает с занятия отметку о проверке
+     * @param int $gid
+     * @param int $id
+     */
     public function actionUnview($gid, $id)
 	{
-        /* проверяем права доступа (! переделать в поведения !) */
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 &&
-           (int)Yii::$app->session->get('user.ustatus') !== 4 &&
-           (int)Yii::$app->session->get('user.uid') !== 296) {
+        if (!(in_array((int)Yii::$app->session->get('user.ustatus'), [3, 4]) ||
+           (int)Yii::$app->user->identity->id === 296)) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 		
-		// находим запись по id
 		$model = $this->findModel($id);
-		// проверяем что занятие действительно проверено
         if($model->view == 1) {
-            // меняем параметр проверки на 0
-    	    $model->view = 0;
-    	    // указываем пользователя отменившего отметку о проверке занятия
-    	    $model->user_view = Yii::$app->session->get('user.uid');
-    	    // указывае дату отмены отметки о проверке
-    	    $model->data_view = date('Y-m-d');
-    	    // сохраняем запись и проверяем успешность
-		    if($model->save()) {
-				$sids = (new \yii\db\Query())
-				->select('sjg.calc_studname as id')
-				->from('calc_studjournalgroup sjg')
-				->where('sjg.calc_journalgroup=:jid', [':jid'=>$id])
-				->all();
-				// обновляем балансы клиентов
-				foreach($sids as $s) {
-					// находим информацию по клиенту
-					$student = Student::findOne($s['id']);
-					// пересчитываем баланс клиента новой функцией
-					$student->debt2 = $this->studentDebt($student->id);
-					// сохраняем данные
-					$student->save();
-					unset($student);
-				}
-				unset($s);
-				unset($sids);
-				// добавлем сообщение об успешной отмене проверки занятия
+		    if ($model->unview()) {
                 Yii::$app->session->setFlash('success', 'Занятие успешно возвращено в непроверенные.');
 			}
-		}
-        // возвращаемся на страницу добавления студентов в группу
-        return $this->redirect(['groupteacher/view', 'id'=>$gid]);
+        }
+        
+        return $this->redirect(Yii::$app->request->referrer);
     }
 	
     /**
-    * метод позволяет преподавателю назначенному в группу,
-    * менеджеру или руководителю,
-    * исключить запись о занятии из журнала
-    **/
+     * метод позволяет преподавателю назначенному в группу,
+     * менеджеру или руководителю,
+     * исключить запись о занятии из журнала
+     */
     public function actionDelete($gid, $id)
     {
         $group = Groupteacher::findOne($gid);

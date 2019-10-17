@@ -8,9 +8,10 @@ use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\ActiveForm;
 use yii\widgets\Breadcrumbs;
+use yii\web\View;
 
 /**
- * @var yii\web\View $this
+ * @var View         $this
  * @var Groupteacher $model
  * @var Pagination   $pages
  * @var array        $checkTeachers
@@ -292,7 +293,7 @@ function getStudentOptions($lesson, $lessonBalance) {
                             ['studname/view', 'id' => $student['sid']],
                             getStudentOptions($lesson, $groupStudents[$student['sid']])
                         );
-                        if (in_array($userRoleId, [3, 4]) && (int)$lesson['jview'] === 1) {
+                        if (in_array($userRoleId, [3, 4]) && (int)$lesson['jview'] === 1 && (int)$lesson['jdone'] === 0) {
                             $link .= ' ' . Html::a(
                                 Html::tag('span', null, ['class' => 'fa fa-times', 'aria-hidden' => 'true']),
                                 ['journalgroup/absent', 'jid' => $lesson['jid'], 'sid' => $student['sid'], 'gid' => $model->id],
