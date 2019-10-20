@@ -97,15 +97,6 @@ $roleId = Yii::$app->session->get('user.ustatus');
                 <td><?= $curteacher['user'] ?></td>
                 <td>
                 <?php if (in_array($roleId, [3, 4])) { ?>
-                    <?= (int)$group->calc_teacher !== (int)$curteacher['id']
-                            ? Html::a(
-                                '',
-                                ['groupteacher/set-primary-teacher', 'id' => $params['gid'], 'tid' => $curteacher['id']],
-                                [
-                                    'class' => 'fa fa-star-o',
-                                    'title' => 'Назначить основным',
-                                ]
-                            ) : '' ?>
                     <?php switch ($curteacher['visible']) {
                         case 0:
                             echo Html::a(
@@ -118,6 +109,15 @@ $roleId = Yii::$app->session->get('user.ustatus');
                                 );
                             break;
                         case 1:
+                            echo (int)$group->calc_teacher !== (int)$curteacher['id']
+                                ? Html::a(
+                                    '',
+                                    ['groupteacher/set-primary-teacher', 'id' => $params['gid'], 'tid' => $curteacher['id']],
+                                    [
+                                        'class' => 'fa fa-star-o',
+                                        'title' => 'Назначить основным',
+                                    ]
+                                ) : '';
                             echo Html::a(
                                     '',
                                     ['groupteacher/delteacher', 'gid' => $params['gid'], 'tid' => $curteacher['id']],
