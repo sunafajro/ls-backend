@@ -22,7 +22,7 @@ $roleId = Yii::$app->session->get('user.ustatus');
         <?php } ?>
         <?= $userInfoBlock ?>
     </div>
-    <div class="col-sm-10">
+    <div class="col-sm-6">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
             <?= Breadcrumbs::widget([
                     'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
