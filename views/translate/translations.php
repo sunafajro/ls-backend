@@ -15,6 +15,12 @@
         <h4><?= Yii::t('app', 'Actions') ?>:</h4>
         <div class="form-group">
             <?= Html::a('<span class="fa fa-plus" aria-hidden="true"></span> ' . Yii::t('app', 'Add'), ['translation/create'], ['class' => 'btn btn-success btn-sm btn-block']) ?>
+            <?= Html::a(
+                    Html::tag('span', '', ['class' => 'fa fa-file-text-o', 'aria-hidden' => 'true'])
+                    . ' ' . Yii::t('app', 'Receipt'),
+                    ['receipt/common'],
+                    ['class' => 'btn btn-default btn-sm btn-block']
+                ) ?>
         </div>
         <div class="form-group">
             <div class="dropdown">

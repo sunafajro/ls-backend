@@ -2,11 +2,11 @@
 
 use app\models\Sale;
 use app\models\search\DiscountSearch;
+use app\widgets\Alert;
 use yii\helpers\Html;
 use yii\data\ActiveDataProvider;
 use yii\grid\GridView;
 use yii\web\View;
-use app\widgets\Alert;
 
 /**
  * @var View               $this
