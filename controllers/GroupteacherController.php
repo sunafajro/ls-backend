@@ -27,7 +27,7 @@ class GroupteacherController extends Controller
             'index', 'view', 'create', 'update',
             'status', 'addteacher', 'delteacher',
             'restoreteacher', 'addstudent', 'delstudent',
-            'restorestudent', 'corp'
+            'restorestudent', 'corp', 'set-primary-teacher',
         ];
         return [
 	        'access' => [
@@ -351,32 +351,16 @@ class GroupteacherController extends Controller
      */
     public function actionAddteacher($gid)
 	{
+        $group = $this->findModel($gid);
+        if (empty($group)) {
+            throw new NotFoundHttpException("Группа #{$gid} не найдена");
+        }
+
         $params['gid'] = $gid;
         $params['active'] = Groupteacher::getGroupStateById($gid);
         
 		// создаем новую пустую модель
 		$model = new Teachergroup();
-
-		// получаем массив со списком преподавателей назаначенных группе
-        $teachers = (new \yii\db\Query())
-        ->select('tg.calc_teacher as id, t.name as name')
-        ->from('calc_teachergroup tg')
-        ->leftjoin('calc_teacher t', 't.id=tg.calc_teacher')
-        ->where('tg.calc_groupteacher=:gid and t.old=:zero and t.visible=:vis and tg.visible=:vis', [':gid'=>$gid, ':vis'=>1, ':zero'=>0])
-        ->orderby(['t.name'=>SORT_ASC])
-        ->all();
-
-        // задаем переменную для ключей массива
-        $i = 0;
-        // готовим массив со списком преподавателем для проверки права доступа
-        foreach($teachers as $tt) {
-            // заполняем массив
-            $tmp_teachers[$i] = $tt['id'];
-            // увеличиваем ключ
-            $i++;
-        }
-		unset($tt);
-		unset($teachers);
 		
 		// получаем список текущих преподавателей группы
 		$curteachers = (new \yii\db\Query())
@@ -388,9 +372,7 @@ class GroupteacherController extends Controller
 		->orderby(['tg.date'=>SORT_DESC])
 		->all();
           
-		// если пришли данные и моделька сохранилась успешно, переходим в картоку преподавателя
-		if($model->load(Yii::$app->request->post())) {
-            /* проверяем права доступа (! переделать в поведения !) */
+		if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
             if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
                 throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
             }
@@ -398,33 +380,29 @@ class GroupteacherController extends Controller
             $model->visible = 1;
             $model->date = date('Y-m-d');
             $model->user = Yii::$app->session->get('user.uid');
-            /* проверяем не был ли учитель уже ранее назначен в группу */
-            if (($check = Teachergroup::find()->where('calc_teacher=:tid AND calc_groupteacher=:gid', 
+            if ((Teachergroup::find()->where('calc_teacher=:tid AND calc_groupteacher=:gid', 
                 [':tid' => $model->calc_teacher, ':gid' => $model->calc_groupteacher])->one()) === NULL) {
-                /* сохраняем привязку преподавателя с группой */
                 if($model->save()) {
-                    /* сообщение об успехе */
                     Yii::$app->session->setFlash('success', 'Преподаватель успешно добавлен в группу!');
                 } else {
-                    /* сообщение об ошибке */
                     Yii::$app->session->setFlash('error', 'Неудалось добавить преподавателя в группу!');
                 }
             } else {
-                /* сообщение о неудаче */
                 Yii::$app->session->setFlash('error', 'Преподаватель уже связан с данной группой!');
             }
 
 		    return $this->redirect(['groupteacher/addteacher', 'gid' => $gid]);
 		} else {
 			return $this->render('addteacher', [
-				'model'=>$model,
-				'curteachers'=>$curteachers,
-				'teachers' => Groupteacher::getTeacherListSimple($gid),
 				'check_teachers' => Groupteacher::getGroupTeacherListSimple($gid),
-				'groupinfo' => Groupteacher::getGroupInfoById($gid),
-                'items' => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
-                'userInfoBlock' => User::getUserInfoBlock(),
-                'params' => $params,
+                'curteachers'    => $curteachers,
+                'group'          => $group,
+				'groupinfo'      => Groupteacher::getGroupInfoById($gid),
+                'items'          => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
+                'model'          => $model,
+                'params'         => $params,
+                'teachers'       => Groupteacher::getTeacherListSimple($gid),
+                'userInfoBlock'  => User::getUserInfoBlock(),
 			]);
 		}
     }
@@ -640,6 +618,30 @@ class GroupteacherController extends Controller
             $model->save();
         }
         return $this->redirect(['teacher/view','id' => $lid]);
+    }
+
+    /**
+     * Функция для изменения основного преподавателя группы
+     * @param int $id
+     * @param int $tid
+     */
+    public function actionSetPrimaryTeacher($id, $tid)
+    {
+        if (!in_array(Yii::$app->session->get('user.ustatus'), [3, 4])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        }
+
+        $group = $this->findModel($id);
+        if (empty($group)) {
+            throw new NotFoundHttpException("Группа #{$id} не найдена");
+        }
+        $group->calc_teacher = $tid;
+        if ($group->save(true, ['calc_teacher'])) {
+            Yii::$app->session->setFlash('success', 'Преподаватель успешно назначен основным в группе');
+        } else {
+            Yii::$app->session->setFlash('error', 'Не удалось назначить основного преподавателя группы');
+        }
+        return $this->redirect(['groupteacher/addteacher','gid' => $id]);
     }
 
     /**

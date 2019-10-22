@@ -1,6 +1,6 @@
 <?php
 
-use app\models\Teacher;
+use app\models\Groupteacher;
 use app\models\Schedule;
 use app\models\search\GroupSearch;
 use app\widgets\Alert;
@@ -128,18 +128,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Groups');
                     'format' => 'raw',
                     'headerOptions' => ['style' => 'width: 15%'],
                     'value' => function (array $group) {
-                        $teacherTable = Teacher::tableName();
-                        $teachers = (new \yii\db\Query())
-                            ->select(['name' => 't.name'])
-                            ->from('calc_teachergroup tg')
-                            ->innerJoin("$teacherTable t", "t.id = tg.calc_teacher")
-                            ->where([
-                                'tg.visible' => 1,
-                                'tg.calc_groupteacher' => $group['id'],
-                            ])
-                            ->orderBy(['t.name' => SORT_ASC])
-                            ->column() ?? [];
-                        return join(Html::tag('br'), $teachers);
+                        return Groupteacher::getGroupTeacherListString($group['id'], Html::tag('br'));
                     }
                 ],
                 'office' => [

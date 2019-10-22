@@ -5,6 +5,8 @@ namespace app\models;
 use Yii;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
+use yii\web\NotFoundHttpException;
+
 /**
  * This is the model class for table "calc_groupteacher".
  *
@@ -100,41 +102,55 @@ class Groupteacher extends \yii\db\ActiveRecord
         return $items;
     }
 
-    public static function getTeacherListSimple($id)
+    /**
+     * Список преподавателей доступных для добавления в группу
+     * @param  int   $id
+     * @return array
+     */
+    public static function getTeacherListSimple(int $id) : array
     {
     	$teachers = (new \yii\db\Query())
-		->select('t.id as id, t.name as name')
-		->from('calc_groupteacher gt')
-		->leftJoin('calc_service s', 's.id=gt.calc_service')
-		->leftJoin('calc_langteacher lt', 'lt.calc_lang=s.calc_lang')
-		->leftJoin('calc_teacher t', 't.id=lt.calc_teacher')
-		->leftJoin('calc_teachergroup tg','tg.calc_teacher=t.id AND tg.calc_groupteacher=gt.id')
-		->where('gt.id=:group AND t.old=:old AND tg.id is null', [':group' => $id, ':old' => 0])
+		->select(['id' => 't.id', 'name' => 't.name'])
+		->from(['gt' => self::tableName()])
+		->leftJoin(['s'  => Service::tableName()],      's.id = gt.calc_service')
+		->leftJoin(['lt' => Langteacher::tableName()],  'lt.calc_lang = s.calc_lang')
+		->leftJoin(['t'  => Teacher::tableName()],      't.id = lt.calc_teacher')
+		->leftJoin(['tg' => Teachergroup::tableName()], 'tg.calc_teacher = t.id AND tg.calc_groupteacher=gt.id')
+		->where([
+            'gt.id' => $id,
+            't.old' => 0,
+            'tg.id' => null
+        ])
 		->orderby(['t.name' => SORT_ASC])
 		->all();
 
         return ArrayHelper::map($teachers ?? [], 'id', 'name');
     }
 
+    /**
+     * Список студентов доступных для добавления в группу
+     * @param  int   $id
+     * @return array
+     */
     public static function getStudentListSimple($id)
     {
         $oid = (int)Yii::$app->session->get('user.ustatus') === 4 ? Yii::$app->session->get('user.uoffice_id') : NULL;
         $students = (new \yii\db\Query())
         ->select(['id' => 's.id', 'name' => 's.name'])
-        ->from(['s' => 'calc_studname'])
-        ->innerJoin('calc_invoicestud i', 'i.calc_studname=s.id')
-        ->innerJoin('calc_groupteacher gt', 'gt.calc_service=i.calc_service')
-        ->leftJoin('calc_studgroup sg', 's.id=sg.calc_studname and gt.id=sg.calc_groupteacher');
+        ->from(['s' => Student::tableName()])
+        ->innerJoin(['i'  => Invoicestud::tableName()], 'i.calc_studname=s.id')
+        ->innerJoin(['gt' => self::tableName()],        'gt.calc_service=i.calc_service')
+        ->leftJoin(['sg'  => Studgroup::tableName()],   's.id = sg.calc_studname and gt.id = sg.calc_groupteacher');
         if ((int)Yii::$app->session->get('user.ustatus') === 4) {
-          $students = $students->innerJoin('student_office so', 's.id=so.student_id');
+          $students = $students->innerJoin(['so' => 'student_office'], 's.id = so.student_id');
         }
         $students = $students->where([
-            'gt.id' => $id,
+            'gt.id'     => $id,
             's.visible' => 1,
-            's.active' => 1,
-            'i.done' => 0,
+            's.active'  => 1,
+            'i.done'    => 0,
             'i.visible' => 1,
-            'sg.id' =>  NULL
+            'sg.id'     => NULL
         ]);
         if ((int)Yii::$app->session->get('user.ustatus') === 4) {
           $students = $students->andWhere(['so.office_id' => $oid ]);
@@ -183,31 +199,31 @@ class Groupteacher extends \yii\db\ActiveRecord
 	}
 
 	/**
-	 *  Метод возврашает список преподавателей назначенных группе в виде одномерного массива.
+	 * Метод возврашает список преподавателей назначенных группе в виде одномерного массива.
+     * @param  int   $id
+     * @return array
 	 */
 	public static function getGroupTeacherListSimple($id)
 	{
-		return ArrayHelper::map(self::getGroupTeacherList($id) ?? [], 'tid', 'tname'); 
+		return ArrayHelper::map(self::getGroupTeacherList($id) ?? [], 'id', 'name'); 
     }
 	
 	/**
-	 *  Метод возврашает список преподавателей назначенных группе, в виде строки. Разделитель запятая.
+	 * Метод возврашает список преподавателей назначенных группе, в виде строки. Разделитель запятая.
+     * @param  int    $id
+     * @param  string $divider
+     * @return string
 	 */
-	protected static function getGroupTeacherListString($id)
+	public static function getGroupTeacherListString(int $id, string $divider = ', ') : string
 	{
         $teachers = self::getGroupTeacherList($id);
         
-        $str = '';
-		
-		if(!empty($teachers)) {
-			foreach($teachers as $t) {
-				$str .= Html::a($t['tname'],['teacher/view','id'=>$t['tid']]) . ', ';
-			}
-			
-			$str = mb_substr($str, 0, -2) . '.';
+        $result = [];
+        foreach($teachers as $t) {
+            $result[] = Html::a($t['name'], ['teacher/view','id' => $t['id']]);
 		}
 		
-		return $str;
+		return join($divider, $result);
 	}
 
 	/**
@@ -266,20 +282,37 @@ class Groupteacher extends \yii\db\ActiveRecord
     }
 	
 	/**
-	 *  Возвращает массив перподавателей назначенных группе
+	 * Возвращает массив перподавателей назначенных группе
+     * @param  int   $id
+     * @return array
 	 */
 	protected static function getGroupTeacherList($id)
 	{
-		$teachers = (new \yii\db\Query())
-        ->select('tg.calc_teacher as tid, t.name as tname')
-        ->from('calc_teachergroup tg')
-        ->innerJoin('calc_teacher t', 't.id=tg.calc_teacher')
-        ->where('tg.calc_groupteacher=:gid and t.visible=:one and tg.visible=:one', [':gid'=>$id, ':one'=>1])
-        ->orderby(['t.name'=>SORT_ASC])
-        ->all();
-		
-		return $teachers;
+        $group = self::findOne($id);
+        if (empty($group)) {
+            throw new NotFoundHttpException("Группа #{$id} не найдена");
+        }
+        $teachers = (new \yii\db\Query())
+            ->select(['id' => 't.id', 'name' => 't.name'])
+            ->from(['tg' => Teachergroup::tableName()])
+            ->innerJoin(['t' => Teacher::tableName()], 't.id = tg.calc_teacher')
+            ->where([
+                't.visible'  => 1,
+                'tg.visible' => 1,
+                'tg.calc_groupteacher' => $id,
+            ])
+            ->orderBy(['t.name' => SORT_ASC])
+            ->all() ?? [];
+        if (count($teachers) > 1) {
+            foreach ($teachers ?? [] as $key => $teacher) {
+                if ((int)$group->calc_teacher === (int)$teacher['id']) {
+                    $teachers[$key]['name'] = $teachers[$key]['name']
+                        . ' '
+                        . Html::tag('span', null, ['class' => 'fa fa-star', 'aria-hidden' => 'true', 'title' => 'Основной преподаватель']);
+                }
+            }
+        }
+        
+        return $teachers;
 	}
-	
-	
 }

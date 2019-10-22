@@ -64,13 +64,14 @@ class GroupSearch extends Groupteacher
 
         $query = (new \yii\db\Query());
         $query->select([
-            'id'        => "$gt.id",
-            'serviceId' => "$gt.calc_service",
-            'service'   => "$st.name",
-            'age'       => "$st.calc_eduage",
-            'language'  => "$st.calc_lang",
-            'office'    => "$gt.calc_office",
-            'visible'   => "$gt.visible",
+            'id'         => "$gt.id",
+            'teacher_id' => "$gt.calc_teacher",
+            'serviceId'  => "$gt.calc_service",
+            'service'    => "$st.name",
+            'age'        => "$st.calc_eduage",
+            'language'   => "$st.calc_lang",
+            'office'     => "$gt.calc_office",
+            'visible'    => "$gt.visible",
         ]);
         $query->from($gt);
         $query->innerJoin($st, "$st.id = $gt.calc_service");
