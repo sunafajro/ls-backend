@@ -143,6 +143,11 @@ class Student extends ActiveRecord
         $this->money   = $this->getStudentTotalPaymentsSum();
         $this->debt    = $this->money - $this->invoice;
 
+        /* если баланс меньше 1 рубля в обе стороны, привести к 0 */
+        if ($this->debt > -1 && $this->debt < 1) {
+            $this->debt = 0;
+        }
+
         return $this->save(true, ['invoice', 'money', 'debt']);
     }
 
