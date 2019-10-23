@@ -59,7 +59,7 @@ $qrCode = isset($receipt['qrdata']) ? (new QrCode($receipt['qrdata'])) : NULL;
 					</div>
 					<div class="line-top-margin">
 						<div class="font-weight-bold right-block-line text-center">
-							ФИО: <?= $receipt['name'] ?? '' ?>; <?= $receipt['purpose'] ?? '' ?>
+							<?= ($receipt['name'] ?? false) ? "ФИО: {$receipt['name']}; " : '' ?><?= $receipt['purpose'] ?? '' ?>
 						</div>
 						<div class="small-text-size text-center">
 								(назначение платежа)
@@ -75,7 +75,12 @@ $qrCode = isset($receipt['qrdata']) ? (new QrCode($receipt['qrdata'])) : NULL;
 					</div>
 					<div class="line-top-margin">
 						<div class="sum-text">
-							Сумма: <?= substr($receipt['sum'] ?? '', 0, -2) ?> руб. <?= substr($receipt['sum'] ?? '', -2) ?> коп.
+							<?php if (!isset($receipt['sum']) || (isset($receipt['sum']) && $receipt['sum'] === '')) {
+								echo '';
+							} else {
+							    $num = explode('.', number_format((float)$receipt['sum'], 2, '.', ''));
+								echo $num[0] . ' руб. ' . $num[1] . ' коп.';
+							} ?>
 						</div>
 						<div class="small-text-size text-center">
 								(сумма платежа)

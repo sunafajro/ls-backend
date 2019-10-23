@@ -1,23 +1,44 @@
 <?php
-    use yii\helpers\Html;
-    use yii\widgets\ActiveForm;
-    use yii\widgets\Breadcrumbs;
-    $this->title = 'Система учета :: ' . Yii::t('app','Clients');
-    $this->params['breadcrumbs'][] = Yii::t('app','Clients');
-?>
 
-<div class="row row-offcanvas row-offcanvas-left schedule-index">
+use app\widgets\Alert;
+use yii\helpers\Html;
+use yii\web\View;
+use yii\widgets\ActiveForm;
+use yii\widgets\Breadcrumbs;
+
+/**
+ * @var View   $this
+ * @var int    $oid
+ * @var string $state
+ * @var string $tss
+ * @var string $userInfoBlock
+ */
+
+$this->title = Yii::$app->params['appTitle'] . Yii::t('app','Clients');
+$this->params['breadcrumbs'][] = Yii::t('app','Clients');
+$roleId = Yii::$app->session->get('user.ustatus');
+?>
+<div class="row row-offcanvas row-offcanvas-left student-index">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
-        <div id="main-menu"></div>
-        <?php endif; ?>
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
+            <div id="main-menu"></div>
+        <?php } ?>
         <?= $userInfoBlock ?>
+        <?php if (in_array($roleId, [3, 4])) { ?>
+            <h4><?= Yii::t('app', 'Actions') ?>:</h4>
+            <?= Html::a(
+                    Html::tag('span', '', ['class' => 'fa fa-file-text-o', 'aria-hidden' => 'true'])
+                    . ' ' . Yii::t('app', 'Receipt'),
+                    ['receipt/common'],
+                    ['class' => 'btn btn-default btn-sm btn-block']
+                ) ?>
+        <?php } ?>
         <h4><?= Yii::t('app', 'Filters') ?>:</h4>
         <?php
             $form = ActiveForm::begin([
                 'method' => 'get',
                 'action' => ['studname/index'],
-                ]);
+            ]);
         ?>
         <div class="form-group">
             <input type="text" class="form-control input-sm" placeholder="имя или телефон..." name="TSS" value="<?= $tss != '' ? $tss : '' ?>">
@@ -44,25 +65,17 @@
 
     </div>
     <div id="content" class="col-sm-10">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
         <?= Breadcrumbs::widget([
             'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
         ]); ?>
-        <?php endif; ?>
+        <?php } ?>
+        
         <p class="pull-left visible-xs">
             <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
-        <?php if(Yii::$app->session->hasFlash('error')) { ?>
-        <div class="alert alert-danger" role="alert">
-            <?= Yii::$app->session->getFlash('error') ?>
-        </div>
-        <?php } ?>
 
-        <?php if(Yii::$app->session->hasFlash('success')) { ?>
-        <div class="alert alert-success" role="alert">
-            <?= Yii::$app->session->getFlash('success') ?>
-        </div>
-        <?php } ?>
+        <?= Alert::widget() ?>
 
         <?php
             // первый элемент страницы
@@ -146,7 +159,7 @@
                 </td>
                 <?php echo "<td class='text-center'>".($student['debt'] < 0 ? "<span class='label label-danger'>" : "<span class='label label-success'>").$student['debt']." р.</span></td>";
 	// выводим ссылки на базовые действия для менеджера и руководителя
-	if(Yii::$app->session->get('user.ustatus')==3||Yii::$app->session->get('user.ustatus')==4){
+	if (in_array($roleId, [3, 4])) {
             echo "<td width='6%'>";
             // изменить информацию о студенте
             echo Html::a('<span class="fa fa-pencil" aria-hidden="true"></span>', ['studname/update','id'=>$student['stid']], ['title'=>Yii::t('app','Edit')]);

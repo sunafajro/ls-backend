@@ -20,18 +20,19 @@ class ReceiptController extends Controller
 {
     public function behaviors()
     {
+        $actions = ['index', 'common', 'create', 'delete', 'download-receipt'];
         return [
             'access' => [
                 'class' => AccessControl::class,
-                'only' => ['index', 'create', 'delete', 'download-receipt'],
+                'only' => $actions,
                 'rules' => [
                     [
-                        'actions' => ['index', 'create', 'delete', 'download-receipt'],
+                        'actions' => $actions,
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index', 'create', 'delete', 'download-receipt'],
+                        'actions' => $actions,
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -104,6 +105,16 @@ class ReceiptController extends Controller
         return $this->redirect(['receipt/index', 'sid' => $sid]);
     }
 
+    public function actionCommon()
+    {
+        $model = new Receipt();
+
+        return $this->render('common', [
+            'model'         => $model,
+            'userInfoBlock' => User::getUserInfoBlock(),
+        ]);
+    }
+
     public function actionDelete($id)
     {
         $receipt = Receipt::findOne(intval($id));
@@ -124,17 +135,27 @@ class ReceiptController extends Controller
         }
     }
 
-    public function actionDownloadReceipt($id)
+    public function actionDownloadReceipt($id = null)
     {
         $this->layout = 'print';
         $model = new Receipt();
-        $receipt = $model->getReceipt(intval($id));
-        if ($receipt) {                
-            return $this->render('_viewPdf', [
-                'receipt'  => $receipt,
-            ]);
+        $receipt = [];
+        if ($id) {
+            $receipt = $model->getReceipt(intval($id));
+            $receipt['sum'] = $receipt['sum'] / 100;
         } else {
-            throw new NotFoundHttpException(Yii::t('app', 'The requested page does not exist.'));
+            $model->load(Yii::$app->request->get());
+            $receipt['payer']   = $model->payer ?? '';
+            $receipt['sum']     = str_replace(',', '.', $model->sum ?? '');
+            $receipt['purpose'] = $model->purpose ?? '';
+            $receipt['qrdata']  = Receipt::receiptParamsStringified() . '|';
+            $receipt['qrdata']  .= Receipt::RECEIPT_LASTNAME . '=' . mb_strtoupper($receipt['payer'])   . '|';
+            $receipt['qrdata']  .= Receipt::RECEIPT_PURPOSE  . '=' . mb_strtoupper($receipt['purpose']) . '|';
+            $receipt['qrdata']  .= Receipt::RECEIPT_SUM      . '=' . $receipt['sum'];
         }
+           
+        return $this->render('_viewPdf', [
+            'receipt'  => $receipt,
+        ]);
     }
 }
