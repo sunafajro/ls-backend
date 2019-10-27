@@ -2,6 +2,8 @@
 
 namespace app\models\search;
 
+use app\models\Book;
+use app\models\BookCost;
 use app\models\BookOrder;
 use app\models\BookOrderPosition;
 use yii\data\ActiveDataProvider;
@@ -42,7 +44,9 @@ class BookOrderSearch extends BookOrder
             ? (int)Yii::$app->session->get('user.uoffice_id')
             : null;
 
-        $bot = BookOrder::tableName();
+        $bt   = Book::tableName();
+        $bct  = BookCost::tableName();
+        $bot  = BookOrder::tableName();
         $bopt = BookOrderPosition::tableName();
 
         $bookCountSubQuery = (new \yii\db\Query())
@@ -52,23 +56,40 @@ class BookOrderSearch extends BookOrder
             ->andWhere(['visible' => 1])
             ->andFilterWhere(["{$bopt}.office_id" => $officeId]);
 
-        $bookCostSubQuery = (new \yii\db\Query())
+        $bookPurchaseCostSubQuery = (new \yii\db\Query())
+        ->select("SUM({$bct}.cost * {$bopt}.count)")
+        ->from($bopt)
+        ->innerJoin($bt, "{$bt}.id = {$bopt}.book_id")
+        ->innerJoin($bct, "{$bt}.id = {$bct}.book_id AND {$bct}.visible = :one AND {$bct}.type = :type", [':one' => 1, ':type' => BookCost::TYPE_PURCHASE])
+        ->where("{$bopt}.book_order_id = {$bot}.id")
+        ->andWhere(["{$bopt}.visible" => 1])
+        ->andFilterWhere(["{$bopt}.office_id" => $officeId]);
+        
+        $bookSellingCostSubQuery = (new \yii\db\Query())
             ->select("SUM({$bopt}.paid)")
             ->from($bopt)
             ->where("{$bopt}.book_order_id = {$bot}.id")
-            ->andWhere(['visible' => 1])
+            ->andWhere(["{$bopt}.visible" => 1])
             ->andFilterWhere(["{$bopt}.office_id" => $officeId]);
 
         $query = (new \yii\db\Query());
         $query->select([
-            'id'                 => 'id',
-            'date_start'         => 'date_start',
-            'date_end'           => 'date_end',
-            'total_book_count'   => $bookCountSubQuery,
-            'total_selling_cost' => $bookCostSubQuery,
-            'status'             => 'status',
+            'id'                  => 'id',
+            'date_start'          => 'date_start',
+            'date_end'            => 'date_end',
+            'total_book_count'    => $bookCountSubQuery,
+            'total_purchase_cost' => $bookPurchaseCostSubQuery,
+            'total_selling_cost'  => $bookSellingCostSubQuery,
+            'status'              => 'status',
         ]);
         $query->from($bot);
+
+        $this->load($params);
+        if ($this->validate()) {
+            $query->andWhere(["{$bot}.visible" => 1]);
+        } else {
+            $query->andWhere(new Expression("(0 = 1)"));
+        }
 
         return new ActiveDataProvider([
             'query' => $query,

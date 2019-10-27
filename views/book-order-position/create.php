@@ -16,7 +16,7 @@ use yii\widgets\Breadcrumbs;
  * @var array             $offices
  */
 
-$title = Yii::t('app','Add book');
+$title = Yii::t('app','Add position');
 $this->title = Yii::$app->params['appTitle'] . $title;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Books'), 'url' => ['book/index']];
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Book order') . ' №' . $bookOrder->id, 'url' => ['book-order-position/index', 'id' => $bookOrder->id]];

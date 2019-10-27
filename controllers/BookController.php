@@ -58,11 +58,17 @@ class BookController extends Controller
 
         $searchModel = new BookSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->get());
+        /** @var BookOrder $bookOrder */
         $bookOrder = BookOrder::getCurrentOrder();
+        if (!empty($bookOrder)) {
+            $bookOrderCounters                  = $bookOrder->getOrderCounters();
+            $bookOrderCounters['positions']     = $bookOrder->positions;
+            $bookOrderCounters['positionCount'] = count($bookOrder->positions);
+        }
 
         return $this->render('index', [
             'bookOrder'         => $bookOrder ?? null,
-            'bookOrderCounters' => $bookOrder ? $bookOrder->getOrderCounters() : [],
+            'bookOrderCounters' => $bookOrderCounters ?? [],
             'dataProvider'      => $dataProvider,
             'languages'         => Lang::getLanguagesSimple(),
             'searchModel'       => $searchModel,

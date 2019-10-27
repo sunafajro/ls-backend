@@ -4,7 +4,6 @@ use app\models\Book;
 use app\models\BookCost;
 use app\models\BookOrder;
 use app\models\BookOrderPosition;
-use app\models\search\BookOrderPositionSearch;
 use app\widgets\Alert;
 use yii\grid\GridView;
 use yii\helpers\Html;
@@ -17,12 +16,14 @@ use yii\widgets\Breadcrumbs;
  * @var BookOrder         $bookOrder
  * @var BookOrderPosition $model
  * @var array             $bookOrderCounters
+ * @var array             $languages
  */
 
 $title = Yii::t('app','Book order') . ' №' . $bookOrder->id;
 $this->title = Yii::$app->params['appTitle'] . $title;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Books'), 'url' => ['book/index']];
 $this->params['breadcrumbs'][] = $title;
+$roleId = (int)Yii::$app->session->get('user.ustatus');
 ?>
 <div class="row row-offcanvas row-offcanvas-left book-order">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
@@ -59,8 +60,8 @@ $this->params['breadcrumbs'][] = $title;
             $columns['publisher']   = ['attribute' => 'publisher'];
             $columns['language']    = [
                 'attribute' => 'language',
-                'filter' => $languages,
-                'value' => function (array $book) use ($languages) {
+                'filter'    => $languages,
+                'value'     => function (array $book) use ($languages) {
                     return $languages[$book['language']] ?? '';
                 }
             ];
@@ -70,18 +71,25 @@ $this->params['breadcrumbs'][] = $title;
                     return ($book['count'] ?? 0) . ' шт.';
                 }
             ];
-            if (in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7])) {
+            if (in_array($roleId, [3, 7])) {
+                $columns['office'] = [
+                    'attribute' => 'office',
+                    'filter'    => $offices,
+                    'value'     => function (array $book) use ($offices) {
+                        return $offices[$book['office']] ?? '';
+                    }
+                ];
                 $columns['purchase_cost'] = [
                     'attribute' => 'purchase_cost',
                     'value'     => function (array $book) {
-                        $bookCost = BookCost::find()->andWhere(['book_id' => $book['id'], 'type' => BookCost::TYPE_PURCHASE, 'visible' => 1])->one();
+                        $bookCost = BookCost::find()->andWhere(['book_id' => $book['book_id'], 'type' => BookCost::TYPE_PURCHASE, 'visible' => 1])->one();
                         return number_format((($bookCost->cost ?? 0) * $book['count']), 2, '.', '') . ' руб.';
                     }
                 ];
             }
             $columns['selling_cost'] = [
                 'attribute' => 'selling_cost',
-                'label'     => in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7]) ? 'Цена продажи' : 'Цена',
+                'label'     => in_array($roleId, [3, 7]) ? 'Цена продажи' : 'Цена',
                 'value'     => function (array $book) {
                     return ($book['paid'] ?? 0) . ' руб.';
                 }
@@ -90,19 +98,21 @@ $this->params['breadcrumbs'][] = $title;
                 'attribute' => 'actions',
                 'format'    => 'raw',
                 'label'     => Yii::t('app', 'Act.'),
-                'value'     => function (array $book) use ($bookOrder) {
+                'value'     => function (array $book) use ($bookOrder, $roleId) {
                     $actions = [];
-                    if (in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7])) {
-                        $actions[] = Html::a(
-                            Html::tag('i', '', ['class' => 'fa fa-edit', 'aria-hidden' => 'true']),
-                            ['book-order-position/update', 'id' => $book['id']],
-                            ['title' => Yii::t('app', 'Edit book order position')]
-                        );
-                        $actions[] = Html::a(
-                            Html::tag('i', '', ['class' => 'fa fa-trash', 'aria-hidden' => 'true']),
-                            ['book-order-position/delete', 'id' => $book['id']],
-                            ['data-method' => 'POST', 'title' => Yii::t('app', 'Delete book order position')]
-                        );
+                    if ($bookOrder->status === BookOrder::STATUS_OPENED) {
+                        if (in_array($roleId, [3, 4, 7])) {
+                            $actions[] = Html::a(
+                                Html::tag('i', '', ['class' => 'fa fa-edit', 'aria-hidden' => 'true']),
+                                ['book-order-position/update', 'id' => $book['id']],
+                                ['title' => Yii::t('app', 'Edit book order position')]
+                            );
+                            $actions[] = Html::a(
+                                Html::tag('i', '', ['class' => 'fa fa-trash', 'aria-hidden' => 'true']),
+                                ['book-order-position/delete', 'id' => $book['id']],
+                                ['data-method' => 'POST', 'title' => Yii::t('app', 'Delete book order position')]
+                            );
+                        }
                     }
 
                     return join(' ', $actions);

@@ -6,6 +6,7 @@ use app\models\Book;
 use app\models\BookOrder;
 use app\models\BookOrderPosition;
 use app\models\Lang;
+use app\models\Office;
 use yii\data\ActiveDataProvider;
 use yii\db\Expression;
 use Yii;
@@ -26,6 +27,8 @@ class BookOrderPositionSearch extends BookOrderPosition
     public $publisher;
     /** @var int */
     public $language;
+    /** @var int */
+    public $office;
 
     /**
      * @inheritdoc
@@ -34,7 +37,7 @@ class BookOrderPositionSearch extends BookOrderPosition
     {
         return [
             [['name', 'isbn', 'author', 'description', 'publisher'], 'string'],
-            [['language'], 'integer'],
+            [['language', 'office'], 'integer'],
         ];
     }
 
@@ -45,6 +48,7 @@ class BookOrderPositionSearch extends BookOrderPosition
     {
         return array_merge((new Book)->attributeLabels(), parent::attributeLabels(), [
             'language'      => Yii::t('app', 'Language'),
+            'office'        => Yii::t('app', 'Office'),
             'purchase_cost' => Yii::t('app', 'Purchase cost'),
             'selling_cost'  => Yii::t('app', 'Selling cost'),
         ]);
@@ -53,12 +57,14 @@ class BookOrderPositionSearch extends BookOrderPosition
     public function search(BookOrder $bookOrder, array $params = []) : ActiveDataProvider
     {
         $bopt = BookOrderPosition::tableName();
-        $bt = Book::tableName();
-        $lt = Lang::tableName();
+        $bt   = Book::tableName();
+        $lt   = Lang::tableName();
+        $ot   = Office::tableName();
 
         $query = (new \yii\db\Query());
         $query->select([
-            'id'          => "{$bt}.id",
+            'id'          => "{$bopt}.id",
+            'book_id'     => "{$bt}.id",
             'name'        => "{$bt}.name",
             'author'      => "{$bt}.author",
             'description' => "{$bt}.description",
@@ -67,6 +73,7 @@ class BookOrderPositionSearch extends BookOrderPosition
             'language'    => "{$bt}.language_id",
             'count'       => "{$bopt}.count",
             'paid'        => "{$bopt}.paid",
+            'office'      => "{$bopt}.office_id",
         ]);
         $query->from($bopt);
         $query->innerJoin($bt, "{$bt}.id = {$bopt}.book_id");
@@ -74,7 +81,7 @@ class BookOrderPositionSearch extends BookOrderPosition
 
         $this->load($params);
         if ($this->validate()) {
-            $query->andWhere(["{$bt}.visible" => 1]);
+            $query->andWhere(["{$bopt}.visible" => 1]);
             $query->andWhere(["{$bopt}.book_order_id" => $bookOrder->id]);
             $query->andFilterWhere(['like', "{$bt}.name", $this->name]);
             $query->andFilterWhere(["{$bt}.isbn" => $this->isbn]);
@@ -82,8 +89,13 @@ class BookOrderPositionSearch extends BookOrderPosition
             $query->andFilterWhere(['like', "{$bt}.description", $this->description]);
             $query->andFilterWhere(['like', "{$bt}.publisher", $this->publisher]);
             $query->andFilterWhere(["{$bt}.language_id" => $this->language]);
+            $query->andFilterWhere(["{$bopt}.office_id" => $this->office]);
         } else {
             $query->andWhere(new Expression("(0 = 1)"));
+        }
+
+        if ((int)Yii::$app->session->get('user.ustatus') === 4) {
+            $query->andWhere(["{$bopt}.office_id" => Yii::$app->session->get('user.uoffice_id')]);
         }
 
         return new ActiveDataProvider([
@@ -105,6 +117,10 @@ class BookOrderPositionSearch extends BookOrderPosition
                     ],
                     'count',
                     'paid',
+                    'office' => [
+                        'asc' => ["{$ot}.name" => SORT_ASC],
+                        'desc' => ["{$ot}.name" => SORT_DESC],
+                    ],
                 ],
                 'defaultOrder' => [
                     'id' => SORT_ASC,

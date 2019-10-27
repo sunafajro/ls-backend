@@ -24,6 +24,7 @@ use Yii;
  * @property BookOrder $bookOrder
  * @property BookCost  $purchaseCost
  * @property BookCost  $sellingCost
+ * @property Office    $office
  */
 
 class BookOrderPosition extends \yii\db\ActiveRecord
@@ -75,13 +76,13 @@ class BookOrderPosition extends \yii\db\ActiveRecord
     public function restore()
     {
         $this->visible = 1;
-        return $this->save();
+        return $this->save(true, ['visible']);
     }
 
     public function delete()
     {
         $this->visible = 0;
-        return $this->save();
+        return $this->save(true, ['visible']);
     }
 
     public function getUser()
@@ -97,6 +98,11 @@ class BookOrderPosition extends \yii\db\ActiveRecord
     public function getOrder()
     {
         return $this->hasOne(BookOrder::class, ['id' => 'book_order_id']);
+    }
+
+    public function getOffice()
+    {
+        return $this->hasOne(Office::class, ['id' => 'office_id']);
     }
 
     public function getPurchaseCost()

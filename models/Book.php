@@ -74,13 +74,13 @@ class Book extends \yii\db\ActiveRecord
     public function restore() : bool
     {
         $this->visible = 1;
-        return $this->save();
+        return $this->save(true, ['visible']);
     }
 
     public function delete() : bool
     {
         $this->visible = 0;
-        return $this->save();
+        return $this->save(true, ['visible']);
     }
 
     public function getLanguage() : ActiveQuery

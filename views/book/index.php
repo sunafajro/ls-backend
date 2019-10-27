@@ -29,8 +29,8 @@ $this->params['breadcrumbs'][] = Yii::t('app','Books');
             <div id="main-menu"></div>
         <?php } ?>
         <?= $userInfoBlock ?>
+        <?= Html::tag('h4', Yii::t('app', 'Actions')) ?>
         <?php if (in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7])) {
-            echo Html::tag('h4', Yii::t('app', 'Actions'));
             echo Html::a(
                     Html::tag('i', '', ['class' => 'fa fa-plus', 'aria-hidden' => 'true']) .
                     ' ' .
@@ -52,13 +52,13 @@ $this->params['breadcrumbs'][] = Yii::t('app','Books');
                     ['class' => 'btn btn-danger btn-sm btn-block', 'data-method' => 'POST']
                );
             }
-            echo Html::a(
-                Html::tag('i', '', ['class' => 'fa fa-list', 'aria-hidden' => 'true']) .
-                ' ' .
-                Yii::t('app', 'Order history'), ['book-order/index'],
-                ['class' => 'btn btn-warning btn-sm btn-block']
-            );
         }
+        echo Html::a(
+            Html::tag('i', '', ['class' => 'fa fa-list', 'aria-hidden' => 'true']) .
+            ' ' .
+            Yii::t('app', 'Order history'), ['book-order/index'],
+            ['class' => 'btn btn-warning btn-sm btn-block']
+        );
         echo $this->render('../book-order/_order_info', [
                 'current'           => true,
                 'bookOrder'         => $bookOrder ?? null,
@@ -121,7 +121,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Books');
                     if (!empty($bookOrder)) {
                         $actions[] = Html::a(
                             Html::tag('i', '', ['class' => 'fa fa-plus', 'aria-hidden' => 'true']),
-                            ['book-order-position/create', 'id' => $bookOrder->id, 'book_id' => $book['id']],
+                            ['book-order-position/create', 'order_id' => $bookOrder->id, 'book_id' => $book['id']],
                             ['title' => Yii::t('app', 'Add to the order')]
                         );
                     }

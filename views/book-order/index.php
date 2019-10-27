@@ -99,18 +99,18 @@ $this->params['breadcrumbs'][] = $title;
                         ]);
                 },
             ];
-            if (in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7])) {
-                $columns['actions'] = [
-                    'attribute' => 'actions',
-                    'format'    => 'raw',
-                    'label'     => Yii::t('app', 'Act.'),
-                    'value'     => function (array $order) use ($bookOrder) {
-                        $actions = [];
-                        $actions[] = Html::a(
-                            Html::tag('i', '', ['class' => 'fa fa-eye', 'aria-hidden' => 'true']),
-                            ['book-order-position/index', 'id' => $order['id']],
-                            ['title' => Yii::t('app', 'View book order positions')]
-                        );
+            $columns['actions'] = [
+                'attribute' => 'actions',
+                'format'    => 'raw',
+                'label'     => Yii::t('app', 'Act.'),
+                'value'     => function (array $order) use ($bookOrder) {
+                    $actions = [];
+                    $actions[] = Html::a(
+                        Html::tag('i', '', ['class' => 'fa fa-eye', 'aria-hidden' => 'true']),
+                        ['book-order-position/index', 'id' => $order['id']],
+                        ['title' => Yii::t('app', 'View book order positions')]
+                    );
+                    if (in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7])) {
                         if (empty($bookOrder) && $order['status'] === BookOrder::STATUS_CLOSED) {
                             $actions[] = Html::a(
                                 Html::tag('i', '', ['class' => 'fa fa-check', 'aria-hidden' => 'true']),
@@ -135,11 +135,10 @@ $this->params['breadcrumbs'][] = $title;
                             ['book-order/delete', 'id' => $order['id']],
                             ['data-method' => 'POST', 'title' => Yii::t('app', 'Delete book order')]
                         );
-
-                        return join(' ', $actions);
                     }
-                ];
-            }
+                    return join(' ', $actions);
+                }
+            ];
         ?>
         <?= GridView::widget([
                 'dataProvider' => $dataProvider,

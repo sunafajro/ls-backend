@@ -66,13 +66,13 @@ class BookCost extends \yii\db\ActiveRecord
     public function restore()
     {
         $this->visible = 1;
-        return $this->save();
+        return $this->save(true, ['visible']);
     }
 
     public function delete()
     {
         $this->visible = 0;
-        return $this->save();
+        return $this->save(true, ['visible']);
     }
 
     public static function getTypeLabels(): array

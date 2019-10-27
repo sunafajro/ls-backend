@@ -33,7 +33,7 @@ class BookForm extends Model {
     public function rules()
     {
         return [
-            [['name', 'author', 'isbn', 'publisher', 'language_id'], 'required'],
+            [['name', 'isbn', 'publisher', 'language_id'], 'required'],
             [['id', 'language_id'], 'integer'],
             [['name', 'author', 'isbn', 'description', 'publisher'], 'string'],
             [['purchase_cost', 'selling_cost'], 'number'],

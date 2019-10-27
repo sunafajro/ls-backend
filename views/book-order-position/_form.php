@@ -14,6 +14,7 @@ use yii\widgets\ActiveForm;
  * @var ActiveForm        $form
  * @var array             $offices
  */
+$roleId = (int)Yii::$app->session->get('user.ustatus');
 ?>
 <div class="book-order-position-form">
 
@@ -25,7 +26,7 @@ use yii\widgets\ActiveForm;
     </div>
 
     <div class="form-group">
-        <?= Html::tag('label', $book->getAttributeLabel('selling_cost')) ?>
+        <?= Html::tag('label', $roleId !== 4 ? $model->getAttributeLabel('selling_cost_id') : Yii::t('app', 'Cost')) ?>
         <?= Html::input('text', null, $book->sellingCost->cost ?? 0, [
                 'class'    => 'form-control',
                 'disabled' => true,
@@ -37,7 +38,7 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'paid')->textInput() ?>
 
-    <?php if ((int)Yii::$app->session->get('user.ustatus') !== 4) { ?>
+    <?php if ($roleId !== 4) { ?>
         <?= $form->field($model, 'office_id')->dropDownList($offices, ['prompt' => Yii::t('app', '-select-')]) ?>
     <?php } ?>
 

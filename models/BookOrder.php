@@ -41,10 +41,10 @@ class BookOrder extends \yii\db\ActiveRecord
         return [
             [['date_start', 'date_end'], 'required'],
             [['user_id', 'visible'], 'integer'],
-            [['status'],        'default', 'value'=> self::STATUS_OPENED],
-            [['user_id'],       'default', 'value'=> Yii::$app->user->identity->id],
-            [['created_at'],    'default', 'value'=> date('Y-m-d')],
-            [['visible'],       'default', 'value'=> 1],
+            [['status'],        'default', 'value' => self::STATUS_OPENED],
+            [['user_id'],       'default', 'value' => Yii::$app->user->identity->id],
+            [['created_at'],    'default', 'value' => date('Y-m-d')],
+            [['visible'],       'default', 'value' => 1],
             [['date_start', 'date_end', 'created_at'], 'safe'],
         ];
     }
@@ -68,25 +68,25 @@ class BookOrder extends \yii\db\ActiveRecord
     public function close()
     {
         $this->status = self::STATUS_CLOSED;
-        return $this->save();
+        return $this->save(true, ['status']);
     }
 
     public function open()
     {
         $this->status = self::STATUS_OPENED;
-        return $this->save();
+        return $this->save(true, ['status']);
     }
 
     public function restore()
     {
         $this->visible = 1;
-        return $this->save();
+        return $this->save(true, ['visible']);
     }
 
     public function delete()
     {
         $this->visible = 0;
-        return $this->save();
+        return $this->save(true, ['visible']);
     }
 
     public static function getStatusLabels(): array
@@ -97,7 +97,7 @@ class BookOrder extends \yii\db\ActiveRecord
         ];
     }
 
-    public static function getStatusLabel(string $key) : string
+    public static function getStatusLabel(string $key): string
     {
         $statuses = self::getStatusLabels();
         return $statuses[$key] ?? '';
@@ -110,12 +110,11 @@ class BookOrder extends \yii\db\ActiveRecord
 
     public function getPositions()
     {
-        $officeId = (int)Yii::$app->session->get('user.ustatus') === 4
-            ? (int)Yii::$app->session->get('user.uoffice_id')
-            : null;
-
         return $this->hasMany(BookOrderPosition::class, ['book_order_id' => 'id'])
-        ->andFilterWhere(['office_id' => $officeId]);
+            ->andWhere([BookOrderPosition::tableName() . '.visible' => 1])
+            ->andFilterWhere(['office_id' => (int) Yii::$app->session->get('user.ustatus') === 4
+                ? Yii::$app->session->get('user.uoffice_id')
+                : null]);
     }
 
     public function getPositionsCount()
@@ -123,17 +122,18 @@ class BookOrder extends \yii\db\ActiveRecord
         return $this->getPositions()->count();
     }
 
-    public function getOrderCounters()
+    public function getOrderCounters(int $office_id = null) : array
     {
-        $bct = BookCost::tableName();
+        $bct  = BookCost::tableName();
         $bopt = BookOrderPosition::tableName();
         return $this->getPositions()
             ->select([
-                'total_count' => "SUM({$bopt}.count)",
+                'total_count'         => "SUM({$bopt}.count)",
                 'total_purchase_cost' => "SUM({$bopt}.count * {$bct}.cost)",
-                'total_selling_cost' => "SUM({$bopt}.paid)",
+                'total_selling_cost'  => "SUM({$bopt}.paid)",
             ])
             ->innerJoin($bct, "{$bct}.id = {$bopt}.purchase_cost_id")
+            ->andFilterWhere(['office_id' => $office_id])
             ->asArray()
             ->one();
     }
