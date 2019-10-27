@@ -118,7 +118,8 @@ $this->params['breadcrumbs'][] = Yii::t('app','Books');
                 'label'     => Yii::t('app', 'Act.'),
                 'value'     => function (array $book) use ($bookOrder) {
                     $actions = [];
-                    if (!empty($bookOrder)) {
+                    $bookCost = BookCost::find()->andWhere(['book_id' => $book['id'], 'type' => BookCost::TYPE_PURCHASE, 'visible' => 1])->one();
+                    if (!empty($bookOrder) && !empty($bookCost)) {
                         $actions[] = Html::a(
                             Html::tag('i', '', ['class' => 'fa fa-plus', 'aria-hidden' => 'true']),
                             ['book-order-position/create', 'order_id' => $bookOrder->id, 'book_id' => $book['id']],
