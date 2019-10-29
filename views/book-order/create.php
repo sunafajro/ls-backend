@@ -1,22 +1,21 @@
 <?php
 
-use app\models\BookForm;
+use app\models\BookOrder;
 use app\widgets\Alert;
 use yii\web\View;
 use yii\widgets\Breadcrumbs;
 
 /**
- * @var View     $this
- * @var BookForm $model
- * @var array    $languages
- * @var string   $userInfoBlock
+ * @var View      $this
+ * @var BookOrder $model
+ * @var string    $userInfoBlock
  */
 
-$this->title = Yii::$app->params['appTitle'] . Yii::t('app','Update book');
+$this->title = Yii::$app->params['appTitle'] . Yii::t('app','Open new order');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Books'), 'url' => ['book/index']];
-$this->params['breadcrumbs'][] = Yii::t('app','Update');
+$this->params['breadcrumbs'][] = Yii::t('app', 'Open new order');
 ?>
-<div class="row row-offcanvas row-offcanvas-left book-update">
+<div class="row row-offcanvas row-offcanvas-left book-create">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
             <div id="main-menu"></div>
@@ -37,8 +36,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Update');
         <?= Alert::widget() ?>
 
         <?= $this->render('_form', [
-                'model'      => $model ?? null,
-                'languages'  => $languages ?? [],
+                'model' => $model ?? null,
         ]) ?>
     </div>
 </div>

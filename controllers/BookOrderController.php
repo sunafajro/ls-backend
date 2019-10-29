@@ -2,12 +2,9 @@
 
 namespace app\controllers;
 
-use app\models\Lang;
-use app\models\User;
-use app\models\Book;
 use app\models\BookOrder;
-use app\models\forms\BookForm;
-use app\models\search\BookSearch;
+use app\models\search\BookOrderSearch;
+use app\models\User;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -15,24 +12,38 @@ use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 
 /**
- * BookController implements the CRUD actions for Book model.
+ * BookOrderController implements the CRUD actions for BookOrder model.
  */
-class BookController extends Controller
+class BookOrderController extends Controller
 {
     public function behaviors()
     {
         return [
             'access' => [
                 'class' => AccessControl::class,
-                'only' => ['index', 'create', 'update', 'delete'],
+                'only' => ['close', 'create', 'index', 'open', 'update', 'delete'],
                 'rules' => [
                     [
-                        'actions' => ['index', 'create', 'update', 'delete'],
+                        'actions' => [
+                            'close',
+                            'create',
+                            'index',
+                            'open',
+                            'update',
+                            'delete',
+                        ],
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index', 'create', 'update', 'delete'],
+                        'actions' => [
+                            'close',
+                            'create',
+                            'index',
+                            'open',
+                            'update',
+                            'delete',
+                        ],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -41,7 +52,9 @@ class BookController extends Controller
             'verbs' => [
                 'class' => VerbFilter::class,
                 'actions' => [
+                    'close'  => ['post'],
                     'delete' => ['post'],
+                    'open'   => ['post'],
                 ],
             ],
         ];
@@ -52,25 +65,19 @@ class BookController extends Controller
      */
     public function actionIndex()
     {
-        if (!in_array((int)Yii::$app->session->get('user.ustatus'), [3, 4, 7])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
-        }
 
-        $searchModel = new BookSearch();
+        $searchModel = new BookOrderSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->get());
-        /** @var BookOrder $bookOrder */
         $bookOrder = BookOrder::getCurrentOrder();
         if (!empty($bookOrder)) {
             $bookOrderCounters                  = $bookOrder->getOrderCounters();
             $bookOrderCounters['positions']     = $bookOrder->positions;
             $bookOrderCounters['positionCount'] = count($bookOrder->positions);
         }
-
         return $this->render('index', [
             'bookOrder'         => $bookOrder ?? null,
             'bookOrderCounters' => $bookOrderCounters ?? [],
             'dataProvider'      => $dataProvider,
-            'languages'         => Lang::getLanguagesSimple(),
             'searchModel'       => $searchModel,
             'userInfoBlock'     => User::getUserInfoBlock(),
         ]);
@@ -85,20 +92,19 @@ class BookController extends Controller
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
-        $model = new BookForm();
+        $model = new BookOrder();
 
         if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
             if ($model->save()) {
-                Yii::$app->session->setFlash('success', 'Учебник успешно добавлен.');
+                Yii::$app->session->setFlash('success', 'Новый заказ успешно открыт.');
                 return $this->redirect(['book/index']);
             } else {
-                Yii::$app->session->setFlash('error', 'Не удалось добавить учебник.');
+                Yii::$app->session->setFlash('error', 'Не удалось открыть новый заказ.');
             }
         }
 
         return $this->render('create', [
             'model'         => $model,
-            'languages'     => Lang::getLanguagesSimple(),
             'userInfoBlock' => User::getUserInfoBlock(),
         ]);
     }
@@ -113,26 +119,39 @@ class BookController extends Controller
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
-        $book = $this->findModel($id);
-        if (empty($book)) {
-            throw new NotFoundHttpException();
-        }
-        $model = new BookForm();
-        $model->loadFromBook($book);
-        if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
-            if ($model->save()) {
-                Yii::$app->session->setFlash('success', 'Учебник успешно обновлен.');
-                return $this->redirect(['book/index']);
-            } else {
-                Yii::$app->session->setFlash('error', 'Не удалось обновить учебник.');
-            }
-        }
-
         return $this->render('update', [
-            'model'         => $model,
-            'languages'     => Lang::getLanguagesSimple(),
             'userInfoBlock' => User::getUserInfoBlock(),
         ]);
+    }
+
+    /**
+     * @param integer $id
+     * @return mixed
+     */
+    public function actionOpen($id)
+    {
+        if (!in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        }
+
+        $this->findModel($id)->open();
+
+        return $this->redirect(['book/index']);
+    }
+
+    /**
+     * @param integer $id
+     * @return mixed
+     */
+    public function actionClose($id)
+    {
+        if (!in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        }
+
+        $this->findModel($id)->close();
+
+        return $this->redirect(['book/index']);
     }
 
     /**
@@ -151,15 +170,15 @@ class BookController extends Controller
     }
 
     /**
-     * Finds the Book model based on its primary key value.
+     * Finds the BookOrder model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return Book the loaded model
+     * @return BookOrder the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
     {
-        if (($model = Book::findOne($id)) !== null) {
+        if (($model = BookOrder::findOne($id)) !== null) {
             return $model;
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');

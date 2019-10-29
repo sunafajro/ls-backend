@@ -1,37 +1,37 @@
 <?php
 
+use app\models\BookForm;
 use yii\helpers\Html;
+use yii\web\View;
 use yii\widgets\ActiveForm;
 
-/* @var $this yii\web\View */
-/* @var $model app\models\CalcBook */
-/* @var $form yii\widgets\ActiveForm */
+/**
+ * @var View       $this
+ * @var BookForm   $model
+ * @var ActiveForm $form
+ * @var array      $languages
+ */
 ?>
-
-<div class="calc-book-form">
+<div class="book-form">
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'name')->textarea(['rows' => 6]) ?>
-
-    <?= $form->field($model, 'author')->textarea(['rows' => 6]) ?>
-
-    <?= $form->field($model, 'isbn')->textarea(['rows' => 6]) ?>
-
+    <?= $form->field($model, 'name')->textInput() ?>
+    <?= $form->field($model, 'author')->textInput() ?>
+    <?= $form->field($model, 'isbn')->textInput() ?>
     <?= $form->field($model, 'description')->textarea(['rows' => 6]) ?>
-
-    <?= $form->field($model, 'user')->textInput() ?>
-
-    <?= $form->field($model, 'data')->textInput() ?>
-
-    <?= $form->field($model, 'visible')->textInput() ?>
-
-    <?= $form->field($model, 'calc_bookpublisher')->textInput() ?>
-
-    <?= $form->field($model, 'calc_lang')->textInput() ?>
+    <?= $form->field($model, 'publisher')->textInput() ?>
+    <?= $form->field($model, 'language_id')->dropDownList($languages ?? [], [
+        'prompt' => Yii::t('app', '-select-')
+    ]) ?>
+    <?= $form->field($model, 'purchase_cost')->textInput() ?>
+    <?= $form->field($model, 'selling_cost')->textInput() ?>
 
     <div class="form-group">
-        <?= Html::submitButton($model->isNewRecord ? 'Create' : 'Update', ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
+        <?= Html::submitButton(
+                !$model->id ? Yii::t('app', 'Create') : Yii::t('app','Update'),
+                ['class' => !$model->id ? 'btn btn-success' : 'btn btn-primary']
+        ) ?>
     </div>
 
     <?php ActiveForm::end(); ?>
