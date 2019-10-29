@@ -70,7 +70,8 @@ class GroupteacherController extends Controller
      */
     public function actionView($id)
     {
-        $group = Groupteacher::findOne($id);
+        $group = $this->findModel($id);
+
         /* проверяем права доступа (! переделать в поведения !) */
         if((int)Yii::$app->session->get('user.ustatus') !== 3 &&
            (int)Yii::$app->session->get('user.ustatus') !== 4 &&
@@ -186,7 +187,7 @@ class GroupteacherController extends Controller
 
         return $this->render('view', [
             'model'         => $this->findModel($id),
-            'groupInfo'     => Groupteacher::getGroupInfoById($id),
+            'groupInfo'     => $group->getInfo(),
             'groupStudents' => $groupStudents,
             'lessons'       => $lessons,
             'pages'         => $pages,
@@ -352,9 +353,6 @@ class GroupteacherController extends Controller
     public function actionAddteacher($gid)
 	{
         $group = $this->findModel($gid);
-        if (empty($group)) {
-            throw new NotFoundHttpException("Группа #{$gid} не найдена");
-        }
 
         $params['gid'] = $gid;
         $params['active'] = Groupteacher::getGroupStateById($gid);
@@ -397,7 +395,7 @@ class GroupteacherController extends Controller
 				'check_teachers' => Groupteacher::getGroupTeacherListSimple($gid),
                 'curteachers'    => $curteachers,
                 'group'          => $group,
-				'groupinfo'      => Groupteacher::getGroupInfoById($gid),
+				'groupinfo'      => $group->getInfo(),
                 'items'          => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
                 'model'          => $model,
                 'params'         => $params,
@@ -483,6 +481,8 @@ class GroupteacherController extends Controller
      */
     public function actionAddstudent($gid)
     {
+        $group = $this->findModel($gid);
+
         $params['gid'] = $gid;
         $params['active'] = Groupteacher::getGroupStateById($gid);
 		// создаем новую модель
@@ -546,14 +546,14 @@ class GroupteacherController extends Controller
 			return $this->redirect(['groupteacher/addstudent', 'gid' => $gid]);
 		} else{
 			return $this->render('addstudent', [
-				'model'=>$model,
-				'curstudents'=>$curstudents,
-				'students' => Groupteacher::getStudentListSimple($gid),
+				'model'          => $model,
+				'curstudents'    => $curstudents,
+				'students'       => Groupteacher::getStudentListSimple($gid),
 				'check_teachers' => Groupteacher::getGroupTeacherListSimple($gid),
-				'groupinfo' => Groupteacher::getGroupInfoById($gid),
-                'items' => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
-                'userInfoBlock' => User::getUserInfoBlock(),
-                'params' => $params,
+				'groupinfo'      => $group->getInfo(),
+                'items'          => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
+                'userInfoBlock'  => User::getUserInfoBlock(),
+                'params'         => $params,
 			]);
 		}
 	}

@@ -46,6 +46,9 @@ class JournalgroupController extends Controller
     {
         /** @var Groupteacher group */
         $group = Groupteacher::findOne($gid);
+        if (empty($group)) {
+            throw new NotFoundHttpException("Группа №{$gid} не найдена.");
+        }
         $params['gid'] = $gid;
         $params['active'] = Groupteacher::getGroupStateById($gid);
         // получаем массив со списком преподавателей назначенных группе
@@ -175,7 +178,7 @@ class JournalgroupController extends Controller
                 // выводим форму добавления занятия
                 return $this->render('create', [
                     'teachers'       => $check_teachers,
-                    'groupInfo'      => Groupteacher::getGroupInfoById($gid),
+                    'groupInfo'      => $group->getInfo(),
                     'items'          => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
                     'model'          => $model,
                     'params'         => $params,
@@ -200,6 +203,9 @@ class JournalgroupController extends Controller
     public function actionUpdate($id, $gid)
     {
         $group = Groupteacher::findOne($gid);
+        if (empty($group)) {
+            throw new NotFoundHttpException("Группа №{$gid} не найдена.");
+        }
         $params['gid'] = $gid;
         $params['active'] = Groupteacher::getGroupStateById($gid);
         // получаем массив со списком преподавателей назначенных группе
@@ -239,7 +245,7 @@ class JournalgroupController extends Controller
             return $this->render('update', [
                 'model'         => $model,
                 'teachers'      => $checkTeachers,
-                'groupInfo'     => Groupteacher::getGroupInfoById($gid),
+                'groupInfo'     => $group->getInfo(),
                 'items'         => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
                 'userInfoBlock' => User::getUserInfoBlock(),
                 'params'        => $params,
@@ -250,16 +256,21 @@ class JournalgroupController extends Controller
     }
 	
     /** 
-	*  метод позволяет менеджерам отредактировать состав студентов
+	* метод позволяет менеджерам отредактировать состав студентов
 	* посетивших или пропустивших занятие 
 	**/
     public function actionChange($id, $gid)
 	{
 	    /* проверяем права доступа (! переделать в поведения !) */
-	    if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+	    if ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
 	        throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
-	    }
-	
+        }
+
+        $group = Groupteacher::findOne($gid);
+        if (empty($group)) {
+            throw new NotFoundHttpException("Группа №{$gid} не найдена.");
+        }
+
 	    // получаем список студентов занятия для редактирования состава 
 	    $students = (new \yii\db\Query())
 	    ->select('s.id as sid, s.name as sname, sjg.calc_statusjournal as status, sjg.comments as comment, sjg.data as ldate, u.name as user')
@@ -418,7 +429,7 @@ class JournalgroupController extends Controller
 	        return $this->render('change', [
                 'checkTeachers' => Groupteacher::getGroupTeacherListSimple($gid),
                 'dates'         => $dates,
-                'groupInfo'     => Groupteacher::getGroupInfoById($gid),
+                'groupInfo'     => $group->getInfo(),
                 'history'       => $history,
                 'items'         => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
                 'params'        => [
