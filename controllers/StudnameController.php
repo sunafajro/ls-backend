@@ -112,30 +112,29 @@ class StudnameController extends Controller
      */
     public function actionIndex()
     {
-        // $tss = NULL;
-        // проверяем GET запрос на наличие переменной TSS (фильтр по имени)
-        //if (Yii::$app->request->get('TSS')) {
-        //    $tss = Yii::$app->request->get('TSS');
-        //}
+        $request = Yii::$app->request;
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
 
         // по умолчанию поиск по имени
-        $tss = Yii::$app->request->get('TSS') ? Yii::$app->request->get('TSS') : NULL;
+        $tss = $request->get('TSS') ? $request->get('TSS') : NULL;
         $tss_condition = ['like', 's.name', $tss];
         // если в строке целое число, то поиск по идентификатору
         if ((int)$tss > 0) {
             $tss_condition = ['like', 's.phone', $tss];
+        } else if (strpos($tss, '#') !== false) {
+            $tss_condition = ['s.id' => substr($tss, 1)];
         }
 
         $oid = NULL;
         // проверяем GET запрос на наличие переменной OID (фильтр по имени)
-        if (Yii::$app->request->get('OID')) {
-            if(Yii::$app->request->get('OID')=='all'){
+        if ($request->get('OID')) {
+            if($request->get('OID')=='all'){
                 $oid = NULL;
             } else {
-                $oid = Yii::$app->request->get('OID');
+                $oid = $request->get('OID');
             }
         } else {
-            if ((int)Yii::$app->session->get('user.ustatus') === 4) {
+            if ($roleId === 4) {
                 $oid = (int)Yii::$app->session->get('user.uoffice_id');
             }
         }
@@ -143,15 +142,15 @@ class StudnameController extends Controller
         $state = 1;
         $state_id = 1;
         // проверяем GET запрос на наличие переменной STATE (фильтр по состоянию клиента)
-        if (Yii::$app->request->get('STATE')) {
-            if (Yii::$app->request->get('STATE')!='all') {
-                switch(Yii::$app->request->get('STATE')){
+        if ($request->get('STATE')) {
+            if ($request->get('STATE')!='all') {
+                switch($request->get('STATE')){
                     // студент со статусом "С НАМИ"
                     case 1: $state_id = 1; break;
                     // студент со статусом "НЕ С НАМИ"
                     case 2: $state_id = 0; break;
                 }
-                $state = (int)Yii::$app->request->get('STATE');
+                $state = (int)$request->get('STATE');
             } else {
                 $state = 'all';
                 $state_id = NULL;
@@ -159,9 +158,7 @@ class StudnameController extends Controller
         }
 
         // для руководителя и менеджера выводим полный список студентов
-        if ((int)Yii::$app->session->get('user.ustatus') === 3 ||
-        (int)Yii::$app->session->get('user.ustatus') === 4 ||
-        (int)Yii::$app->session->get('user.uid') === 296) {
+        if (in_array($roleId, [3, 4, 6]) || (int)Yii::$app->session->get('user.uid') === 296) {
             // формируем запрос
             $students = (new \yii\db\Query())
             ->select([
@@ -194,9 +191,9 @@ class StudnameController extends Controller
 
             $limit = 20;
             $offset = 0;
-            if(Yii::$app->request->get('page')){
-                if(Yii::$app->request->get('page') > 1 && Yii::$app->request->get('page') <= $pages->totalCount){
-                    $offset = 20 * (Yii::$app->request->get('page') - 1);
+            if ($request->get('page')){
+                if($request->get('page') > 1 && $request->get('page') <= $pages->totalCount){
+                    $offset = 20 * ($request->get('page') - 1);
                 }
             }
             // доделываем запрос и выполняем
@@ -206,11 +203,11 @@ class StudnameController extends Controller
             $students = (new \yii\db\Query())
             ->select('s.id as stid, s.name as stname, s.visible as visible, s.birthdate as birthdate, s.phone as phone, s.description as description, s.invoice as stinvoice, s.money as stmoney, s.debt2 as debt, s.calc_sex as stsex, s.active as active')
             ->distinct()
-            ->from(['s' => 'calc_studname'])
-            ->leftjoin('calc_studgroup sg', 'sg.calc_studname=s.id')
-            ->leftjoin('calc_teachergroup tg', 'tg.calc_groupteacher=sg.calc_groupteacher')
-            ->where('s.visible=:vis and tg.calc_teacher=:tid', [':vis'=> 1, ':tid'=>Yii::$app->session->get('user.uteacher')])
-            ->andFilterWhere(['s.active'=>$state_id])
+            ->from(['s' => Student::tableName()])
+            ->leftjoin('calc_studgroup sg', 'sg.calc_studname = s.id')
+            ->leftjoin('calc_teachergroup tg', 'tg.calc_groupteacher = sg.calc_groupteacher')
+            ->where(['s.visible' => 1, 'tg.calc_teacher' => $request->get('user.uteacher')])
+            ->andFilterWhere(['s.active' => $state_id])
             ->andFilterWhere($tss_condition);
             // делаем клон запроса
             $countQuery = clone $students;
@@ -219,13 +216,13 @@ class StudnameController extends Controller
 
             $limit = 20;
             $offset = 0;
-            if(Yii::$app->request->get('page')){
-                if(Yii::$app->request->get('page')>1&&Yii::$app->request->get('page')<=$pages->totalCount){
-                    $offset = 20 * (Yii::$app->request->get('page') - 1);
+            if($request->get('page')){
+                if($request->get('page') > 1&& $request->get('page') <= $pages->totalCount){
+                    $offset = 20 * ($request->get('page') - 1);
                 }
             }
             // доделываем запрос и выполняем
-            $students = $students->orderBy(['s.name'=>SORT_ASC])->limit($limit)->offset($offset)->all();
+            $students = $students->orderBy(['s.name' => SORT_ASC])->limit($limit)->offset($offset)->all();
         }
 		// задаем переменную которая будет ключами для массива
 		$i = 0;
