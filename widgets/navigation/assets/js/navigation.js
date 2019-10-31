@@ -32,10 +32,12 @@ $(function() {
   }
 
   $(document).ready(function() {
-    decrementTime();
-    var $navMessageModal = $("#navigation-message-modal");
-    if ($navMessageModal.length) {
-      $navMessageModal.modal("show");
+    if (startTime > 0) {
+      decrementTime();
+      var $navMessageModal = $("#navigation-message-modal");
+      if ($navMessageModal.length) {
+        $navMessageModal.modal("show");
+      } 
     }
   });
 });
