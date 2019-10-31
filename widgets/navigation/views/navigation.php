@@ -8,9 +8,10 @@ use yii\web\View;
  * @var View  $this
  * @var array $items
  * @var array $message
+ * @var int   $timeLimit
  */
 ?>
-<div id="navigation-panel" data-limit-time="<?= NavigationWidget::LIMIT_TIME ?>" data-logout-url="<?= NavigationWidget::LOGOUT_URL ?>">
+<div id="navigation-panel" data-limit-time="<?= $timeLimit ?>" data-logout-url="<?= NavigationWidget::LOGOUT_URL ?>">
     <nav id="top-nav" class="navbar navbar-default navbar-fixed-top">
         <div class="container-fluid">
             <div class="navbar-header">
@@ -23,8 +24,8 @@ use yii\web\View;
             </div>
             <div id="top-nav-collapse" class="collapse navbar-collapse">
                 <ul id="nav-links" class="navbar-nav nav">
-                    <li style="padding: 13px 10px">
-                        <span id="navigation-timer" class="label label-default" title="Время до автоматического выхода из системы">14:53</span>
+                    <li style="padding: 13px 10px; <?= $timeLimit > 0 ? '' : 'display: none' ?>">
+                        <span id="navigation-timer" class="label label-default" title="Время до автоматического выхода из системы">14:59</span>
                     </li>
                     <?php foreach ($items ?? [] as $item) { ?>
                         <?php
