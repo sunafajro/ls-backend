@@ -22,6 +22,8 @@ use yii\web\NotFoundHttpException;
  * @property integer $visible
  * @property integer $corp
  * @property integer company
+ * 
+ * @property Book[] $books
  */
 class Groupteacher extends \yii\db\ActiveRecord
 {
@@ -65,6 +67,12 @@ class Groupteacher extends \yii\db\ActiveRecord
             'company' => Yii::t('app', 'Job place')
         ];
     }
+
+    public function getBooks()
+    {
+        $this->hasMany(Book::class, ['id' => 'book_id'])->viaTable(GroupBook::tableName(), ['group_id' => 'id']);
+    }
+
     public static function getGroupStateById($id)
     {
         $state = NULL;
@@ -95,8 +103,8 @@ class Groupteacher extends \yii\db\ActiveRecord
         ];
         $items[] = [
             'title' => Yii::t('app','Books'),
-            'url' => ['groupteacherbook/create','gid' => $id],
-            'options' => ['class' => 'btn btn-block' . (('groupteacherbook/create' == $request) ? ' btn-primary' : ' btn-default')],         
+            'url' => ['group-book/create','gid' => $id],
+            'options' => ['class' => 'btn btn-block' . (('group-book/create' == $request) ? ' btn-primary' : ' btn-default')],         
         ];
 
         return $items;
@@ -161,7 +169,7 @@ class Groupteacher extends \yii\db\ActiveRecord
         return ArrayHelper::map($students ?? [], 'id', 'name');
     }
 
-    public static function getGroupInfoById($id)
+    public function getInfo()
 	{
 		$jobPlace = [ 1 => 'ШИЯ', 2 => 'СРР' ];
         // получаем информацию о группе
@@ -173,7 +181,7 @@ class Groupteacher extends \yii\db\ActiveRecord
         ->leftJoin('calc_service cs', 'cs.id=cgt.calc_service')
         ->leftJoin('calc_timenorm ctn', 'ctn.id=cs.calc_timenorm')
         ->leftJoin('calc_office co', 'co.id=cgt.calc_office')
-        ->where('cgt.id=:id', [':id'=>$id])
+        ->where('cgt.id=:id', [':id' => $this->id])
         ->one();
 		
 		$result = [];
@@ -181,13 +189,13 @@ class Groupteacher extends \yii\db\ActiveRecord
 		if(!empty($data)) {
 			$result[Yii::t('app', 'Service')] = $data['sname'];
 			$result[Yii::t('app', 'Level')] = $data['elname'];
-			$result[Yii::t('app', 'Teacher')] = self::getGroupTeacherListString($id);
+			$result[Yii::t('app', 'Teacher')] = static::getGroupTeacherListString($this->id);
 			$result[Yii::t('app', 'Office')] = $data['oname'];
 			$result[Yii::t('app', 'Start date')] = '<span class="label label-default">' . date('d.m.Y', strtotime($data['gdate'])) . '</span>';
-			$result[Yii::t('app', 'Books')] = self::getGroupBookListString($id);
+            $result[Yii::t('app', 'Books')] = join(', ', ArrayHelper::getColumn($this->books ?? [], 'name'));
 			if($data['gvisible'] != 0) {
 			    $result[Yii::t('app', 'Status')] = '<span class="label label-success">' . Yii::t('app', 'Active') . '</span>';
-				$result[Yii::t('app', 'Schedule')] = self::getGroupLessonScheduleString($id);
+				$result[Yii::t('app', 'Schedule')] = static::getGroupLessonScheduleString($this->id);
 		    } else {
 				$result[Yii::t('app', 'State')] = '<span class="label label-danger">' . Yii::t('app', 'Finished') . '</span>';
 			}

@@ -111,7 +111,7 @@ class Student extends ActiveRecord
         ])
         ->one();
         
-        return $invoices_sum['money'] ?? 0;
+        return round($invoices_sum['money']) ?? 0;
     }
 
     /**
@@ -129,7 +129,7 @@ class Student extends ActiveRecord
         ])
         ->one();
 
-        return $payments_sum['money'] ?? 0;
+        return round($payments_sum['money']) ?? 0;
     }
 
     /**
@@ -144,7 +144,7 @@ class Student extends ActiveRecord
         $this->debt    = $this->money - $this->invoice;
 
         /* если баланс меньше 1 рубля в обе стороны, привести к 0 */
-        if ($this->debt > -1 && $this->debt < 1) {
+        if (abs($this->debt) <= 1) {
             $this->debt = 0;
         }
 

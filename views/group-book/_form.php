@@ -12,9 +12,9 @@ use yii\widgets\ActiveForm;
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'calc_book')->dropDownList($item=$books, ['prompt'=>Yii::t('app', '-select-')]) ?>
+    <?= $form->field($model, 'book_id')->dropDownList($item=$books, ['prompt'=>Yii::t('app', '-select-')]) ?>
 
-    <?= $form->field($model, 'prime')->checkbox(); ?>
+    <?= $form->field($model, 'primary')->checkbox(); ?>
 
     <div class="form-group">
         <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Add') : 'Update', ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
