@@ -9,9 +9,9 @@
             "type": "php",
             "request": "launch",
             "log": true,
-            "port": 9005,
+            "port": 9000,
             "pathMappings": {
-                "/app": "C:\\Users\\evbelkin\\dev\\ls-backend"
+                "/app": "/home/evbelkin/dev/ls-backend"
             }
         },
         {
@@ -21,7 +21,7 @@
             "program": "${file}",
             "cwd": "${fileDirname}",
             "port": 9000,
-            "runtimeExecutable": "C:\\php\\php.exe",
+            "runtimeExecutable": "/usr/bin/php",
         }
     ]
 }
