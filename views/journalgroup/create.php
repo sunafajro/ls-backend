@@ -12,8 +12,10 @@ use yii\widgets\Breadcrumbs;
  * @var array  $groupInfo
  * @var array  $items
  * @var array  $params
+ * @var int    $roleId
  * @var array  $students
  * @var array  $timeHints
+ * @var int    $userId
  * @var string $userInfoBlock
  */
 
@@ -23,7 +25,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Add lesson');
 
 $groupParams = [];
 foreach($groupInfo as $key => $value) {
-    $groupParams[] = '<span class="small"><b>' . $key . ':</b></span> <span class="text-muted small">' . $value . '</span>';
+    $groupParams[] = Html::tag('span', Html::tag('b', $key . ':'), ['class' => 'small']) . ' ' . Html::tag('span', $value, ['class' => 'text-muted small']);
 }
 ?>
 <div class="row row-offcanvas row-offcanvas-left journalgroup-create">
@@ -33,9 +35,7 @@ foreach($groupInfo as $key => $value) {
 		<?php } ?>
         <?= $userInfoBlock ?>
         <?php if ($params['active'] == 1) { ?>
-            <?php if(
-                    (int)Yii::$app->session->get('user.ustatus') === 3 ||
-                    (int)Yii::$app->session->get('user.ustatus') === 4 ||
+            <?php if (in_array($roleId, [3, 4]) ||
                     (int)Yii::$app->session->get('user.uid') === 296 ||
                     array_key_exists(Yii::$app->session->get('user.uteacher'), $teachers)) { ?>
                 <?= Html::a('<span class="fa fa-plus" aria-hidden="true"></span> '.Yii::t('app','Add lesson'), ['journalgroup/create','gid' => $params['gid']], ['class' => 'btn btn-block btn-primary']) ?>
@@ -63,9 +63,11 @@ foreach($groupInfo as $key => $value) {
         <h4><?= Yii::t('app', 'Add lesson to journal of group') . ' #'. $params['gid'] ?></h4>
         <?= $this->render('_form', [
             'model'     => $model,
+            'roleId'    => $roleId,
             'students'  => $students,
             'teachers'  => $teachers,
             'timeHints' => $timeHints,
+            'userId'    => $userId,
         ]) ?>
     </div>
 </div>
