@@ -393,7 +393,7 @@ class GroupteacherController extends Controller
 		    return $this->redirect(['groupteacher/addteacher', 'gid' => $gid]);
 		} else {
 			return $this->render('addteacher', [
-				'check_teachers' => Groupteacher::getGroupTeacherListSimple($gid),
+				'check_teachers' => Groupteacher::getGroupTeacherListSimple($gid, true),
                 'curteachers'    => $curteachers,
                 'group'          => $group,
 				'groupinfo'      => $group->getInfo(),
@@ -550,7 +550,7 @@ class GroupteacherController extends Controller
 				'model'          => $model,
 				'curstudents'    => $curstudents,
 				'students'       => Groupteacher::getStudentListSimple($gid),
-				'check_teachers' => Groupteacher::getGroupTeacherListSimple($gid),
+				'check_teachers' => Groupteacher::getGroupTeacherListSimple($gid, true),
 				'groupinfo'      => $group->getInfo(),
                 'items'          => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
                 'userInfoBlock'  => User::getUserInfoBlock(),
