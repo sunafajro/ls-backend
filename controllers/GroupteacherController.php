@@ -70,6 +70,7 @@ class GroupteacherController extends Controller
      */
     public function actionView($id)
     {
+        /** @var Groupteacher $group */
         $group = $this->findModel($id);
 
         /* проверяем права доступа (! переделать в поведения !) */
@@ -84,19 +85,19 @@ class GroupteacherController extends Controller
         // задаем дефолтный лимит по количеству занятий
         $limit = 5;
         $offset = 0;
-        if((int)Yii::$app->request->get('page') > 1){
+        if ((int)Yii::$app->request->get('page') > 1) {
             $offset = 5 * ((int)Yii::$app->request->get('page') - 1);
         } else {
             $offset = 0;
         }
 
-        if(Yii::$app->request->get('page')){
+        if (Yii::$app->request->get('page')) {
             $page = (int)Yii::$app->request->get('page');
         } else {
             $page = 1;
         }
 
-        if(Yii::$app->request->get('status')){
+        if (Yii::$app->request->get('status')) {
             $state = (int)Yii::$app->request->get('status');
             switch($state) {
                 case 1: $checked = 0; $payed = 0; $deleted = 1; break;
@@ -136,11 +137,11 @@ class GroupteacherController extends Controller
 
         $i = 0;
             $list= [];
-        foreach($lessons as $lesson){
+        foreach ($lessons as $lesson) {
             $list[$i] = $lesson['jid'];
             $i++;
         }
-        if(!empty($list)){
+        if (!empty($list)) {
 	    // выбираем посещения занятий
 	    $students = (new \yii\db\Query())
 	    ->select('jg.id as jid, s.id as sid, s.name as sname, sjg.calc_statusjournal as status')
@@ -152,7 +153,7 @@ class GroupteacherController extends Controller
 	    ->all();
 
 	    $lesattend = [];
-	    foreach($students as $student){
+	    foreach ($students as $student) {
 	        switch($student['status']){
 		    case 1: 
 			$lesattend[$student['jid']]['id']=$student['jid'];

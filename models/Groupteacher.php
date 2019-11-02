@@ -70,7 +70,29 @@ class Groupteacher extends \yii\db\ActiveRecord
 
     public function getBooks()
     {
-        $this->hasMany(Book::class, ['id' => 'book_id'])->viaTable(GroupBook::tableName(), ['group_id' => 'id']);
+        return $this->hasMany(Book::class, ['id' => 'book_id'])->viaTable(GroupBook::tableName(), ['group_id' => 'id']);
+    }
+
+    public function getGroupBooks()
+    {
+        return (new \yii\db\Query())
+            ->select(['id' => 'gtb.id', 'name' => 'b.name', 'primary' => 'gtb.primary', 'book_id' => 'b.id'])
+            ->from(['gtb' => GroupBook::tableName()])
+            ->innerJoin(['b' => Book::tableName()], 'b.id = gtb.book_id')
+            ->where(['gtb.group_id' => $this->id])
+            ->orderby(['gtb.primary' => SORT_DESC, 'b.name' => SORT_ASC])
+            ->all();
+    }
+
+    public function getLanguage()
+    {
+        return (new \yii\db\Query())
+            ->select(['id' => 'l.id'])
+            ->from(['l' => Lang::tableName()])
+            ->leftJoin(['s'  => Service::tableName()], 's.calc_lang = l.id')
+            ->leftJoin(['gt' => self::tableName()], 'gt.calc_service = s.id')
+            ->where(['gt.id' => $this->id])
+            ->one();
     }
 
     public static function getGroupStateById($id)
@@ -175,7 +197,7 @@ class Groupteacher extends \yii\db\ActiveRecord
         // получаем информацию о группе
         $data =  (new \yii\db\Query())
         ->select('cgt.id as gid, cs.name as sname, ct.id as tid, ct.name as tname, cel.name as elname, cgt.data as gdate, co.name as oname, ctn.value as tnvalue, cgt.visible as gvisible, cgt.company as direction')
-        ->from('calc_groupteacher cgt')
+        ->from(['cgt' => self::tableName()])
         ->leftJoin('calc_teacher ct', 'ct.id=cgt.calc_teacher')
         ->leftJoin('calc_edulevel cel', 'cel.id=cgt.calc_edulevel')
         ->leftJoin('calc_service cs', 'cs.id=cgt.calc_service')
@@ -185,8 +207,8 @@ class Groupteacher extends \yii\db\ActiveRecord
         ->one();
 		
 		$result = [];
-		
-		if(!empty($data)) {
+
+		if (!empty($data)) {
 			$result[Yii::t('app', 'Service')] = $data['sname'];
 			$result[Yii::t('app', 'Level')] = $data['elname'];
 			$result[Yii::t('app', 'Teacher')] = static::getGroupTeacherListString($this->id);

@@ -155,30 +155,37 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     }
     
     /**
+     * 
      * Метод генерирует html блок с краткой информацией о текущем пользователе.
      * Блок размещается в боковое меню.
-     * @return mixed
+     * 
+     * @return string
      */
     public static function getUserInfoBlock()
     {
-        $str = '';
-        $str .= '<div class="well well-sm small">';
-		$str .= '<span class="font-weight-bold">' . Yii::$app->session->get('user.uname') . '</span>';
-        if(Yii::$app->session->get('user.uteacher')) {
-            $str .= Html::a('', ['teacher/view', 'id' => Yii::$app->session->get('user.uteacher')], ['class'=>'fa fa-user btn btn-default btn-xs']);                   
+        $array = [];
+        $array[] = Html::beginTag('div', ['class' => 'well well-sm small']);
+		$array[] = Html::tag('span', Yii::$app->session->get('user.uname'), ['class' => 'font-weight-bold']);
+        if (Yii::$app->session->get('user.uteacher')) {
+            $array[] = Html::a('', ['teacher/view', 'id' => Yii::$app->session->get('user.uteacher')], ['class'=>'fa fa-user btn btn-default btn-xs']);                   
         }            
-        $str .= '<br />';
-        $str .= Yii::$app->session->get('user.stname');
-        if(Yii::$app->session->get('user.ustatus')==4) {
-            $str .= '<br />';
-            $str .= Yii::$app->session->get('user.uoffice');
+        $array[] = Html::tag('br');
+        $array[] = Yii::$app->session->get('user.stname');
+        if ((int)Yii::$app->session->get('user.ustatus') === 4) {
+            $array[] = Html::tag('br');
+            $array[] = Yii::$app->session->get('user.uoffice');
         }
-        $str .= '</div>';
+        $array[] = Html::endTag('div');
         
-        return $str;
+        return join('', $array);
     }
 
-    /* возвращает данные пользователя, для информационного блока */
+    /**
+     * @deprecated
+     * возвращает данные пользователя, для информационного блока
+     * 
+     * @return array
+     */
     public function getUserInfo()
     {
         $userData = [];

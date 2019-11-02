@@ -383,7 +383,7 @@ return array(
     'Plan for office' => 'План на офис',
     'Please fill out the following fields to login:' => 'Пожалуйста заполните следующие поля для входа:',
     'Previous' => 'Предыдущий',
-    'Prime' => 'Основной',
+    'Primary' => 'Основной',
     'Print' => 'Распечатать',
     'Print symbols count' => 'Кол-во печатных символов',
     'Publish' => 'Опубликовать',

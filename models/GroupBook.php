@@ -49,6 +49,20 @@ class GroupBook extends \yii\db\ActiveRecord
         ];
     }
 
+    // Сохранение с заменой основного учебника
+    public function saveWithPrimaryCheck()
+    {
+        $isPrimary = (int)$this->primary;
+        if ($isPrimary) {
+            $this->primary = 0;
+        }
+        if ($this->save()) {
+            return $isPrimary ? static::setPrimary($this) : true;
+        } else {
+            return false;
+        }
+    }
+
     /**
      * Возвращает основной учебник группы
      * @param int $groupId
@@ -77,8 +91,8 @@ class GroupBook extends \yii\db\ActiveRecord
                     throw new ServerErrorHttpException('Error on unsetting primary group book.');
                 }
             }
-            $this->primary = 1;
-            if (!$this->save(true, ['primary'])) {
+            $groupBook->primary = 1;
+            if (!$groupBook->save(true, ['primary'])) {
                 throw new ServerErrorHttpException('Error on setting primary group book.');
             }
             $transaction->commit();

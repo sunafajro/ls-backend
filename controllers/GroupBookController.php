@@ -2,16 +2,20 @@
 
 namespace app\controllers;
 
-use Yii;
+use app\models\Book;
+
 use app\models\Groupteacher;
 use app\models\GroupBook;
-use app\models\Tool;
 use app\models\User;
+use Yii;
 use yii\data\ActiveDataProvider;
-use yii\web\Controller;
-use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
+use yii\helpers\ArrayHelper;
+use yii\web\Controller;
+use yii\web\ForbiddenHttpException;
+use yii\web\NotFoundHttpException;
+
 
 /**
  * GroupBookController implements the CRUD actions for GroupBook model.
@@ -23,7 +27,7 @@ class GroupBookController extends Controller
      */
     public function behaviors()
     {
-        $rules = ['create', 'delete', 'set-primary'];
+        $rules = ['create', 'delete', 'primary'];
         return [
 	        'access' => [
                 'class' => AccessControl::class,
@@ -60,6 +64,10 @@ class GroupBookController extends Controller
      */
     public function actionCreate($gid)
     {
+        if (!in_array((int)Yii::$app->session->get('user.ustatus'), [3, 4, 5, 6, 10])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        }
+        /** @var Groupteacher $group */
         $group = Groupteacher::find()->andWhere(['id' => $gid])->one();
         if (empty($group)) {
             throw new NotFoundHttpException("Группа №{$gid} не найдена.");
@@ -67,79 +75,42 @@ class GroupBookController extends Controller
         $params['gid'] = $gid;
         $params['active'] = Groupteacher::getGroupStateById($gid);
 
-        if($gid) {
-            $language = (new \yii\db\Query())
-            ->select('l.id as id')
-            ->from('calc_lang l')
-            ->leftJoin('calc_service s', 's.calc_lang=l.id')
-            ->leftJoin('calc_groupteacher gt', 'gt.calc_service=s.id')
-            ->where('gt.id=:gid', [':gid'=>$gid])
-            ->one();
-        } else {
-            $language = [];
-        }
+        $language   = $group->language;
+        $groupBooks = $group->groupBooks;
+        $bookIds    = ArrayHelper::getColumn($groupBooks, 'book_id');
 
-        $curr_books = (new \yii\db\Query())
-        ->select('gtb.id as id, b.name as name, gtb.primary as prime, b.id as bid')
-        ->from(['gtb' => GroupBook::tableName()])
-        ->innerJoin('books b', 'b.id = gtb.book_id')
-        ->where('gtb.group_id=:gid', [':gid' => $gid])
-        ->orderby(['gtb.primary' => SORT_DESC, 'b.name' => SORT_ASC])
-        ->all();
-
-        if(!empty($curr_books)) {
-            foreach($curr_books as $cb) {
-                $bids[] = $cb['bid'];
-            }
-        } else {
-            $bids = NULL;
-        }
-
-        if(!empty($language)) {
-            $books_tmp = (new \yii\db\Query())
-            ->select('b.id as id, b.name as name')
-            ->from('books b')
-            ->where('b.language_id=:lang and b.visible=:one', [':lang'=>$language['id'], ':one' => 1])
-            ->andFilterWhere(['not in', 'b.id', $bids])
-            ->orderby(['b.name'=>SORT_ASC])
+        $books = (new \yii\db\Query())
+            ->select(['id' => 'b.id', 'name' => 'b.name'])
+            ->from(['b' => Book::tableName()])
+            ->where([
+                'b.language_id' => $language['id'],
+                'b.visible'     => 1
+            ])
+            ->andFilterWhere(['not in', 'b.id', $bookIds])
+            ->orderby(['b.name' => SORT_ASC])
             ->all();
-            
-            if(!empty($books_tmp)) {
-                foreach($books_tmp as $b) {
-                    $books[$b['id']] = $b['name'];
-                }
-            } else {
-                $books = [];
-            }
-        } else {
-            $books = [];
-        }
- 
-        $model = new GroupBook();
 
-        if ($model->load(Yii::$app->request->post())) {
-            $model->visible = 1;
-            $model->calc_groupteacher = $gid;
-            if($model->prime != 0) {
-                $book = GroupBook::find()->where('primary=:one', [':one'=>1])->one();
-                if($book !== NULL) {
-                    $book->prime = 0;
-                    $book->save();
-                }
+        $books = ArrayHelper::map($books, 'id', 'name');
+ 
+        $model = new GroupBook(['group_id' => $gid]);
+
+        if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
+            if ($model->saveWithPrimaryCheck()) {
+                Yii::$app->session->setFlash('success', 'Учебник успешно добавлен в группу.');
+                return $this->redirect(['group-book/create', 'gid' => $gid]);
+            } else {
+                Yii::$app->session->setFlash('error', 'Не удалось добавить учебник в группу.');
             }
-            $model->save();
-            return $this->redirect(['group-book/create', 'gid' => $gid]);
-        } else {
-            return $this->render('create', [
-                'model'         => $model,
-                'books'         => $books,
-                'curr_books'    => $curr_books,
-                'userInfoBlock' => User::getUserInfoBlock(),
-                'groupinfo'     => $group->getInfo(),
-                'items'         => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
-                'params'        => $params,
-            ]);
         }
+        return $this->render('create', [
+            'model'         => $model,
+            'books'         => $books,
+            'groupBooks'    => $groupBooks,
+            'userInfoBlock' => User::getUserInfoBlock(),
+            'groupInfo'     => $group->getInfo(),
+            'items'         => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
+            'params'        => $params,
+        ]);
     }
 
     /**
