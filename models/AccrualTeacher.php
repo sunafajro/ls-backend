@@ -374,8 +374,13 @@ class AccrualTeacher extends \yii\db\ActiveRecord
 	}
 	
 	/* возвращает список занятий ожидающих начисления по списку преподавателей */
-    public static function getViewedLessonList($list, $order, $gid = NULL)
+    public static function getViewedLessonList($list, $order, $gid = NULL, $dateRange = null)
     {
+        $dateRangeExpression = [
+            'and',
+            ['>=', 'jg.data', $dateRange[0]],
+            ['<=', 'jg.data', $dateRange[1]],
+        ];
         /* формируем подзапрос для выборки количество учеников на занятии */
         $SubQuery = (new \yii\db\Query())
         ->select('count(sjg.id)')
@@ -397,6 +402,7 @@ class AccrualTeacher extends \yii\db\ActiveRecord
         ->where('jg.done=:zero AND jg.view=:one AND jg.visible=:one', [':one' => 1, ':zero' => 0])
         ->andWhere(['in','jg.calc_teacher',$list])
         ->andFilterWhere(['jg.calc_groupteacher' => $gid])
+        ->andFilterWhere($dateRangeExpression)
         ->orderby($order)
         ->all();
         

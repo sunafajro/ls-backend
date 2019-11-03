@@ -20,7 +20,7 @@ use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 use yii\data\Pagination;
-
+use yii\helpers\ArrayHelper;
 
 class ReportController extends Controller
 {
@@ -101,29 +101,27 @@ class ReportController extends Controller
     /**
     * отчет по Начислениям 
     */
-    public function actionAccrual()
+    public function actionAccrual($tid = null,$month = null)
     {
         /* всех кроме руководителей редиректим обратно */
-        if(Yii::$app->session->get('user.ustatus')!=3) {
+        if ((int)Yii::$app->session->get('user.ustatus') !== 3) {
             return $this->redirect(Yii::$app->request->referrer);
         }
         /* всех кроме руководителей редиректим обратно */
         
 		/* объявляем переменные */
-		$i = 0;
-		$limit = 10;
-		$offset = 0;
-		$pages = NULL;
-		$tid = NULL;
-		$accruals= [];
-		$groups = [];		
-		$list = [];
-		$listteachers = [];
-		$teachers = [];		
+		$accruals      = [];
+		$groups        = [];		
+        $i             = 0;
+        $limit         = 10;
+        $list          = [];
+		$listteachers  = [];
+        $month         = $month !== 'all' ? $month : null;
+        $offset        = 0;
+        $pages         = NULL;
+        $teachers      = [];		
 		$teachers_list = [];
-		
-		/* задаем переменную для фильтрации результата по id преподавателя */
-        $tid = self::getTeacherID();
+        $tid           = $tid !== 'all' ? $tid : null; 
 
         /* получаем список id преподавателей по которым есть занятия для начисления и начисления для выплаты */
         $listteachers = AccrualTeacher::getTeachersWithViewedLessonsIds();
@@ -152,20 +150,20 @@ class ReportController extends Controller
         
         /* получаем данные по занятиям ожидающим начисление */
         $order = ['jg.calc_teacher'=>SORT_ASC, 'jg.calc_groupteacher'=>SORT_DESC, 'jg.id'=>SORT_DESC];
-        $lessons = AccrualTeacher::getViewedLessonList($list, $order);
+        $lessons = AccrualTeacher::getViewedLessonList($list, $order, null, $this->getDateRangeByMonth($month));
         
         /* получаем список доступных начислений по преподавателям */
         $accruals = AccrualTeacher::getAccrualsByTeacherList($list);
         
         // создаем массив с данными по группам и суммарному колич часов
         foreach($lessons as $lesson){
-            $groups[$lesson['gid']][$lesson['tid']]['tid'] = $lesson['tid'];
-            $groups[$lesson['gid']][$lesson['tid']]['gid'] = $lesson['gid'];
+            $groups[$lesson['gid']][$lesson['tid']]['tid']     = $lesson['tid'];
+            $groups[$lesson['gid']][$lesson['tid']]['gid']     = $lesson['gid'];
             $groups[$lesson['gid']][$lesson['tid']]['tjplace'] = $lesson['tjplace'];
-            $groups[$lesson['gid']][$lesson['tid']]['course'] = $lesson['service'];
-            $groups[$lesson['gid']][$lesson['tid']]['level'] = $lesson['level'];
+            $groups[$lesson['gid']][$lesson['tid']]['course']  = $lesson['service'];
+            $groups[$lesson['gid']][$lesson['tid']]['level']   = $lesson['level'];
             $groups[$lesson['gid']][$lesson['tid']]['service'] = $lesson['sid'];
-            $groups[$lesson['gid']][$lesson['tid']]['office'] = $lesson['office'];
+            $groups[$lesson['gid']][$lesson['tid']]['office']  = $lesson['office'];
             if(isset($groups[$lesson['gid']][$lesson['tid']]['time'])){
                 $groups[$lesson['gid']][$lesson['tid']]['time'] += $lesson['time'];
             } else {
@@ -177,17 +175,21 @@ class ReportController extends Controller
         // получаем данные по посещаемости занятий для рассчета коэффициента
         
         /* выводим данные в представление */
-        return $this->render('accrual',[
-            'teachers' => $teachers,
-            'lessons' => $lessons,
-            'groups' => $groups,
-            'pages' => $pages,
+        return $this->render('accrual', [
+            'accruals'      => $accruals,
+			'groups'        => $groups,
+            'jobPlace'      => [ 1 => 'ШИЯ', 2 => 'СРР' ],
+            'lessons'       => $lessons,
+            'months'        => $this->getMonths(),
+            'pages'         => $pages,
+            'params'        => [
+                'month' => $month,
+                'tid'   => $tid,
+            ],
+            'reportlist'    => Report::getReportTypeList(),
+            'teachers'      => $teachers,
             'teachers_list' => $teachers_list,
-            'tid' => $tid,
-            'accruals' => $accruals,
-            'reportlist' => Report::getReportTypeList(),
-			'userInfoBlock' => User::getUserInfoBlock(),
-			'jobPlace' => [ 1 => 'ШИЯ', 2 => 'СРР' ]
+            'userInfoBlock' => User::getUserInfoBlock(),
         ]);
         /* выводим данные в вьюз */
     }
@@ -633,20 +635,7 @@ class ReportController extends Controller
         }
         /* проверяем get-запрос на наличие информации о неделе и задаем переменные $week, $first_day, $last_day */
 
-        /* выбираем список месяцев */
-        $arr_months = (new \yii\db\Query())
-        ->select('id as id, name as name')
-        ->from('calc_month')
-        ->where('visible=:vis', [':vis' => 1])
-        ->all();
-        
-        $months = [];
-        foreach($arr_months as $m){
-            $months[$m['id']] = $m['name'];
-        }
-        unset($m);
-        unset($arr_months);
-        /* выбираем список месяцев */
+        $months = $this->getMonths();
         
         /* задаем пустые переменные */
         $common_report = [];
@@ -1534,14 +1523,34 @@ class ReportController extends Controller
 	}
 */
 
-    protected static function getTeacherID()
+    /**
+     * Возвращает массив с датами начала и конца месяца
+     * @var int|null $month
+     * 
+     * @return array|null
+     */
+    private function getDateRangeByMonth(int $month = null)
     {
-        if(Yii::$app->request->get('TID') && Yii::$app->request->get('TID') != 'all'){
-            $tid = Yii::$app->request->get('TID');
-        } else {
-            $tid = NULL;
+        if (!$month) {
+            return $month;
         }
 
-        return $tid;
-	}
- }
+        $date = new \DateTime();
+        $date->setDate(date('Y'), $month, 1);
+        $dateRange = [];
+        $dateRange[] = $date->format('Y-m-d');
+        $date->modify('last day of this month');
+        $dateRange[] = $date->format('Y-m-d');
+
+        return $dateRange;
+    }
+    
+    private function getMonths()
+    {
+        return ArrayHelper::map((new \yii\db\Query())
+        ->select('id as id, name as name')
+        ->from('calc_month')
+        ->where(['visible' => 1])
+        ->all(), 'id', 'name');
+    }
+}
