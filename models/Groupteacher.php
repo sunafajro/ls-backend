@@ -211,7 +211,7 @@ class Groupteacher extends \yii\db\ActiveRecord
 		if (!empty($data)) {
 			$result[Yii::t('app', 'Service')] = $data['sname'];
 			$result[Yii::t('app', 'Level')] = $data['elname'];
-			$result[Yii::t('app', 'Teacher')] = static::getGroupTeacherListString($this->id);
+			$result[Yii::t('app', 'Teacher')] = static::getGroupTeacherListString($this->id, ', ', true);
 			$result[Yii::t('app', 'Office')] = $data['oname'];
 			$result[Yii::t('app', 'Start date')] = '<span class="label label-default">' . date('d.m.Y', strtotime($data['gdate'])) . '</span>';
             $result[Yii::t('app', 'Books')] = join(', ', ArrayHelper::getColumn($this->books ?? [], 'name'));
@@ -230,23 +230,25 @@ class Groupteacher extends \yii\db\ActiveRecord
 
 	/**
 	 * Метод возврашает список преподавателей назначенных группе в виде одномерного массива.
-     * @param  int   $id
+     * @param int  $id
+     * @param bool $withLabel
      * @return array
 	 */
-	public static function getGroupTeacherListSimple($id)
+	public static function getGroupTeacherListSimple($id, $withLabel = false)
 	{
-		return ArrayHelper::map(self::getGroupTeacherList($id) ?? [], 'id', 'name'); 
+		return ArrayHelper::map(self::getGroupTeacherList($id, $withLabel) ?? [], 'id', 'name'); 
     }
 	
 	/**
 	 * Метод возврашает список преподавателей назначенных группе, в виде строки. Разделитель запятая.
-     * @param  int    $id
-     * @param  string $divider
+     * @param int $id
+     * @param string $divider
+     * @param bool $withLabel
      * @return string
 	 */
-	public static function getGroupTeacherListString(int $id, string $divider = ', ') : string
+	public static function getGroupTeacherListString(int $id, string $divider = ', ', $withLabel = false) : string
 	{
-        $teachers = self::getGroupTeacherList($id);
+        $teachers = self::getGroupTeacherList($id, $withLabel);
         
         $result = [];
         foreach($teachers as $t) {
@@ -312,11 +314,12 @@ class Groupteacher extends \yii\db\ActiveRecord
     }
 	
 	/**
-	 * Возвращает массив перподавателей назначенных группе
-     * @param  int   $id
+	 * Возвращает массив преподавателей назначенных группе
+     * @param int $id
+     * @param bool $withLabel
      * @return array
 	 */
-	protected static function getGroupTeacherList($id)
+	protected static function getGroupTeacherList($id, $withLabel = false)
 	{
         $group = self::findOne($id);
         if (empty($group)) {
@@ -333,12 +336,14 @@ class Groupteacher extends \yii\db\ActiveRecord
             ])
             ->orderBy(['t.name' => SORT_ASC])
             ->all() ?? [];
-        if (count($teachers) > 1) {
-            foreach ($teachers ?? [] as $key => $teacher) {
-                if ((int)$group->calc_teacher === (int)$teacher['id']) {
-                    $teachers[$key]['name'] = $teachers[$key]['name']
-                        . ' '
-                        . Html::tag('span', null, ['class' => 'fa fa-star', 'aria-hidden' => 'true', 'title' => 'Основной преподаватель']);
+        if ($withLabel) {
+            if (count($teachers) > 1) {
+                foreach ($teachers ?? [] as $key => $teacher) {
+                    if ((int)$group->calc_teacher === (int)$teacher['id']) {
+                        $teachers[$key]['name'] = $teachers[$key]['name']
+                            . ' '
+                            . Html::tag('span', null, ['class' => 'fa fa-star', 'aria-hidden' => 'true', 'title' => 'Основной преподаватель']);
+                    }
                 }
             }
         }
