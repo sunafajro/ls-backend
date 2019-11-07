@@ -283,14 +283,19 @@ class Salestud extends \yii\db\ActiveRecord
             [':student' => $sid, ':sale' => $rubsale['id']])->one();
             if ($salestud !== NULL) {
                 $salestud->visible = 1;
-                $salestud->save();
+                $salestud->save(true, ['visible']);
                 return $salestud->id;
             } else {
                 return static::addSaleToStudent($sid, $rubsale['id']);    
             }            
         } else {
             /* создаем новую рублевую скидку и привязываем ее к клиенту */
-            $sale = Sale::createSale("Скидка корректирующая $value р.", 0, $value, 0);
+            $sale = Sale::createSale(
+                $value > 0 ? "Скидка корректирующая $value р." : ('Надбавка корректирующая +' . abs($value) . ' р.'),
+                0,
+                $value,
+                0
+            );
             if ($sale > 0) {
                 return static::addSaleToStudent($sid, $sale);
             } else {
