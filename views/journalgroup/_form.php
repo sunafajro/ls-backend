@@ -10,17 +10,11 @@ use yii\widgets\ActiveForm;
  * @var yii\web\View $this
  * @var Journalgroup $model
  * @var ActiveForm   $form
+ * @var int          $roleId
  * @var array        $teachers
  * @var array        $timeHints
+ * @var int          $userId
  */
-
-$script = <<< JS
-$(".js--previous-times").on('click', function () {
-    $("#journalgroup-time_begin").val($(this).data('begin'));
-    $("#journalgroup-time_end").val($(this).data('end'));
-});
-JS;
-$this->registerJs($script, yii\web\View::POS_READY);
 ?>
 <?php $form = ActiveForm::begin(); ?>
     <?= $form->field($model, 'data')->widget(DateTimePicker::class, [
@@ -42,11 +36,8 @@ $this->registerJs($script, yii\web\View::POS_READY);
         <?= $form->field($model, 'calc_teacher')->dropDownList($teachers, ['options' => ['1' => ['selected' => true]]]) ?>
     <?php } ?>
     <?php
-    if ((int)Yii::$app->session->get('user.ustatus') === 3 ||
-        (int)Yii::$app->session->get('user.ustatus') === 4 ||
-        (int)Yii::$app->session->get('user.uid') === 296 ||
-        (int)Yii::$app->session->get('user.ustatus') === 10) { ?>
-        <?= $form->field($model, 'calc_edutime')->dropDownList(Journalgroup::getEducationTimes(), ['options' => ['2' => ['selected' => true]]]) ?>
+    if (in_array($roleId, [3, 4, 10]) || in_array($userId, [296, 389])) { ?>
+        <?= $form->field($model, 'calc_edutime')->dropDownList(Journalgroup::getEducationTimes(), ['options' => $model->isNewRecord ? ['2' => ['selected' => true]] : []]) ?>
     <?php } ?>
     <div class="row">
         <div class="col-sm-4">
@@ -99,4 +90,14 @@ $this->registerJs($script, yii\web\View::POS_READY);
     <div class="form-group">
         <?= Html::submitButton(Yii::t('app', $model->isNewRecord ? 'Add' : 'Update'), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
     </div>
-<?php ActiveForm::end(); ?>
+<?php
+ActiveForm::end();
+
+$script = <<< JS
+$(".js--previous-times").on('click', function () {
+    $("#journalgroup-time_begin").val($(this).data('begin'));
+    $("#journalgroup-time_end").val($(this).data('end'));
+});
+JS;
+$this->registerJs($script, yii\web\View::POS_READY);
+?>
