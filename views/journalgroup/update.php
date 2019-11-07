@@ -2,19 +2,19 @@
 
 use app\models\Journalgroup;
 use app\widgets\Alert;
-use kartik\datetime\DateTimePicker;
-use kartik\time\TimePicker;
 use yii\helpers\Html;
-use yii\widgets\ActiveForm;
 use yii\widgets\Breadcrumbs;
 
 /**
  * @var yii\web\View $this
  * @var Journalgroup $model
+ * @var array  $groupInfo
+ * @var array  $items
+ * @var array  $params
+ * @var int    $roleId
+ * @var array  $teachers
+ * @var int    $userId
  * @var string $userInfoBlock
- * @var array $teachers
- * @var array $groupInfo
- * @var array $items
  */
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app','Update lesson');
@@ -24,7 +24,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Update lesson');
 
 $groupParams = [];
 foreach($groupInfo as $key => $value) {
-    $groupParams[] = '<span class="small"><b>' . $key . ':</b></span> <span class="text-muted small">' . $value . '</span>';
+    $groupParams[] = Html::tag('span', Html::tag('b', $key . ':'), ['class' => 'small']) . ' ' . Html::tag('span', $value, ['class' => 'text-muted small']);
 }
 ?>
 <div class="row row-offcanvas row-offcanvas-left journalgroup-update">
@@ -58,7 +58,9 @@ foreach($groupInfo as $key => $value) {
         <?= Alert::widget() ?>
         <?= $this->render('_form', [
             'model'    => $model,
+            'roleId'   => $roleId,
             'teachers' => $teachers,
+            'userId'   => $userId,
         ]) ?>
     </div>
 </div>

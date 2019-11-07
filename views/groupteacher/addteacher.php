@@ -26,7 +26,7 @@ $roleId = Yii::$app->session->get('user.ustatus');
         <?php if($params['active'] == 1): ?>
             <?php if(in_array($roleId, [3, 4]) || array_key_exists(Yii::$app->session->get('user.uteacher'), $check_teachers)): ?>
                 <?= Html::a(
-                        Html::tag('span', '', ['class' => 'fa fa-plus', 'aria-hidden' => 'true']) . Yii::t('app','Add lesson'),
+                        Html::tag('span', '', ['class' => 'fa fa-plus', 'aria-hidden' => 'true']) . ' ' . Yii::t('app','Add lesson'),
                         ['journalgroup/create','gid' => $params['gid']],
                         ['class' => 'btn btn-default btn-block']
                     ) ?>
@@ -115,6 +115,7 @@ $roleId = Yii::$app->session->get('user.ustatus');
                                     ['groupteacher/set-primary-teacher', 'id' => $params['gid'], 'tid' => $curteacher['id']],
                                     [
                                         'class' => 'fa fa-star-o',
+                                        'style' => 'margin-right: 5px',
                                         'title' => 'Назначить основным',
                                     ]
                                 ) : '';

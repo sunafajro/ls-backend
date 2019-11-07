@@ -128,7 +128,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Groups');
                     'format' => 'raw',
                     'headerOptions' => ['style' => 'width: 15%'],
                     'value' => function (array $group) {
-                        return Groupteacher::getGroupTeacherListString($group['id'], Html::tag('br'));
+                        return Groupteacher::getGroupTeacherListString($group['id'], Html::tag('br'), true);
                     }
                 ],
                 'office' => [

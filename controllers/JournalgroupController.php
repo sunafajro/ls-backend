@@ -44,6 +44,9 @@ class JournalgroupController extends Controller
     */	
     public function actionCreate($gid)
     {
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        $userId = (int)Yii::$app->session->get('user.uid');
+        $teacherId = (int)Yii::$app->session->get('user.uteacher');
         /** @var Groupteacher group */
         $group = Groupteacher::findOne($gid);
         if (empty($group)) {
@@ -52,14 +55,10 @@ class JournalgroupController extends Controller
         $params['gid'] = $gid;
         $params['active'] = Groupteacher::getGroupStateById($gid);
         // получаем массив со списком преподавателей назначенных группе
-        $check_teachers = Groupteacher::getGroupTeacherListSimple($gid);
+        $groupTeachers = Groupteacher::getGroupTeacherListSimple($gid);
         
         // проверяем роль пользователя, занятие в журнал могут добавить только преподаватели назначенные в группу, менеджеры или руководители
-        if((int)Yii::$app->session->get('user.ustatus') === 3 ||
-           (int)Yii::$app->session->get('user.ustatus') === 4 ||
-           (int)Yii::$app->session->get('user.uid') === 296 ||
-           array_key_exists(Yii::$app->session->get('user.uteacher'), $check_teachers) ||
-           ((int)Yii::$app->session->get('user.ustatus') === 10 && $group->company === 2)) {
+        if (in_array($roleId, [3, 4, 10]) || in_array($userId, [296, 389]) || array_key_exists($teacherId, $groupTeachers)) {
             // создаем новую пустую модель
             $model = new Journalgroup();
 		
@@ -75,18 +74,12 @@ class JournalgroupController extends Controller
             // если пришли данные и моделька загрузилась успешно, переходим в картоку преподавателя
             if ($model->load(Yii::$app->request->post())) {
                 // если занятие добавляет преподаватель группы (не менеджер или руководитель)
-                if((int)Yii::$app->session->get('user.ustatus') !== 3 &&
-                   (int)Yii::$app->session->get('user.ustatus') !== 4 &&
-                   (int)Yii::$app->session->get('user.uid') !== 296 &&
-                   array_key_exists(Yii::$app->session->get('user.uteacher'), $check_teachers)) {
+                if (!(in_array($roleId, [3, 4]) || in_array($userId, [296, 389])) && array_key_exists($teacherId, $groupTeachers)) {
                     // выставляем учебное время как вечернее (2)
                     $model->calc_edutime = 2;
                 }
                 // если занятие добавляет не руководитель (и ольга воронецкая)
-                if((int)Yii::$app->session->get('user.ustatus') !== 3 &&
-                   (int)Yii::$app->session->get('user.uid') !== 62 &&
-                   (int)Yii::$app->session->get('user.uid') !== 296 &&
-                   (int)Yii::$app->session->get('user.ustatus') !== 10) {
+                if (!in_array($roleId, [3, 10]) && !in_array($userId, [62, 296])) {
                     // проверяем что со времени проведения занятия прошло не более 3 дней
                     $dt = new \DateTime('-5 days');
                     if($model->data <= $dt->format('Y-m-d')) {
@@ -97,9 +90,9 @@ class JournalgroupController extends Controller
                     }
                 }
                 // если в группу назначен только один преподаватель и в post-запросе его id явно не указан
-                if(!$model->calc_teacher && count($check_teachers) == 1) {
+                if(!$model->calc_teacher && count($groupTeachers) == 1) {
                     // пишем id преподавателя из ранее полученного списка преподавателей
-                    $keys = array_keys($check_teachers);
+                    $keys = array_keys($groupTeachers);
                     $model->calc_teacher = $keys[0];
                 }
                 // указываем id группы
@@ -177,13 +170,15 @@ class JournalgroupController extends Controller
             } else {
                 // выводим форму добавления занятия
                 return $this->render('create', [
-                    'teachers'       => $check_teachers,
                     'groupInfo'      => $group->getInfo(),
                     'items'          => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
                     'model'          => $model,
                     'params'         => $params,
+                    'roleId'         => $roleId,
                     'students'       => $students,
+                    'teachers'       => $groupTeachers,
                     'timeHints'      => Journalgroup::getLastLessonTimesByGroup($gid),
+                    'userId'         => $userId,
                     'userInfoBlock'  => User::getUserInfoBlock(),
                 ]);
             }
@@ -202,6 +197,10 @@ class JournalgroupController extends Controller
     **/
     public function actionUpdate($id, $gid)
     {
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        $userId = (int)Yii::$app->session->get('user.uid');
+        $teacherId = (int)Yii::$app->session->get('user.uteacher');
+        /** @var Groupteacher $group */
         $group = Groupteacher::findOne($gid);
         if (empty($group)) {
             throw new NotFoundHttpException("Группа №{$gid} не найдена.");
@@ -209,20 +208,15 @@ class JournalgroupController extends Controller
         $params['gid'] = $gid;
         $params['active'] = Groupteacher::getGroupStateById($gid);
         // получаем массив со списком преподавателей назначенных группе
-        $checkTeachers = Groupteacher::getGroupTeacherListSimple($gid);
+        $groupTeachers = Groupteacher::getGroupTeacherListSimple($gid);
         // находим запись о занятии
         $model = $this->findModel($id);        
 
-        if((int)Yii::$app->session->get('user.ustatus') === 3 ||
-           (int)Yii::$app->session->get('user.ustatus') === 4 ||
-           array_key_exists(Yii::$app->session->get('user.uteacher'), $checkTeachers) ||
-           ((int)Yii::$app->session->get('user.ustatus') === 10 && $group->company === 2)) {
+        if (in_array($roleId, [3, 4, 10]) || in_array($userId, [296, 389]) || array_key_exists($teacherId, $groupTeachers)) {
             // получаем данные из формы и обновляем запись
             if ($model->load(Yii::$app->request->post())) {
                 // если занятие обновляет не руководитель (и не ольга воронецкая)
-                if((int)Yii::$app->session->get('user.ustatus') !== 3 &&
-                   (int)Yii::$app->session->get('user.uid') !== 62 &&
-                   (int)Yii::$app->session->get('user.ustatus') !== 10 ) {
+                if (!in_array($roleId, [3, 10]) && !in_array($userId, [62, 296])) {
                     // проверяем что со времени проведения занятия прошло не более 3 дней
                     $dt = new \DateTime('-5 days');
                     if($model->data <= $dt->format('Y-m-d')) {
@@ -243,12 +237,14 @@ class JournalgroupController extends Controller
             }
 			
             return $this->render('update', [
-                'model'         => $model,
-                'teachers'      => $checkTeachers,
                 'groupInfo'     => $group->getInfo(),
                 'items'         => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
-                'userInfoBlock' => User::getUserInfoBlock(),
+                'model'         => $model,
                 'params'        => $params,
+                'roleId'        => $roleId,
+                'teachers'      => $groupTeachers,
+                'userId'        => $userId,
+                'userInfoBlock' => User::getUserInfoBlock(),
             ]);
         } else {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
