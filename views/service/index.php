@@ -1,31 +1,49 @@
 <?php
-    use yii\helpers\Html;
-    use yii\widgets\ActiveForm;
-    use yii\widgets\Breadcrumbs;
-    $this->title = 'Система учета :: '.Yii::t('app','Services');
-    $this->params['breadcrumbs'][] = Yii::t('app','Services');
-    // определяем первый и последний элемент списка
-    if (Yii::$app->request->get('page') && Yii::$app->request->get('page') > 0) {
-        $fitem = (25 * Yii::$app->request->get('page')) - 24;
-        if (Yii::$app->request->get('page') == (ceil($pages->totalCount/25))){
-            $litem = $pages->totalCount;
-        } else {
-            $litem = 25 * Yii::$app->request->get('page');
-        }
-    } else {
-        $fitem = 1;
-        if ($pages->totalCount < 25) {
-            $litem = $pages->totalCount;
-        } else {
-            $litem = 25;
-        }
-    }
-    $t = 'actual';
-    if (Yii::$app->request->get('type')) {
-        $t = Yii::$app->request->get('type');
-    }
-?>
 
+use app\widgets\Alert;
+use yii\data\Pagination;
+use yii\helpers\Html;
+use yii\widgets\ActiveForm;
+use yii\widgets\Breadcrumbs;
+use yii\web\View;
+
+/**
+ * @var View       $this
+ * @var Pagination $pages
+ * @var array      $cities
+ * @var array      $eduages
+ * @var array      $eduforms
+ * @var array      $languages
+ * @var array      $services
+ * @var array      $servicetypes
+ * @var array      $types
+ * @var array      $url_params
+ * @var string     $userInfoBlock
+ */
+
+$this->title = Yii::$app->params['appTitle'] . Yii::t('app','Services');
+$this->params['breadcrumbs'][] = Yii::t('app','Services');
+// определяем первый и последний элемент списка
+if (Yii::$app->request->get('page') && Yii::$app->request->get('page') > 0) {
+    $fitem = (25 * Yii::$app->request->get('page')) - 24;
+    if (Yii::$app->request->get('page') == (ceil($pages->totalCount/25))){
+        $litem = $pages->totalCount;
+    } else {
+        $litem = 25 * Yii::$app->request->get('page');
+    }
+} else {
+    $fitem = 1;
+    if ($pages->totalCount < 25) {
+        $litem = $pages->totalCount;
+    } else {
+        $litem = 25;
+    }
+}
+$t = 'actual';
+if (Yii::$app->request->get('type')) {
+    $t = Yii::$app->request->get('type');
+}
+?>
 <div class="row row-offcanvas row-offcanvas-left service-index">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
@@ -107,17 +125,8 @@
         <p class="pull-left visible-xs">
             <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
-        <?php if (Yii::$app->session->getFlash('success')) : ?>
-            <div class='alert alert-success' role='alert'>
-                <?= Yii::$app->session->getFlash('success') ?>
-            </div>
-        <?php endif; ?>  
-        <?php if (Yii::$app->session->getFlash('error')) : ?>
-            <div class='alert alert-danger' role='alert'>
-                <?= Yii::$app->session->getFlash('error') ?>
-            </div>
-        <?php endif; ?>
-        <?php if(!empty($services)) { ?>        
+        <?= Alert::widget() ?>
+        <?php if (!empty($services)) { ?>        
         <?php
             $prev = $url_params;
             $next = $url_params;
@@ -179,8 +188,15 @@
                 echo "<td>".$service['ctnname']."</td>";
                 echo "<td>".$service['sdate']."</td>";
                 if(Yii::$app->session->get('user.ustatus')==3){
-                    echo "<td>".Html::a('', ['service/update','id'=>$service['sid']],['class'=>'glyphicon glyphicon-pencil']);
-                    echo " <span class='glyphicon glyphicon-remove' aria-hidden='true'></span></td>";
+                    echo Html::beginTag('td');
+                    echo Html::a(Html::tag('span', null, ['class'=>'fa fa-edit']), ['service/update', 'id' => $service['sid']]);
+                    echo ' ';
+                    echo Html::a(
+                        Html::tag('span', null, ['class'=>'fa fa-trash']),
+                        ['service/delete', 'id' => $service['sid']],
+                        ['data' => ['method' => 'post', 'confirm' => 'Вы действительно хотите удалить услугу #' . $service['sid'] . '?']]
+                    );
+                    echo Html::endTag('td');
                 }
                 echo "</tr>";
                }
