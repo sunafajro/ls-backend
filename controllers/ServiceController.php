@@ -150,14 +150,14 @@ class ServiceController extends Controller
             }
         }
         return $this->render('create', [
-            'model' => $model,
-            'servicetypes'  => Service::getServiceDataForSelectSimple('calc_servicetype'),
             'cities'        => Service::getServiceDataForSelectSimple('calc_city'),
-            'languages'     => Service::getServiceDataForSelectSimple('calc_lang'),
             'eduages'       => Service::getServiceDataForSelectSimple('calc_eduage'),
             'eduforms'      => Service::getServiceDataForSelectSimple('calc_eduform'),
-            'timenorms'     => Service::getServiceDataForSelectSimple('calc_timenorm'),
+            'languages'     => Service::getServiceDataForSelectSimple('calc_lang'),
+            'model'         => $model,
+            'servicetypes'  => Service::getServiceDataForSelectSimple('calc_servicetype'),
             'studnorms'     => Service::getServiceDataForSelectSimple('calc_studnorm'),
+            'timenorms'     => Service::getServiceDataForSelectSimple('calc_timenorm'),
             'userInfoBlock' => $userInfoBlock
         ]);
     }
@@ -205,10 +205,10 @@ class ServiceController extends Controller
         }
         
         return $this->render('update', [
-            'model'          => $model,
-            'studnorms'      => Service::getServiceDataForSelectSimple('calc_studnorm'),
-            'servicechanges' => Service::getServiceHistory($id),
             'cities'         => Service::getServiceDataForSelectSimple('calc_city'),
+            'model'          => $model,
+            'servicechanges' => Service::getServiceHistory($id),
+            'studnorms'      => Service::getServiceDataForSelectSimple('calc_studnorm'),
             'userInfoBlock'  => User::getUserInfoBlock()
         ]);
     }
