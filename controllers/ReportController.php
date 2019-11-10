@@ -101,62 +101,62 @@ class ReportController extends Controller
     /**
     * отчет по Начислениям 
     */
-    public function actionAccrual($tid = null,$month = null)
+    public function actionAccrual($tid = null, $month = null)
     {
-        /* всех кроме руководителей редиректим обратно */
         if ((int)Yii::$app->session->get('user.ustatus') !== 3) {
-            return $this->redirect(Yii::$app->request->referrer);
+            throw new ForbiddenHttpException('Access denied');
         }
-        /* всех кроме руководителей редиректим обратно */
         
-		/* объявляем переменные */
-		$accruals      = [];
-		$groups        = [];		
-        $i             = 0;
-        $limit         = 10;
-        $list          = [];
-		$listteachers  = [];
-        $month         = $month !== 'all' ? $month : null;
-        $offset        = 0;
-        $pages         = NULL;
-        $teachers      = [];		
-		$teachers_list = [];
-        $tid           = $tid !== 'all' ? $tid : null; 
+        /** @var array */
+        $groups   = [];
+        /** @var int */
+        $i        = 0;
+        /** @var int */
+        $limit    = 10;
+        /** @var array */
+        $list     = [];
+        /** @var int|null */
+        $month    = $month !== 'all' ? $month : null;
+        /** @var int */
+        $offset   = 0;
+        /** @var int|null */
+        $tid      = $tid !== 'all' ? $tid : null; 
 
-        /* получаем список id преподавателей по которым есть занятия для начисления и начисления для выплаты */
+        /** @var array */
         $listteachers = AccrualTeacher::getTeachersWithViewedLessonsIds();
 
-        /* считаем количество преподавателей */
+        /** @var int */
         $pages = count($listteachers);
 
-        /* получаем список id и имен преподавателей по которым есть занятия для начисления и начисления для выплаты */
+        /** @var array */
         $teachers_list = AccrualTeacher::getTeachersWithViewedLessonsList();
 
         /* высчитываем смещение относительно начала массива */
-        if(Yii::$app->request->get('page')&&(int)Yii::$app->request->get('page')<=ceil($pages/$limit)){
+        if (Yii::$app->request->get('page') && (int)Yii::$app->request->get('page') <= ceil($pages/$limit)) {
             $offset = 10 * ((int)Yii::$app->request->get('page') - 1);
         }
         
         /* если преподаватель не задан */
-        if(!$tid || $tid=='all') {
+        if (!$tid || $tid == 'all') {
             /* вырезаем из массива 10 преподавателей с соответствующим смещением */
             $list = array_slice($listteachers, $offset, $limit);
         } else {
             $list[0] = $tid;
         }
         
-        /* получаем список преподавателей с доп. информацией */
+        /** @var array */
         $teachers = AccrualTeacher::getTeachersWithViewedLessonsInfo($list);
         
-        /* получаем данные по занятиям ожидающим начисление */
-        $order = ['jg.calc_teacher'=>SORT_ASC, 'jg.calc_groupteacher'=>SORT_DESC, 'jg.id'=>SORT_DESC];
-        $lessons = AccrualTeacher::getViewedLessonList($list, $order, null, $this->getDateRangeByMonth($month));
+        /** @var array */
+        $order = ['jg.calc_teacher' => SORT_ASC, 'jg.calc_groupteacher' => SORT_DESC, 'jg.id' => SORT_DESC];
+        /** @var array */
+        $lessons = AccrualTeacher::getViewedLessonList($list, $order, null, Report::getDateRangeByMonth($month));
         
-        /* получаем список доступных начислений по преподавателям */
+        /** @var array $accruals */
         $accruals = AccrualTeacher::getAccrualsByTeacherList($list);
         
         // создаем массив с данными по группам и суммарному колич часов
-        foreach($lessons as $lesson){
+        foreach ($lessons as $lesson) {
             $groups[$lesson['gid']][$lesson['tid']]['tid']     = $lesson['tid'];
             $groups[$lesson['gid']][$lesson['tid']]['gid']     = $lesson['gid'];
             $groups[$lesson['gid']][$lesson['tid']]['tjplace'] = $lesson['tjplace'];
@@ -164,7 +164,7 @@ class ReportController extends Controller
             $groups[$lesson['gid']][$lesson['tid']]['level']   = $lesson['level'];
             $groups[$lesson['gid']][$lesson['tid']]['service'] = $lesson['sid'];
             $groups[$lesson['gid']][$lesson['tid']]['office']  = $lesson['office'];
-            if(isset($groups[$lesson['gid']][$lesson['tid']]['time'])){
+            if (isset($groups[$lesson['gid']][$lesson['tid']]['time'])) {
                 $groups[$lesson['gid']][$lesson['tid']]['time'] += $lesson['time'];
             } else {
                 $groups[$lesson['gid']][$lesson['tid']]['time'] = $lesson['time'];
@@ -172,13 +172,11 @@ class ReportController extends Controller
             $lessons[$i]['money'] = round(AccrualTeacher::getLessonFinalCost($teachers, $lesson), 2);
             $i++;
         }
-        // получаем данные по посещаемости занятий для рассчета коэффициента
         
-        /* выводим данные в представление */
         return $this->render('accrual', [
             'accruals'      => $accruals,
 			'groups'        => $groups,
-            'jobPlace'      => [ 1 => 'ШИЯ', 2 => 'СРР' ],
+            'jobPlaces'     => Yii::$app->params['jobPlaces'],
             'lessons'       => $lessons,
             'months'        => $this->getMonths(),
             'pages'         => $pages,
@@ -191,7 +189,6 @@ class ReportController extends Controller
             'teachers_list' => $teachers_list,
             'userInfoBlock' => User::getUserInfoBlock(),
         ]);
-        /* выводим данные в вьюз */
     }
 
     public function actionMargin()
@@ -1522,28 +1519,6 @@ class ReportController extends Controller
 		return 'success!';
 	}
 */
-
-    /**
-     * Возвращает массив с датами начала и конца месяца
-     * @var int|null $month
-     * 
-     * @return array|null
-     */
-    private function getDateRangeByMonth(int $month = null)
-    {
-        if (!$month) {
-            return $month;
-        }
-
-        $date = new \DateTime();
-        $date->setDate(date('Y'), $month, 1);
-        $dateRange = [];
-        $dateRange[] = $date->format('Y-m-d');
-        $date->modify('last day of this month');
-        $dateRange[] = $date->format('Y-m-d');
-
-        return $dateRange;
-    }
     
     private function getMonths()
     {

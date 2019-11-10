@@ -7,8 +7,18 @@ use yii\widgets\ActiveForm;
 use yii\widgets\Breadcrumbs;
 
 /**
- * @var View  $this
- * @var array $params
+ * @var View   $this
+ * @var array  $accruals
+ * @var array  $groups
+ * @var array  $jobPlaces
+ * @var array  $lessons
+ * @var array  $months
+ * @var int    $pages
+ * @var array  $params
+ * @var array  $reportlist
+ * @var array  $teachers
+ * @var array  $teachers_list
+ * @var string $userInfoBlock
  */
 
 $this->title = Yii::$app->params['appTitle'] . 'Отчет по начислениям';
@@ -89,30 +99,32 @@ $this->params['breadcrumbs'][] = 'Отчет по начислениям';
                 $prevpage = (int)Yii::$app->request->get('page') - 1;
                 $nextpage = (int)Yii::$app->request->get('page') + 1;
             }
-
-            echo "<nav>";
-            echo "<ul class='pager'>";
-            echo "<li class='previous'>".(($start>1) ? Html::a('Предыдущий',['report/accrual','page'=>$prevpage]) : '')."</li>";
-            echo "<li class='next'>".(($end<$pages) ? Html::a('Следующий',['report/accrual', 'page'=>$nextpage]) : '')."</li>";
-            echo "</ul>";
-            echo "</nav>";
-
-            $page = $nextpage - 1;
+            ?>
+            <nav>
+                <ul class="pager">
+                    <li class="previous">
+                        <?= (($start > 1) ? Html::a('Предыдущий', ['report/accrual', 'page' => $prevpage, 'tid' => $params['tid'], 'month' => $params['month']]) : '') ?>
+                    </li>
+                    <li class="next">
+                        <?= (($end < $pages) ? Html::a('Следующий', ['report/accrual', 'page' => $nextpage, 'tid' => $params['tid'], 'month' => $params['month']]) : '') ?>
+                    </li>
+                </ul>
+            </nav>
+            <?php $page = $nextpage - 1;
         } else {
             $page = 0;
         }
 
-
-	// задаем общую сумму по начислениям
-    $totalAccural = 0;
-    $totalPayment = 0;
+        // задаем общую сумму по начислениям
+        $totalAccural = 0;
+        $totalPayment = 0;
 	?>
 	<?php foreach($teachers as $teacher): ?>
         <div class="panel panel-default">
             <div class="panel-heading">
                 <?= Html::a(
                         $teacher['name'],
-                        ['teacher/view', 'id'=>$teacher['id']],
+                        ['teacher/view', 'id' => $teacher['id']],
                         ['id'=> 'block_tid_' . $teacher['id']]
                     ) ?>
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ставка: <?= implode(' р. / ', $teacher['value']) ?> р.
@@ -128,10 +140,14 @@ $this->params['breadcrumbs'][] = 'Отчет по начислениям';
                         <div>
                             <div class="clearfix" style="margin-bottom: 5px">
                                 <a class="pull-left" role="button" data-toggle="collapse" href="#collapse-<?= $group['gid']?>-<?= $teacher['id']?>" aria-expanded="false" aria-controls="collapse-<?= $group['gid']?>-<?= $teacher['id']?>">
-                                    <span style="margin-top: 2px" class="label <?= ((int)$group['tjplace'] === 1 ? 'label-success' : 'label-info') ?> pull-left"><?= $jobPlace[$group['tjplace']] ?></span>&nbsp;
+                                    <span style="margin-top: 2px" class="label <?= ((int)$group['tjplace'] === 1 ? 'label-success' : 'label-info') ?> pull-left"><?= $jobPlaces[$group['tjplace']] ?></span>&nbsp;
                                     #<?= $group['gid'] ?> <?= $group['course'] ?>, ур. <?= $group['level'] ?> (усл.#<?= $group['service'] ?>), <?= $group['office'] ?>
                                 </a>
-                                <?= Html::a("Начислить ".$group['time']." ч.",['accrual/addaccrual','gid'=>$group['gid'],'tid'=>$teacher['id'], 'page' => $page], ['class'=>'btn btn-xs btn-success pull-right']) ?>
+                                <?= Html::a(
+                                        "Начислить {$group['time']} ч.",
+                                        ['accrual/add-accrual', 'gid' => $group['gid'], 'tid' => $teacher['id'], 'month' => $params['month'] ?? null],
+                                        ['class' => 'btn btn-xs btn-success pull-right']
+                                    ) ?>
                             </div>
                             <table class="table table-condensed collapse" id="collapse-<?= $group['gid']?>-<?= $teacher['id']?>">
 						<?php foreach($lessons as $lesson): ?>
@@ -182,14 +198,14 @@ $this->params['breadcrumbs'][] = 'Отчет по начислениям';
             ?>
     <?php endforeach ?>
     <?php if($totalAccural != 0 && $totalPayment != 0): ?>
-    <p class="text-right">всего к начислению (без надбавок): <strong><?= $totalAccural ?> р.</strong><br/>
-    всего к выплате: <strong><?= $totalPayment ?></strong> р.</p>
+    <p class="text-right">всего к начислению (без надбавок): <strong><?= number_format($totalAccural, 2, ',', ' ') ?> р.</strong><br/>
+    всего к выплате: <strong><?= number_format($totalPayment, 2, ',', ' ') ?></strong> р.</p>
     <?php endif ?>
     <?php if(!$params['tid'] || $params['tid'] == 'all') : ?>
 		<nav>
 		    <ul class="pager">
-		        <li class="previous"><?= (($start>1) ? Html::a('Предыдущий',['report/accrual','page'=>$prevpage]) : '') ?></li>
-		        <li class="next"><?= (($end<$pages) ? Html::a('Следующий',['report/accrual', 'page'=>$nextpage]) : '') ?></li>
+		        <li class="previous"><?= (($start>1) ? Html::a('Предыдущий', ['report/accrual', 'page' => $prevpage, 'tid' => $params['tid'], 'month' => $params['month']]) : '') ?></li>
+		        <li class="next"><?= (($end<$pages) ? Html::a('Следующий', ['report/accrual', 'page' => $nextpage, 'tid' => $params['tid'], 'month' => $params['month']]) : '') ?></li>
 		    </ul>
 		</nav>
     <?php endif ?>
