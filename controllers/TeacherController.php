@@ -496,6 +496,7 @@ class TeacherController extends Controller
 		->one();
 
 		$acc = AccrualTeacher::calculateFullTeacherAccrual((int)$id);
+		
 		return $this->render('view', [
 			'model' => $model,
 			'teachertax'=> $teachertax,

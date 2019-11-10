@@ -1,48 +1,71 @@
 <?php
-    use yii\helpers\Html;
-    use yii\widgets\ActiveForm;
-    use yii\widgets\Breadcrumbs;
-    $this->title = 'Система учета :: Отчет по начислениям';
-    $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
-    $this->params['breadcrumbs'][] = 'Отчет по начислениям';
-?>
 
+use app\widgets\Alert;
+use yii\helpers\Html;
+use yii\web\View;
+use yii\widgets\ActiveForm;
+use yii\widgets\Breadcrumbs;
+
+/**
+ * @var View   $this
+ * @var array  $accruals
+ * @var array  $groups
+ * @var array  $jobPlaces
+ * @var array  $lessons
+ * @var array  $months
+ * @var int    $pages
+ * @var array  $params
+ * @var array  $reportlist
+ * @var array  $teachers
+ * @var array  $teachers_list
+ * @var string $userInfoBlock
+ */
+
+$this->title = Yii::$app->params['appTitle'] . 'Отчет по начислениям';
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
+$this->params['breadcrumbs'][] = 'Отчет по начислениям';
+?>
 <div class="row row-offcanvas row-offcanvas-left schedule-index">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
         <div id="main-menu"></div>
         <?php endif; ?>
         <?= $userInfoBlock ?>
-        <?php if(!empty($reportlist)): ?>
+        <?php if (!empty($reportlist)) { ?>
         <div class="dropdown">
             <?= Html::button('<span class="fa fa-list-alt" aria-hidden="true"></span> ' . Yii::t('app', 'Reports') . ' <span class="caret"></span>', ['class' => 'btn btn-default dropdown-toggle btn-sm btn-block', 'type' => 'button', 'id' => 'dropdownMenu', 'data-toggle' => 'dropdown', 'aria-haspopup' => 'true', 'aria-expanded' => 'true']) ?>
             <ul class="dropdown-menu" aria-labelledby="dropdownMenu">
-                <?php foreach($reportlist as $key => $value): ?>
+                <?php foreach ($reportlist as $key => $value) { ?>
                 <li><?= Html::a($key, $value, ['class'=>'dropdown-item']) ?></li>
-                <?php endforeach; ?>
+                <?php } ?>
             </ul>
         </div>
-        <?php endif; ?>
+        <?php } ?>
         <h4><?= Yii::t('app', 'Filters') ?></h4>
-        <?php 
-            $form = ActiveForm::begin([
+        <?php $form = ActiveForm::begin([
                 'method' => 'get',
                 'action' => ['report/accrual'],
-                ]);
-                ?>
+                ]); ?>
             <div class="form-group">
-                <select class="form-control input-sm" name="TID">
+                <select class='form-control input-sm' name='month'>";
+                    <option value='all'><?= Yii::t('app', '-all months-') ?></option>";
+                    <?php foreach ($months as $mkey => $mvalue) { ?>
+                        <option value="<?= $mkey ?>" <?php echo ($mkey==$params['month']) ? ' selected' : ''; ?>>
+                            <?= $mvalue ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="form-group">
+                <select class="form-control input-sm" name="tid">
                     <option value="all"><?= Yii::t('app', '-all teachers-') ?></option>
-                    <?php
-                    if(!empty($teachers_list)) {
-                        foreach($teachers_list as $key => $value) { ?>
-                            <option value="<?= $key ?>"<?= ($key==$tid) ? ' selected' : ''?>>
+                    <?php if (!empty($teachers_list)) {
+                        foreach ($teachers_list as $key => $value) { ?>
+                            <option value="<?= $key ?>"<?= ($key == $params['tid']) ? ' selected' : ''?>>
                                 <?= $value ?>
                             </option>
-                    <?php }}
-                    unset($key);
-                    unset($value);
-                    ?>
+                        <?php } ?>
+                    <?php } ?>
                 </select>
             </div>
             <div class="form-group">
@@ -58,58 +81,54 @@
         <?php endif; ?>
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
-		</p>
-    <?php
-	// сообщение об ошибке при начислении
-    if(Yii::$app->session->hasFlash('error')) {
-        echo "<div class='alert alert-danger' role='alert'>";
-        echo Yii::$app->session->getFlash('error');
-        echo "</div>";
-    }
-    // сообщение об успешном начислении
-    if(Yii::$app->session->hasFlash('success')) {
-        echo "<div class='alert alert-success' role='alert'>";
-        echo Yii::$app->session->getFlash('success');
-        echo "</div>";
-    }
-
-    if(!$tid || $tid=='all'){
-        $current = 1;
-        $start = 1;
-        $end = 10;
-        $prevpage = 0;
-        $nextpage = 2;
-        if(Yii::$app->request->get('page')){
-            $current = (int)Yii::$app->request->get('page');
-            $start = 10 * (int)Yii::$app->request->get('page') - 9;
-            $end = 10 * (int)Yii::$app->request->get('page');
-            if($end>$pages){
-                $end = $pages;
-            }
+        </p>
+        <?= Alert::widget() ?>
+        <?php if (!$params['tid'] || $params['tid'] == 'all') {
+            $current = 1;
+            $start = 1;
+            $end = 10;
+            $prevpage = 0;
+            $nextpage = 2;
+            if (Yii::$app->request->get('page')) {
+                $current = (int)Yii::$app->request->get('page');
+                $start = 10 * (int)Yii::$app->request->get('page') - 9;
+                $end = 10 * (int)Yii::$app->request->get('page');
+                if ($end>$pages) {
+                    $end = $pages;
+                }
                 $prevpage = (int)Yii::$app->request->get('page') - 1;
                 $nextpage = (int)Yii::$app->request->get('page') + 1;
+            }
+            ?>
+            <nav>
+                <ul class="pager">
+                    <li class="previous">
+                        <?= (($start > 1) ? Html::a('Предыдущий', ['report/accrual', 'page' => $prevpage, 'tid' => $params['tid'], 'month' => $params['month']]) : '') ?>
+                    </li>
+                    <li class="next">
+                        <?= (($end < $pages) ? Html::a('Следующий', ['report/accrual', 'page' => $nextpage, 'tid' => $params['tid'], 'month' => $params['month']]) : '') ?>
+                    </li>
+                </ul>
+            </nav>
+            <?php $page = $nextpage - 1;
+        } else {
+            $page = 0;
         }
 
-        echo "<nav>";
-        echo "<ul class='pager'>";
-        echo "<li class='previous'>".(($start>1) ? Html::a('Предыдущий',['report/accrual','page'=>$prevpage]) : '')."</li>";
-        echo "<li class='next'>".(($end<$pages) ? Html::a('Следующий',['report/accrual', 'page'=>$nextpage]) : '')."</li>";
-        echo "</ul>";
-        echo "</nav>";
-
-        $page = $nextpage - 1;
-    } else {
-        $page = 0;
-    }
-
-
-	// задаем общую сумму по начислениям
-    $totalAccural = 0;
-    $totalPayment = 0;
+        // задаем общую сумму по начислениям
+        $totalAccural = 0;
+        $totalPayment = 0;
 	?>
 	<?php foreach($teachers as $teacher): ?>
         <div class="panel panel-default">
-            <div class="panel-heading"><?= Html::a($teacher['name'],['teacher/view', 'id'=>$teacher['id']], ['id'=> 'block_tid_' . $teacher['id']]) ?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ставка: <?= implode($teacher['value'], ' р. / ') ?> р.</div>
+            <div class="panel-heading">
+                <?= Html::a(
+                        $teacher['name'],
+                        ['teacher/view', 'id' => $teacher['id']],
+                        ['id'=> 'block_tid_' . $teacher['id']]
+                    ) ?>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ставка: <?= implode(' р. / ', $teacher['value']) ?> р.
+            </div>
             <div class="panel-body">
                 <?php
                     $time = 0;
@@ -121,10 +140,14 @@
                         <div>
                             <div class="clearfix" style="margin-bottom: 5px">
                                 <a class="pull-left" role="button" data-toggle="collapse" href="#collapse-<?= $group['gid']?>-<?= $teacher['id']?>" aria-expanded="false" aria-controls="collapse-<?= $group['gid']?>-<?= $teacher['id']?>">
-                                    <span style="margin-top: 2px" class="label <?= ((int)$group['tjplace'] === 1 ? 'label-success' : 'label-info') ?> pull-left"><?= $jobPlace[$group['tjplace']] ?></span>&nbsp;
+                                    <span style="margin-top: 2px" class="label <?= ((int)$group['tjplace'] === 1 ? 'label-success' : 'label-info') ?> pull-left"><?= $jobPlaces[$group['tjplace']] ?></span>&nbsp;
                                     #<?= $group['gid'] ?> <?= $group['course'] ?>, ур. <?= $group['level'] ?> (усл.#<?= $group['service'] ?>), <?= $group['office'] ?>
                                 </a>
-                                <?= Html::a("Начислить ".$group['time']." ч.",['accrual/addaccrual','gid'=>$group['gid'],'tid'=>$teacher['id'], 'page' => $page], ['class'=>'btn btn-xs btn-success pull-right']) ?>
+                                <?= Html::a(
+                                        "Начислить {$group['time']} ч.",
+                                        ['accrual/add-accrual', 'gid' => $group['gid'], 'tid' => $teacher['id'], 'month' => $params['month'] ?? null],
+                                        ['class' => 'btn btn-xs btn-success pull-right']
+                                    ) ?>
                             </div>
                             <table class="table table-condensed collapse" id="collapse-<?= $group['gid']?>-<?= $teacher['id']?>">
 						<?php foreach($lessons as $lesson): ?>
@@ -166,7 +189,7 @@
                 <?php endforeach; ?>
             <?php endif; ?>
             <p class="text-right text-muted">всего к начислению за <?= isset($time) ? $time : 0 ?> ч. : <strong><?= isset($money) ? number_format($money, 2, ',', ' ') : 0 ?></strong> р.
-            </br>всего к выплате: <strong><?= isset($sum) ? number_format($sum, 2, ',', ' ') : 0 ?></strong> р.</p>
+            <br />всего к выплате: <strong><?= isset($sum) ? number_format($sum, 2, ',', ' ') : 0 ?></strong> р.</p>
 			</div><!-- panel-body-->
 	    </div><!-- panel -->
 	    <?php 
@@ -175,14 +198,14 @@
             ?>
     <?php endforeach ?>
     <?php if($totalAccural != 0 && $totalPayment != 0): ?>
-    <p class="text-right">всего к начислению (без надбавок): <strong><?= $totalAccural ?> р.</strong><br/>
-    всего к выплате: <strong><?= $totalPayment ?></strong> р.</p>
+    <p class="text-right">всего к начислению (без надбавок): <strong><?= number_format($totalAccural, 2, ',', ' ') ?> р.</strong><br/>
+    всего к выплате: <strong><?= number_format($totalPayment, 2, ',', ' ') ?></strong> р.</p>
     <?php endif ?>
-    <?php if(!$tid || $tid=='all') : ?>
+    <?php if(!$params['tid'] || $params['tid'] == 'all') : ?>
 		<nav>
 		    <ul class="pager">
-		        <li class="previous"><?= (($start>1) ? Html::a('Предыдущий',['report/accrual','page'=>$prevpage]) : '') ?></li>
-		        <li class="next"><?= (($end<$pages) ? Html::a('Следующий',['report/accrual', 'page'=>$nextpage]) : '') ?></li>
+		        <li class="previous"><?= (($start>1) ? Html::a('Предыдущий', ['report/accrual', 'page' => $prevpage, 'tid' => $params['tid'], 'month' => $params['month']]) : '') ?></li>
+		        <li class="next"><?= (($end<$pages) ? Html::a('Следующий', ['report/accrual', 'page' => $nextpage, 'tid' => $params['tid'], 'month' => $params['month']]) : '') ?></li>
 		    </ul>
 		</nav>
     <?php endif ?>
