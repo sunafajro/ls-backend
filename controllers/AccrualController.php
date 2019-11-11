@@ -2,12 +2,14 @@
 
 namespace app\controllers;
 
-use Yii;
 use app\models\AccrualTeacher;
 use app\models\Teacher;
+use Yii;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
+use yii\filters\VerbFilter;
+use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 
 //use yii\filters\VerbFilter;
@@ -19,21 +21,28 @@ class AccrualController extends Controller
 {
     public function behaviors()
     {
+		$rules = ['add-accrual', 'delaccrual', 'doneaccrual', 'undoneaccrual'];
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['add-accrual', 'delaccrual', 'doneaccrual', 'undoneaccrual'],
+                'only' => $rules,
                 'rules' => [
                     [
-                        'actions' => ['add-accrual', 'delaccrual', 'doneaccrual', 'undoneaccrual'],
+                        'actions' => $rules,
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['add-accrual', 'delaccrual', 'doneaccrual', 'undoneaccrual'],
+                        'actions' => $rules,
                         'allow' => true,
                         'roles' => ['@'],
                     ],
+                ],
+			],
+			'verbs' => [
+                'class' => VerbFilter::class,
+                'actions' => [
+                    'add-accrual' => ['post'],
                 ],
             ],
         ];
@@ -41,72 +50,79 @@ class AccrualController extends Controller
 
     /**
      * Производит начисление зп
-	 * @param int      $gid id группы
-	 * @param int      $tid id преподавателя
+	 * @param int      $tid   id преподавателя
 	 * @param int|null $month месяц в котором прошли занятия
 	 * 
      * @return mixed
+	 * 
+	 * @uses $_POST['groups'] directly
      */
-    public function actionAddAccrual($gid, $tid, $month = null)
+    public function actionAddAccrual($tid, $month = null)
     {
-        if((int)Yii::$app->session->get('user.ustatus') !== 3) {
+        if ((int)Yii::$app->session->get('user.ustatus') !== 3) {
             throw new ForbiddenHttpException('Access denied');
         }
 		
-		/** @var array */
-        $calculate = AccrualTeacher::calculateFullTeacherAccrual((int)$tid, (int)$gid, $month);
-
-		// заливаем данные о начислении в модель
-		$model                      = new AccrualTeacher();
-		$model->calc_groupteacher   = $gid;
-		$model->calc_teacher        = $tid;
-		$model->value               = $calculate['accrual'];
-		$model->value_corp          = $calculate['corp'];
-		$model->value_prem          = $calculate['prem'];
-		$model->data                = date('Y-m-d');
-		$model->user                = Yii::$app->session->get('user.uid');
-		$model->calc_edunormteacher = $calculate['norm'];
-		$model->visible             = 1;		
+		$groups = explode(',', Yii::$app->request->post('groups', ''));
+		if (empty($groups)) {
+            throw new BadRequestHttpException('Missing POST param: $groups');
+		}
 
 		$transaction = Yii::$app->db->beginTransaction();
 		try {
-			if ($model->save()) {
-				// получаем сумму начислений преподавателя
-				$oldAccrual = (new \yii\db\Query())
-				->select('accrual')
-				->from('calc_teacher')
-				->where(['id' => $tid])
-				->one();
-				$accrual = $calculate['accrual'] + $oldAccrual['accrual'];
-				
-				// обновляем запись в журнале
-				$db = (new \yii\db\Query())
-				->createCommand()
-				->update('calc_journalgroup',
-				[
-					'done'         => 1,
-					'user_done'    => Yii::$app->session->get('user.uid'),
-					'data_done'    => date('Y-m-d'),
-					'calc_accrual' => $model->id
-				],
-				['in', 'id', $calculate['lids']])
-				->execute();
-
-				// обновляем сумму начислений у преподавателя
-				$db = (new \yii\db\Query())
-				->createCommand()
-				->update('calc_teacher', ['accrual' => $accrual], 'id=:tid')
-				->bindParam(':tid', $tid)
-				->execute();		
-
-				Yii::$app->session->setFlash('success', 'Начисление произведено успешно!');
-				$transaction->commit();
-			} else {
-				throw new \Exception('Не удалось создать начисление');
+		    foreach ($groups as $gid) {
+				/** @var array */
+				$calculate = AccrualTeacher::calculateFullTeacherAccrual((int)$tid, (int)$gid, $month);
+	
+				// заливаем данные о начислении в модель
+				$model                      = new AccrualTeacher();
+				$model->calc_groupteacher   = $gid;
+				$model->calc_teacher        = $tid;
+				$model->value               = $calculate['accrual'];
+				$model->value_corp          = $calculate['corp'];
+				$model->value_prem          = $calculate['prem'];
+				$model->data                = date('Y-m-d');
+				$model->user                = Yii::$app->session->get('user.uid');
+				$model->calc_edunormteacher = $calculate['norm'];
+				$model->visible             = 1;		
+	
+				if ($model->save()) {
+					// получаем сумму начислений преподавателя
+					$oldAccrual = (new \yii\db\Query())
+					->select('accrual')
+					->from('calc_teacher')
+					->where(['id' => $tid])
+					->one();
+					$accrual = $calculate['accrual'] + $oldAccrual['accrual'];
+					
+					// обновляем запись в журнале
+					$db = (new \yii\db\Query())
+					->createCommand()
+					->update('calc_journalgroup',
+					[
+						'done'         => 1,
+						'user_done'    => Yii::$app->session->get('user.uid'),
+						'data_done'    => date('Y-m-d'),
+						'calc_accrual' => $model->id
+					],
+					['in', 'id', $calculate['lids']])
+					->execute();
+	
+					// обновляем сумму начислений у преподавателя
+					$db = (new \yii\db\Query())
+					->createCommand()
+					->update('calc_teacher', ['accrual' => $accrual], 'id=:tid')
+					->bindParam(':tid', $tid)
+					->execute();
+				} else {
+					throw new \Exception('Не удалось создать начисление');
+				}
 			}
+			Yii::$app->session->setFlash('success', 'Начисление произведено успешно!');
+			$transaction->commit();
 		} catch (\Exception $e) {
 			Yii::$app->session->setFlash('error', 'Начисление произвести не удалось!');
-            $transaction->rollback();
+			$transaction->rollback();
 		}
 		
         return $this->redirect(Yii::$app->request->referrer);
