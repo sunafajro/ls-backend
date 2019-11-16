@@ -21,18 +21,19 @@ class SalestudController extends Controller
 {
     public function behaviors()
     {
+        $rules = ['approve', 'autocomplete', 'create', 'disable', 'disable-all', 'enable', 'index'];
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['approve', 'autocomplete', 'create', 'disable', 'disable-all', 'enable', 'index'],
+                'only' => $rules,
                 'rules' => [
                     [
-                        'actions' => ['approve', 'autocomplete', 'create', 'disable', 'disable-all', 'enable', 'index'],
+                        'actions' => $rules,
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['approve', 'autocomplete', 'create', 'disable', 'disable-all', 'enable', 'index'],
+                        'actions' => $rules,
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -41,7 +42,9 @@ class SalestudController extends Controller
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
-                    'approve' => ['post'],
+                    'approve'      => ['post'],
+                    'disable'      => ['post'],
+                    'enable'       => ['post'],
                     'autocomplete' => ['post'],
                 ],
             ],
@@ -76,99 +79,90 @@ class SalestudController extends Controller
     }
     
     /**
-     * Links sale to the student
+     * Назначает скидку клиенту
+     * @param int $sid
+     * 
      * @return mixed
      */
     public function actionCreate($sid)
     {
-        $model = new Salestud();
         $student = Student::findOne($sid);
+        if (empty($student)) {
+            throw new NotFoundHttpException(Yii::t('yii', 'The requested page does not exist.'));
+        }
+        $model = new Salestud();
         $sales = $student->getStudentSales();
 
-        // если данные пришли и успешно залились в модель
         if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
-            $model->calc_studname    = $sid;
-            $model->user             = Yii::$app->session->get('user.uid');
-            $model->data             = date('Y-m-d');
-            $model->visible          = 1;
-            $model->data_visible     = '0000-00-00';
-            $model->user_visible     = 0;
-            $model->data_used        = '0000-00-00';
-            $model->user_used        = 0;
-            /* если скидка назначается руководителем, сразу подтверждаем */
+            $model->calc_studname = $sid;
             if ((int)Yii::$app->session->get('user.ustatus') === 3) {
-                $model->approved     = 1;
-            } else {
-                $model->approved     = 0;
+                $model->approved = 1;
             }
-            if (!Salestud::find()->where(['calc_studname' => $sid, 'calc_sale' => $model->calc_sale])->exists()) {
-                if($model->save()) {
+            /** @var Salestud $oldSale */
+            $oldSale = Salestud::find()->where(['calc_studname' => $sid, 'calc_sale' => $model->calc_sale])->one();
+            if (empty($oldSale)) {
+                if ($model->save()) {
                     Yii::$app->session->setFlash('success', 'Скидка успешно добавлена!');
                     return $this->redirect(['salestud/create', 'sid' => $sid]);
                 } else {
                     Yii::$app->session->setFlash('error', 'Не удалось добавить скидку!');
                 }
             } else {
-                Yii::$app->session->setFlash('error', 'Скидка уже назначена!');
+                if ($oldSale->visible) {
+                    Yii::$app->session->setFlash('error', 'Скидка уже назначена!');
+                } else {
+                    if ($oldSale->restore($model->reason)) {
+                        Yii::$app->session->setFlash('success', 'Скидка успешно добавлена!');
+                        return $this->redirect(['salestud/create', 'sid' => $sid]);
+                    } else {
+                        Yii::$app->session->setFlash('error', 'Не удалось добавить скидку!');
+                    }
+                }
             }
         }
 
         return $this->render('create', [
-            'model' => $model,
-            'sales' => $sales,
-            'student' => $student,
+            'model'         => $model,
+            'sales'         => $sales,
+            'student'       => $student,
             'userInfoBlock' => User::getUserInfoBlock(),
         ]);
     }
     
     /**
-     * Approves client discount
+     * Подтверждает назначение или отказывает в назначении скидки
+     * @param int    $id
+     * @param string $status
+     * 
      * @return mixed
      */
-    public function actionApprove()
+    public function actionApprove($id, $status)
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        
-        $id = (int)Yii::$app->request->post('id', NULL);
-        $status = Yii::$app->request->post('status', 'approve');
-        if ($id && $status) {
-            $sale = Salestud::findOne($id);
-            if (empty($sale)) {
-                throw new NotFoundHttpException(Yii::t('yii', 'The requested page does not exist.'));
+        $discount = $this->findModel($id);
+        if ($status === 'accept') {                
+            if (!$discount->approve()) {
+                Yii::$app->session->setFlash('error', 'Не удалось поддтвердить скидку.');
             }
-            if ($status === 'accept') {                
-                $sale->approved = 1;
-                if (!$sale->save()) {
-                    Yii::$app->session->setFlash('error', 'Не удалось поддтвердить скидку.');
-                }
-            } else if ($status === 'refuse') {
-                if (!$sale->delete()) {
-                    Yii::$app->session->setFlash('error', 'Не удалось аннулировать скидку.');
-                }
-            } else {
-                throw new BadRequestHttpException(Yii::t('yii', 'Missing required arguments: { status }'));
+        } else if ($status === 'refuse') {
+            if (!$discount->delete()) {
+                Yii::$app->session->setFlash('error', 'Не удалось аннулировать скидку.');
             }
-            return $this->redirect(Yii::$app->request->referrer);        
-        } else {
-            throw new BadRequestHttpException(Yii::t('yii', 'Missing required arguments: { id }'));
         }
+        return $this->redirect(Yii::$app->request->referrer);        
     }
 
     /**
-     * Restores client discount
+     * @deprecated
+     * Восстанавливает скидку клиента
+     * @param int    $id
+     * 
      * @return mixed
      */
     public function actionEnable($id)
     {
         $model = $this->findModel($id);
         if((int)$model->visible !== 1) {
-            $model->visible = 1;
-            $model->user_visible = Yii::$app->session->get('user.uid');
-            $model->data_visible = date('Y-m-d');
-            if ((int)Yii::$app->session->get('user.ustatus') === 3) {
-                $model->approved = 1;
-            }
-            if ($model->save()) {
+            if ($model->restore()) {
                 Yii::$app->session->setFlash('success', 'Скидка успешно восстановлена!');
             } else {
                 Yii::$app->session->setFlash('error', 'Не удалось восстановить скидку!');
@@ -180,7 +174,9 @@ class SalestudController extends Controller
 
 
     /**
-     * Removes client discount
+     * Аннулирует скидку клиента
+     * @param int $id
+     * 
      * @return mixed
      */
     public function actionDisable($id)
@@ -196,7 +192,9 @@ class SalestudController extends Controller
     }
 
     /**
-     * Removes all client discounts
+     * Аннулирует скидку для всех клиентов
+     * @param int $sid
+     * 
      * @return mixed
      */
     public function actionDisableAll($sid)
@@ -218,6 +216,9 @@ class SalestudController extends Controller
     public function actionAutocomplete(string $sid)
     {
         $student = Student::findOne($sid);
+        if (empty($student)) {
+            throw new NotFoundHttpException(Yii::t('yii', 'The requested page does not exist.'));
+        }
         $sales = $student->getStudentAvailabelSales(['term' => Yii::$app->request->post('term') ?? NULL]);
         Yii::$app->response->format = Response::FORMAT_JSON;
 

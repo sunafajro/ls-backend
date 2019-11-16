@@ -25,9 +25,6 @@ use yii\web\View;
             <?php foreach ($studsales as $ss) {
                 $saleInfo = [];
                 echo Html::beginTag('p');
-                if ((int)$ss['visible'] === 1 && (int)$ss['approved'] !== 1) {
-                    echo Html::tag('span', 'На проверке!', ['class' => 'label label-warning']);
-                }
                 $saleInfo[] = Html::tag(
                     'p',
                     'когда и кем назначена: ' . Html::tag('br') . Html::tag('b', date('d.m.y', strtotime($ss['date']))) . ', ' . Html::tag('b', $ss['user']),
@@ -40,19 +37,15 @@ use yii\web\View;
                         ['class' => 'muted small']
                     );
                 }
-                if ($ss['deldate'] != '0000-00-00') {
-                    $saleInfo[] = Html::tag(
-                        'p',
-                        'когда и кем восстановлена: ' . Html::tag('br') . Html::tag('b', date('d.m.y', strtotime($ss['deldate']))) . ', ' . Html::tag('b', $ss['remover']),
-                        ['class' => 'muted small']
-                    );
-                }
                 echo Html::a(
                     Html::tag('span', null, ['class' => 'fa fa-trash']),
                     ['salestud/disable', 'id' => $ss['id']],
                     [
                         'class'        => 'btn btn-danger btn-xs',
-                        'data-confirm' => "Вы действительно хотите аннулировать скидку {$ss['name']}?",
+                        'data' => [
+                            'confirm' => "Вы действительно хотите аннулировать скидку {$ss['name']}?",
+                            'method'  => 'post',
+                        ],
                         'style'        => 'margin-right: 5px',
                         'title'        => Yii::t('app', 'Cancel'),
                     ]
@@ -73,6 +66,9 @@ use yii\web\View;
                     ]
                 );
                 echo $ss['name'];
+                if ((int)$ss['visible'] === 1 && (int)$ss['approved'] !== 1) {
+                    echo Html::tag('span', 'На проверке!', ['class' => 'label label-warning', 'style' => 'margin-left: 5px']);
+                }
                 echo Html::endTag('p');
             } ?>
         </div>
