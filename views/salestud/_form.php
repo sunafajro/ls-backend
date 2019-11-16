@@ -19,12 +19,13 @@ use app\widgets\autocomplete\AutoCompleteWidget;
             'name' => 'Salestud[calc_sale]',
         ],
         'searchField' => [
-            'label' => Yii::t('app', 'Sale'),
-            'url' => Url::to(['salestud/autocomplete', 'sid' => $studentId]),
+            'label'     => Yii::t('app', 'Sale'),
+            'url'       => Url::to(['salestud/autocomplete', 'sid' => $studentId]),
             'minLength' => 1,
-            'error' => $model->getFirstError('calc_sale'),
+            'error'     => $model->getFirstError('calc_sale'),
         ],
     ]) ?>
+    <?= $form->field($model, 'reason')->textInput(['required' => true]) ?>
     <div class="form-group">
         <?= Html::submitButton(Yii::t('app', 'Add'), ['class' => 'btn btn-success']) ?>
     </div>

@@ -83,6 +83,10 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Approve discounts');
                 'user' => [
                     'attribute' => 'user',
                 ],
+                'reason' => [
+                    'attribute' => 'reason',
+                    'label'     => Yii::t('app', 'Reason'),
+                ],
                 'actions' => [
                     'attribute' => 'actions',
                     'format'    => 'raw',
@@ -91,15 +95,11 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Approve discounts');
                         $buttons = [
                             Html::a(
                                 Html::tag('span', null, ['class' => 'fa fa-check', 'aria-hidden' => true]),
-                                ['salestud/approve'],
+                                ['salestud/approve', 'id' => $discount['id'], 'status' => 'accept'],
                                 [
                                     'class' => 'btn btn-success btn-xs',
                                     'data' => [
                                         'method' => 'POST',
-                                        'params' => [
-                                            'id' => $discount['id'],
-                                            'status' => 'accept',
-                                        ],
                                     ],
                                     'style' => 'margin-right: 5px',
                                     'title' => Yii::t('app', 'Approve discount'),
@@ -107,15 +107,11 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Approve discounts');
                             ),
                             Html::a(
                                 Html::tag('span', null, ['class' => 'fa fa-times', 'aria-hidden' => true]),
-                                ['salestud/approve'],
+                                ['salestud/approve', 'id' => $discount['id'], 'status' => 'refuse'],
                                 [
                                     'class' => 'btn btn-danger btn-xs',
                                     'data' => [
                                         'method' => 'POST',
-                                        'params' => [
-                                            'id' => $discount['id'],
-                                            'status' => 'refuse',
-                                        ],
                                     ],
                                     'title' => Yii::t('app', 'Refuse discount'),
                                 ]

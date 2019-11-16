@@ -13,12 +13,14 @@ use Yii;
  * @property integer $calc_studname
  * @property integer $calc_sale
  * @property integer $user
- * @property string $data
+ * @property string  $data
  * @property integer $visible
- * @property string $data_visible
+ * @property string  $data_visible
  * @property integer $user_visible
- * @property string $data_used
+ * @property string  $data_used
  * @property integer $user_used
+ * @property integer $approved
+ * @property string  $reason
  */
 class Salestud extends \yii\db\ActiveRecord
 {
@@ -38,9 +40,19 @@ class Salestud extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['calc_studname', 'calc_sale', 'user', 'data', 'visible'], 'required'],
+            [['calc_studname', 'calc_sale'], 'required'],
+            [['reason'], 'string'],
             [['calc_studname', 'calc_sale', 'user', 'visible', 'user_visible', 'user_used', 'approved'], 'integer'],
-            [['data', 'data_visible', 'data_used'], 'safe']
+            [['data', 'data_visible', 'data_used'], 'safe'],
+            [['visible'],      'default', 'value' => 1],
+            [['user'],         'default', 'value' => Yii::$app->user->identity->id ?? 0],
+            [['data'],         'default', 'value' => date('Y-m-d')],
+            [['user_visible'], 'default', 'value' => 0],
+            [['data_visible'], 'default', 'value' => '0000-00-00'],
+            [['user_used'],    'default', 'value' => 0],
+            [['data_used'],    'default', 'value' => '0000-00-00'],
+            [['approved'],     'default', 'value' => 0],
+            [['reason'],       'default', 'value' => ''],
         ];
     }
 
@@ -50,38 +62,70 @@ class Salestud extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => Yii::t('app', 'ID'),
+            'id'            => Yii::t('app', 'ID'),
             'calc_studname' => Yii::t('app', 'Calc Studname'),
-            'calc_sale' => Yii::t('app', 'Sale'),
-            'user' => Yii::t('app', 'User'),
-            'data' => Yii::t('app', 'Data'),
-            'visible' => Yii::t('app', 'Visible'),
-            'data_visible' => Yii::t('app', 'Data Visible'),
-            'user_visible' => Yii::t('app', 'User Visible'),
-            'data_used' => Yii::t('app', 'Data Used'),
-            'user_used' => Yii::t('app', 'User Used'),
-            'approved' => Yii::t('app', 'Approved')
+            'calc_sale'     => Yii::t('app', 'Sale'),
+            'user'          => Yii::t('app', 'User'),
+            'data'          => Yii::t('app', 'Data'),
+            'visible'       => Yii::t('app', 'Visible'),
+            'data_visible'  => Yii::t('app', 'Data Visible'),
+            'user_visible'  => Yii::t('app', 'User Visible'),
+            'data_used'     => Yii::t('app', 'Data Used'),
+            'user_used'     => Yii::t('app', 'User Used'),
+            'approved'      => Yii::t('app', 'Approved'),
+            'reason'        => Yii::t('app', 'Reason'),
         ];
     }
     
-    public function delete()
+    /**
+     * @return bool
+     */
+    public function delete() : bool
     {
         $this->visible = 0;
-        $this->user_visible = Yii::$app->session->get('user.uid');
+        $this->user_visible = Yii::$app->user->identity->id;
         $this->data_visible = date('Y-m-d');
         $this->approved = 0;
-        if ($this->save()) {
-            return true;    
-        } else {
-            return false;
+
+        return $this->save(true, ['visible', 'user_visible', 'data_visible', 'approved']);
+    }
+
+    /**
+     * @param string|null $reason
+     * 
+     * @return bool
+     */
+    public function restore(string $reason = null) : bool
+    {
+        $this->visible = 1;
+        $this->user         = Yii::$app->session->get('user.uid');
+        $this->data         = date('Y-m-d');
+        $this->user_visible = 0;
+        $this->data_visible = '0000-00-00';
+        if ((int)Yii::$app->session->get('user.ustatus') === 3) {
+            $this->approved = 1;
         }
+        $this->reason = $reason;
+
+        return $this->save(true, ['visible', 'user', 'data', 'user_visible', 'data_visible', 'approved', 'reason']);
+    }
+
+    /**
+     * @return bool
+     */
+    public function approve() : bool
+    {
+        $this->approved = 1;
+
+        return $this->save(true, ['approved']);
     }
 
     /**
      * возвращает количество неподтвержденных скидок для панели навигации
-     * @return integer
+     * 
+     * @return int
      */
-    public static function getSalesCount()
+    public static function getSalesCount() : int
     {
         if ((int)Yii::$app->session->get('user.ustatus') === 3 ||
             (int)Yii::$app->session->get('user.uid') === 389) {
@@ -94,8 +138,11 @@ class Salestud extends \yii\db\ActiveRecord
 
         $sales = (new \yii\db\Query())
         ->select('count(id) as cnt')
-        ->from('calc_salestud ss')
-        ->where('ss.approved=:zero and ss.visible=:one', [':one'=>1, ':zero'=> 0])
+        ->from(['ss' => self::tableName()])
+        ->where([
+            'ss.approved' => 0,
+            'ss.visible'  => 1,
+        ])
         ->andFilterWhere(['ss.user' => $id])
         ->one();
 
@@ -104,7 +151,7 @@ class Salestud extends \yii\db\ActiveRecord
 
     /** 
      * возвращает одну неподтвержденную скидку для модального окна
-     * @return array
+     * @return array|null
      */
     public static function getLastUnapprovedSale()
     {
@@ -119,10 +166,10 @@ class Salestud extends \yii\db\ActiveRecord
                 'saleName'   => 's.name',
                 'user'       => 'u.name'
             ])
-            ->from(['ss'      => 'calc_salestud'])
-            ->innerJoin(['sn' => 'calc_studname'], 'sn.id = ss.calc_studname')
-            ->innerJoin(['s'  => 'calc_sale'], 's.id = ss.calc_sale')
-            ->innerJoin(['u'  => 'user'], 'u.id = ss.user')
+            ->from(['ss'      => self::tableName()])
+            ->innerJoin(['sn' => Student::tableName()], 'sn.id = ss.calc_studname')
+            ->innerJoin(['s'  => Sale::tableName()],    's.id = ss.calc_sale')
+            ->innerJoin(['u'  => User::tableName()],    'u.id = ss.user')
             ->where([
                 'ss.approved' => 0,
                 'ss.visible'  => 1
@@ -142,52 +189,53 @@ class Salestud extends \yii\db\ActiveRecord
     /** 
      * возвращает список всех назначенных клиенту скидок 
      * используется в StudnameController.php actionView
-     * @param integer $sid
+     * @param int $sid
+     * 
      * @return array
      */
-    public static function getAllClientSales($sid)
+    public static function getAllClientSales($sid) : array
     {
-        $sales = (new \yii\db\Query())
+        return (new \yii\db\Query())
         ->select('ss.id as id, s.name as name, u.name as user, ss.data as date, uu.name as usedby, ss.data_used as usedate, uv.name as remover, ss.data_visible as deldate, ss.visible as visible, ss.approved as approved')
-        ->from('calc_salestud ss')
-        ->leftJoin('calc_sale s', 's.id=ss.calc_sale')
-        ->leftJoin('user u', 'u.id=ss.user')
-        ->leftJoin('user uu', 'uu.id=ss.user_used')
-        ->leftJoin('user uv' , 'uv.id=ss.user_visible')
+        ->from(['ss'      => self::tableName()])
+        ->leftJoin(['s'   => Sale::tableName()], 's.id = ss.calc_sale')
+        ->leftJoin(['u'   => User::tableName()], 'u.id = ss.user')
+        ->leftJoin(['uu'  => User::tableName()], 'uu.id = ss.user_used')
+        ->leftJoin(['uv'  => User::tableName()], 'uv.id = ss.user_visible')
         ->where([
             'ss.visible' => 1,
             'ss.calc_studname' => $sid,
         ])
         ->orderby(['ss.id' => SORT_DESC])
         ->all();
-
-        return $sales;
     }
 
     /** 
      * возвращает список активных скидок клиента
-     * @param integer $sid
+     * @param int $sid
+     * 
      * @return array
      */
-    public static function getClientSales($sid)
+    public static function getClientSales($sid) : array
     {
-        $sales = (new \yii\db\Query())
+        return (new \yii\db\Query())
         ->select('ss.id as id, s.name as name, s.procent as procent, s.value as value')
-        ->from('calc_salestud ss')
-        ->leftJoin('calc_sale s', 's.id=ss.calc_sale')
-        ->where('ss.calc_studname=:sid AND ss.visible=:one', [':sid'=>$sid, ':one'=>1])
+        ->from(['ss'    => self::tableName()])
+        ->leftJoin(['s' => Sale::tableName()], 's.id = ss.calc_sale')
+        ->where([
+            'ss.calc_studname' => $sid,
+            'ss.visible'       => 1
+        ])
         ->all();
-        
-        return $sales;
-
     }    
 
     /** 
      * возвращает список всех назначенных клиенту скидок
-     * @param integer $sid
+     * @param int $sid
+     * 
      * @return array
      */
-    public static function getClientSalesSplited($sid)
+    public static function getClientSalesSplited(int $sid) : array
     {
         $sales = static::getClientSales($sid);
          
@@ -212,10 +260,11 @@ class Salestud extends \yii\db\ActiveRecord
     /**
      * возвращает массив из списков назначенных клиенту ссылок 
      * 0 - рублевые, 1 - процентные, 2 - постоянные
-     * @param integer $sid
+     * @param int $sid
+     * 
      * @return array
      */
-    public static function getClientSalesSimple($sid)
+    public static function getClientSalesSimple(int $sid) : array
     {
         $sales = self::getClientSales($sid);
 
@@ -240,24 +289,30 @@ class Salestud extends \yii\db\ActiveRecord
     /**
      * определяет и возвращает постоянную скидку клиента
      * вызывается из StudnameController.php actionView, ?
-     * @param integer $sid
-     * @return array 
+     * @param int $sid
+     * 
+     * @return array|null
      */
-    public static function getClientPermamentSale($sid)
+    public static function getClientPermamentSale(int $sid)
     {
         $tmp_moneysum = (new \yii\db\Query())
         ->select('sum(m.value) as money')
-        ->from('calc_moneystud m')
-        ->where('m.visible=:one AND m.calc_studname=:sid', 
-        [':one' => 1, ':sid' => $sid])
+        ->from(['m' => Moneystud::tableName()])
+        ->where([
+            'm.visible'       => 1,
+            'm.calc_studname' => $sid
+        ])
         ->one();
 
         $permsale = (new \yii\db\Query())
-        ->select('id as id, name as name, value as value')
-        ->from('calc_sale')
-        ->where('visible=:one AND base <=:payments and procent=:type', 
-        [':one' => 1, ':payments' => (int)$tmp_moneysum['money'], ':type' => 2])
-        ->orderby(['id'=>SORT_DESC])
+        ->select('s.id as id, s.name as name, s.value as value')
+        ->from(['s' => Sale::tableName()])
+        ->where([
+            's.visible' => 1,
+            's.procent' => 2
+        ])
+        ->andWhere(['<=', 's.base', (int)$tmp_moneysum['money']])
+        ->orderby(['s.id' => SORT_DESC])
         ->one();
 
         return !empty($permsale) ? $permsale : NULL;
@@ -266,25 +321,30 @@ class Salestud extends \yii\db\ActiveRecord
     /**
      * находим или создаем рублевую скидку и привязываем ее к студенту
      * @param float $value
-     * @param integer $sid
-     * @return integer
+     * @param int $sid
+     * 
+     * @return int
      */
-    public static function applyRubSale($value, $sid)
+    public static function applyRubSale(float $value, int $sid) : int
     {
         $rubsale = (new \yii\db\Query())
         ->select('s.id as id')
-        ->from('calc_sale s')
-        ->where('s.visible=:one AND s.procent=:zero AND value=:value', 
-            [':one' => 1, ':zero' => 0, 'value' => $value])
+        ->from(['s' => Sale::tableName()])
+        ->where([
+            's.visible' => 1,
+            's.procent' => 0,
+            'value'     => $value, 
+        ])
         ->one();
 
         if (!empty($rubsale)) {
-            $salestud = Salestud::find()->where('calc_studname=:student AND calc_sale=:sale', 
-            [':student' => $sid, ':sale' => $rubsale['id']])->one();
-            if ($salestud !== NULL) {
-                $salestud->visible = 1;
-                $salestud->save(true, ['visible']);
-                return $salestud->id;
+            $salestud = Salestud::find()->where(['calc_studname' => $sid, 'calc_sale' => $rubsale['id']])->one();
+            if (!empty($salestud)) {
+                if ($salestud->restore('Коррекция стоимости счета')) {
+                    return $salestud->id;
+                } else {
+                    return 0;
+                }
             } else {
                 return static::addSaleToStudent($sid, $rubsale['id']);    
             }            
@@ -306,27 +366,21 @@ class Salestud extends \yii\db\ActiveRecord
 
     /**
      * привязываем рублевую скидку к студенту
-     * @param integer $sid
-     * @return integer
+     * @param int $student
+     * @param int $sale
+     * 
+     * @return int
      */
-    public static function addSaleToStudent($student, $sale)
+    public static function addSaleToStudent($student, $sale) : int
     {
         /* привязываем скидку к клиенту */
         $salestud = new Salestud();
-        $salestud->calc_studname    = $student;
-        $salestud->calc_sale        = $sale;
-        $salestud->user             = Yii::$app->session->get('user.uid');
-        $salestud->data             = date('Y-m-d');
-        $salestud->visible          = 1;
-        $salestud->data_visible     = '0000-00-00';
-        $salestud->user_visible     = 0;
-        $salestud->data_used        = '0000-00-00';
-        $salestud->user_used        = 0;
+        $salestud->calc_studname = $student;
+        $salestud->calc_sale     = $sale;
+        $salestud->reason        = 'Коррекция стоимости счета';
         /* если скидка назначается руководителем, сразу подтверждаем */
         if ((int)Yii::$app->session->get('user.ustatus') === 3) {
-            $salestud->approved     = 1;
-        } else {
-            $salestud->approved     = 0;
+            $salestud->approved = 1;
         }
 
         if ($salestud->save()) {
@@ -339,11 +393,12 @@ class Salestud extends \yii\db\ActiveRecord
     /**
      * @deprecated
      * метод подменяет в строках идентификатор одного студента на идентификатор другого
-     * @param integer @id1
-     * @param integer @id2
-     * @return boolean
+     * @param int @id1
+     * @param int @id2
+     * 
+     * @return bool
      */
-    public static function changeStudentId($id1, $id2)
+    public static function changeStudentId(int $id1, int $id2) : bool
     {
         $sql = (new \yii\db\Query())
         ->createCommand()

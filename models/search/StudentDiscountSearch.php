@@ -46,6 +46,7 @@ class StudentDiscountSearch extends Salestud
             'discount'   => 'd.name',
             'discountId' => 'd.id',
             'user'       => 'u.name',
+            'reason'     => 'sd.reason',
         ]);
         $query->from(['sd' => $sdt]);
         $query->innerJoin(['s' => $st], 's.id = sd.calc_studname');

@@ -393,6 +393,7 @@ return array(
     'Purchase cost' => 'Закупочная цена',
     'Queue' => 'Очередь',
     'Rate' => 'Ставка',
+    'Reason'  => 'Причина',
     'Receipt' => 'Квитанция',
     'Receipts' => 'Квитанции',
     'Reciever' => 'Получатель',
