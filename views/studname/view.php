@@ -26,12 +26,15 @@ use yii\widgets\Breadcrumbs;
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Students') . ' :: ' . $model->name;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Clients'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $model->name;
+
+$roleId = Yii::$app->session->get('user.ustatus');
+
 // проверяем какие данные выводить в карочку преподавателя: 1 - активные группы, 2 - завершенные группы, 3 - счета; 4 - оплаты
 if (Yii::$app->request->get('tab')) {
         $tab = Yii::$app->request->get('tab');
 } else {
     // для менеджеров и руководителей по умолчанию раздел счетов
-    if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4) {
+    if (in_array($roleId, [3, 4])) {
         $tab = 3;
     } else {
         // всем остальным раздел активных групп
@@ -51,7 +54,7 @@ if (Yii::$app->request->get('tab')) {
             ['student-grade/index', 'id' => $model->id],
             ['class' => 'btn btn-default btn-sm btn-block'])
         ?>
-        <?php if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4) { ?>
+        <?php if (in_array($roleId, [3, 4])) { ?>
             <?php if ((int)$model->active === 1) { ?>
                 <?= Html::a(
                     '<i class="fa fa-phone" aria-hidden="true"></i> ' . Yii::t('app', 'Call'),
@@ -229,11 +232,11 @@ if (Yii::$app->request->get('tab')) {
         <?php } ?>
     </div>
     <div id="content" class="col-sm-10">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
-        <?= Breadcrumbs::widget([
-            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
-        ]); ?>
-        <?php endif; ?>
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
+            <?= Breadcrumbs::widget([
+                'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+            ]); ?>
+        <?php } ?>
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle</button>
 		</p>
@@ -272,60 +275,20 @@ if (Yii::$app->request->get('tab')) {
 		    <?php endif; ?>
           </div>
         </div>
-        <!-- блоки с информацией о скидках учтенных и оплаченных занятиях доступны только руководителям и менеджерам -->
-        <?php if(Yii::$app->session->get('user.ustatus') == 3 || Yii::$app->session->get('user.ustatus') == 4): ?>
-		    <?php $temporary_sales = 0; ?>
-            <?php if(!empty($studsales)): ?>
-                <!-- блок с информацией о временных скидках -->
-                <p class="bg-warning" style="padding: 15px">
-                    <button type="button" class="btn btn-xs btn-default" data-container="body" data-toggle="popover" data-placement="top" data-content="Все добавленные в этот блок ссылки будут доступны при добавлении счета."><span class="glyphicon glyphicon-info-sign"></span></button>
-                    <strong><a href="#collapse-sales" role="button" data-toggle="collapse" aria-expanded="false" aria-controls="collapse-sales" class="text-warning collapsed"><?= Yii::t('app', 'Temporary sales') ?></a></strong>
-                </p>
-                <div class="collapse" id="collapse-sales" aria-expanded="false" style="height: 0px">
-                    <?php foreach($studsales as $ss): ?>
-                    <div class="panel panel-warning">
-                        <div class="panel-body">
-						    <?php if ((int)$ss['visible'] === 1 && (int)$ss['approved'] !== 1): ?>
-							    <span class="label label-warning">На проверке!</span>
-                            <?php endif; ?>
-                            <?php if((int)$ss['visible'] !== 1): ?>
-                                <s>					
-                            <?php else: ?>
-                                <?php $temporary_sales = $temporary_sales + 1; ?>
-                            <?php endif; ?>
-                            <?= $ss['name'] ?>
-                            <small>
-                            <span class="muted">назначено когда и кем: <strong><?= date('d.m.y', strtotime($ss['date'])) ?></strong>, <strong><?= $ss['user'] ?></strong></span>
-                            <?php if((int)$ss['visible'] !== 1): ?>
-                                </s>
-                            <?php endif; ?>
-                            <?php if(isset($ss['usedby'])): ?>
-                                <br /><span class="muted">когда и кем последний раз использована: <strong><?= date('d.m.y', strtotime($ss['usedate'])) ?></strong>, <strong><?= $ss['usedby'] ?></strong></span>
-                            <?php endif; ?>
-                            <?php if($ss['visible'] == 1 && $ss['deldate'] == '0000-00-00'): ?>
-                                &nbsp;&nbsp;&nbsp;<?= ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) ? '' : Html::a(Yii::t('app', 'Cancel'), ['salestud/disable', 'id'=>$ss['id']]) ?>
-                            <?php endif; ?>
-                            <?php if($ss['visible'] == 0): ?>
-                                <br /><span class="muted">когда и кем аннулирована: <strong><?= date('d.m.y', strtotime($ss['deldate'])) ?></strong>, <strong><?= $ss['remover'] ?></strong></span>&nbsp;&nbsp;&nbsp;<?= ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) ? '' : Html::a(Yii::t('app', 'Restore'), ['salestud/enable', 'id'=>$ss['id']]) ?>
-                            <?php endif; ?>
-                            <?php if($ss['visible'] == 1 && $ss['deldate'] != '0000-00-00'): ?>
-                                <br /><span class="muted">когда и кем восстановлена: <strong><?= date('d.m.y', strtotime($ss['deldate'])) ?></strong>, <strong><?= $ss['remover'] ?></strong></span>&nbsp;&nbsp;&nbsp;<?= ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) ? '' : Html::a(Yii::t('app', 'Cancel'), ['salestud/disable', 'id'=>$ss['id']]) ?>
-                            <?php endif; ?>
-                            </small>
-                        </div>
-                    </div>
-                    <?php endforeach; ?>
-                </div>
-                <!-- блок с информацией о временных скидках -->
-            <?php endif; ?>
-            <?php if(!empty($permsale)): ?>
+        <?php if (in_array($roleId, [3, 4])): ?>
+            <?php if (!empty($studsales)) {
+                echo $this->render('_sales_block', [
+                    'studsales' => $studsales,
+                ]);
+            } ?>
+            <?php if (!empty($permsale)) { ?>
                 <!-- блок с информацией о постоянной скидке -->
                 <p class="bg-warning text-warning" style="padding: 15px">
                     <button type="button" class="btn btn-xs btn-default" data-container="body" data-toggle="popover" data-placement="top" data-content="Данная скидка рассчитывается из общей суммы оплат студента. Применяется к счету автоматически."><span class="glyphicon glyphicon-info-sign"></span></button>
                     <strong><?= $permsale['name'] ?></strong>
                 </p>
                 <!-- блок с информацией о постоянной скидке -->
-            <?php endif; ?>
+            <?php } ?>
             <!-- блок с информацией о учтенных и оплаченных занятиях -->
             <?php if(!empty($services)): ?>   
                 <p class="bg-info" style="padding: 15px">

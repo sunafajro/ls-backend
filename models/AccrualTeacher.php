@@ -6,6 +6,8 @@ use Yii;
 use app\models\Coefficient;
 use app\models\Edunormteacher;
 use app\models\TeacherLanguagePremium;
+use yii\helpers\ArrayHelper;
+
 /**
  * This is the model class for table "calc_accrualteacher".
  *
@@ -168,12 +170,14 @@ class AccrualTeacher extends \yii\db\ActiveRecord
 	}
 
     /**
-     * вызывается из карточки преподавателя Teacher/view 
-     * считает и возвращает общуюю сумму начислений преподавателя по текущим проверенным и неначисленным занятиям 
-	 * @param integer id
-	 * @return float
+     * Считает и возвращает общую сумму начислений преподавателя по текущим проверенным и неначисленным занятиям 
+	 * @param int      $id  id преподавателя
+     * @param int|null $gid id группы
+     * @param int|null $month месяц проведения занятий
+     * 
+	 * @return array
      */
-	public static function calculateFullTeacherAccrual(int $id, int $gid = NULL) 
+	public static function calculateFullTeacherAccrual(int $id, int $gid = NULL, int $month = null) : array
 	{
 		/* получаем нормы оплаты преподавателя и ставку */
         if (!empty($edunorm = Edunormteacher::getTeacherTaxesForAccrual($id))) {
@@ -182,8 +186,9 @@ class AccrualTeacher extends \yii\db\ActiveRecord
             $langprem = $teacherLanguagePremium->getTeacherLanguagePremiumsForAccrual($id);
 			/* получаем данные по занятиям */
 			$list = [$id];
-			$order = ['jg.data' => SORT_DESC];
-			if (!empty($lessons = self::getViewedLessonList($list, $order, $gid))) {
+            $order = ['jg.data' => SORT_DESC];
+            $lessons = self::getViewedLessonList($list, $order, $gid, Report::getDateRangeByMonth($month));
+			if (!empty($lessons)) {
                 /* задаем переменную для подсчета суммы начисления */
                 $accrual = 0;
                 $lids = [];
@@ -249,6 +254,7 @@ class AccrualTeacher extends \yii\db\ActiveRecord
 	 * считает и возвращает начисление для преподавателя за одно занятие
 	 * @param array $teachers
 	 * @param array $lesson
+     * 
 	 * @return float
 	 */
     public static function getLessonFinalCost($teachers, $lesson)
@@ -272,8 +278,12 @@ class AccrualTeacher extends \yii\db\ActiveRecord
 		return $accrual;
 	}
 
-    /* возвращает список преподавателей у которых есть занятия к начислению и начисления к выплате */
-    private static function getTeachersWithViewedLessons()
+    /**
+     * список преподавателей у которых есть занятия к начислению и начисления к выплате
+     * 
+     * @return array
+     */
+    private static function getTeachersWithViewedLessons() : array
     {
         $t_lessons = (new \yii\db\Query()) 
         ->select('t.id as id, t.name as name')
@@ -298,44 +308,35 @@ class AccrualTeacher extends \yii\db\ActiveRecord
         return $teachers;
 	}
 
-    /* возвращает id преподавателей у которых есть занятия к начислению */
-	public static function getTeachersWithViewedLessonsIds()
+    /**
+     * список id преподавателей у которых есть занятия к начислению и начисления для выплаты
+     * 
+     * @return array
+     */
+	public static function getTeachersWithViewedLessonsIds() : array
 	{   
-		$teachers = [];
-		$tmpteachers = self::getTeachersWithViewedLessons();
-		
-        if(!empty($tmpteachers)) {
-    		/* формируем новый массив из перепечатываем id преподавателей */
-            $i = 0;
-            foreach($tmpteachers as $tmpteacher){
-                $teachers[$i]=$tmpteacher['id'];
-                $i++;
-            }
-        }
-        
-		/* если массив не пустой возвращаем только уникальные id */
-	    return !empty($teachers) ? array_unique($teachers) : $teachers;
-	}
-	
-	/* возвращает id и имя преподавателей у которых есть занятия к начислению */
-	public static function getTeachersWithViewedLessonsList()
-	{   
-		$teachers = [];
-		$tmpteachers = self::getTeachersWithViewedLessons();
-		
-        if(!empty($tmpteachers)) {
-    		/* формируем новый массив из перепечатываем id преподавателей */
-            foreach($tmpteachers as $tmpteacher){
-                $teachers[$tmpteacher['id']] = $tmpteacher['name'];
-            }
-        }
+		$teachers = ArrayHelper::getColumn(self::getTeachersWithViewedLessons(), 'id');
 
-		/* если массив не пустой возвращаем только уникальные id */
-	    return !empty($teachers) ? array_unique($teachers) : $teachers;
+	    return array_unique($teachers);
 	}
 	
-	/* возвращает список преподавателей у которых есть занятия к начислению с доп. информацией */
-	public static function getTeachersWithViewedLessonsInfo($list)
+	/**
+     * массив id => name преподавателей у которых есть занятия к начислению и начисления для выплаты
+     * 
+     * @return array
+     */
+	public static function getTeachersWithViewedLessonsList() : array
+	{   
+		return ArrayHelper::map(self::getTeachersWithViewedLessons(), 'id', 'name');
+	}
+	
+	/**
+     * список преподавателей у которых есть занятия к начислению с доп. информацией
+     * @param int[] $list
+     * 
+     * @return array
+     */
+	public static function getTeachersWithViewedLessonsInfo(array $list) : array
 	{
         $tmp_teachers = (new \yii\db\Query()) 
         ->select('t.id as id, t.name as name, t.calc_statusjob as stjob, t.value_corp as vcorp, en.value as norm, ent.company as tjplace')
@@ -343,7 +344,7 @@ class AccrualTeacher extends \yii\db\ActiveRecord
         ->leftJoin('calc_edunormteacher as ent', 'ent.calc_teacher=t.id')
         ->leftJoin('calc_edunorm en', 'en.id=ent.calc_edunorm')
         ->where('ent.active=:one AND ent.visible=:one', [':one' => 1])
-        ->andWhere(['in','t.id',$list])
+        ->andWhere(['in', 't.id', $list])
         ->orderby(['t.name'=>SORT_ASC])->all();
         
         $teachers = [];
@@ -373,9 +374,22 @@ class AccrualTeacher extends \yii\db\ActiveRecord
         return $teachers;
 	}
 	
-	/* возвращает список занятий ожидающих начисления по списку преподавателей */
-    public static function getViewedLessonList($list, $order, $gid = NULL)
+	/**
+     * список занятий ожидающих начисления по списку преподавателей
+     * @param int[]         $list      массив id преподавателей
+     * @param array         $order     параметры сортировки
+     * @param int|null      $gid
+     * @param string[]|null $dateRange
+     * 
+     * @return array
+     */
+    public static function getViewedLessonList(array $list, array $order, int $gid = NULL, array $dateRange = null) : array
     {
+        $dateRangeExpression = [
+            'and',
+            ['>=', 'jg.data', $dateRange[0]],
+            ['<=', 'jg.data', $dateRange[1]],
+        ];
         /* формируем подзапрос для выборки количество учеников на занятии */
         $SubQuery = (new \yii\db\Query())
         ->select('count(sjg.id)')
@@ -397,13 +411,20 @@ class AccrualTeacher extends \yii\db\ActiveRecord
         ->where('jg.done=:zero AND jg.view=:one AND jg.visible=:one', [':one' => 1, ':zero' => 0])
         ->andWhere(['in','jg.calc_teacher',$list])
         ->andFilterWhere(['jg.calc_groupteacher' => $gid])
+        ->andFilterWhere($dateRangeExpression)
         ->orderby($order)
         ->all();
         
         return $lessons;
 	}
 
-    public static function getAccrualsByTeacherList($list)
+    /**
+     * список доступных начислений по преподавателям
+     * @param int[] $list
+     * 
+     * @return array
+     */
+    public static function getAccrualsByTeacherList(array $list) : array
     {
         $SubQuery = (new \yii\db\Query())
         ->select('SUM(tn.value)')

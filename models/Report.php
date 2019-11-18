@@ -107,16 +107,13 @@ class Report extends Model
         return $items;
     }
     /**
-     *  метод возвращает список отчетов для создания выпадающего меню
+     * Список отчетов для создания выпадающего меню
+     * 
+     * @return array
      */
-    public static function getReportTypeList()
+    public static function getReportTypeList() : array
     {
-        $data = static::getReportTypes();
-        $items = [];
-        foreach($data as $r) {
-            $items[$r['label']] = $r['url'];
-        }
-        return $items;
+        return ArrayHelper::map(static::getReportTypes(), 'label', 'url');
     }
     
     /* метод для получения списка недель (первый - последний день) указанного кода */
@@ -431,5 +428,27 @@ class Report extends Model
             'teachers' => ArrayHelper::map($teachers, 'id', 'name'),
             'hours' => $result
         ];
+    }
+
+    /**
+     * Возвращает массив с датами начала и конца месяца
+     * @var int|null $month
+     * 
+     * @return array|null
+     */
+    public static function getDateRangeByMonth(int $month = null)
+    {
+        if (!$month) {
+            return $month;
+        }
+
+        $date = new \DateTime();
+        $date->setDate(date('Y'), $month, 1);
+        $dateRange = [];
+        $dateRange[] = $date->format('Y-m-d');
+        $date->modify('last day of this month');
+        $dateRange[] = $date->format('Y-m-d');
+
+        return $dateRange;
     }
 }

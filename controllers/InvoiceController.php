@@ -16,6 +16,7 @@ use yii\web\NotFoundHttpException;
 use yii\web\Response;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
+use yii\web\ServerErrorHttpException;
 
 /**
  * InvoiceController implements the CRUD actions for CalcInvoicestud model.
@@ -111,7 +112,8 @@ class InvoiceController extends Controller
 
             $hints = [
                 'Счет помечается "остаточным", если необходимо указать какие то занятия, которые были проведены, на момент ввода остатков и Студент школе за них должен.',
-                'Если необходимо использовать скидку, то перед выставлением счета эту скидку нужно заранее добавить студенту (кроме постоянной).'
+                'Если необходимо использовать скидку, то перед выставлением счета эту скидку нужно заранее добавить студенту (кроме постоянной).',
+                'При указании отрицательной суммы в поле рублевой скидки, она превращается в надбавку и позволяет корректировать счет в большую сторону.'
             ];
 
             $sales = Salestud::getClientSalesSplited($sid);
@@ -122,7 +124,7 @@ class InvoiceController extends Controller
                 'rubsale' => Yii::t('app', 'Ruble sale'),
                 'rubsaleid' => Yii::t('app', 'Ruble sale (assigned)'),
                 'rubsaleval' => Yii::t('app', 'Ruble sale (manual)'),
-                'procsale' => Yii::t('app', 'Procent sale'),
+                'procsale' => Yii::t('app', 'Percent sale'),
                 'permsale' => Yii::t('app', 'Permament sale'),
                 'num' => Yii::t('app', 'Lesson count'),
                 'remain' => Yii::t('app', 'Remain'),
@@ -166,8 +168,16 @@ class InvoiceController extends Controller
     {
         /* включаем формат ответа JSON */
         Yii::$app->response->format = Response::FORMAT_JSON;
-        if(Yii::$app->request->post('Invoicestud')) {
+        if (Yii::$app->request->post('Invoicestud')) {
             $data = Yii::$app->request->post('Invoicestud');
+            $student = Student::findOne((int)$data['sid']);
+            if (empty($student)) {
+                Yii::$app->response->statusCode = 404;
+                return [
+                    'response' => 'not_found',
+                    'message'  => Yii::t('yii', 'Student not found.')
+                ];
+            }
             /* заполняем модель */
             $model = new Invoicestud();
             $model->visible             = 1;
@@ -198,42 +208,60 @@ class InvoiceController extends Controller
             $model->user_remain         = $model->remain > 0                ? (int)Yii::$app->session->get('user.uid') : 0;
             $model->data_remain         = $model->remain > 0                ? date('Y-m-d')                            : '0000-00-00';
 
-            if ($model->calc_salestud === 0 && (int)$data['rubsalesval'] !== 0) {
-              $model->calc_salestud = Salestud::applyRubSale((float)$data['rubsalesval'], $model->calc_studname);
-            }
-
-            /* обновляем информацию по использованию рублевой скидки */
-            if ($model->calc_salestud > 0) {
-                $rsalestud = Salestud::findOne($model->calc_salestud);
-                $rsalestud->user_used = Yii::$app->session->get('user.uid');
-                $rsalestud->data_used = date('Y-m-d');
-                $rsalestud->save();
-            }
-
-            /* обновляем информацию по использованию процентной скидки */
-            if ($model->calc_salestud_proc > 0) {
-                $psalestud = Salestud::findOne($model->calc_salestud_proc);
-                $psalestud->user_used = Yii::$app->session->get('user.uid');
-                $psalestud->data_used = date('Y-m-d');
-                $psalestud->save();
-            }
-
-            if($model->save()) {
-                /* обновляем карточку студента */
-                $student = Student::findOne((int)$data['sid']);
-                if ($student !== NULL) {
-                    $student->updateInvMonDebt();
+            $transaction = Yii::$app->db->beginTransaction();
+            try {
+                if ($model->calc_salestud === 0 && (int)$data['rubsalesval'] !== 0) {
+                    $saleId = Salestud::applyRubSale((float)$data['rubsalesval'], $model->calc_studname);
+                    if ($saleId === 0) {
+                        throw new ServerErrorHttpException('Не удалось применить рублевую скидку.');
+                    }
+                    $model->calc_salestud = $saleId;
                 }
-                return true;
-            } else {
+
+                if ($model->calc_salestud > 0) {
+                    $rsalestud = Salestud::findOne($model->calc_salestud);
+                    $rsalestud->user_used = Yii::$app->session->get('user.uid');
+                    $rsalestud->data_used = date('Y-m-d');
+                    if (!$rsalestud->save(true, ['user_used', 'data_used'])) {
+                        throw new ServerErrorHttpException('Не удалось обновить использование рублевой скидки.');
+                    }
+                }
+
+                if ($model->calc_salestud_proc > 0) {
+                    $psalestud = Salestud::findOne($model->calc_salestud_proc);
+                    $psalestud->user_used = Yii::$app->session->get('user.uid');
+                    $psalestud->data_used = date('Y-m-d');
+                    if (!$psalestud->save(true, ['user_used', 'data_used'])) {
+                        throw new ServerErrorHttpException('Не удалось обновить использование процентной скидки.');
+                    }
+                }
+
+                if (!$model->save()) {
+                    throw new ServerErrorHttpException('Не удалось сохранить счет.');
+                }
+
+                if (!$student->updateInvMonDebt()) {
+                    throw new ServerErrorHttpException('Не удалось обновить баланс клиента.');
+                }
+
+                $transaction->commit();
+                return [
+                    'response' => 'success',
+                    'message'  => 'Счет успешно сохранен.',
+                ];
+            } catch (\Exception $e) {
+                $transaction->rollBack();
                 Yii::$app->response->statusCode = 500;
-                return false;
+                return [
+                    'response' => 'server_error',
+                    'message'  => $e->getMessage(),
+                ];
             }
         } else {
             Yii::$app->response->statusCode = 400;
             return [
                 'response' => 'bad_request',
-                'message' => Yii::t('yii', 'Missing required parameters: { Invoicestud }')
+                'message'  => Yii::t('yii', 'Missing required parameters: { Invoicestud }.')
             ];
         }
     }

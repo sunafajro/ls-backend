@@ -35,10 +35,11 @@ class Service extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['visible', 'calc_eduage', 'calc_lang', 'calc_eduform', 'name', 'calc_studnorm', 'data', 'calc_timenorm', 'calc_city', 'calc_servicetype'], 'required'],
+            [['calc_eduage', 'calc_lang', 'calc_eduform', 'name', 'calc_studnorm', 'data', 'calc_timenorm', 'calc_city', 'calc_servicetype'], 'required'],
             [['visible', 'calc_eduage', 'calc_lang', 'calc_eduform', 'calc_studnorm', 'calc_timenorm', 'calc_city', 'calc_servicetype'], 'integer'],
             [['name'], 'string'],
-            [['data'], 'safe']
+            [['data'], 'safe'],
+            [['visible'], 'default', 'value' => 1],
         ];
     }
 
@@ -48,20 +49,26 @@ class Service extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
-            'visible' => 'Visible',
-            'calc_eduage' => 'Возраст клиентов',
-            'calc_lang' => 'Язык',
-            'calc_eduform' => 'Форма обучения',
-            'name' => 'Название',
-            'calc_studnorm' => 'Норма оплаты',
-            'data' => 'Действительна до',
-            'calc_timenorm' => 'Норма времени',
-            'calc_city' => 'Город',
+            'id'               => 'ID',
+            'visible'          => 'Visible',
+            'calc_eduage'      => 'Возраст клиентов',
+            'calc_lang'        => 'Язык',
+            'calc_eduform'     => 'Форма обучения',
+            'name'             => 'Название',
+            'calc_studnorm'    => 'Норма оплаты',
+            'data'             => 'Действительна до',
+            'calc_timenorm'    => 'Норма времени',
+            'calc_city'        => 'Город',
             'calc_servicetype' => 'Тип услуги',
         ];
     }
     
+    public function delete()
+    {
+        $this->visible = 0;
+        return $this->save(true, ['visible']);
+    }
+
     /* получаем доступные данные для селектов (многомерный массив) */
     public static function getServiceDataForSelect($table)
     { 

@@ -239,24 +239,28 @@ class Student extends ActiveRecord
 
     public function getStudentSales() : array
     {
-        $sales = (new Query())
-        ->select([
-            'id' => 'ss.id',
-            'name' => 's.name',
-            'type' => 's.procent',
-            'value' => 's.value',
-            'visible' => 'ss.visible',
-            'date' => 'ss.data',
-            'user' => 'u.name',
-        ])
-        ->from(['ss' => Salestud::tableName()])
-        ->innerJoin(['s' => Sale::tableName()], 'ss.calc_sale=s.id')
-        ->leftJoin(['u' => User::tableName()], 'ss.user=u.id')
-        ->where(['ss.calc_studname' => $this->id])
-        ->andWhere(['!=', 's.procent', Sale::TYPE_PERMAMENT])
-        ->orderBy(['ss.visible' => SORT_DESC, 's.procent' => SORT_ASC, 's.value' => SORT_ASC])
-        ->all();
-        return $sales;
+        return (new Query())
+            ->select([
+                'id'       => 'ss.id',
+                'name'     => 's.name',
+                'type'     => 's.procent',
+                'value'    => 's.value',
+                'visible'  => 'ss.visible',
+                'date'     => 'ss.data',
+                'user'     => 'u.name',
+                'reason'   => 'ss.reason',
+                'approved' => 'ss.approved',
+            ])
+            ->from(['ss' => Salestud::tableName()])
+            ->innerJoin(['s' => Sale::tableName()], 'ss.calc_sale = s.id')
+            ->innerJoin(['u' => User::tableName()], 'ss.user = u.id')
+            ->where([
+                'ss.visible' => 1,
+                'ss.calc_studname' => $this->id
+            ])
+            ->andWhere(['!=', 's.procent', Sale::TYPE_PERMAMENT])
+            ->orderBy(['ss.visible' => SORT_DESC, 's.procent' => SORT_ASC, 's.value' => SORT_ASC])
+            ->all();
     }
 
     public function getStudentAvailabelSales(array $params) : array
@@ -269,12 +273,15 @@ class Student extends ActiveRecord
         $operator = 'like';
         if ((int)$search !== 0) {
             $columnName = 's.value';
-            $operator = '=';
+            $operator   = '=';
         }
         $usedSales = (new Query())
         ->select(['id' => 'calc_sale'])
         ->from(Salestud::tableName())
-        ->where(['calc_studname' => $this->id])
+        ->where([
+            'visible'       => 1,
+            'calc_studname' => $this->id
+        ])
         ->all();
         $salesRaw = (new Query())
         ->select(['id' => 's.id', 'name' => 's.name', 'type' => 's.procent', 'value' => 's.value'])
