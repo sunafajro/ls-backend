@@ -33,7 +33,7 @@ use yii\web\View;
 					</b>
 					<br />
                     <?= $commission['comment'] ? '(' . $commission['comment'] . ')' . Html::tag('br') : ''; ?>
-					<?= Html::a('Аннулировать', ['student-commission/delete', 'id' => $commission['id']]) ?>
+					<?= Html::a('Аннулировать', ['student-commission/delete', 'id' => $commission['id']], ['data' => ['method' => 'post', 'confirm' => 'Вы действительно хотите удалить комиссию?']]) ?>
 					<br />
 					<span class="inblocktext">офис: <b><?php echo $commission['office']; ?></b></span><br />
 					<span class="inblocktext">кем выставлена комиссия: <b><?php echo $commission['user']; ?></b></span>                       

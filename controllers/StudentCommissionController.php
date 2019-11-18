@@ -13,18 +13,49 @@ use yii\helpers\ArrayHelper;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
-use yii\web\Response;
 
 /**
  * StudentCommissionController implements the CRUD actions for StudentCommission model.
  */
 class StudentCommissionController extends Controller
 {
+    public function behaviors()
+    {
+        $rules = ['create', 'delete'];
+        return [
+	        'access' => [
+                'class' => AccessControl::class,
+                'only' => $rules,
+                'rules' => [
+                    [
+                        'actions' => $rules,
+                        'allow'   => false,
+                        'roles'   => ['?'],
+                    ],
+                    [
+                        'actions' => $rules,
+                        'allow'   => true,
+                        'roles'   => ['@'],
+                    ],
+                ],
+            ],
+            'verbs' => [
+                'class' => VerbFilter::class,
+                'actions' => [
+                    'delete' => ['post'],
+                ],
+            ],
+        ];
+    }
+
     /**
      * @param int $id
      */
     public function actionCreate(int $sid)
     {
+        if (!in_array(Yii::$app->session->get('user.ustatus'), [3, 4])) {
+            throw new ForbiddenHttpException('Access denied');
+        }
         $student = Student::findOne($sid);
         if (empty($student)) {
             throw new NotFoundHttpException("Студент №{$sid} не найден.");
@@ -61,6 +92,9 @@ class StudentCommissionController extends Controller
 
     public function actionDelete(int $id)
     {
+        if (!in_array(Yii::$app->session->get('user.ustatus'), [3, 4])) {
+            throw new ForbiddenHttpException('Access denied');
+        }
         $model = $this->findModel($id);
         $student = Student::findOne($model->student_id);
         if (empty($student)) {
