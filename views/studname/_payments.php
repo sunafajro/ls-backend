@@ -1,19 +1,19 @@
 <?php
 
-/**
- * @var yii\web\View $this
- * @var string       $email
- * @var array        $payments
- * @var array        $years
- */
-
 use Yii;
 use app\models\Notification;
 use yii\helpers\Html;
-?>
+use yii\web\View;
 
+/**
+ * @var View   $this
+ * @var string $email
+ * @var array  $payments
+ * @var array  $years
+ */
+?>
 <?php $totalpayment = 0; ?>
-<?php foreach($years as $key => $y) { ?>
+<?php foreach ($years as $key => $y) { ?>
 <div class="panel panel-default">
     <div class="panel-heading" role="tab" id="collapsePaymentGroupHeading<?= $key ?>">
         <h4 id="-collapsible-list-group-" class="panel-title">

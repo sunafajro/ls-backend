@@ -11,6 +11,7 @@ use app\models\Office;
 use app\models\Salestud;
 use app\models\Schedule;
 use app\models\Student;
+use app\models\StudentCommission;
 use app\models\StudentMergeForm;
 use app\models\User;
 use yii\web\Controller;
@@ -201,7 +202,19 @@ class StudnameController extends Controller
         } else {
             // формируем запрос
             $students = (new \yii\db\Query())
-            ->select('s.id as stid, s.name as stname, s.visible as visible, s.birthdate as birthdate, s.phone as phone, s.description as description, s.invoice as stinvoice, s.money as stmoney, s.debt2 as debt, s.calc_sex as stsex, s.active as active')
+            ->select([
+                'stid'        => 's.id',
+                'stname'      => 's.name',
+                'visible'     => 's.visible',
+                'birthdate'   => 's.birthdate',
+                'phone'       => 's.phone',
+                'description' => 's.description',
+                'stinvoice'   => 's.invoice',
+                'stmoney'     => 's.money',
+                'debt'        => 's.debt',
+                'stsex'       => 's.calc_sex',
+                'active'      => 's.active'
+            ])
             ->distinct()
             ->from(['s' => Student::tableName()])
             ->leftjoin('calc_studgroup sg', 'sg.calc_studname = s.id')
@@ -315,13 +328,11 @@ class StudnameController extends Controller
      * Метод позволяет вывести карточку клиента. Необходим ID клиента.
      * Преподавателям виден баланс пклиента и группы в которые он зачислен.
      * Менеджеры и руководители видят полную информацию по клиенту.
+     * @param int $id
      */
     public function actionView($id)
     {
         $student = $this->findModel($id);
-        if (empty($student)) {
-            throw new NotFoundHttpException('Page not found');
-        }
         // проверяем какие данные выводить в карочку преподавателя: 1 - активные группы, 2 - завершенные группы, 3 - счета; 4 - оплаты
         if(Yii::$app->request->get('tab')){
             switch(Yii::$app->request->get('tab')){
@@ -329,6 +340,7 @@ class StudnameController extends Controller
                 case 2: $tab = 2; $vis = 0; break;
                 case 3: $tab = 3; break;
                 case 4: $tab = 4; break;
+                case 5: $tab = 5; break;
                 default: {
                     // для менеджеров и руководителей по умолчанию раздел счетов
                     if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4) {
@@ -371,7 +383,9 @@ class StudnameController extends Controller
         }
         
         /* вкладка Счета */
-        if($tab == 3) {
+        $invoices = [];
+        $invcount = [];
+        if ($tab == 3) {
             $invoices = Invoicestud::getStudentInvoiceById($id);
             
             $invcount = [1 => 0, 2 => 0, 3 => 0];
@@ -386,32 +400,32 @@ class StudnameController extends Controller
                     $invcount[3] = $invcount[3] + 1;
                 }
             }
-        } else {
-            // если другая вкладка, создаем пустой массив
-            $invoices = [];
-            $invcount = [];
         }
         /* вкладка Счета */
 
         /* вкладка Оплаты */
-        if($tab == 4) {
-            // получаем оплаты пользователя
+        $payments = [];
+        $years = [];
+        if ($tab == 4) {
             $payments = Moneystud::getStudentPaymentById($id);
-
-            // считаем года для группировки оплат
-            $y = 0;
-            $syears = array();
-            foreach($payments as $pay){
-                $syears[$y] = substr($pay['pdate'],0,7);
-                $y++;
+            foreach ($payments as $pay) {
+                $years[] = substr($pay['pdate'], 0, 7);
             }
-            $years = array_unique($syears);
-        } else {
-            // если другая вкладка, создаем пустой массив
-            $payments = [];
-            $years = [];
+            $years = array_unique($years);
         }
         /* вкладка Оплаты */
+
+        /* вкладка Комиссии */
+        $commissions = [];
+        if ($tab == 5) {
+            // получаем оплаты пользователя
+            $commissions = StudentCommission::getStudentCommissionById($id);
+            foreach ($commissions as $commission) {
+                $years[] = substr($commission['date'], 0, 7);
+            }
+            $years = array_unique($years);
+        }
+        /* вкладка Комиссии */
 
         // если нужны группы
         if($tab==1 || $tab == 2) {
@@ -461,6 +475,7 @@ class StudnameController extends Controller
             'model'         => $student,
             'invoices'      => $invoices,
             'payments'      => $payments,
+            'commissions'   => $commissions,
             'groups'        => $groups,
             'lessons'       => $lessons,
             'studsales'     => $studsales,
@@ -475,8 +490,7 @@ class StudnameController extends Controller
                 'added' => $student->getStudentOffices($id),
                 'all'   => $office->getOfficesList(),
             ],
-            'contracts'     => Contract::getClientContracts($id)
-            //'debt'=>number_format($this->studentDebt($id), 1, '.', ' '),
+            'contracts'     => Contract::getClientContracts($id),
         ]);
     }
 
@@ -800,36 +814,7 @@ class StudnameController extends Controller
         }
         Yii::$app->response->format = Response::FORMAT_JSON;
         return $student->getStudentOffices();
-    }
-
-    //public function actionCalculate($id)
-    //{
-        /*
-        if(!Yii::$app->request->get('sid')) {
-		$db = (new \yii\db\Query)
-		->select('id')
-		->from('calc_studname')
-		->where('visible=:vis', [':vis'=>1])
-		->limit(500)
-		->offset(Yii::$app->request->get('l'))
-		->all();
-		
-		foreach($db as $d) {
-			$model = $this->findModel($d['id']);
-			$model->debt2 = $this->studentDebt($model->id);
-			$model->save();
-		}
-		unset($db2);
-		unset($model);
-		return $this->redirect(['index']);
-        }
-        //return $this->studentDebt(Yii::$app->request->get('sid'));
-        */
-        //$model = $this->findModel($id);
-        //$model->debt2 = $this->studentDebt($model->id);
-        //$model->save();
-        //return $this->redirect(['studname/view','id'=>$id]);
-    //}		
+    }	
   
     /**
      * Finds the CalcStudname model based on its primary key value.

@@ -657,13 +657,14 @@ class CallController extends Controller
                 if($call->calc_way){
                     $student->calc_way = $call->calc_way;
                 }
-                $student->history = 0;
-                $student->visible = 1;
-                $student->active = 1;
-                $student->debt = 0;
-                $student->debt2 = 0;
-                $student->invoice = 0;
-                $student->money = 0;
+                $student->history    = 0;
+                $student->visible    = 1;
+                $student->active     = 1;
+                $student->debt       = 0;
+                $student->debt2      = 0;
+                $student->invoice    = 0;
+                $student->money      = 0;
+                $student->commission = 0;
 
                 // сохраняем модель клиента
                 if ($student->save()) {

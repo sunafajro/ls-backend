@@ -108,9 +108,6 @@ class MoneystudController extends Controller
             }
             // TODO create transaction
             if ($model->save()) {
-                $student->money = $student->money + $model->value;
-                $student->debt = $student->money - $student->invoice;
-                // $student->debt2 = $this->studentDebt($student->id);
                 if (Yii::$app->request->post('sendEmail')) {
                     $notification            = new Notification();
                     $notification->entity_id = $model->id;
@@ -118,7 +115,7 @@ class MoneystudController extends Controller
                     $notification->user_id   = Yii::$app->session->get('user.uid');
                     $notification->save();
                 }
-                if ($student->save()) {
+                if ($student->updateInvMonDebt()) {
                     Yii::$app->session->setFlash('success', Yii::t('app', 'Payment successfully created!'));
                 } else {
                     Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to create payment!'));
@@ -166,15 +163,12 @@ class MoneystudController extends Controller
             ])->one();
             if ($notification !== NULL) {
                 $notification->visible = 0;
-                $notification->save();
+                $notification->save(true, ['visible']);
             }
             // TODO create transaction
             if($model->save()) {
                 $student = Student::findOne($model->calc_studname);
-                $student->money = $student->money - $model->value;
-                $student->debt = $student->money - $student->invoice;
-                // $student->debt2 = $this->studentDebt($student->id);
-                $student->save();
+                $student->updateInvMonDebt();
             }
             return $this->redirect(['studname/view', 'id' => $student->id, 'tab'=>4]);
         } else {
@@ -210,15 +204,12 @@ class MoneystudController extends Controller
             ])->one();
             if ($notification !== NULL) {
                 $notification->visible = 1;
-                $notification->save();
+                $notification->save(true, ['visible']);
             }
             // TODO create transaction
             if($model->save()) {
                 $student = Student::findOne($model->calc_studname);
-                $student->money = $student->money + $model->value;
-                $student->debt = $student->money - $student->invoice;
-                // $student->debt2 = $this->studentDebt($student->id);
-                $student->save();
+                $student->updateInvMonDebt();
             }
             return $this->redirect(['studname/view', 'id' => $student->id, 'tab' => 4]);
         } else {

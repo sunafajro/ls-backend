@@ -405,16 +405,9 @@ class JournalgroupController extends Controller
 					'user'=>Yii::$app->session->get('user.uid'),
 					])
 					->execute();
-					unset($db);
-					// апдейтим баланс клиента
-					if($s['status']==1||$s['status']==3) {
-						// находим информацию по клиенту
+					if (in_array($s['status'], [1, 3])) {
 						$student = Student::findOne($s['id']);
-						// пересчитываем баланс клиента новой функцией
-						$student->debt2 = $this->studentDebt($student->id);
-						// сохраняем данные
-						$student->save();
-						unset($student);
+						$student->updateInvMonDebt();
 					}
 				}
 			}			
@@ -572,16 +565,12 @@ class JournalgroupController extends Controller
 			->where('sjg.calc_journalgroup=:sjid', [':sjid'=>$model->id])
 			->all();
 			//var_dump($tmp_students);die();
-			foreach($tmp_students as $s) {
+			foreach ($tmp_students as $s) {
 				// апдейтим баланс клиента
-				if($s['status']==1||$s['status']==3) {
+				if (in_array($s['status'], [1, 3])) {
 					// находим информацию по клиенту
 					$student = Student::findOne($s['id']);
-					// пересчитываем баланс клиента новой функцией
-					$student->debt2 = $this->studentDebt($student->id);
-					// сохраняем данные
-					$student->save();
-					unset($student);
+					$student->updateInvMonDebt();
 				}
 			}
 			unset($s);
@@ -646,16 +635,10 @@ class JournalgroupController extends Controller
 			->from('calc_studjournalgroup sjg')
 			->where('sjg.calc_journalgroup=:sjid', [':sjid'=>$id])
 			->all();
-			foreach($tmp_students as $s) {
-				// апдейтим баланс клиента
-				if($s['status']==1||$s['status']==3) {
-					// находим информацию по клиенту
+			foreach ($tmp_students as $s) {
+				if (in_array($s['status'], [1, 3])) {
 					$student = Student::findOne($s['id']);
-					// пересчитываем баланс клиента новой функцией
-					$student->debt2 = $this->studentDebt($student->id);
-					// сохраняем данные
-					$student->save();
-					unset($student);
+					$student->updateInvMonDebt();
 				}
 			}
 			unset($s);
