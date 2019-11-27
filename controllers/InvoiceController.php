@@ -136,18 +136,19 @@ class InvoiceController extends Controller
                 'sendingMessage' => Yii::t('app', 'Sending invoice data to server...'),
                 'saveErrorMessage' => Yii::t('app', 'Failed to save the invoice on server!'),
                 'saveSuccessMessage' => Yii::t('app', 'The invoice successfully saved on server!'),
+                'salepurpose' => Yii::t('app', 'Reason'),
             ];
             $office = new Office();
             $user = new User();
             return [
-                'userData' => $user->getUserInfo(),
-                'hints' => $hints,
-                'services' => Service::getInvoiceServicesList(),
+                'userData'  => $user->getUserInfo(),
+                'hints'     => $hints,
+                'services'  => Service::getInvoiceServicesList(),
                 'rubsales'  => $sales['rub'],
                 'procsales' => $sales['proc'],
-                'offices' => (int)Yii::$app->session->get('user.ustatus') !== 4 ? $office->getOfficesList() : [],
+                'offices'   => (int)Yii::$app->session->get('user.ustatus') !== 4 ? $office->getOfficesList() : [],
                 'permsale'  => Salestud::getClientPermamentSale($sid),
-                'labels' => $labels
+                'labels'    => $labels
             ];
         } else {
             Yii::$app->response->statusCode = 400;
@@ -210,8 +211,8 @@ class InvoiceController extends Controller
 
             $transaction = Yii::$app->db->beginTransaction();
             try {
-                if ($model->calc_salestud === 0 && (int)$data['rubsalesval'] !== 0) {
-                    $saleId = Salestud::applyRubSale((float)$data['rubsalesval'], $model->calc_studname);
+                if ($model->calc_salestud === 0 && (int)$data['rubsalesval'] !== 0 && $data['salePurpose']) {
+                    $saleId = Salestud::applyRubSale((float)$data['rubsalesval'], $model->calc_studname, $data['salePurpose']);
                     if ($saleId === 0) {
                         throw new ServerErrorHttpException('Не удалось применить рублевую скидку.');
                     }

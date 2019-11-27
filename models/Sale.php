@@ -159,12 +159,13 @@ class Sale extends \yii\db\ActiveRecord
 
     /**
      * метод создает новую скидку
-     * @param {string} $name
-     * @param {integer} type
-     * @param {float} $value
-     * @return {integer}
+     * @param string $name
+     * @param int    type
+     * @param float  $value
+     * 
+     * @return int
      */
-    public static function createSale($name, $type, $value, $base)
+    public static function createSale($name, $type, $value, $base): int
     {
         $model          = new Sale();
         $model->name    = $name;
