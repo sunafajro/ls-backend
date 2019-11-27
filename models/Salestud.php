@@ -320,12 +320,13 @@ class Salestud extends \yii\db\ActiveRecord
 
     /**
      * находим или создаем рублевую скидку и привязываем ее к студенту
-     * @param float $value
-     * @param int $sid
+     * @param float  $value
+     * @param int    $sid
+     * @param string $purpose
      * 
      * @return int
      */
-    public static function applyRubSale(float $value, int $sid) : int
+    public static function applyRubSale(float $value, int $sid, string $purpose = 'Коррекция стоимости счета') : int
     {
         $rubsale = (new \yii\db\Query())
         ->select('s.id as id')
@@ -340,13 +341,13 @@ class Salestud extends \yii\db\ActiveRecord
         if (!empty($rubsale)) {
             $salestud = Salestud::find()->where(['calc_studname' => $sid, 'calc_sale' => $rubsale['id']])->one();
             if (!empty($salestud)) {
-                if ($salestud->restore('Коррекция стоимости счета')) {
+                if ($salestud->restore($purpose)) {
                     return $salestud->id;
                 } else {
                     return 0;
                 }
             } else {
-                return static::addSaleToStudent($sid, $rubsale['id']);    
+                return static::addSaleToStudent($sid, $rubsale['id'], $purpose);    
             }            
         } else {
             /* создаем новую рублевую скидку и привязываем ее к клиенту */
@@ -357,7 +358,7 @@ class Salestud extends \yii\db\ActiveRecord
                 0
             );
             if ($sale > 0) {
-                return static::addSaleToStudent($sid, $sale);
+                return static::addSaleToStudent($sid, $sale, $purpose);
             } else {
                 return 0;
             }
@@ -366,18 +367,19 @@ class Salestud extends \yii\db\ActiveRecord
 
     /**
      * привязываем рублевую скидку к студенту
-     * @param int $student
-     * @param int $sale
+     * @param int    $student
+     * @param int    $sale
+     * @param string $purpose
      * 
      * @return int
      */
-    public static function addSaleToStudent($student, $sale) : int
+    public static function addSaleToStudent(int $student, int $sale, string $purpose) : int
     {
         /* привязываем скидку к клиенту */
         $salestud = new Salestud();
         $salestud->calc_studname = $student;
         $salestud->calc_sale     = $sale;
-        $salestud->reason        = 'Коррекция стоимости счета';
+        $salestud->reason        = $purpose;
         /* если скидка назначается руководителем, сразу подтверждаем */
         if ((int)Yii::$app->session->get('user.ustatus') === 3) {
             $salestud->approved = 1;
