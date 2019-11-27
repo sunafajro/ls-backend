@@ -339,6 +339,7 @@ class Salestud extends \yii\db\ActiveRecord
         ->one();
 
         if (!empty($rubsale)) {
+            /** @var Salestud $salestud */
             $salestud = Salestud::find()->where(['calc_studname' => $sid, 'calc_sale' => $rubsale['id']])->one();
             if (!empty($salestud)) {
                 if ($salestud->restore($purpose)) {
