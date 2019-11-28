@@ -14,10 +14,12 @@ use app\models\search\GroupSearch;
 use Yii;
 use yii\data\Pagination;
 use yii\filters\AccessControl;
+use yii\filters\VerbFilter;
 use yii\helpers\ArrayHelper;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
+use yii\web\Response;
 
 class GroupteacherController extends Controller
 {
@@ -28,6 +30,7 @@ class GroupteacherController extends Controller
             'status', 'addteacher', 'delteacher',
             'restoreteacher', 'addstudent', 'delstudent',
             'restorestudent', 'corp', 'set-primary-teacher',
+            'change-office',
         ];
         return [
 	        'access' => [
@@ -44,6 +47,12 @@ class GroupteacherController extends Controller
                         'allow' => true,
                         'roles' => ['@'],
                     ],
+                ],
+            ],
+            'verbs' => [
+                'class'   => VerbFilter::class,
+                'actions' => [
+                    'change-office' => ['post'],
                 ],
             ],
         ];
@@ -633,9 +642,6 @@ class GroupteacherController extends Controller
         }
 
         $group = $this->findModel($id);
-        if (empty($group)) {
-            throw new NotFoundHttpException("Группа #{$id} не найдена");
-        }
         $group->calc_teacher = $tid;
         if ($group->save(true, ['calc_teacher'])) {
             Yii::$app->session->setFlash('success', 'Преподаватель успешно назначен основным в группе');
@@ -643,6 +649,39 @@ class GroupteacherController extends Controller
             Yii::$app->session->setFlash('error', 'Не удалось назначить основного преподавателя группы');
         }
         return $this->redirect(['groupteacher/addteacher','gid' => $id]);
+    }
+
+    /**
+     * Изменяет офис в котором числится группа.
+     * @param integer $id
+     * @param integer $officeId
+     * 
+     * @return mixed
+     */
+    public function actionChangeOffice(int $id, int $officeId)
+    {
+        if (!in_array(Yii::$app->session->get('user.ustatus'), [3, 4])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        }
+
+        /** @var Groupteacher $group */
+        $group = $this->findModel($id);
+        $group->calc_office = $officeId;
+
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        if ($group->save(true, ['calc_office'])) {
+            Yii::$app->session->setFlash('success', 'Офис группы успешно изменен.');
+            return [
+                'status' => true,
+            ];
+        } else {
+            Yii::$app->session->setFlash('error', 'Не удалось изменить офис группы.');
+            Yii::$app->response->statusCode = 500;
+            return [
+                'status' => false,
+            ];
+        }
     }
 
     /**
@@ -657,7 +696,7 @@ class GroupteacherController extends Controller
         if (($model = Groupteacher::findOne($id)) !== null) {
             return $model;
         } else {
-            throw new NotFoundHttpException('The requested page does not exist.');
+            throw new NotFoundHttpException("Группа #{$id} не найдена");
         }
     }
 }
