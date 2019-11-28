@@ -5,9 +5,10 @@ use app\models\Schedule;
 use app\models\search\GroupSearch;
 use app\widgets\Alert;
 use yii\data\ActiveDataProvider;
-use yii\helpers\Html;
-use yii\helpers\ArrayHelper;
 use yii\grid\GridView;
+use yii\helpers\ArrayHelper;
+use yii\helpers\Html;
+use yii\helpers\Url;
 use yii\web\View;
 use yii\widgets\Breadcrumbs;
 
@@ -23,6 +24,7 @@ use yii\widgets\Breadcrumbs;
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app','Groups');
 $this->params['breadcrumbs'][] = Yii::t('app','Groups');
+$roleId = (int)Yii::$app->session->get('user.ustatus');
 ?>
 <div class="row row-offcanvas row-offcanvas-left group-index">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
@@ -132,11 +134,43 @@ $this->params['breadcrumbs'][] = Yii::t('app','Groups');
                     }
                 ],
                 'office' => [
-                    'attribute' => 'office',
+                    'attribute'     => 'office',
+                    'format'        => 'raw',
                     'headerOptions' => ['style' => 'width: 15%'],
-                    'filter' => $offices,
-                    'value'     => function (array $group) use ($offices) {
-                        return $offices[$group['office']] ?? '';
+                    'filter'        => $offices,
+                    'value'         => function (array $group) use ($offices, $roleId) {
+                        $html = [];
+
+                        $html[] = Html::beginTag('div', ['class' => 'js--office-name']);
+                        $html[] = Html::tag('span', $offices[$group['office']] ?? '');
+                        if (in_array($roleId, [3,4])) {
+                            $html[] = Html::button(
+                                Html::tag('span', '', ['class' => 'fa fa-edit', 'aria-hidden' => 'true']),
+                                ['class' => 'btn btn-default btn-xs js--change-group-office', 'style' => 'margin-left: 5px']
+                            );   
+                        }
+                        $html[] = Html::endTag('div');
+                        if (in_array($roleId, [3,4])) {
+                            $html[] = Html::beginTag('div', ['class' => 'input-group js--office-list', 'style' => 'display: none']);
+                            $html[] = Html::beginTag('select', ['class' => 'form-control input-sm']);
+                            foreach ($offices as $key => $value) {
+                                $html[] = Html::tag('option', $value, ['value' => $key, 'selected' => $key == $group['office']]);
+                            }
+                            $html[] = Html::endTag('select');
+                            $html[] = Html::tag(
+                                'span',
+                                Html::button(
+                                    Html::tag('span', '', ['class' => 'fa fa-save', 'aria-hidden' => 'true']),
+                                    [
+                                        'class'    => 'btn btn-default btn-sm js--save-group-office',
+                                        'data-url' => Url::to(['groupteacher/change-office', 'id' => $group['id']])
+                                    ]
+                                ),
+                                ['class' => 'input-group-btn']
+                            );
+                            $html[] = Html::endTag('div');
+                        }
+                        return join('', $html);
                     }
                 ],
                 'visible' => [
@@ -165,3 +199,31 @@ $this->params['breadcrumbs'][] = Yii::t('app','Groups');
         ]) ?>
     </div>
 </div>
+<?php 
+$js = <<< 'SCRIPT'
+$(document).ready(function() {
+  $('.js--change-group-office').on('click', function() {
+    var _this = $(this);
+    var _officeList = _this.closest('td').find('.js--office-list');
+    var _officeName = _this.closest('td').find('.js--office-name');
+    _officeList.show();
+    _officeName.hide();
+  });
+  $('.js--save-group-office').on('click', function() {
+    var _this = $(this);
+    var _officeList = _this.closest('td').find('.js--office-list');
+    var _officeName = _this.closest('td').find('.js--office-name');
+    $.ajax({
+        method: 'POST',
+        url: _this.data('url') + '&officeId=' + _officeList.find('select').val(),
+    }).done(function () {
+        window.location.reload();
+    }).fail(function () {
+        alert('Произошла ошибка');
+        _officeName.show();
+        _officeList.hide();
+    });
+  });
+});
+SCRIPT;
+$this->registerJs($js);
