@@ -216,12 +216,8 @@ $(document).ready(function() {
     $.ajax({
         method: 'POST',
         url: _this.data('url') + '&officeId=' + _officeList.find('select').val(),
-    }).done(function () {
+    }).always(function () {
         window.location.reload();
-    }).fail(function () {
-        alert('Произошла ошибка');
-        _officeName.show();
-        _officeList.hide();
     });
   });
 });
