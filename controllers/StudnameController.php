@@ -468,14 +468,14 @@ class StudnameController extends Controller
             'schedule'      => $studentSchedule,
             'years'         => $years,
             'invcount'      => $invcount,
-            'clientaccess'  => ClientAccess::find()->where(['calc_studname'=>$id])->one(),
             'permsale'      => $permsale,
             'userInfoBlock' => User::getUserInfoBlock(),
             'offices'       => [
                 'added' => $student->getStudentOffices($id),
                 'all'   => $office->getOfficesList(),
             ],
-            'contracts'     => Contract::getClientContracts($id)
+            'contracts'     => Contract::getClientContracts($id),
+            'loginStatus'   => $student->getStudentLoginStatus(),
             //'debt'=>number_format($this->studentDebt($id), 1, '.', ' '),
         ]);
     }
