@@ -34,7 +34,8 @@ use yii\helpers\ArrayHelper;
  * @property integer $calc_way
  * @property string  $description
  * 
- * @property Contract[] $contracts
+ * @property Contract[]   $contracts
+ * @property ClientAccess $studentLogin
  */
 class Student extends ActiveRecord
 {
@@ -95,6 +96,11 @@ class Student extends ActiveRecord
     public function getContracts() : ActiveQuery
     {
         return $this->hasMany(Contract::class, ['student_id' => 'id'])->andWhere(['visible' => 1]);
+    }
+
+    public function getStudentLogin(): ActiveQuery
+    {
+        return $this->hasOne(ClientAccess::class, ['calc_studname' => 'id']);
     }
 
     /**
@@ -418,6 +424,27 @@ class Student extends ActiveRecord
         }
 
         return $services;
+    }
+
+    public function getStudentLoginStatus() : array
+    {
+        /** @var ClientAccess $studentLogin */
+        $studentLogin = $this->studentLogin ?? null;
+        $status = [
+            'id'            => $studentLogin->id ?? null,
+            'hasLogin'      => $studentLogin->id ?? false,
+            'lastLoginDate' => null,
+            'loginActive'   => false,
+        ];
+        if ($studentLogin) {
+            $status['lastLoginDate'] = $studentLogin->date;
+            $loginLimitDate = date('Y-m-d', strtotime('-2 month'));
+            if ($studentLogin->date > $loginLimitDate && (int)$this->active === 1) {
+                $status['loginActive'] = true;
+            }
+        }
+
+        return $status;
     }
 
     /**

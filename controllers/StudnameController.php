@@ -4,7 +4,6 @@ namespace app\controllers;
 
 use Yii;
 use app\models\Contract;
-use app\models\ClientAccess;
 use app\models\Invoicestud;
 use app\models\Moneystud;
 use app\models\Office;
@@ -483,7 +482,6 @@ class StudnameController extends Controller
             'schedule'      => $studentSchedule,
             'years'         => $years,
             'invcount'      => $invcount,
-            'clientaccess'  => ClientAccess::find()->where(['calc_studname'=>$id])->one(),
             'permsale'      => $permsale,
             'userInfoBlock' => User::getUserInfoBlock(),
             'offices'       => [
@@ -491,6 +489,7 @@ class StudnameController extends Controller
                 'all'   => $office->getOfficesList(),
             ],
             'contracts'     => Contract::getClientContracts($id),
+            'loginStatus'   => $student->getStudentLoginStatus(),
         ]);
     }
 

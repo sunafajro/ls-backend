@@ -1,6 +1,5 @@
 <?php
 
-use app\models\ClientAccess;
 use app\models\Student;
 use app\widgets\Alert;
 use yii\helpers\Html;
@@ -11,7 +10,6 @@ use yii\web\View;
 /**
  * @var View        $this
  * @var ActiveForm   $form
- * @var ClientAccess $clientaccess
  * @var Student      $model
  * @var array        $commissions
  * @var array        $invoices
@@ -27,6 +25,7 @@ use yii\web\View;
  * @var string       $userInfoBlock
  * @var array        $offices
  * @var array        $contracts
+ * @var array        $loginStatus
  */
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Students') . ' :: ' . $model->name;
@@ -102,16 +101,20 @@ if (Yii::$app->request->get('tab')) {
                     ['salestud/create', 'sid' => $model->id],
                     ['class' => 'btn btn-default btn-sm btn-block'])
                 ?>
-                <?php if (!$clientaccess) { ?>
+                <?php if (!$loginStatus['hasLogin']) { ?>
                     <?= Html::a(
-                        '<i class="fa fa-user-plus" aria-hidden="true"></i> ' . Yii::t('app', 'Account'),
+                        Html::tag('i', '', ['class' => 'fa fa-user-plus', 'aria-hidden' => 'true']) . ' ' . Yii::t('app', 'Account'),
                         ['clientaccess/create', 'sid' => $model->id],
                         ['class' => 'btn btn-default btn-sm btn-block'])
                     ?>
 		        <?php } else { ?>
                     <?= Html::a(
-                        '<i class="fa fa-user" aria-hidden="true"></i> ' . Yii::t('app', 'Account'),
-                        ['clientaccess/update', 'id' => $clientaccess->id,'sid' => $model->id],
+                        Html::tag(
+                            'i',
+                            '',
+                            ['class' => 'fa fa-user', 'aria-hidden' => 'true']
+                        ) . ' ' . Yii::t('app', 'Account') . (!$loginStatus['loginActive'] ? ' (!)' : ''),
+                        ['clientaccess/update', 'id' => $loginStatus['id'],'sid' => $model->id],
                         ['class' => 'btn btn-default btn-sm btn-block'])
                     ?>
                 <?php } ?>
