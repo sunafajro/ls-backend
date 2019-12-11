@@ -150,7 +150,7 @@ class Journalgroup extends \yii\db\ActiveRecord
         return [
             self::EDUCATION_TIME_WORK => 'рабочее (с 9:00 до 17:30 для менеджеров и руководителей)',
             self::EDUCATION_TIME_EVENING => 'вечернее (после 17:30 для преподавателей, менеджеров и руководителей)',
-            self::EDUCATION_TIME_HALFWORK => 'полурабочее время (с 16:00 для руководителей)',
+            //self::EDUCATION_TIME_HALFWORK => 'полурабочее время (с 16:00 для руководителей)',
         ];
     }
 

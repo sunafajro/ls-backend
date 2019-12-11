@@ -1,25 +1,20 @@
 <?php
 
-use yii\helpers\Html;
+use yii\web\View;
 
+/**
+ * @var View  $this
+ * @var array $student
+ */
 
-/* @var $this yii\web\View */
-/* @var $model app\models\CalcInvoicestud */
-
-$this->title = 'Система учета :: ' . Yii::t('app', 'Create invoice');
+$this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Create invoice');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Clients'), 'url' => ['studname/index']];
-$this->params['breadcrumbs'][] = ['label' => $student['name'], 'url' => ['studname/view','id'=>$student['id']]];
+$this->params['breadcrumbs'][] = ['label' => $student['name'], 'url' => ['studname/view','id' => $student['id']]];
 $this->params['breadcrumbs'][] = Yii::t('app', 'Create invoice');
 ?>
-
-<div id="react-invoices-root" class="row">
+<div id="app-invoice" data-sid="<?= $student['id'] ?>" class="row">
 	<div class="col-sm-12">
 		<div class="alert alert-warning"><b>Подождите.</b> Загружаем форму создания счета...</div>
 	</div>
 </div>
-
-<?php
-    if(!Yii::$app->user->isGuest) {
-        $this->registerJsFile('/js/invoices/bundle.js',  ['position' => yii\web\View::POS_END]);
-    }
-?>
+<?= $this->registerJsFile('/js/invoices/bundle.js',  ['position' => yii\web\View::POS_END]) ?>

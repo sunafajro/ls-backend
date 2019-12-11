@@ -13,27 +13,29 @@ use yii\helpers\ArrayHelper;
  * This is the model class for table "calc_studname".
  *
  * @property integer $id
- * @property string $name
- * @property string $fname
- * @property string $lname
- * @property string $mname
- * @property string $birthdate
- * @property string $email
- * @property string $address
+ * @property string  $name
+ * @property string  $fname
+ * @property string  $lname
+ * @property string  $mname
+ * @property string  $birthdate
+ * @property string  $email
+ * @property string  $address
  * @property integer $visible
  * @property integer $history
- * @property string $phone
- * @property double $debt
- * @property double $debt2
- * @property double $invoice
- * @property double $money
+ * @property string  $phone
+ * @property float   $debt
+ * @property float   $debt2
+ * @property float   $invoice
+ * @property float   $money
+ * @property float   $commission
  * @property integer $calc_sex
  * @property integer $calc_cumulativediscount
  * @property integer $active
  * @property integer $calc_way
- * @property string $description
+ * @property string  $description
  * 
- * @property Contract[] $contracts
+ * @property Contract[]   $contracts
+ * @property ClientAccess $studentLogin
  */
 class Student extends ActiveRecord
 {
@@ -57,7 +59,7 @@ class Student extends ActiveRecord
             [['name', 'visible', 'history', 'calc_sex','active'], 'required'],
             [['name', 'fname', 'lname', 'mname', 'email', 'phone', 'address', 'description'], 'string'],
             [['visible', 'history', 'calc_sex', 'calc_cumulativediscount', 'active', 'calc_way'], 'integer'],
-            [['debt', 'debt2', 'invoice', 'money'], 'number'],
+            [['debt', 'debt2', 'invoice', 'money', 'commission'], 'number'],
             [['birthdate'], 'safe'],
         ];
     }
@@ -82,6 +84,7 @@ class Student extends ActiveRecord
             'debt' => Yii::t('app', 'Debt'),
             'invoice' => 'Invoice',
             'money' => 'Money',
+            'commission' => 'Commission',
             'calc_sex' => Yii::t('app', 'Sex'),
             'calc_cumulativediscount' => 'Calc Cumulativediscount',
             'active' => 'Active',
@@ -93,6 +96,11 @@ class Student extends ActiveRecord
     public function getContracts() : ActiveQuery
     {
         return $this->hasMany(Contract::class, ['student_id' => 'id'])->andWhere(['visible' => 1]);
+    }
+
+    public function getStudentLogin(): ActiveQuery
+    {
+        return $this->hasOne(ClientAccess::class, ['calc_studname' => 'id']);
     }
 
     /**
@@ -132,6 +140,20 @@ class Student extends ActiveRecord
         return round($payments_sum['money']) ?? 0;
     }
 
+    public function getStudentTotalCommissionsSum()
+    {
+        $commissions_sum = (new Query())
+        ->select('sum(value) as money')
+        ->from(StudentCommission::tableName())
+        ->where([
+            'visible' => 1,
+            'student_id' => $this->id
+        ])
+        ->one();
+
+        return round($commissions_sum['money']) ?? 0;
+    }
+
     /**
      * обновляет сумму счет оплат и баланс студента
      * @param integer $id
@@ -139,16 +161,18 @@ class Student extends ActiveRecord
      */
     public function updateInvMonDebt()
     {
-        $this->invoice = $this->getStudentTotalInvoicesSum();
-        $this->money   = $this->getStudentTotalPaymentsSum();
-        $this->debt    = $this->money - $this->invoice;
+        $this->invoice    = $this->getStudentTotalInvoicesSum();
+        $this->money      = $this->getStudentTotalPaymentsSum();
+        $this->commission = $this->getStudentTotalCommissionsSum();
+
+        $this->debt       = $this->money - ($this->invoice + $this->commission);
 
         /* если баланс меньше 1 рубля в обе стороны, привести к 0 */
         if (abs($this->debt) <= 1) {
             $this->debt = 0;
         }
 
-        return $this->save(true, ['invoice', 'money', 'debt']);
+        return $this->save(true, ['invoice', 'money', 'debt', 'commission']);
     }
 
     /**
@@ -402,6 +426,27 @@ class Student extends ActiveRecord
         return $services;
     }
 
+    public function getStudentLoginStatus() : array
+    {
+        /** @var ClientAccess $studentLogin */
+        $studentLogin = $this->studentLogin ?? null;
+        $status = [
+            'id'            => $studentLogin->id ?? null,
+            'hasLogin'      => $studentLogin->id ?? false,
+            'lastLoginDate' => null,
+            'loginActive'   => false,
+        ];
+        if ($studentLogin) {
+            $status['lastLoginDate'] = $studentLogin->date;
+            $loginLimitDate = date('Y-m-d', strtotime('-2 month'));
+            if ($studentLogin->date > $loginLimitDate && (int)$this->active === 1) {
+                $status['loginActive'] = true;
+            }
+        }
+
+        return $status;
+    }
+
     /**
      *  метод переносит данные из профиля студента с id2 в профиль студента с id1
      */
@@ -427,6 +472,7 @@ class Student extends ActiveRecord
                 $result['update_studname_history'] = Studnamehistory::mergeStudents($id1, $id2);
                 $result['update_offices']          = self::mergeStudents($id1, $id2, 'student_id', [], 'student_office');
                 $result['update_receipts']         = Receipt::mergeStudents($id1, $id2, 'student_id');
+                $result['update_commissions']      = StudentCommission($id1, $id2, 'student_id');
         }
         return $result;
     }    

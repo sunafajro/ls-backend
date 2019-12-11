@@ -1,27 +1,32 @@
 <?php
-/**
- * @var yii\web\View            $this
- * @var yii\widgets\ActiveForm  $form
- * @var app\models\ClientAccess $clientaccess
- * @var app\models\Student      $model
- * @var array                   $invoices
- * @var array                   $payments
- * @var array                   $groups
- * @var array                   $lessons
- * @var array                   $studsales
- * @var array                   $services
- * @var array                   $schedule
- * @var array                   $years
- * @var array                   $invcount
- * @var array                   $permsale
- * @var string                  $userInfoBlock
- * @var array                   $offices
- * @var array                   $contracts
- */
+
+use app\models\Student;
+use app\widgets\Alert;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
-use app\widgets\Alert;
 use yii\widgets\Breadcrumbs;
+use yii\web\View;
+
+/**
+ * @var View        $this
+ * @var ActiveForm   $form
+ * @var Student      $model
+ * @var array        $commissions
+ * @var array        $invoices
+ * @var array        $payments
+ * @var array        $groups
+ * @var array        $lessons
+ * @var array        $studsales
+ * @var array        $services
+ * @var array        $schedule
+ * @var array        $years
+ * @var array        $invcount
+ * @var array        $permsale
+ * @var string       $userInfoBlock
+ * @var array        $offices
+ * @var array        $contracts
+ * @var array        $loginStatus
+ */
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Students') . ' :: ' . $model->name;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Clients'), 'url' => ['index']];
@@ -77,6 +82,11 @@ if (Yii::$app->request->get('tab')) {
                     ['class' => 'btn btn-default btn-sm btn-block'])
                 ?>
                 <?= Html::a(
+                    '<i class="fa fa-rub" aria-hidden="true"></i> ' . Yii::t('app', 'Commission'),
+                    ['student-commission/create', 'sid' => $model->id],
+                    ['class' => 'btn btn-default btn-sm btn-block'])
+                ?>
+                <?= Html::a(
                     '<i class="fa fa-file-text-o" aria-hidden="true"></i> ' . Yii::t('app', 'Receipts'),
                     ['receipt/index', 'sid' => $model->id],
                     ['class' => 'btn btn-default btn-sm btn-block'])
@@ -91,16 +101,20 @@ if (Yii::$app->request->get('tab')) {
                     ['salestud/create', 'sid' => $model->id],
                     ['class' => 'btn btn-default btn-sm btn-block'])
                 ?>
-                <?php if (!$clientaccess) { ?>
+                <?php if (!$loginStatus['hasLogin']) { ?>
                     <?= Html::a(
-                        '<i class="fa fa-user-plus" aria-hidden="true"></i> ' . Yii::t('app', 'Account'),
+                        Html::tag('i', '', ['class' => 'fa fa-user-plus', 'aria-hidden' => 'true']) . ' ' . Yii::t('app', 'Account'),
                         ['clientaccess/create', 'sid' => $model->id],
                         ['class' => 'btn btn-default btn-sm btn-block'])
                     ?>
 		        <?php } else { ?>
                     <?= Html::a(
-                        '<i class="fa fa-user" aria-hidden="true"></i> ' . Yii::t('app', 'Account'),
-                        ['clientaccess/update', 'id' => $clientaccess->id,'sid' => $model->id],
+                        Html::tag(
+                            'i',
+                            '',
+                            ['class' => 'fa fa-user', 'aria-hidden' => 'true']
+                        ) . ' ' . Yii::t('app', 'Account') . (!$loginStatus['loginActive'] ? ' (!)' : ''),
+                        ['clientaccess/update', 'id' => $loginStatus['id'],'sid' => $model->id],
                         ['class' => 'btn btn-default btn-sm btn-block'])
                     ?>
                 <?php } ?>
@@ -331,14 +345,38 @@ if (Yii::$app->request->get('tab')) {
             <div style="float:left">
                 <button type="button" class="btn btn-xs btn-default" data-container="body" data-toggle="popover" data-placement="top" data-content="Баланс студента подсчитывается так: (сумма по оплатам - сумма по счетам) + долг по занятиям."><span class="glyphicon glyphicon-info-sign"></span></button>
                 <strong><?= Yii::t('app','Balance') ?></strong></div>
-            <div class='text-right'><small><span id="fullbalance" style="display: none"><?= $model->money ?> (оп) - <?= $model->invoice ?> (сч) - <?= abs($model->debt - ($model->money - $model->invoice)) ?> (зан) = </span></small> <strong><span id="balance" style="cursor: pointer"><?= $model->debt ?></span></strong> р.</div>
+            <div class='text-right small'>
+                <span id="fullbalance" style="display: none">
+                    <span data-toggle="tooltip" data-placement="top" title="Оплаты">
+                        <?= $model->money ?>
+                    </span> - (
+                    <span data-toggle="tooltip" data-placement="top" title="Счета">
+                        <?= $model->invoice ?>
+                    </span> + 
+                    <span data-toggle="tooltip" data-placement="top" title="Комиссии">
+                        <?= round($model->commission) ?>
+                    </span>) = 
+                </span>
+                <b>
+                    <span id="balance" style="cursor: pointer" data-toggle="tooltip" data-placement="top" title="Баланс">
+                        <?= $model->debt ?>
+                    </span>
+                </b> р.
+            </div>
         </div>
     
         <ul class="nav nav-tabs user-profile-tabs" style="margin-bottom: 10px">
-            <?php if(Yii::$app->session->get('user.ustatus') == 3 || Yii::$app->session->get('user.ustatus') == 4): ?>
-                <li role="presentation"<?= (($tab == 3) ? ' class="active"' : '') ?>><?= Html::a(Yii::t('app','Invoices'),['studname/view','id'=>$model->id,'tab'=>3]) ?></li>
-                <li role="presentation"<?= (($tab == 4) ? ' class="active"' : '') ?>><?= Html::a(Yii::t('app','Payments'),['studname/view','id'=>$model->id,'tab'=>4]) ?></li>
-            <?php endif; ?>
+            <?php if (in_array($roleId, [3, 4])) { ?>
+                <li role="presentation"<?= (($tab == 3) ? ' class="active"' : '') ?>>
+                    <?= Html::a(Yii::t('app','Invoices'),['studname/view','id' => $model->id,'tab' => 3]) ?>
+                </li>
+                <li role="presentation"<?= (($tab == 4) ? ' class="active"' : '') ?>>
+                    <?= Html::a(Yii::t('app','Payments'),['studname/view','id' => $model->id,'tab' => 4]) ?>
+                </li>
+                <li role="presentation"<?= (($tab == 5) ? ' class="active"' : '') ?>>
+                    <?= Html::a(Yii::t('app','Commissions'),['studname/view','id' => $model->id,'tab' => 5]) ?>
+                </li>
+            <?php } ?>
             <li role="presentation"<?= (($tab == 1) ? ' class="active"' : '') ?>><?= Html::a(Yii::t('app','Active groups'),['studname/view','id'=>$model->id,'tab'=>1]) ?></li>
             <li role="presentation"<?= (($tab == 2) ? ' class="active"' : '') ?>><?= Html::a(Yii::t('app','Finished groups'),['studname/view','id'=>$model->id,'tab'=>2]) ?></li>
         </ul>
@@ -352,7 +390,7 @@ if (Yii::$app->request->get('tab')) {
             ]);
         } else if ($tab == 3) {
             /* счета */
-            if(Yii::$app->session->get('user.ustatus') == 3 || Yii::$app->session->get('user.ustatus') == 4) {
+            if (in_array($roleId, [3, 4])) {
                 echo $this->render('_invoices', [
                     'invoices' => $invoices,
                     'invcount' => $invcount 
@@ -361,11 +399,19 @@ if (Yii::$app->request->get('tab')) {
         /* выводим оплаты клиента */
         } else if ($tab == 4) {
             /* оплаты */
-            if(Yii::$app->session->get('user.ustatus') == 3|| Yii::$app->session->get('user.ustatus') == 4) {
+            if (in_array($roleId, [3, 4])) {
                 echo $this->render('_payments', [
                     'email'    => $model->email,
                     'payments' => $payments,
                     'years'    => $years,
+                ]);
+            }
+        } else if ($tab == 5) {
+            /* оплаты */
+            if (in_array($roleId, [3, 4])) {
+                echo $this->render('_commissions', [
+                    'commissions' => $commissions,
+                    'years'      => $years,
                 ]);
             }
         } ?>
