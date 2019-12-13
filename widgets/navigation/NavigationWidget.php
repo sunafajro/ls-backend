@@ -7,8 +7,6 @@ use yii\base\Widget;
 use Yii;
 
 class NavigationWidget extends Widget {
-    const LOGOUT_URL = '/site/logout';
-
     public function run() {
         NavigationWidgetAsset::register($this->view);
         $data = Navigation::getItems();

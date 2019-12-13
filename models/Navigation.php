@@ -232,7 +232,6 @@ class Navigation extends Model
         return [
             'navElements' => $menu,
             'message'     => Message::getLastUnreadMessage(),
-            'sale'        => Salestud::getLastUnapprovedSale(),
         ];
     }
 }

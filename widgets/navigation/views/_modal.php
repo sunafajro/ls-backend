@@ -4,7 +4,6 @@
  * @var ActiveForm   $form
  * @var array        $data
  * @var string       $id
- * @var string       $type
  * @var string       $url
  */
 
@@ -20,22 +19,18 @@ use yii\widgets\ActiveForm;
             </div>
             <div class="modal-body">
                 <p>
-                    <strong>От кого:</strong> <span class="text-primary"><?= $type === 'message' ? ($data['sender'] ?? '') : ($data['user'] ?? '') ?></span>
+                    <strong>От кого:</strong> <span class="text-primary"><?= $data['sender'] ?? '' ?></span>
                 </p>
-                <?php if ($type === 'message') { ?>
-                    <p>
-                        <strong>Кому:</strong> <span class="text-primary"><?= $data['groupName'] ?? '' ?></span>
-                    </p>
-                    <p>
-                        <strong>Текст:</strong>
-                    </p>
-                    <?= $data['body'] ?? '' ?>
-                    <?php if ($data['image'] ?? false) { ?>
-                        <p><strong>Файл:</strong></p>
-                        <?= Html::img($data['image'], ['alt' => 'image', 'style' => 'width: 200px']) ?>
-                    <?php } ?>
-                <?php } else { ?>
-                    <p>Прошу подтвердить скидку <?= Html::tag('i', $data['saleName']) ?> для клиента <?= Html::a($data['clientName'], ['studname/view', 'id' => $data['clientId']]) ?>.</p>
+                <p>
+                    <strong>Кому:</strong> <span class="text-primary"><?= $data['groupName'] ?? '' ?></span>
+                </p>
+                <p>
+                    <strong>Текст:</strong>
+                </p>
+                <?= $data['body'] ?? '' ?>
+                <?php if ($data['image'] ?? false) { ?>
+                    <p><strong>Файл:</strong></p>
+                    <?= Html::img($data['image'], ['alt' => 'image', 'style' => 'width: 200px']) ?>
                 <?php } ?>
             </div>
             <div class="modal-footer">
@@ -45,12 +40,8 @@ use yii\widgets\ActiveForm;
                         'method' => 'post',
                     ]);
                 ?>
-                <?= Html::hiddenInput('id', $type === 'message' ? ($data['rid'] ?? NULL) : ($data['sid'] ?? NULL)) ?>
-                <?php if ($type === 'sale') { ?>
-                    <?= Html::hiddenInput('status', 'accept', ['id' => 'navigation-modal-status-input']) ?>
-                    <?= Html::submitButton('Отказать', ['class' => 'btn btn-primary', 'id' => 'navigation-modal-refuse-button']) ?>
-                <?php } ?>
-                <?= Html::submitButton(($type === 'message' ? 'Я внимательно прочитал!' : 'Подтвердить'), ['class' => 'btn btn-primary']) ?>
+                <?= Html::hiddenInput('id', $data['rid'] ?? NULL) ?>
+                <?= Html::submitButton('Я внимательно прочитал!', ['class' => 'btn btn-primary']) ?>
                 <?php ActiveForm::end(); ?>
             </div>
         </div>

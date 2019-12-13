@@ -1,6 +1,5 @@
 <?php
 
-use app\widgets\navigation\NavigationWidget;
 use yii\helpers\Html;
 use yii\web\View;
 
@@ -11,12 +10,12 @@ use yii\web\View;
  * @var int   $timeLimit
  */
 ?>
-<div id="navigation-panel" data-limit-time="<?= $timeLimit ?>" data-logout-url="<?= NavigationWidget::LOGOUT_URL ?>">
+<div id="navigation-panel">
     <nav id="top-nav" class="navbar navbar-default navbar-fixed-top">
         <div class="container-fluid">
             <div class="navbar-header">
                 <button type="button" data-toggle="collapse" data-target="#top-nav-collapse" class="navbar-toggle">
-                    <span class="sr-only">Toggle navigation</span>
+                    <span class="sr-only">Свернуть/Развернуть</span>
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
@@ -24,9 +23,6 @@ use yii\web\View;
             </div>
             <div id="top-nav-collapse" class="collapse navbar-collapse">
                 <ul id="nav-links" class="navbar-nav nav">
-                    <li style="padding: 13px 10px; <?= $timeLimit > 0 ? '' : 'display: none' ?>">
-                        <span id="navigation-timer" class="label label-default" title="Время до автоматического выхода из системы">14:59</span>
-                    </li>
                     <?php foreach ($items ?? [] as $item) { ?>
                         <?php
                             $options = ['title' => $item['title']];
@@ -51,7 +47,6 @@ use yii\web\View;
             echo $this->render('_modal', [
                 'data' => $message,
                 'id'   => 'navigation-message-modal',
-                'type' => 'message',
                 'url'  => 'message/response',
             ]);
         }
