@@ -433,6 +433,7 @@ return array(
     'Sale report' => 'Отчет по скидкам',
     'Sale value' => 'Значение',
     'Sales' => 'Скидки',
+    'Save' => 'Сохранить',
     'Schedule' => 'Расписание',
     'Score' => 'Оценка',
     'Select an exam' => '-выберите экзамен-',

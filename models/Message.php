@@ -11,14 +11,14 @@ use Yii;
  * @property integer $id
  * @property integer $visible
  * @property integer $longmess
- * @property string $name
- * @property string $description
- * @property string $files
+ * @property string  $name
+ * @property string  $description
+ * @property string  $files
  * @property integer $user
- * @property string $data
+ * @property string  $data
  * @property integer $send
  * @property integer $calc_messwhomtype
- * @property string $refinement
+ * @property string  $refinement
  * @property integer $refinement_id
  */
 class Message extends \yii\db\ActiveRecord
@@ -41,10 +41,17 @@ class Message extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'user', 'calc_messwhomtype', 'refinement', 'refinement_id'], 'required'],
+            [['name', 'calc_messwhomtype', 'refinement_id'], 'required'],
             [['visible', 'longmess', 'user', 'send', 'calc_messwhomtype', 'refinement_id'], 'integer'],
             [['name', 'description', 'files', 'refinement'], 'string'],
-            [['data'], 'safe']
+            [['data'], 'safe'],
+            [['visible'],    'default', 'value' => 1],
+            [['data'],       'default', 'value' => date('Y-m-d H:i:s')],
+            [['longmess'],   'default', 'value' => 0],
+            [['send'],       'default', 'value' => 0],
+            [['user'],       'default', 'value' => Yii::$app->user->identity->id],
+            [['files'],      'default', 'value' => ''],
+            [['refinement'], 'default', 'value' => ''],
         ];
     }
 
@@ -68,6 +75,26 @@ class Message extends \yii\db\ActiveRecord
         ];
     }
 
+    public function delete()
+    {
+        $t = Yii::$app->db->beginTransaction();
+        try {
+            $db = (new \yii\db\Query())
+            ->createCommand()
+            ->delete('calc_messreport', ['calc_message' => $this->id])
+            ->execute();
+            $this->visible = 0;
+            if (!$this->save(true, ['visible'])) {
+                throw new \Exception('Произошла ошибка');
+            }
+            $t->commit();
+            return true;
+        } catch (\Exception $e) {
+            $t->rollBack();
+            return false;
+        }
+    }
+
     public static function getMessageById($id)
     {
         $message = (new \yii\db\Query())
@@ -88,12 +115,14 @@ class Message extends \yii\db\ActiveRecord
         ])
         ->one();
         if ($message) {
+            $message['canResponse'] = false;
             $receiver = NULL;
             $sender = NULL;
             if (
                 (int)$message['destination_type'] === 5
                 || (int)$message['destination_type'] === 100
             ) {
+                $message['canResponse'] = true;
                 $receiver = (new \yii\db\Query())
                 ->select(['id' => 'id', 'name' => 'name'])
                 ->from(['u' => 'user'])
@@ -328,13 +357,14 @@ class Message extends \yii\db\ActiveRecord
             } 
 
             $mess = [
-                'mid' => $message['mid'],
-                'rid' => $message['mrid'],
-                'sender' => $sender, 
-                'groupName' => $groupName,
-                'title' => $message['mtitle'],
-                'body' => $message['mtext'],
-                'image' => ($image) ? '/uploads/calc_message/' . $message['mid'] . '/fls/' . $image : NULL,
+                'mid'         => $message['mid'],
+                'rid'         => $message['mrid'],
+                'sender'      => $sender, 
+                'groupName'   => $groupName,
+                'title'       => $message['mtitle'],
+                'body'        => $message['mtext'],
+                'image'       => ($image) ? '/uploads/calc_message/' . $message['mid'] . '/fls/' . $image : NULL,
+                'canResponse' => in_array($message['group_id'], [5, 100])
             ];
         }
 

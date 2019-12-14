@@ -7,7 +7,7 @@ use yii\web\View;
  * @var View  $this
  * @var array $items
  * @var array $message
- * @var int   $timeLimit
+ * @var bool  $hideModal
  */
 ?>
 <div id="navigation-panel">
@@ -43,11 +43,11 @@ use yii\web\View;
         </div>
     </nav>
     <?php
-        if (!empty($message)) {
+        if (!$hideModal && !empty($message)) {
             echo $this->render('_modal', [
                 'data' => $message,
                 'id'   => 'navigation-message-modal',
-                'url'  => 'message/response',
+                'url'  => ['message/response', 'id' => $message['mid']],
             ]);
         }
     ?>

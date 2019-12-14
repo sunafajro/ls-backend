@@ -6,8 +6,8 @@ use app\assets\AppAsset;
 use app\widgets\navigation\NavigationWidget;
 
 AppAsset::register($this);
+$hideModal = $this->context->id === 'message' && in_array($this->context->action->id, ['create', 'update']);
 ?>
-
 <?php $this->beginPage() ?>
 <!DOCTYPE html>
 <html lang="<?= Yii::$app->language ?>">
@@ -21,7 +21,9 @@ AppAsset::register($this);
     <body>
 <?php $this->beginBody() ?>
     <?php if(Yii::$app->params['appMode'] !== 'bitrix' && !Yii::$app->user->isGuest): ?>
-        <?= NavigationWidget::widget() ?>
+        <?= NavigationWidget::widget([
+                'hideModal' => $hideModal,
+        ]) ?>
     <?php endif; ?>
     <div class="container-fluid">
         <?php if (Yii::$app->params['appMode'] !== 'bitrix' && !Yii::$app->user->isGuest) : ?>

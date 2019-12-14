@@ -1,14 +1,12 @@
 <?php
 /**
  * @var yii\web\View $this
- * @var ActiveForm   $form
  * @var array        $data
  * @var string       $id
- * @var string       $url
+ * @var array        $url
  */
 
 use yii\helpers\Html;
-use yii\widgets\ActiveForm;
 ?>
 <div id="<?= $id ?>" class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
@@ -35,14 +33,32 @@ use yii\widgets\ActiveForm;
             </div>
             <div class="modal-footer">
                 <?php
-                    $form = ActiveForm::begin([
-                        'action' => [$url],
-                        'method' => 'post',
-                    ]);
+                    if ($data['canResponse']) {
+                        echo Html::a(
+                            'Ответить',
+                            $url,
+                            [
+                                'class' => 'btn btn-success',
+                                'data' => [
+                                    'method' => 'post',
+                                    'params' => [
+                                        'toResponse' => true
+                                    ], 
+                                ],
+                            ]
+                        );
+                    }
+                    echo Html::a(
+                        $data['canResponse'] ? 'Прочтено' : 'Я внимательно прочитал!',
+                        $url,
+                        [
+                            'class' => 'btn btn-primary',
+                            'data' => [
+                                'method' => 'post',
+                            ],
+                        ]
+                    );
                 ?>
-                <?= Html::hiddenInput('id', $data['rid'] ?? NULL) ?>
-                <?= Html::submitButton('Я внимательно прочитал!', ['class' => 'btn btn-primary']) ?>
-                <?php ActiveForm::end(); ?>
             </div>
         </div>
     </div>

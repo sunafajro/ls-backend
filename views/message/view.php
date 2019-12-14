@@ -15,7 +15,6 @@ $this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Messages');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Messages'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $message['title'];
 ?>
-
 <div class="row row-offcanvas row-offcanvas-left message-view">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
@@ -99,12 +98,38 @@ $this->params['breadcrumbs'][] = $message['title'];
             </div>
         <?php } ?>
         
-        <?php if ($message['response']) : ?>
-            <?=
-              Html::a('Я внимательно прочитал!',
-              ['message/response', 'rid' => $message['response']],
-              ['class' => 'btn btn-primary'])
-            ?>
-        <?php endif; ?>
+        <?php
+            echo Html::beginTag('div', ['style' => 'padding: 5px']);
+            $url = ['message/response', 'id' => $message['id']];
+            if ($message['canResponse']) {
+                echo Html::a(
+                    'Ответить',
+                    $url,
+                    [
+                        'class' => 'btn btn-success',
+                        'data' => [
+                            'method' => 'post',
+                            'params' => [
+                                'toResponse' => true
+                            ], 
+                        ],
+                    ]
+                );
+            }
+            if ($message['response']) {
+                echo Html::a(
+                    $message['canResponse'] ? 'Прочтено' : 'Я внимательно прочитал!',
+                    $url,
+                    [
+                        'class' => 'btn btn-primary',
+                        'data' => [
+                            'method' => 'post',
+                        ],
+                        'style' => 'margin-left: 5px'
+                    ]
+                );
+            }
+            echo Html::endTag('div');
+        ?>
     </div>
 </div>

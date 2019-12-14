@@ -129,11 +129,11 @@ ksort($months);
                     </td>
                     <td>
                         <p class="small">
-                        <?php if ((int)$message['destination_id'] === 100) : ?>
-                            <?= $message['sender_stn_name'] ?>
-                        <?php else : ?>
-                            <?= $message['sender_emp_name'] ?>
-                        <?php endif; ?>
+                            <?php if ((int)$message['destination_id'] === 100) { ?>
+                                <?= $message['sender_stn_name'] ?>
+                            <?php } else { ?>
+                                <?= $message['sender_emp_name'] ?>
+                            <?php } ?>
                             <br />
                             <span class="inblocktext">
                                 <?= date('d.m.Y', strtotime($message['date'])) ?>
@@ -142,44 +142,44 @@ ksort($months);
                     </td>
                     <td>
                         <p class="small">
-                        <?php if ((int)$message['destination_id'] === 100 || (int)$message['destination_id'] === 5) : ?>
+                        <?php if ((int)$message['destination_id'] === 100 || (int)$message['destination_id'] === 5) { ?>
                             <?= $message['receiver_emp_name'] ?>
-                        <?php elseif ((int)$message['destination_id'] === 13) : ?>
+                        <?php } else if ((int)$message['destination_id'] === 13) { ?>
                             <?= $message['receiver_stn_name'] ?>
-                        <?php else : ?>
+                        <?php } else { ?>
                             <?= $message['destination_name'] ?>
-                        <?php endif; ?>
+                        <?php } ?>
                         </p>
                     </td>
                     <td>
-                    <?php if ($message['direction'] === 'out') : ?>
-                    <?php
-                    $key = 0;
-                    foreach ($messagesReaded as $r) {
-                        if ((int)$r['id'] === (int)$message['id']) {
-                            echo $r['num'] . '/';
-                            $key += 1;
+                    <?php if ($message['direction'] === 'out') { ?>
+                        <?php
+                        $key = 0;
+                        foreach ($messagesReaded as $r) {
+                            if ((int)$r['id'] === (int)$message['id']) {
+                                echo $r['num'] . '/';
+                                $key += 1;
+                            }
                         }
-                    }
-                    echo ($key==0) ? "0/" : "";
-                    $key = 0;
-                    foreach ($messagesAll as $r) {
-                        if ((int)$r['id'] === (int)$message['id']) {
-                            echo $r['num'];
-                            $key += 1;
+                        echo ($key==0) ? "0/" : "";
+                        $key = 0;
+                        foreach ($messagesAll as $r) {
+                            if ((int)$r['id'] === (int)$message['id']) {
+                                echo $r['num'];
+                                $key += 1;
+                            }
                         }
-                    }
-                    echo (int)$key === 0 ? "0" : "";
-                    ?>
-                    <?php endif; ?>
+                        echo (int)$key === 0 ? "0" : "";
+                        ?>
+                    <?php } ?>
                     </td>
                     <td width="10%">
-                        <?php if ($message['direction'] === 'out') : ?>
+                        <?php if ($message['direction'] === 'out') { ?>
                         <?= (int)$message['sended'] ===0 ? Html::a('', ['message/update', 'id' => $message['id']], ['class' => 'glyphicon glyphicon-pencil', 'title' => Yii::t('app', 'Edit')]) . ' ' : '' ?>
                         <?= (int)$message['sended'] ===0 ? Html::a('', ['message/upload', 'id' => $message['id']], ['class' => 'glyphicon glyphicon-picture', 'title' => Yii::t('app', 'Add image')]) . ' ' : '' ?>
                         <?= (int)$message['sended'] ===0 ? Html::a('', ['message/send', 'id' => $message['id']], ['class' => 'glyphicon glyphicon-envelope', 'title' => Yii::t('app', 'Send')]) . ' ' : '' ?>
                         <?= (int)$message['sended'] ===0 ? Html::a('', ['message/disable', 'id' => $message['id']], ['class' => 'glyphicon glyphicon-trash', 'title' => Yii::t('app', 'Delete')]) . ' ' : '' ?>
-                        <?php endif; ?>
+                        <?php } ?>
                     </td>
                 </tr>
             <?php endforeach; ?>

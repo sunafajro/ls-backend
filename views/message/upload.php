@@ -1,23 +1,25 @@
 <?php
 
-/**
- * @var yii\web\View          $this
- * @var app\models\Message    $message
- * @var app\models\UploadForm $model
- * @var string                $userInfoBlock
- */
-
-use yii\helpers\Html;
+use app\models\Message;
+use app\models\UploadForm;
 use app\widgets\Alert;
+use yii\helpers\Html;
 use yii\widgets\ActiveForm;
+use yii\web\View;
 use yii\widgets\Breadcrumbs;
 
-$this->title = 'Система учета :: ' . Yii::t('app', 'Upload image');
+/**
+ * @var View       $this
+ * @var Message    $message
+ * @var UploadForm $model
+ * @var string     $userInfoBlock
+ */
+
+$this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Upload image');
 $this->params['breadcrumbs'][] = ['label' => \Yii::t('app','Messages'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $message->name, 'url' => ['view', 'id' => $message->id]];
 $this->params['breadcrumbs'][] = Yii::t('app','Upload file');
 ?>
-
 <div class="row row-offcanvas row-offcanvas-left message-upload">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
@@ -51,7 +53,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Upload file');
             <?php ActiveForm::end(); ?>
         </div>
         <p>Текущий файл:</p>
-        <?php if($message->files !== NULL && $message->files !== '0') { ?>
+        <?php if (!in_array($message->files, [NULL, '', '0'])) { ?>
             <?php $addr = explode('|', $message->files) ?>
             <?=
             Html::img('@web/uploads/calc_message/' . $message->id . '/fls/' . $addr[0],

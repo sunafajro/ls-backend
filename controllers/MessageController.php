@@ -4,15 +4,15 @@ namespace app\controllers;
 
 use Yii;
 use app\models\Message;
+use app\models\Student;
 use app\models\UploadForm;
 use app\models\User;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
+use yii\helpers\ArrayHelper;
 use yii\web\Controller;
-use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
-use yii\web\Response;
 use yii\web\UploadedFile;
 
 /**
@@ -22,25 +22,20 @@ class MessageController extends Controller
 {
     public function behaviors()
     {
-        $rules = ['index','view','create','update','response','upload','send','ajaxgroup'];
+        $rules = ['index','view','create','update','delete','response','upload','send','ajaxgroup'];
         return [
-        'access' => [
+            'access' => [
                 'class' => AccessControl::class,
                 'only' => $rules,
                 'rules' => [
                     [
-                        'actions' => array_merge($rules, ['delete']),
+                        'actions' => $rules,
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
                         'actions' => $rules,
                         'allow' => true,
-                        'roles' => ['@'],
-                    ],
-                     [
-                        'actions' => ['delete'],
-                        'allow' => false,
                         'roles' => ['@'],
                     ],
                 ],
@@ -51,7 +46,7 @@ class MessageController extends Controller
                 'actions' => [
                     'delete'    => ['post'],
                     'ajaxgroup' => ['post'],
-                    'ajaxmess'  => ['post'],
+                    'response'  => ['post'],
                 ],
             ],
         ];
@@ -119,6 +114,7 @@ class MessageController extends Controller
     /**
      * Displays a single Message model.
      * @param integer $id
+     * 
      * @return mixed
      */
     public function actionView($id)
@@ -140,33 +136,57 @@ class MessageController extends Controller
         }
     }
 
-    public function actionCreate()
+    /**
+     * @param int|null $target_type
+     * @param int|null $target_id
+     * 
+     * @return mixed
+     */
+    public function actionCreate(int $target_type = null, int $target_id = null)
     {
         $types = Message::getMessageDirectionsArray(Message::MESSAGE_ENABLED_TYPES);
         $model = new Message();
-        if ($model->load(Yii::$app->request->post())) {
-            $model->longmess = 0;
-            $model->user = Yii::$app->session->get('user.uid');
-            $model->data = date('Y-m-d H:i:s');
-            $model->send = 0;
-            $model->files = '0';
-            $model->visible = 1;
+        if ($target_type) {
+            $model->calc_messwhomtype = $target_type;
+            if ($target_id) {
+                $model->refinement_id = $target_id;
+                $receivers = $target_type == 5
+                    ? User::find()->where(['visible' => 1])->all()
+                    : Student::find()->where(['visible' => 1])->all();
+            }
+        }
+        if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
+            if ($target_type && ((int)$target_type !== (int)$model->calc_messwhomtype)) {
+                $model->calc_messwhomtype = $target_type;
+            }
+            if ($target_id && ((int)$target_id !== (int)$model->refinement_id)) {
+                $model->calc_messwhomtype = $target_id;
+            }
             if ($model->save()) {
                 Yii::$app->session->setFlash('success', Yii::t('app', 'Message successfully created!'));
+                if (Yii::$app->request->post('send', null)) {
+                    return $this->redirect(['message/send', 'id' => $model->id]);
+                }
             } else {
                 Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to create message!'));
             }
             return $this->redirect(['view', 'id' => $model->id]);
         } else {
             return $this->render('create', [
-                'model' => $model,
-                'types' => $types,
+                'model'         => $model,
+                'types'         => $types,
+                'receivers'     => ArrayHelper::map($receivers ?? [], 'id', 'name'),
                 'userInfoBlock' => User::getUserInfoBlock()
             ]);
         }
     }
 
-    public function actionUpdate($id)
+    /**
+     * @param int $id
+     * 
+     * @return mixed
+     */
+    public function actionUpdate(int $id)
     {
         $model = $this->findModel($id);
         if (
@@ -174,18 +194,26 @@ class MessageController extends Controller
             || (int)Yii::$app->session->get('user.ustatus') === 3
         ) {
             $types = Message::getMessageDirectionsArray(Message::MESSAGE_ENABLED_TYPES);
-
+            if (in_array($model->calc_messwhomtype, [5, 13])) {
+                $receivers = $model->calc_messwhomtype == 5
+                    ? User::find()->where(['visible' => 1])->all()
+                    : Student::find()->where(['visible' => 1])->all();
+            }
             if ($model->load(Yii::$app->request->post())) {
-                if ($model->save()) {
+                if ($model->save(true, ['name', 'description'])) {
                     Yii::$app->session->setFlash('success', Yii::t('app', 'Message successfully updated!'));
+                    if (Yii::$app->request->post('send', null)) {
+                        return $this->redirect(['message/send', 'id' => $model->id]);
+                    }
                 } else {
                     Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to update message!'));
                 }
                 return $this->redirect(['view', 'id' => $model->id]);
             } else {
                 return $this->render('update', [
-                    'model' => $model,
-                    'types' => $types,
+                    'model'         => $model,
+                    'receivers'     => ArrayHelper::map($receivers ?? [], 'id', 'name'),
+                    'types'         => $types,
                     'userInfoBlock' => User::getUserInfoBlock()
                 ]);
             }
@@ -195,63 +223,77 @@ class MessageController extends Controller
     }
 
     /**
-     * Deletes an existing CalcMessage model.
+     * Deletes an existing Message model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param integer $id
+     * @param int $id
+     * 
      * @return mixed
      */
-    public function actionDelete($id)
+    public function actionDelete(int $id)
     {
-        $this->findModel($id)->delete();
-        return $this->redirect(['index']);
+        $model = $this->findModel($id);
+        if (
+            (int)$model->user === (int)Yii::$app->user->identity->id
+            || (int)Yii::$app->session->get('user.ustatus') === 3
+        ) {
+            if ($model->delete()) {
+                Yii::$app->session->setFlash('success', 'Сообщение успешно удалено!');
+            } else {
+                Yii::$app->session->setFlash('error', 'Не удалось удалить сообщение!');
+            }
+            return $this->redirect(['index']);
+        } else {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        }        
     }
 
     /**
      * Метод ищет непрочитанное сообщение по report id и user id,
      * и помечает его прочитанным.
-     * @param integer $id
+     * @param int $id
+     * 
+     * @return mixed
      */
-    public function actionResponse($rid = NULL)
+    public function actionResponse(int $id)
     {
-        if (Yii::$app->request->isPost) {
-            /* включаем формат ответа JSON */
-            Yii::$app->response->format = Response::FORMAT_JSON;
-            $id = (int)Yii::$app->request->post('id');
-            if ($id) {
-                /* проверяем что сообщение не прочитано и получаем его id */
-                $message = Message::getUnreadMessageIdByReportId($id, Yii::$app->session->get('user.uid'));
+        $messageTable = Message::tableName();
+        $reportTable = 'calc_messreport';
+        $toResponse = Yii::$app->request->post('toResponse', false);
+        /** @var Message $message */
+        $message = Message::find()
+            ->innerJoin($reportTable, "{$reportTable}.calc_message = {$messageTable}.id")
+            ->where([
+                "{$messageTable}.id"  => $id,
+                "{$reportTable}.user" => Yii::$app->user->identity->id,
+            ])
+            ->one();
 
-                /* если есть непрочитанное сообщение меняем его статус на прочитанное */
-                if (!empty($message)) {
-                    $db = (new \yii\db\Query())
-                    ->createCommand()
-                    ->update('calc_messreport', ['ok' => '1'], ['id'=>$message['id']])
-                    ->execute();
+        /* если есть непрочитанное сообщение меняем его статус на прочитанное */
+        if (!empty($message)) {
+            $target = $message->calc_messwhomtype;
+            try {
+                $db = (new \yii\db\Query())
+                ->createCommand()
+                ->update(
+                    'calc_messreport',
+                    ['ok' => '1'],
+                    [
+                        'calc_message' => $id,
+                        'user'         => Yii::$app->user->identity->id
+                    ])
+                ->execute();
+                if ($toResponse && in_array($target, [5, 100])) {
+                    return $this->redirect(['message/create', 'target_type' => $target == 100 ? 13 : 5, 'target_id' => $message->user]);
                 } else {
-                    Yii::$app->session->setFlash('error', 'Сообщение №' . $id . ' не найдено.');
+                    Yii::$app->session->setFlash('success', 'Сообщение успешно отмечено прочтенным!');
                 }
-                return $this->redirect(Yii::$app->request->referrer);
-            } else {
-                throw new NotFoundHttpException(Yii::t('yii', 'The requested page does not exist.'));
+            } catch (\Exception $e) {
+                Yii::$app->session->setFlash('error', 'Не удалось отметить сообщение прочтенным!');
             }
         } else {
-            if ($rid) {
-                /* проверяем что сообщение не прочитано и получаем его id */
-                $message = Message::getUnreadMessageIdByReportId($rid, Yii::$app->session->get('user.uid'));
-                /* если есть непрочитанное сообщение меняем его статус на прочитанное */
-                if (!empty($message)) {
-                    $db = (new \yii\db\Query())
-                    ->createCommand()
-                    ->update('calc_messreport', ['ok' => '1'], ['id' => $message['id']])
-                    ->execute();
-                    return $this->redirect(['message/index']);
-                } else {
-                    throw new NotFoundHttpException(Yii::t('yii', 'The requested page does not exist.'));
-                }
-            } else {
-                throw new BadRequestHttpException(Yii::t('yii', 'Missing required arguments: { rid }'));
-            }
+            throw new NotFoundHttpException('Сообщение №' . $id . ' не найдено.');
         }
+        return $this->redirect(Yii::$app->request->referrer);
     }
     
     public function actionUpload(string $id)
@@ -265,7 +307,7 @@ class MessageController extends Controller
                     $spath = Yii::getAlias('@uploads/calc_message');
                     $filename = $model->resizeAndSave($spath, $id, 'fls');
                     $message->files = $filename;
-                    $message->save();
+                    $message->save(true, ['files']);
                     return $this->redirect(['message/upload', 'id' => $id]);
                 }
             }
@@ -279,81 +321,63 @@ class MessageController extends Controller
         }
     }
     
-    public function actionSend($id)
-    {    
-        //ищем сообщение
-        $mess =  (new \yii\db\Query())
-        ->select('cm.id as mid, cm.calc_messwhomtype as mgroup, cm.user as sender, cm.refinement_id as reciever, cm.data as mdate')
-        ->from('calc_message cm')
-        ->where('cm.send=:send and cm.id=:id',[':send'=>0,':id'=>$id])
-        ->one();
-        
-        if(
-            !empty($mess)
-            && (
-                (int)$mess['sender'] === (int)Yii::$app->session->get('user.uid')
-                || (int)Yii::$app->session->get('user.ustatus') === 3
-            )
-        ) {
-            //если сообщение только для одного юзера
-            if($mess['mgroup']==5||$mess['mgroup']==13){
-            //пишем строку в журнал отправки
+    public function actionSend(int $id)
+    {
+        $userId     = (int)Yii::$app->user->identity->id;
+        $userRoleId = (int)Yii::$app->session->get('user.ustatus');
+        $message    = $this->findModel($id);
+    
+        if (((int)$message['user'] === (int)$userId || $userRoleId === 3) && (int)$message->send === 0) {
+            $condition = [
+                'calc_message' => $message->id,
+                'user'         => 0,
+                'ok'           => 0,
+                'data'         => date('Y-m-d H:i:s'),
+                'send'         => 1
+            ];
+            if (in_array($message->calc_messwhomtype, [5, 13])){
+                $condition['user'] = $message->refinement_id;
                 $report = (new \yii\db\Query())
                 ->createCommand()
-                ->insert('calc_messreport', ['calc_message'=>$mess['mid'],'user'=>$mess['reciever'],'ok'=>0,'data'=>date('Y-m-d H:i:s'),'send'=> 1])
+                ->insert('calc_messreport', $condition)
                 ->execute();
-                unset($report);
             } else {
                 $recievers = [];
-                switch($mess['mgroup']) {
-                    case 1:
-                        $recievers = (new \yii\db\Query())
-                        ->select('id as id')
-                        ->from('user u')
-                        ->where('visible=:vis', [':vis'=>1])
-                        ->all();
-                        break;
+                $query = (new \yii\db\Query())
+                ->select('id as id')
+                ->from(['u' => User::tableName()])
+                ->where(['u.visible' => 1]);
+                switch($message->calc_messwhomtype) {
                     case 2:
-                        $recievers = (new \yii\db\Query())
-                        ->select('id as id')
-                        ->from('user u')
-                        ->where('status=:role and visible=:vis', [':role'=>3, ':vis'=>1])
-                        ->all();
+                        $query = $query->andWhere(['status' => 3]);
                         break;
                    case 3:
-                        $recievers = (new \yii\db\Query())
-                        ->select('id as id')
-                        ->from('user u')
-                        ->where('status=:role and visible=:vis', [':role'=>4, ':vis'=>1])
-                        ->all();
+                        $query = $query->andWhere(['status' => 4]);
                         break;
                    case 4:
-                        $recievers = (new \yii\db\Query())
-                        ->select('u.id as id')
-                        ->from('user u')
-                        ->join('INNER JOIN', 'calc_teacher t', 't.id=u.calc_teacher')
-                        ->where('t.visible=:vis and u.visible=:vis', [':vis'=>1])
-                        ->all();
+                        $query = $query->innerJoin('calc_teacher t', 't.id = u.calc_teacher')
+                        ->andWhere(['t.visible' => 1]);
                         break;
                 }
-                if(!empty($recievers)) {
-                    foreach($recievers as $r) {
-                        //пишем строку в журнал отправки
+                $recievers = $query = $query->all();
+                if (!empty($recievers)) {
+                    foreach ($recievers as $r) {
+                        $condition['user'] = $r['id'];
                         $report = (new \yii\db\Query())
                         ->createCommand()
-                        ->insert('calc_messreport', ['calc_message'=>$mess['mid'],'user'=>$r['id'],'ok'=>0,'data'=>date('Y-m-d H:i:s'),'send'=> 1])
+                        ->insert('calc_messreport', $condition)
                         ->execute();
                     }
                 }
-                unset($report);
-                unset($recievers);
-                unset($r);
             }            
-            //помечаем сообщение как отправленное
-            $message = (new \yii\db\Query())
-            ->createCommand()
-            ->update('calc_message', ['send' => 1], ['id'=>$id])
-            ->execute();
+            $message->send = 1;
+            if ($message->save(true, ['send'])) {
+                Yii::$app->session->setFlash('success', 'Сообщение успешно отправлено!');
+            } else {
+                Yii::$app->session->setFlash('error', 'Не удалось отправить сообщение!');
+            }
+        } else {
+            throw new NotFoundHttpException("Сообщение №{$id} не найдено или уже отправлено.");
         }
         return $this->redirect(['index']);
     }
@@ -398,23 +422,11 @@ class MessageController extends Controller
         }
     }
 
-    public function actionDisable($id)
-    {
-        // получаем информацию по пользователю
-        $model=$this->findModel($id);
-        //проверяем текущее состояние
-        if($model->visible==1){
-            $model->visible = 0;
-            $model->save();
-        }
-        return $this->redirect(['index']);
-    }
-
     /**
-     * Finds the CalcMessage model based on its primary key value.
+     * Finds the Message model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return CalcMessage the loaded model
+     * @return Message the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
