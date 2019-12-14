@@ -1,21 +1,23 @@
 <?php
 
-/**
- * @var yii\web\View            $this
- * @var yii\widgets\ActiveForm  $form
- * @var array                   $messages
- * @var array                   $messagesAll
- * @var array                   $messagesReaded
- * @var string                  $month
- * @var array                   $unreaded
- * @var string                  $userInfoBlock
- * @var string                  $year
- */
-
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use app\widgets\Alert;
+use yii\web\View;
 use yii\widgets\Breadcrumbs;
+
+/**
+ * @var View        $this
+ * @var ActiveForm  $form
+ * @var array       $messages
+ * @var array       $messagesAll
+ * @var array       $messagesReaded
+ * @var string      $month
+ * @var array       $unreaded
+ * @var string      $userInfoBlock
+ * @var string      $year
+ */
+
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app','Messages');
 $this->params['breadcrumbs'][] = Yii::t('app','Messages');
 
@@ -107,19 +109,20 @@ ksort($months);
             </thead>
             <tbody>
             <?php foreach ($messages as $message) : ?>
-                <?php if (!empty($unreaded) && in_array($message['id'], $unreaded)) : ?>
-                <tr class="danger">
-                <?php elseif ($message['sended'] !== NULL && (int)$message['sended'] === 0) : ?>
-                <tr class="warning">
-                <?php else : ?>
-                <tr>
-                <?php endif; ?>
+                <?php if (!empty($unreaded) && in_array($message['id'], $unreaded)) { ?>
+                    <tr class="danger">
+                <?php } else if ($message['sended'] !== NULL && (int)$message['sended'] === 0) { ?>
+                    <tr class="warning">
+                <?php } else { ?>
+                    <tr>
+                <?php } ?>
                     <td class="text-center">
-                        <i
-                          class="fa fa-<?= $message['direction'] === 'out' ? 'upload' : 'download' ?>"
-                          title="<?= $message['direction'] === 'out' ? Yii::t('app','Outcoming message') : Yii::t('app','Incoming message') ?>"
-                          aria-hidden="true"
-                        ></i>
+                        <?php
+                            $textClass = 'text-' . ($message['direction'] === 'out' ? 'info' : 'warning');
+                            $iconClass = 'fa fa-' . ($message['direction'] === 'out' ? 'upload' : 'download');
+                            $iconTitle = $message['direction'] === 'out' ? Yii::t('app','Outcoming message') : Yii::t('app','Incoming message');
+                            echo Html::tag('i', '', ['class' => join(' ', [$iconClass, $textClass]), 'title' => $iconTitle, 'aria-hidden' => 'true']);
+                        ?>
                     </td>
                     <td>
                         <?= Html::a($message['title'], ['message/view', 'id' => $message['id']]) ?>

@@ -25,6 +25,8 @@ class Message extends \yii\db\ActiveRecord
 {
     use StudentMergeTrait;
 
+    const MESSAGE_ENABLED_TYPES = [1 => 1, 2 => 2, 3 => 3, 4 => 4, 5 => 5, 6 => 12, 7 => 13];
+    
     /**
      * @inheritdoc
      */
@@ -178,40 +180,51 @@ class Message extends \yii\db\ActiveRecord
         return $messages_ids;
     }
 
-    public static function getUserMessages($start = NULL, $end = NULL, $direction = 'in')
+    /** 
+     * Возвращает список сообщений пользователя по типу
+     * @param string|null $start
+     * @param string|null $end
+     * @param string|null $direction
+     * 
+     * @return array
+     */
+    public static function getUserMessages($start = NULL, $end = NULL, $direction = 'in') : array
     {
+        $student = Student::tableName();
+        $user    = User::tableName();
+
         $messages = (new \yii\db\Query())
         ->select([
-            'id' => 'm.id',
-            'title' => 'm.name',
-            'text' => 'm.description',
-            'files' => 'm.files',
-            'sender_id' => 'm.user',
-            'sender_emp_name' => 'u1.name',
-            'sender_stn_name' => 'sn1.name',
-            'date' => 'm.data',
-            'sended' => 'm.send',
-            'destination_id' => 'm.calc_messwhomtype',
-            'destination_name' => 'mwt.name',
-            'receiver_id' => 'm.refinement_id',
+            'id'                => 'm.id',
+            'title'             => 'm.name',
+            'text'              => 'm.description',
+            'files'             => 'm.files',
+            'sender_id'         => 'm.user',
+            'sender_emp_name'   => 'u1.name',
+            'sender_stn_name'   => 'sn1.name',
+            'date'              => 'm.data',
+            'sended'            => 'm.send',
+            'destination_id'    => 'm.calc_messwhomtype',
+            'destination_name'  => 'mwt.name',
+            'receiver_id'       => 'm.refinement_id',
             'receiver_emp_name' => 'u2.name',
             'receiver_stn_name' => 'sn2.name'
         ])
-        ->from(['m' => 'calc_message'])
-        ->leftJoin(['u1' => 'user'], 'u1.id = m.user')
-        ->leftJoin(['sn1' => 'calc_studname'], 'sn1.id = m.user')
-        ->leftJoin(['u2' => 'user'], 'u2.id = m.refinement_id')
-        ->leftJoin(['sn2' => 'calc_studname'], 'sn2.id = m.refinement_id')
-        ->innerJoin(['mwt' => 'calc_messwhomtype'], 'mwt.id = m.calc_messwhomtype');
+        ->from(['m' => Message::tableName()])
+        ->leftJoin(['u1' => $user], 'u1.id = m.user')
+        ->leftJoin(['sn1' => $student], 'sn1.id = m.user')
+        ->leftJoin(['u2' => $user], 'u2.id = m.refinement_id')
+        ->leftJoin(['sn2' => $student], 'sn2.id = m.refinement_id')
+        ->leftJoin(['mwt' => 'calc_messwhomtype'], 'mwt.id = m.calc_messwhomtype');
         if($direction === 'in') {
-            $messages = $messages->innerJoin(['mr' => 'calc_messreport'], 'mr.calc_message = m.id');
+            $messages = $messages->leftJoin(['mr' => 'calc_messreport'], 'mr.calc_message = m.id');
             $messages = $messages->where([
-                'mr.user' => Yii::$app->session->get('user.uid'),
+                'mr.user' => Yii::$app->user->identity->id,
                 'm.visible' => 1
             ]);
         }
-        if($direction === 'out') {
-            if((int)Yii::$app->session->get('user.ustatus') === 3) {
+        if ($direction === 'out') {
+            if ((int)Yii::$app->session->get('user.ustatus') === 3) {
                 $messages = $messages->where([
                     'm.visible' => 1
                 ])
@@ -232,6 +245,7 @@ class Message extends \yii\db\ActiveRecord
         $messages = $messages->andFilterWhere(['>=', 'm.data', $start])
         ->andFilterWhere(['<=', 'm.data', $end])
         ->all();
+
         return $messages;
     }
 

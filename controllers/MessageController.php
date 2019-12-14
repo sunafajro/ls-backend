@@ -16,24 +16,25 @@ use yii\web\Response;
 use yii\web\UploadedFile;
 
 /**
- * MessageController implements the CRUD actions for CalcMessage model.
+ * MessageController implements the CRUD actions for Message model.
  */
 class MessageController extends Controller
 {
     public function behaviors()
     {
+        $rules = ['index','view','create','update','response','upload','send','ajaxgroup'];
         return [
         'access' => [
-                'class' => AccessControl::className(),
-                'only' => ['index','view','create','update','delete','response','upload','send','ajaxgroup'],
+                'class' => AccessControl::class,
+                'only' => $rules,
                 'rules' => [
                     [
-                        'actions' => ['index','view','create','update','delete','response','upload','send','ajaxgroup'],
+                        'actions' => array_merge($rules, ['delete']),
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index','view','create','update','response','upload','send','ajaxgroup'],
+                        'actions' => $rules,
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -46,11 +47,11 @@ class MessageController extends Controller
             ],
 
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
-                    'delete' => ['post'],
+                    'delete'    => ['post'],
                     'ajaxgroup' => ['post'],
-                    'ajaxmess' => ['post'],
+                    'ajaxmess'  => ['post'],
                 ],
             ],
         ];
@@ -116,7 +117,7 @@ class MessageController extends Controller
     }
 
     /**
-     * Displays a single CalcMessage model.
+     * Displays a single Message model.
      * @param integer $id
      * @return mixed
      */
@@ -127,7 +128,7 @@ class MessageController extends Controller
             throw new NotFoundHttpException(Yii::t('yii', 'The requested page does not exist.'));
         }
         if (
-            (int)$message['sender_id'] === (int)Yii::$app->session->get('user.uid')
+            in_array((int)Yii::$app->user->identity->id, [$message['sender_id'], $message['reciever_id']])
             || (int)Yii::$app->session->get('user.ustatus') === 3
         ) {
             return $this->render('view', [
@@ -141,8 +142,7 @@ class MessageController extends Controller
 
     public function actionCreate()
     {
-        $permitted_types = [1=>1, 2=>2, 3=>3, 4=>4, 5=>5, 6=>12, 7=>13];
-        $types = Message::getMessageDirectionsArray($permitted_types);
+        $types = Message::getMessageDirectionsArray(Message::MESSAGE_ENABLED_TYPES);
         $model = new Message();
         if ($model->load(Yii::$app->request->post())) {
             $model->longmess = 0;
@@ -170,11 +170,10 @@ class MessageController extends Controller
     {
         $model = $this->findModel($id);
         if (
-            (int)$model->user === (int)Yii::$app->session->get('user.uid')
+            (int)$model->user === (int)Yii::$app->user->identity->id
             || (int)Yii::$app->session->get('user.ustatus') === 3
         ) {
-            $permitted_types = [1=>1, 2=>2, 3=>3, 4=>4, 5=>5, 6=>12, 7=>13];
-            $types = Message::getMessageDirectionsArray($permitted_types);
+            $types = Message::getMessageDirectionsArray(Message::MESSAGE_ENABLED_TYPES);
 
             if ($model->load(Yii::$app->request->post())) {
                 if ($model->save()) {
