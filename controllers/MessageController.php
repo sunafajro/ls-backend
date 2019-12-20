@@ -327,7 +327,7 @@ class MessageController extends Controller
         $userRoleId = (int)Yii::$app->session->get('user.ustatus');
         $message    = $this->findModel($id);
     
-        if (((int)$message['user'] === (int)$userId || $userRoleId === 3) && (int)$message->send === 0) {
+        if (((int)$message['user'] === $userId || $userRoleId === 3) && (int)$message->send === 0) {
             $condition = [
                 'calc_message' => $message->id,
                 'user'         => 0,
@@ -335,13 +335,13 @@ class MessageController extends Controller
                 'data'         => date('Y-m-d H:i:s'),
                 'send'         => 1
             ];
-            if (in_array($message->calc_messwhomtype, [5, 13])){
+            if (in_array($message->calc_messwhomtype, [5, 13])) {
                 $condition['user'] = $message->refinement_id;
                 $report = (new \yii\db\Query())
                 ->createCommand()
                 ->insert('calc_messreport', $condition)
                 ->execute();
-            } else {
+            } else if (in_array($message->calc_messwhomtype, [1, 2, 3, 4])) {
                 $recievers = [];
                 $query = (new \yii\db\Query())
                 ->select('id as id')
@@ -359,7 +359,7 @@ class MessageController extends Controller
                         ->andWhere(['t.visible' => 1]);
                         break;
                 }
-                $recievers = $query = $query->all();
+                $recievers = $query->all();
                 if (!empty($recievers)) {
                     foreach ($recievers as $r) {
                         $condition['user'] = $r['id'];
