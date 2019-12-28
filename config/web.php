@@ -69,10 +69,10 @@ $config = [
     'params' => $params,
 ];
 
-if (YII_ENV_DEV) {
+if (YII_ENV === 'dev') {
     $config['bootstrap'][] = 'debug';
     $config['modules']['debug']['class'] = 'yii\debug\Module';
-    $config['modules']['debug']['allowedIPs'] = ['127.0.0.1','::1'];
+    $config['modules']['debug']['allowedIPs'] = ['*'];
 }
 
 if (file_exists(__DIR__ . '/local/web.php')) {
