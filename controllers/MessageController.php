@@ -5,6 +5,7 @@ namespace app\controllers;
 use Yii;
 use app\models\Message;
 use app\models\Student;
+use app\models\Teacher;
 use app\models\UploadForm;
 use app\models\User;
 use yii\filters\AccessControl;
@@ -344,18 +345,18 @@ class MessageController extends Controller
             } else if (in_array($message->calc_messwhomtype, [1, 2, 3, 4])) {
                 $recievers = [];
                 $query = (new \yii\db\Query())
-                ->select('id as id')
+                ->select(['id' => 'u.id'])
                 ->from(['u' => User::tableName()])
                 ->where(['u.visible' => 1]);
                 switch($message->calc_messwhomtype) {
                     case 2:
-                        $query = $query->andWhere(['status' => 3]);
+                        $query = $query->andWhere(['u.status' => 3]);
                         break;
                    case 3:
-                        $query = $query->andWhere(['status' => 4]);
+                        $query = $query->andWhere(['u.status' => 4]);
                         break;
                    case 4:
-                        $query = $query->innerJoin('calc_teacher t', 't.id = u.calc_teacher')
+                        $query = $query->innerJoin(['t' => Teacher::tableName()], 't.id = u.calc_teacher')
                         ->andWhere(['t.visible' => 1]);
                         break;
                 }

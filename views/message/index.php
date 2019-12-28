@@ -178,7 +178,7 @@ ksort($months);
                         <?= (int)$message['sended'] ===0 ? Html::a('', ['message/update', 'id' => $message['id']], ['class' => 'glyphicon glyphicon-pencil', 'title' => Yii::t('app', 'Edit')]) . ' ' : '' ?>
                         <?= (int)$message['sended'] ===0 ? Html::a('', ['message/upload', 'id' => $message['id']], ['class' => 'glyphicon glyphicon-picture', 'title' => Yii::t('app', 'Add image')]) . ' ' : '' ?>
                         <?= (int)$message['sended'] ===0 ? Html::a('', ['message/send', 'id' => $message['id']], ['class' => 'glyphicon glyphicon-envelope', 'title' => Yii::t('app', 'Send')]) . ' ' : '' ?>
-                        <?= (int)$message['sended'] ===0 ? Html::a('', ['message/disable', 'id' => $message['id']], ['class' => 'glyphicon glyphicon-trash', 'title' => Yii::t('app', 'Delete')]) . ' ' : '' ?>
+                        <?= (int)$message['sended'] ===0 ? Html::a('', ['message/delete', 'id' => $message['id']], ['class' => 'glyphicon glyphicon-trash', 'data-method' => 'post', 'title' => Yii::t('app', 'Delete')]) . ' ' : '' ?>
                         <?php } ?>
                     </td>
                 </tr>
