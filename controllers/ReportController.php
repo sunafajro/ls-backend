@@ -1053,6 +1053,9 @@ class ReportController extends Controller
         $params = Yii::$app->request->queryParams;
         $params['start'] = $start;
         $params['end']   = $end;
+        if ($roleId === 4) {
+            $params['StudentCommissionSearch']['officeId'] = (int)Yii::$app->session->get('user.uoffice_id');
+        }
 
         return $this->render('commissions', [
             'actionUrl'     => array_merge(['report/commissions'], $params),

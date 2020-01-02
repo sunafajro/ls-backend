@@ -106,7 +106,8 @@ $this->params['breadcrumbs'][] = Yii::t('app','Commissions');
                     'label' => Yii::t('app', 'Office'),
                     'value' => function (array $model) use ($offices) {
                         return $offices[$model['officeId']] ?? $model['officeId'];
-                    } 
+                    },
+                    'visible' => in_array((int)Yii::$app->session->get('user.ustatus'), [3, 8]),
                 ],
             ],
         ])?>
