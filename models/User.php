@@ -14,14 +14,16 @@ use yii\helpers\Html;
  * @property integer $id
  * @property integer $site
  * @property integer $visible
- * @property string $login
- * @property string $pass
- * @property string $name
+ * @property string  $login
+ * @property string  $pass
+ * @property string  $name
  * @property integer $status
  * @property integer $calc_office
  * @property integer $calc_teacher
  * @property integer $calc_city
- * @property string $logo
+ * @property string  $logo
+ *
+ * @property Office $office
  */
 class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 {
@@ -152,6 +154,11 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     public function validateAuthKey($authKey)
     {
         return $this->getAuthKey() === $authKey;
+    }
+
+    public function getOffice()
+    {
+        return $this->hasOne(Office::class, ['id' => 'calc_office']);
     }
     
     /**

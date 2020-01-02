@@ -1,5 +1,6 @@
 <?php
 
+use app\models\Student;
 use app\models\StudentCommission;
 use kartik\datetime\DateTimePicker;
 use yii\helpers\Html;
@@ -9,8 +10,9 @@ use yii\widgets\ActiveForm;
 /**
  * @var View              $this
  * @var StudentCommission $model
- * @var ActiveForm            $form
- * @var app\models\Student    $student
+ * @var ActiveForm        $form
+ * @var Student           $student
+ * @var array             $offices
  */
 ?>
 <div class="payment-form">
@@ -31,6 +33,9 @@ use yii\widgets\ActiveForm;
     <?= $form->field($model, 'percent')->textInput() ?>
     <?= $form->field($model, 'value')->textInput() ?>
     <?= $form->field($model, 'comment')->textArea() ?>
+    <?php if ((int)Yii::$app->session->get('user.ustatus') !== 4) { ?>
+        <?= $form->field($model, 'office_id')->dropDownList($offices, ['prompt' => Yii::t('app','-select-'), 'style' => 'font-family: FontAwesome, sans-serif']) ?>
+    <?php } ?>
     <div class="form-group">
         <?= Html::submitButton(Yii::t('app', 'Create'), ['class' => 'btn btn-success']) ?>
     </div>

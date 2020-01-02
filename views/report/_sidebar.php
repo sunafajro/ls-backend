@@ -1,23 +1,26 @@
 <?php
-/**
- * @var yii\web\View           $this
- * @var yii\widgets\ActiveForm $form
- * @var array                  $actionUrl
- * @var string                 $end
- * @var array                  $hints
- * @var array                  $offices
- * @var string                 $oid
- * @var array                  $reportList
- * @var string                 $start
- * @var array                  $teachers
- * @var string                 $tid
- * @var string                 $userInfoBlock
- */
 
 use Yii;
 use yii\helpers\Html;
+use yii\helpers\Url;
+use yii\web\View;
 use yii\widgets\ActiveForm;
 use kartik\datetime\DateTimePicker;
+
+/**
+ * @var View       $this
+ * @var ActiveForm $form
+ * @var array      $actionUrl
+ * @var string     $end
+ * @var array      $hints
+ * @var array      $offices
+ * @var string     $oid
+ * @var array      $reportList
+ * @var string     $start
+ * @var array      $teachers
+ * @var string     $tid
+ * @var string     $userInfoBlock
+ */
 ?>
 <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
     <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
@@ -34,33 +37,28 @@ use kartik\datetime\DateTimePicker;
         </ul>            
     </div>
     <?php } ?>
-    <?php if (!empty($hints)) { ?>
-        <h4><?= Yii::t('app', 'Подсказки') ?></h4>
-        <div class="text-muted" style="margin-bottom: 20px">
-            <?php foreach ($hints as $hint) { ?>
-                <i><?= $hint ?></i>
-            <?php } ?>
-        </div>
-    <?php } ?>
     <h4><?= Yii::t('app', 'Filters') ?></h4>
     <?php 
         $form = ActiveForm::begin([
             'method' => 'get',
-            'action' => $actionUrl,
+            'action' => Url::to($actionUrl),
         ]);
     ?>
     <div class="form-group">
         <b>Начало периода:</b>
         <?= DateTimePicker::widget([
             'name' => 'start',
+            'options' => [
+                'autocomplete' => 'off',
+            ],
             'pluginOptions' => [
                 'language' => 'ru',
-                    'format' => 'yyyy-mm-dd',
-                    'todayHighlight' => true,
-                    'minView' => 2,
-                    'maxView' => 4,
-                    'weekStart' => 1,
-                    'autoclose' => true,
+                'format' => 'yyyy-mm-dd',
+                'todayHighlight' => true,
+                'minView' => 2,
+                'maxView' => 4,
+                'weekStart' => 1,
+                'autoclose' => true,
             ],
             'type' => DateTimePicker::TYPE_INPUT,
             'value' => $start,
@@ -70,14 +68,18 @@ use kartik\datetime\DateTimePicker;
         <b>Конец периода:</b>
         <?= DateTimePicker::widget([
             'name' => 'end',
+            'options' => [
+                'autocomplete' => 'off',
+            ],
             'pluginOptions' => [
                 'language' => 'ru',
-                    'format' => 'yyyy-mm-dd',
-                    'todayHighlight' => true,
-                    'minView' => 2,
-                    'maxView' => 4,
-                    'weekStart' => 1,
-                    'autoclose' => true,
+                'format' => 'yyyy-mm-dd',
+                'todayHighlight' => true,
+                'minView' => 2,
+                'maxView' => 4,
+                'weekStart' => 1,
+                'autoclose' => true,
+                'autocomplete' => 'off',
             ],
             'type' => DateTimePicker::TYPE_INPUT,
             'value' => $end,
@@ -113,4 +115,12 @@ use kartik\datetime\DateTimePicker;
         <?= Html::submitButton('<span class="fa fa-filter" aria-hidden="true"></span> ' . Yii::t('app', 'Apply'), ['class' => 'btn btn-info btn-sm btn-block']) ?>
     </div>
     <?php ActiveForm::end(); ?>
+    <?php if (!empty($hints)) { ?>
+        <h4><?= Yii::t('app', 'Подсказки') ?></h4>
+        <div class="text-muted" style="margin-bottom: 20px">
+            <?php foreach ($hints as $hint) { ?>
+                <p><i><?= $hint ?></i></p>
+            <?php } ?>
+        </div>
+    <?php } ?>
 </div>

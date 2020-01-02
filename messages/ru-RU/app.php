@@ -167,6 +167,7 @@ return array(
     'Create translation norm' => 'Создать норму оплаты перевода',
     'Create translator' => 'Создать переводчика',
     'Created at' => 'Дата создания',
+    'Created by' => 'Создано кем',
     'Current members of the lesson' => 'Текущий состав занятия',
     'Current students of the group' => 'Текущие студенты в группе',
     'Current teachers of the group' => 'Текущие преподаватели группы',

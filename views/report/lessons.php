@@ -1,43 +1,40 @@
 <?php
 
-/**
- * @var app\models\Journalgroup     $searchModel
- * @var yii\data\ActiveDataProvider $dataProvider
- * @var yii\web\View                $this
- * @var array                       $reportlist
- * @var string                      $userInfoBlock
- */
-
-use yii\helpers\Html;
+use app\models\Journalgroup;
 use app\widgets\Alert;
-use yii\widgets\Breadcrumbs;
+use Yii;
+use yii\data\ActiveDataProvider;
 use yii\grid\GridView;
+use yii\helpers\Html;
+use yii\web\View;
+use yii\widgets\Breadcrumbs;
+
+/**
+ * @var View               $this 
+ * @var Journalgroup       $searchModel
+ * @var ActiveDataProvider $dataProvider
+ * @var string             $actionUrl
+ * @var array              $reportList
+ * @var string             $userInfoBlock
+ */
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Lessons report');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Reports'), 'url' => ['report/index']];
 $this->params['breadcrumbs'][] = Yii::t('app', 'Lessons report');
 ?>
 <div class="row row-offcanvas row-offcanvas-left report-lessons">
-    <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
-		<?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
-            <div id="main-menu"></div>
-        <?php } ?>	
-        <?= $userInfoBlock ?>
-        <?php if(!empty($reportlist)) { ?>
-            <div class="dropdown">
-			    <?= Html::button('<span class="fa fa-list-alt" aria-hidden="true"></span> ' . Yii::t('app', 'Reports') . ' <span class="caret"></span>', ['class' => 'btn btn-default dropdown-toggle btn-sm btn-block', 'type' => 'button', 'id' => 'dropdownMenu', 'data-toggle' => 'dropdown', 'aria-haspopup' => 'true', 'aria-expanded' => 'true']) ?>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenu">
-                    <?php foreach($reportlist as $key => $value) { ?>
-                        <li><?= Html::a($key, $value, ['class'=>'dropdown-item']) ?></li>
-                    <?php } ?>
-			    </ul>            
-		    </div>
-        <?php } ?>
-        <ul style="margin-top: 1rem">
-            <li>Столбец Группа поддерживает фильтрацию как по названию группы так и по её номеру.</li>
-            <li>Столбец Комментарии отображает только студентов присутствовавших на занятии.</li>
-		</ul>
-    </div>
+    <?= $this->render('_sidebar', [
+            'actionUrl'     => $actionUrl,
+            'end'           => $end ?? '',
+            'hints'         => [
+                'Столбец Группа поддерживает фильтрацию как по названию группы так и по её номеру.',
+                'Столбец Комментарии отображает только студентов присутствовавших на занятии.',
+                'При фильтрации по столбцу Дата, фильтр по периоду игнорируется.'
+            ],
+            'reportList'    => $reportList ?? [],
+            'start'         => $start ?? '',
+            'userInfoBlock' => $userInfoBlock ?? '',
+    ]) ?>
     <div class="col-sm-10">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
         <?= Breadcrumbs::widget([

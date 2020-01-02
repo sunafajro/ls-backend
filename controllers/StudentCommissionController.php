@@ -53,7 +53,8 @@ class StudentCommissionController extends Controller
      */
     public function actionCreate(int $sid)
     {
-        if (!in_array(Yii::$app->session->get('user.ustatus'), [3, 4])) {
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        if (!in_array($roleId, [3, 4])) {
             throw new ForbiddenHttpException('Access denied');
         }
         $student = Student::findOne($sid);
@@ -69,6 +70,9 @@ class StudentCommissionController extends Controller
         ]);
         if ($request->isPost && $model->load($request->post())) {
             $model->student_id = $sid;
+            if ($roleId === 4) {
+                $model->office_id = Yii::$app->session->get('user.uoffice_id');
+            }
             if ($model->save()) {
                 if ($student->updateInvMonDebt()) {
                     Yii::$app->session->setFlash('success', 'Комиссия успешно добавлена.');
