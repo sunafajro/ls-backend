@@ -66,10 +66,16 @@ class LessonSearch extends Journalgroup
             'l.visible' => 1,
         ])
         ->andFilterWhere(['l.id' => $this->id])
-        ->andFilterWhere(['like', 'DATE_FORMAT(l.data, "%d.%m.%Y")', $this->date])
         ->andFilterWhere(['like', 't.name', $this->teacherName])
         ->andFilterWhere(['g.id' => $groupId])
         ->andFilterWhere(['like', 's.name', $groupName]);
+
+        if ($this->date) {
+            $query->andFilterWhere(['like', 'DATE_FORMAT(l.data, "%d.%m.%Y")', $this->date]);
+        } else if ($params['end'] && $params['start']) {
+            $query->andFilterWhere(['>=', 'l.data', $params['start']]);
+            $query->andFilterWhere(['<=', 'l.data', $params['end']]);
+        }
         
         return new ActiveDataProvider([
             'query' => $query,
@@ -82,8 +88,6 @@ class LessonSearch extends Journalgroup
                     'date',
                     'teacherName',
                     'groupName',
-                    'subject',
-                    'hometask',
                 ],
                 'defaultOrder' => [
                     'date' => SORT_DESC

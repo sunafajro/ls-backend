@@ -19,91 +19,100 @@ class Report extends Model
 
     public static function getReportTypes()
     {
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
         $items = [];
-        if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 8) {
+        if (in_array($roleId, [3, 8])) {
             $items[] = [
                 'id' => 'common',
                 'label' => Yii::t('app','Common'),
                 'url' => '/report/common'
             ];
         }
-        if ((int)Yii::$app->session->get('user.ustatus') === 3) {
+        if (in_array($roleId, [3])) {
             $items[] = [
                 'id' => 'margin',
                 'label' => Yii::t('app','Margin'),
                 'url' => '/report/margin'
             ];
         }
-        if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4 || (int)Yii::$app->session->get('user.ustatus') === 8) {
+        if (in_array($roleId, [3, 4, 8])) {
             $items[] = [
                 'id' => 'payments',
                 'label' => Yii::t('app','Payments'),
                 'url' => '/report/payments'
             ];
         }
-        if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4) {
+        if (in_array($roleId, [3, 4])) {
             $items[] = [
                 'id' => 'invoices',
                 'label' => Yii::t('app','Invoices'),
                 'url' => '/report/invoices'
             ];
         }
-        if ((int)Yii::$app->session->get('user.ustatus') === 3) {
+        if (in_array($roleId, [3])) {
             $items[] = [
                 'id' => 'sales',
                 'label' => Yii::t('app','Sales'),
                 'url' => '/report/sale'
             ];
         }
-        if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4) {
+        if (in_array($roleId, [3, 4])) {
             $items[] = [
                 'id' => 'debts',
                 'label' => Yii::t('app','Debts'),
                 'url' => '/report/debt'
             ];
         }
-        if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4) {
+        if (in_array($roleId, [3, 4])) {
             $items[] = [
                 'id' => 'journals',
                 'label' => Yii::t('app','Journals'),
                 'url' => '/report/journals'
             ];
         }
-        if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 8) {
+        if (in_array($roleId, [3, 8])) {
             $items[] = [
                 'id' => 'accruals',
                 'label' => Yii::t('app','Accruals'),
                 'url' => '/report/accrual'
             ];
         }
-        if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 8) {
+        if (in_array($roleId, [3, 8])) {
             $items[] = [
                 'id' => 'salaries',
                 'label' => Yii::t('app','Salaries'),
                 'url' => '/report/salaries'
             ];
         }
-        if ((int)Yii::$app->session->get('user.ustatus') === 3) {
+        if (in_array($roleId, [3])) {
             $items[] = [
                 'id' => 'plan',
                 'label' => Yii::t('app','Office plan'),
                 'url' => '/report/plan'
             ];
         }
-        if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4 || (int)Yii::$app->session->get('user.ustatus') === 6) {
+        if (in_array($roleId, [3, 4, 6])) {
             $items[] = [
                 'id' => 'lessons',
                 'label' => Yii::t('app','Lessons'),
                 'url' => '/report/lessons'
             ];
         }
-        if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4 || (int)Yii::$app->session->get('user.ustatus') === 6) {
+        if (in_array($roleId, [3, 4, 6])) {
             $items[] = [
                 'id' => 'teacher-hours',
                 'label' => Yii::t('app','Teacher hours'),
                 'url' => '/report/teacher-hours'
             ];
         }
+        if (in_array($roleId, [3, 4, 8])) {
+            $items[] = [
+                'id' => 'commissions',
+                'label' => Yii::t('app','Commissions'),
+                'url' => '/report/commissions'
+            ];
+        }
+
         return $items;
     }
     /**

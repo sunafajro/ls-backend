@@ -11,6 +11,7 @@ use app\models\Report;
 use app\models\Sale;
 use app\models\Schedule;
 use app\models\Student;
+use app\models\search\StudentCommissionSearch;
 use app\models\Teacher;
 use app\models\Tool;
 use app\models\User;
@@ -39,6 +40,7 @@ class ReportController extends Controller
             'sale',
             'salaries',
             'teacher-hours',
+            'commissions'
         ];
         return [
             'access' => [
@@ -999,16 +1001,70 @@ class ReportController extends Controller
         ]);
     }
 
-    public function actionLessons()
+    /**
+     * @param string $end
+     * @param string $start
+     * 
+     * @return mixed
+     */
+    public function actionLessons(string $end = '', string $start = '')
     {
-        if ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4 && (int)Yii::$app->session->get('user.ustatus') !== 6) {            
-            return $this->redirect(Yii::$app->request->referrer);
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        if (!in_array($roleId, [3, 4, 6])) {            
+            throw new ForbiddenHttpException('Доступ ограничен.');
+        }
+        if (!($start && $end)) {
+            $start = date("Y-m-d", strtotime('monday this week'));
+            $end   = date("Y-m-d", strtotime('sunday this week'));
         }
         $searchModel = new LessonSearch();
+        $params = Yii::$app->request->queryParams;
+        $params['start'] = $start;
+        $params['end']   = $end;
+
         return $this->render('lessons', [
-            'dataProvider'  => $searchModel->search(Yii::$app->request->queryParams),
-            'reportlist'    => Report::getReportTypeList(),
+            'actionUrl'     => array_merge(['report/lessons'], $params),
+            'dataProvider'  => $searchModel->search($params),
+            'end'           => $end,
+            'reportList'    => Report::getReportTypeList(),
             'searchModel'   => $searchModel,
+            'start'         => $start,
+            'userInfoBlock' => User::getUserInfoBlock(),
+        ]);
+    }
+
+    /**
+     * @param string $end
+     * @param string $start
+     * 
+     * @return mixed
+     */
+    public function actionCommissions(string $end = '', string $start = '')
+    {
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        if (!in_array($roleId, [3, 4, 8])) {            
+            throw new ForbiddenHttpException('Доступ ограничен.');
+        }
+        if (!($start && $end)) {
+            $start = date("Y-m-d", strtotime('monday this week'));
+            $end   = date("Y-m-d", strtotime('sunday this week'));
+        }
+        $searchModel = new StudentCommissionSearch();
+        $params = Yii::$app->request->queryParams;
+        $params['start'] = $start;
+        $params['end']   = $end;
+        if ($roleId === 4) {
+            $params['StudentCommissionSearch']['officeId'] = (int)Yii::$app->session->get('user.uoffice_id');
+        }
+
+        return $this->render('commissions', [
+            'actionUrl'     => array_merge(['report/commissions'], $params),
+            'dataProvider'  => $searchModel->search($params),
+            'end'           => $end,
+            'offices'       => Office::getOfficeInScheduleListSimple(),
+            'reportList'    => Report::getReportTypeList(),
+            'searchModel'   => $searchModel,
+            'start'         => $start,
             'userInfoBlock' => User::getUserInfoBlock(),
         ]);
     }

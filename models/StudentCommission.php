@@ -17,9 +17,11 @@ use Yii;
  * @property string  $comment
  * @property integer $visible
  * @property integer $user_id
+ * @property integer $office_id
  * @property string  $created_at
  * 
  * @property Student $student
+ * @property User    $user
  */
 
 class StudentCommission extends \yii\db\ActiveRecord
@@ -42,10 +44,10 @@ class StudentCommission extends \yii\db\ActiveRecord
     public function rules() : array
     {
         return [
-            [['date', 'debt', 'percent', 'value', 'student_id'], 'required'],
+            [['date', 'debt', 'percent', 'value', 'student_id', 'office_id', 'comment'], 'required'],
             [['comment'], 'string'],
             [['debt', 'percent', 'value'], 'number'],
-            [['visible', 'user_id', 'student_id'], 'integer'],
+            [['visible', 'user_id', 'student_id', 'office_id'], 'integer'],
             [['date', 'created_at'], 'safe'],
             [['visible'],    'default', 'value' => 1],
             [['user_id'],    'default', 'value' => Yii::$app->user->identity->id ?? 0],
@@ -64,6 +66,7 @@ class StudentCommission extends \yii\db\ActiveRecord
             'visible'    => Yii::t('app', 'Visible'),
             'date'       => Yii::t('app', 'Commission date'),
             'user_id'    => Yii::t('app', 'Created by'),
+            'office_id'  => Yii::t('app', 'Office'),
             'created_at' => Yii::t('app', 'Created date'),
             'debt'       => Yii::t('app', 'Debt'),
             'percent'    => Yii::t('app', 'Commission percent'),
@@ -84,6 +87,11 @@ class StudentCommission extends \yii\db\ActiveRecord
         return $this->hasOne(Student::class, ['id' => 'student_id']);
     }
 
+    public function getUser()
+    {
+        return $this->hasOne(User::class, ['id' => 'user_id']);
+    }
+
     public static function getStudentCommissionById(int $sid) : array
     {
         return (new \yii\db\Query())
@@ -99,7 +107,7 @@ class StudentCommission extends \yii\db\ActiveRecord
             ])
             ->from(['c' => self::tableName()])
             ->innerJoin(['u' => User::tableName()], 'u.id = c.user_id')
-            ->leftJoin(['o'  => Office::tableName()], 'o.id = u.calc_office')
+            ->innerJoin(['o' => Office::tableName()], 'o.id = c.office_id')
             ->where([
                 'c.student_id' => $sid,
                 'c.visible' => 1,
