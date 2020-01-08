@@ -1,28 +1,27 @@
 <?php
 
+use app\models\StudentGrade;
+use yii\helpers\Html;
+use yii\helpers\Url;
+use yii\web\View;
+
 /**
- * @var yii\web\View $this
+ * @var View  $this
  * @var array $attestation
  * @var array $contentTypes
  * @var array $exams
  */
 
-use Yii;
-use yii\helpers\Html;
-use yii\helpers\Url;
 $contents = [];
 if ($attestation['contents']) {
-  $json = json_decode($attestation['contents']);
-  foreach($json ?? [] as $key => $value) {
-    $contents[] = ($contentTypes[$key] ?? $key) . ': ' . $value;
-  }
+  $contents = json_decode($attestation['contents'], true);
 }
 ?>
 <div class="body">
 <div class="outer-block">
       <div class="header-block">
         <div class="logo-block">
-          <?= Html::img(Url::to('./uploads/yazyk_uspekha_logo_1.png'), ['class' => 'logo']) ?>
+          <?= Html::img(Url::to('./uploads/yazyk_uspekha_logo_2.png'), ['class' => 'logo']) ?>
         </div>
         <div class="title-block">
           <div>
@@ -45,24 +44,17 @@ if ($attestation['contents']) {
       <div class="text-result-block">
           <?= $attestation['studentName'] ?>
       </div>
-      <div class="text-description-block">
-          сдал
-      </div>
-      <div class="text-result-block">
-          <?= $exams[$attestation['description']] ?? $attestation['description'] ?>
-      </div>
-      <div class="text-description-block">
-          с результатом
-      </div>
-      <div class="text-result-block">
-          <?= implode(', ', $contents); ?>
-      </div>
-      <div class="text-description-block">
-          итог/уровень
-      </div>
-      <div class="text-result-block">
-          <?= $attestation['score'] ?>
-      </div>
+      <?php
+          $fileName = 'default';
+          if (in_array($attestation['description'], [StudentGrade::EXAM_TEXT_BOOK_FINAL, StudentGrade::EXAM_OLYMPIAD, StudentGrade::EXAM_DICTATION])) {
+              $fileName = $attestation['description'];
+          }
+          echo $this->render("viewPdf/_{$fileName}", [
+              'attestation' => $attestation,
+              'contents'    => $contents,
+              'exams'       => $exams,
+          ]);   
+      ?>
       <div class="sign-block">
         <div class="left-sign-block">
             Директор   
