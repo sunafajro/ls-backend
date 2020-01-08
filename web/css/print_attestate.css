@@ -20,15 +20,18 @@
     border-radius: 2mm;
 }
 .logo {
-    margin: 1mm 0 0 1m;
-    width: 80mm;
+    width: 20mm;
 }
 .logo-block {
+    margin: 2mm;
+    padding: 2mm;
     float: left;
-    width: 80mm;
+    width: 20mm;
+    background-color: #ffffff;
+    border-radius: 2mm;
 }
 .title-block {
-    padding-top: 7mm;
+    padding-top: 3mm;
 }
 .reginfo {
     margin: 0 0 5mm 5mm;
@@ -39,12 +42,30 @@
     font-size: 16pt;
     height: 5mm;
 }
+.text-description-block-slim {
+    margin: 0 5mm 2mm 5mm;
+    font-size: 16pt;
+    height: 5mm;
+}
 .text-result-block {
     margin: 0 5mm 5mm 5mm;
     font-size: 16pt;
     text-align: center;
     font-style: italic;
     border-bottom: 1px solid #999999;
+}
+.text-result-block-slim {
+    margin: 0 5mm 2mm 5mm;
+    font-size: 16pt;
+    text-align: center;
+    font-style: italic;
+    border-bottom: 1px solid #999999;
+}
+.empty-block-10 {
+    height: 10mm;
+}
+.empty-block-20 {
+    height: 20mm;
 }
 .sign-block {
     margin: 0 5mm 5mm 5mm;

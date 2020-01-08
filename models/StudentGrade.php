@@ -12,25 +12,30 @@ use yii\data\ActiveDataProvider;
  *
  * @property integer $id
  * @property integer $visible
- * @property string $date
+ * @property string  $date
  * @property integer $user
- * @property string $score
+ * @property string  $score
  * @property integer $type
- * @property string $contents
- * @property string $description
+ * @property string  $contents
+ * @property string  $description
  * @property integer $calc_studname
  */
 
 class StudentGrade extends \yii\db\ActiveRecord
 {
     use StudentMergeTrait;
+
+    const EXAM_TYPE_DEFAULT     = 0;
     
-    const EXAM_YLE_STARTERS = 'yleStarters';
-    const EXAM_YLE_MOVERS   = 'yleMovers';
-    const EXAM_YLE_FLYERS   = 'yleFlyers';
-    const EXAM_KET_A2       = 'ketA2';
-    const EXAM_PET_B1       = 'petB1';
-    const EXAM_FCE_B2       = 'fceB2';
+    const EXAM_YLE_STARTERS    = 'yleStarters';
+    const EXAM_YLE_MOVERS      = 'yleMovers';
+    const EXAM_YLE_FLYERS      = 'yleFlyers';
+    const EXAM_KET_A2          = 'ketA2';
+    const EXAM_PET_B1          = 'petB1';
+    const EXAM_FCE_B2          = 'fceB2';
+    const EXAM_TEXT_BOOK_FINAL = 'text_book_final';
+    const EXAM_OLYMPIAD        = 'olympiad';
+    const EXAM_DICTATION       = 'dictation';
 
     const EXAM_CONTENT_LISTENING           = 'listening';
     const EXAM_CONTENT_READING_AND_WRITING = 'readingAndWriting';
@@ -38,6 +43,13 @@ class StudentGrade extends \yii\db\ActiveRecord
     const EXAM_CONTENT_READING             = 'reading';
     const EXAM_CONTENT_USE_OF_ENGLISH      = 'useOfEnglish';
     const EXAM_CONTENT_WRITING             = 'writing';
+    
+    const EXAM_CONTENT_WROTE_AN           = 'wroteAn';
+    const EXAM_CONTENT_TOOK_PART_IN       = 'tookPartIn';
+    const EXAM_CONTENT_BECAME_WHO         = 'becameWho';
+    const EXAM_CONTENT_TOOK_THE_COURSE    = 'tookTheCourse';
+    const EXAM_CONTENT_ACCORDING_TO_BOOK  = 'according_to_book';
+    const EXAM_CONTENT_COURSE_HOURS_COUNT = 'course_hours_count';
 
     /**
      * @inheritdoc
@@ -47,6 +59,11 @@ class StudentGrade extends \yii\db\ActiveRecord
         return 'student_grades';
     }
 
+    /**
+     * @deprecated
+     * 
+     * @return array
+     */
     public static function getGradeTypes() : array
     {
         return [
@@ -55,24 +72,42 @@ class StudentGrade extends \yii\db\ActiveRecord
         ];
     }
 
+    /**
+     * Возвращает список типов экзаменов
+     * @return array
+     */
     public static function getExams() : array
     {
         return [
-            self::EXAM_YLE_STARTERS => 'YLE starters',
-            self::EXAM_YLE_MOVERS   => 'YLE movers',
-            self::EXAM_YLE_FLYERS   => 'YLE flyers',
-            self::EXAM_KET_A2       => 'KET - A2',
-            self::EXAM_PET_B1       => 'PET - B1',
-            self::EXAM_FCE_B2       => 'FCE - B2',
+            self::EXAM_YLE_STARTERS    => 'YLE starters',
+            self::EXAM_YLE_MOVERS      => 'YLE movers',
+            self::EXAM_YLE_FLYERS      => 'YLE flyers',
+            self::EXAM_KET_A2          => 'KET - A2',
+            self::EXAM_PET_B1          => 'PET - B1',
+            self::EXAM_FCE_B2          => 'FCE - B2',
+            self::EXAM_TEXT_BOOK_FINAL => 'Итоговый тест по учебнику',
+            self::EXAM_OLYMPIAD        => 'Олимпиада',
+            self::EXAM_DICTATION       => 'Тотальный диктант',
         ];
     }
 
+    /**
+     * Возвращает название поля из содержимого экзамена
+     * @param string $type
+     * 
+     * @return string
+     */
     public static function getExamContentType(string $type) : string
     {
         $exams = self::getExamContentTypes();
         return $exams[$type] ?? '';
     }
 
+    /**
+     * Возвращает список полей с содержимым экзамена
+     * 
+     * @return array
+     */
     public static function getExamContentTypes() : array
     {
         return [
@@ -82,6 +117,13 @@ class StudentGrade extends \yii\db\ActiveRecord
             self::EXAM_CONTENT_READING              => 'Reading',
             self::EXAM_CONTENT_USE_OF_ENGLISH       => 'Use of English',
             self::EXAM_CONTENT_WRITING              => 'Writing',
+            self::EXAM_CONTENT_WROTE_AN             => 'Написал',
+            self::EXAM_CONTENT_TOOK_PART_IN         => 'Принял участие в',
+            self::EXAM_CONTENT_BECAME_WHO           => 'Стал',
+            self::EXAM_CONTENT_TOOK_THE_COURSE      => 'По прохождению курса',
+            self::EXAM_CONTENT_ACCORDING_TO_BOOK    => 'По учебнику',
+            self::EXAM_CONTENT_COURSE_HOURS_COUNT   => 'В количестве часов',
+
         ];
     }
     /**
@@ -90,9 +132,12 @@ class StudentGrade extends \yii\db\ActiveRecord
     public function rules() : array
     {
         return [
-            [['date', 'description', 'score', 'user', 'calc_studname'], 'required'],
+            [['date', 'description', 'score', 'calc_studname'], 'required'],
             [['description', 'score'], 'string'],
             [['visible', 'user', 'calc_studname', 'type'], 'integer'],
+            [['user'],    'default', 'value' => Yii::$app->user->identity->id ?? 0],
+            [['type'],    'default', 'value' => self::EXAM_TYPE_DEFAULT],
+            [['visible'], 'default', 'value' => 1],
             [['date', 'contents'], 'safe']
         ];
     }
@@ -104,31 +149,34 @@ class StudentGrade extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'visible' => Yii::t('app', 'Status'),
-            'date' => Yii::t('app', 'Grade date'),
-            'user' => Yii::t('app', 'Added by'),
-            'score' => Yii::t('app', 'Score'),
-            'type' => Yii::t('app', 'Score type'),
-            'contents' => Yii::t('app', 'Exam contents'),
-            'description' => Yii::t('app', 'Exam description'),
+            'visible'       => Yii::t('app', 'Status'),
+            'date'          => Yii::t('app', 'Grade date'),
+            'user'          => Yii::t('app', 'Added by'),
+            'score'         => Yii::t('app', 'Score'),
+            'type'          => Yii::t('app', 'Score type'),
+            'contents'      => Yii::t('app', 'Exam contents'),
+            'description'   => Yii::t('app', 'Exam description'),
             'calc_studname' => Yii::t('app', 'Student'),
         ];
     }
 
     /**
-     *  метод возвращает одну оценку по id
+     * Возвращает одну оценку по id
+     * @param int $id
+     * 
+     * @return array
      */
     public function getAttestation(int $id) : array
     {
         $attestation = (new \yii\db\Query())
         ->select([
-            'id' => 'sg.id',
-            'date' => 'sg.date',
-            'score' => 'sg.score',
-            'type' => 'sg.type',
+            'id'          => 'sg.id',
+            'date'        => 'sg.date',
+            'score'       => 'sg.score',
+            'type'        => 'sg.type',
             'description' => 'sg.description',
-            'contents' => 'sg.contents',
-            'studentId' => 'sg.calc_studname',
+            'contents'    => 'sg.contents',
+            'studentId'   => 'sg.calc_studname',
             'studentName' => 's.name',
         ])
         ->from(['sg' => 'student_grades'])
@@ -143,20 +191,23 @@ class StudentGrade extends \yii\db\ActiveRecord
     }
 
     /**
-     *  метод возвращает список оценок студента
+     * Возвращает список оценок студента
+     * @param int $id
+     * 
+     * @return ActiveDataProvider
      */
     public function getStudentGrades(int $sid) : ActiveDataProvider
     {
         $query = (new \yii\db\Query())
         ->select([
-            'id' => 'sg.id',
-            'date' => 'sg.date',
-            'userName' => 'u.name',
-            'score' => 'sg.score',
-            'type' => 'sg.type',
+            'id'          => 'sg.id',
+            'date'        => 'sg.date',
+            'userName'    => 'u.name',
+            'score'       => 'sg.score',
+            'type'        => 'sg.type',
             'description' => 'sg.description',
-            'contents' => 'sg.contents',
-            'studentId' => 'sg.calc_studname',
+            'contents'    => 'sg.contents',
+            'studentId'   => 'sg.calc_studname',
             'studentName' => 's.name',
         ])
         ->from(['sg' => static::tableName()])
@@ -183,41 +234,60 @@ class StudentGrade extends \yii\db\ActiveRecord
         ]);
     }
 
+    /**
+     * Возвращает список полей содержимого экзамена
+     * @param string $exam
+     * 
+     * @return array
+     */
     public function getExamContents(string $exam) : array
     {
         $result = [];
         switch ($exam) {
-            case StudentGrade::EXAM_YLE_STARTERS:
-            case StudentGrade::EXAM_YLE_MOVERS:
-            case StudentGrade::EXAM_YLE_FLYERS:
-            case StudentGrade::EXAM_KET_A2:
-                $result = [
-                    'contents' => [
-                        StudentGrade::EXAM_CONTENT_LISTENING => StudentGrade::getExamContentType(StudentGrade::EXAM_CONTENT_LISTENING),
-                        StudentGrade::EXAM_CONTENT_READING_AND_WRITING => StudentGrade::getExamContentType(StudentGrade::EXAM_CONTENT_READING_AND_WRITING),
-                        StudentGrade::EXAM_CONTENT_SPEAKING => StudentGrade::getExamContentType(StudentGrade::EXAM_CONTENT_SPEAKING),
-                    ],
+            case self::EXAM_YLE_STARTERS:
+            case self::EXAM_YLE_MOVERS:
+            case self::EXAM_YLE_FLYERS:
+            case self::EXAM_KET_A2:
+                $result['contents'] = [
+                        self::EXAM_CONTENT_LISTENING           => self::getExamContentType(self::EXAM_CONTENT_LISTENING),
+                        self::EXAM_CONTENT_READING_AND_WRITING => self::getExamContentType(self::EXAM_CONTENT_READING_AND_WRITING),
+                        self::EXAM_CONTENT_SPEAKING            => self::getExamContentType(self::EXAM_CONTENT_SPEAKING),
                 ];
                 break;
-            case StudentGrade::EXAM_PET_B1:
-                $result = [
-                    'contents' => [
-                        StudentGrade::EXAM_CONTENT_LISTENING => StudentGrade::getExamContentType(StudentGrade::EXAM_CONTENT_LISTENING),
-                        StudentGrade::EXAM_CONTENT_READING => StudentGrade::getExamContentType(StudentGrade::EXAM_CONTENT_READING),
-                        StudentGrade::EXAM_CONTENT_WRITING => StudentGrade::getExamContentType(StudentGrade::EXAM_CONTENT_WRITING),
-                        StudentGrade::EXAM_CONTENT_SPEAKING => StudentGrade::getExamContentType(StudentGrade::EXAM_CONTENT_SPEAKING),
-                    ]
+            case self::EXAM_PET_B1:
+                $result['contents'] = [
+                        self::EXAM_CONTENT_LISTENING => self::getExamContentType(self::EXAM_CONTENT_LISTENING),
+                        self::EXAM_CONTENT_READING   => self::getExamContentType(self::EXAM_CONTENT_READING),
+                        self::EXAM_CONTENT_WRITING   => self::getExamContentType(self::EXAM_CONTENT_WRITING),
+                        self::EXAM_CONTENT_SPEAKING  => self::getExamContentType(self::EXAM_CONTENT_SPEAKING),
                 ];
                 break;
-            case StudentGrade::EXAM_FCE_B2:
-                $result = [
-                    'contents' => [
-                        StudentGrade::EXAM_CONTENT_LISTENING => StudentGrade::getExamContentType(StudentGrade::EXAM_CONTENT_LISTENING),
-                        StudentGrade::EXAM_CONTENT_READING => StudentGrade::getExamContentType(StudentGrade::EXAM_CONTENT_READING),
-                        StudentGrade::EXAM_CONTENT_WRITING => StudentGrade::getExamContentType(StudentGrade::EXAM_CONTENT_WRITING),
-                        StudentGrade::EXAM_CONTENT_SPEAKING => StudentGrade::getExamContentType(StudentGrade::EXAM_CONTENT_SPEAKING),
-                        StudentGrade::EXAM_CONTENT_USE_OF_ENGLISH => StudentGrade::getExamContentType(StudentGrade::EXAM_CONTENT_USE_OF_ENGLISH),
-                    ]
+            case self::EXAM_FCE_B2:
+                $result['contents'] = [
+                        self::EXAM_CONTENT_LISTENING      => self::getExamContentType(self::EXAM_CONTENT_LISTENING),
+                        self::EXAM_CONTENT_READING        => self::getExamContentType(self::EXAM_CONTENT_READING),
+                        self::EXAM_CONTENT_WRITING        => self::getExamContentType(self::EXAM_CONTENT_WRITING),
+                        self::EXAM_CONTENT_SPEAKING       => self::getExamContentType(self::EXAM_CONTENT_SPEAKING),
+                        self::EXAM_CONTENT_USE_OF_ENGLISH => self::getExamContentType(self::EXAM_CONTENT_USE_OF_ENGLISH),
+                ];
+                break;
+            case self::EXAM_TEXT_BOOK_FINAL:
+                $result['contents'] = [
+                    self::EXAM_CONTENT_TOOK_THE_COURSE    => self::getExamContentType(self::EXAM_CONTENT_TOOK_THE_COURSE),
+                    self::EXAM_CONTENT_ACCORDING_TO_BOOK  => self::getExamContentType(self::EXAM_CONTENT_ACCORDING_TO_BOOK),
+                    self::EXAM_CONTENT_COURSE_HOURS_COUNT => self::getExamContentType(self::EXAM_CONTENT_COURSE_HOURS_COUNT),
+                ];
+                break;
+            case self::EXAM_OLYMPIAD:
+                $result['contents'] = [
+                    self::EXAM_CONTENT_TOOK_PART_IN => self::getExamContentType(self::EXAM_CONTENT_TOOK_PART_IN),
+                    self::EXAM_CONTENT_BECAME_WHO   => self::getExamContentType(self::EXAM_CONTENT_BECAME_WHO),
+                ];
+                break;
+            case self::EXAM_DICTATION:
+                $result['contents'] = [
+                    self::EXAM_CONTENT_WROTE_AN   => self::getExamContentType(self::EXAM_CONTENT_WROTE_AN),
+                    self::EXAM_CONTENT_BECAME_WHO => self::getExamContentType(self::EXAM_CONTENT_BECAME_WHO),
                 ];
                 break;
         }

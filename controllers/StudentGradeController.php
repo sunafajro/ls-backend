@@ -85,7 +85,6 @@ class StudentGradeController extends Controller
         $student = Student::findOne(intval($id));
         if ($student !== NULL) {
             $model->load(Yii::$app->request->post());
-            $model->user = Yii::$app->session->get('user.uid');
             $model->calc_studname = $id;
             if ($model->save()) {
                 Yii::$app->session->setFlash('success', "Аттестация успешно добавлена!");
@@ -129,7 +128,7 @@ class StudentGradeController extends Controller
                 'format'      => Pdf::FORMAT_A4,
                 'orientation' => Pdf::ORIENT_LANDSCAPE,
                 'destination' => Pdf::DEST_BROWSER, 
-                'content'     => $this->renderPartial('_viewPdf', [
+                'content'     => $this->renderPartial('viewPdf', [
                     'attestation'  => $attestation,
                     'contentTypes' => StudentGrade::getExamContentTypes(),
                     'exams'        => StudentGrade::getExams(),
