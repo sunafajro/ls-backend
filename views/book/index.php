@@ -29,6 +29,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Books');
             <div id="main-menu"></div>
         <?php } ?>
         <?= $userInfoBlock ?>
+        <?= Html::a('Учет по офисам', ['office-book/index'], ['class' => 'btn btn-sm btn-primary btn-block']) ?>
         <?= Html::tag('h4', Yii::t('app', 'Actions')) ?>
         <?php if (in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7])) {
             echo Html::a(
