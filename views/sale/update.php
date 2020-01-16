@@ -3,6 +3,7 @@
 use app\models\Sale;
 use yii\web\View;
 use app\widgets\Alert;
+use yii\widgets\Breadcrumbs;
 
 /**
  * @var View   $this
