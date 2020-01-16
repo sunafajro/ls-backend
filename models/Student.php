@@ -472,7 +472,7 @@ class Student extends ActiveRecord
                 $result['update_studname_history'] = Studnamehistory::mergeStudents($id1, $id2);
                 $result['update_offices']          = self::mergeStudents($id1, $id2, 'student_id', [], 'student_office');
                 $result['update_receipts']         = Receipt::mergeStudents($id1, $id2, 'student_id');
-                $result['update_commissions']      = StudentCommission($id1, $id2, 'student_id');
+                $result['update_commissions']      = StudentCommission::mergeStudents($id1, $id2, 'student_id');
         }
         return $result;
     }    
