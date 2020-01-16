@@ -12,6 +12,7 @@ use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
+use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 
 /**
@@ -21,18 +22,19 @@ class BookController extends Controller
 {
     public function behaviors()
     {
+        $rules = ['index', 'create', 'update', 'delete', 'office-index'];
         return [
             'access' => [
                 'class' => AccessControl::class,
-                'only' => ['index', 'create', 'update', 'delete'],
+                'only' => $rules,
                 'rules' => [
                     [
-                        'actions' => ['index', 'create', 'update', 'delete'],
+                        'actions' => $rules,
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index', 'create', 'update', 'delete'],
+                        'actions' => $rules,
                         'allow' => true,
                         'roles' => ['@'],
                     ],
