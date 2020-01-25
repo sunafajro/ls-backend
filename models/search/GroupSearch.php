@@ -70,6 +70,7 @@ class GroupSearch extends Groupteacher
             'service'    => "$st.name",
             'age'        => "$st.calc_eduage",
             'language'   => "$st.calc_lang",
+            'level'      => "$gt.calc_edulevel",
             'office'     => "$gt.calc_office",
             'visible'    => "$gt.visible",
         ]);
