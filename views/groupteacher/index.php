@@ -16,9 +16,10 @@ use yii\widgets\Breadcrumbs;
  * @var View               $this
  * @var GroupSearch        $searchModel
  * @var ActiveDataProvider $dataProvider
- * @var array              $offices
  * @var array              $ages
  * @var array              $languages
+ * @var array              $levels
+ * @var array              $offices
  * @var string             $userInfoBlock
  */
 
@@ -64,10 +65,44 @@ $roleId = (int)Yii::$app->session->get('user.ustatus');
                     }
                 ],
                 'service' => [
-                    'attribute' => 'service',
+                    'attribute'     => 'service',
+                    'format'        => 'raw',
                     'headerOptions' => ['style' => 'width: 25%'],
-                    'value' => function (array $group) {
-                        return '#' . $group['serviceId'] . ' ' . $group['service'];
+                    'value' => function (array $group) use ($levels, $roleId) {
+                        $html = [];
+                        $html[] = Html::tag('div', '#' . $group['serviceId'] . ' ' . $group['service']);
+                        $html[] = Html::beginTag('div', ['class' => 'js--item-name']);
+                        $html[] = Html::tag('b', Yii::t('app', 'Level') . ': ');
+                        $html[] = Html::tag('span', $levels[$group['level']] ?? '');
+                        if (in_array($roleId, [3,4])) {
+                            $html[] = Html::button(
+                                Html::tag('span', '', ['class' => 'fa fa-edit', 'aria-hidden' => 'true']),
+                                ['class' => 'btn btn-default btn-xs js--change-group-param', 'style' => 'margin-left: 5px']
+                            );   
+                        }
+                        $html[] = Html::endTag('div');
+                        if (in_array($roleId, [3,4])) {
+                            $html[] = Html::beginTag('div', ['class' => 'input-group js--item-list', 'style' => 'display: none']);
+                            $html[] = Html::beginTag('select', ['class' => 'form-control input-sm']);
+                            foreach ($levels as $key => $value) {
+                                $html[] = Html::tag('option', $value, ['value' => $key, 'selected' => $key == $group['level']]);
+                            }
+                            $html[] = Html::endTag('select');
+                            $html[] = Html::tag(
+                                'span',
+                                Html::button(
+                                    Html::tag('span', '', ['class' => 'fa fa-save', 'aria-hidden' => 'true']),
+                                    [
+                                        'class'     => 'btn btn-default btn-sm js--save-group-param',
+                                        'data-url'  => Url::to(['groupteacher/change-params', 'id' => $group['id']]),
+                                        'data-name' => 'calc_edulevel',
+                                    ]
+                                ),
+                                ['class' => 'input-group-btn']
+                            );
+                            $html[] = Html::endTag('div');
+                        }
+                        return join('', $html);
                     }
                 ],
                 'age' => [
@@ -141,17 +176,17 @@ $roleId = (int)Yii::$app->session->get('user.ustatus');
                     'value'         => function (array $group) use ($offices, $roleId) {
                         $html = [];
 
-                        $html[] = Html::beginTag('div', ['class' => 'js--office-name']);
+                        $html[] = Html::beginTag('div', ['class' => 'js--item-name']);
                         $html[] = Html::tag('span', $offices[$group['office']] ?? '');
                         if (in_array($roleId, [3,4])) {
                             $html[] = Html::button(
                                 Html::tag('span', '', ['class' => 'fa fa-edit', 'aria-hidden' => 'true']),
-                                ['class' => 'btn btn-default btn-xs js--change-group-office', 'style' => 'margin-left: 5px']
+                                ['class' => 'btn btn-default btn-xs js--change-group-param', 'style' => 'margin-left: 5px']
                             );   
                         }
                         $html[] = Html::endTag('div');
                         if (in_array($roleId, [3,4])) {
-                            $html[] = Html::beginTag('div', ['class' => 'input-group js--office-list', 'style' => 'display: none']);
+                            $html[] = Html::beginTag('div', ['class' => 'input-group js--item-list', 'style' => 'display: none']);
                             $html[] = Html::beginTag('select', ['class' => 'form-control input-sm']);
                             foreach ($offices as $key => $value) {
                                 $html[] = Html::tag('option', $value, ['value' => $key, 'selected' => $key == $group['office']]);
@@ -162,8 +197,9 @@ $roleId = (int)Yii::$app->session->get('user.ustatus');
                                 Html::button(
                                     Html::tag('span', '', ['class' => 'fa fa-save', 'aria-hidden' => 'true']),
                                     [
-                                        'class'    => 'btn btn-default btn-sm js--save-group-office',
-                                        'data-url' => Url::to(['groupteacher/change-office', 'id' => $group['id']])
+                                        'class'     => 'btn btn-default btn-sm js--save-group-param',
+                                        'data-url'  => Url::to(['groupteacher/change-params', 'id' => $group['id']]),
+                                        'data-name' => 'calc_office',
                                     ]
                                 ),
                                 ['class' => 'input-group-btn']
@@ -202,20 +238,20 @@ $roleId = (int)Yii::$app->session->get('user.ustatus');
 <?php 
 $js = <<< 'SCRIPT'
 $(document).ready(function() {
-  $('.js--change-group-office').on('click', function() {
+  $('.js--change-group-param').on('click', function() {
     var _this = $(this);
-    var _officeList = _this.closest('td').find('.js--office-list');
-    var _officeName = _this.closest('td').find('.js--office-name');
-    _officeList.show();
-    _officeName.hide();
+    var _itemList = _this.closest('td').find('.js--item-list');
+    var _itemName = _this.closest('td').find('.js--item-name');
+    _itemList.show();
+    _itemName.hide();
   });
-  $('.js--save-group-office').on('click', function() {
+  $('.js--save-group-param').on('click', function() {
     var _this = $(this);
-    var _officeList = _this.closest('td').find('.js--office-list');
-    var _officeName = _this.closest('td').find('.js--office-name');
+    var _itemList = _this.closest('td').find('.js--item-list');
+    var _itemName = _this.closest('td').find('.js--item-name');
     $.ajax({
         method: 'POST',
-        url: _this.data('url') + '&officeId=' + _officeList.find('select').val(),
+        url: _this.data('url') + '&name=' + _this.data('name') + '&value=' + _itemList.find('select').val(),
     }).always(function () {
         window.location.reload();
     });

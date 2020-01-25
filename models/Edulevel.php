@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "calc_edulevel".
@@ -43,5 +44,22 @@ class Edulevel extends \yii\db\ActiveRecord
             'name' => Yii::t('app', 'Name'),
             'visible' => Yii::t('app', 'Visible'),
         ];
+    }
+
+    public static function getEduLevels()
+    {
+    	$data = (new \yii\db\Query())
+    	->select('id as id, name as name')
+    	->from(static::tableName())
+        ->where(['visible' => 1])
+    	->orderBy(['name' => SORT_ASC])
+        ->all();
+        
+        return $data;
+    }
+
+    public static function getEduLevelsSimple()
+    {
+        return ArrayHelper::map(self::getEduLevels(), 'id', 'name');
     }
 }

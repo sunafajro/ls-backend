@@ -1,8 +1,10 @@
 <?php
 
+use app\assets\ChangeGroupParamsAsset;
 use app\models\Groupteacher;
 use app\widgets\Alert;
 use yii\helpers\Html;
+use yii\helpers\Url;
 use yii\widgets\ActiveForm;
 use yii\web\View;
 
@@ -14,12 +16,13 @@ use yii\web\View;
  * @var string       $userInfoBlock
  */
 
+ChangeGroupParamsAsset::register($this);
+
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'List of teachers');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Group').' №' . $params['gid'], 'url' => ['groupteacher/view', 'id' => $params['gid']]];
 $this->params['breadcrumbs'][] = Yii::t('app', 'List of teachers');
 $roleId = Yii::$app->session->get('user.ustatus');
 ?>
-
 <div class="row row-offcanvas row-offcanvas-left group-add-teacher">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
         <?= $userInfoBlock ?>
@@ -58,7 +61,7 @@ $roleId = Yii::$app->session->get('user.ustatus');
             <h4><?= Yii::t('app', 'Add teacher to group') . ' #' . $params['gid'] ?></h4>
             <?php $form = ActiveForm::begin(); ?>
 
-            <?= $form->field($model, 'calc_teacher')->dropDownList($items=$teachers, ['prompt'=>Yii::t('app', '-select-')]) ?>
+            <?= $form->field($model, 'calc_teacher')->dropDownList($teachers, ['prompt'=>Yii::t('app', '-select-')]) ?>
 
             <div class="form-group">
                 <?= Html::submitButton(Yii::t('app', 'Add'), ['class' => 'btn btn-success']) ?>
@@ -111,12 +114,15 @@ $roleId = Yii::$app->session->get('user.ustatus');
                         case 1:
                             echo (int)$group->calc_teacher !== (int)$curteacher['id']
                                 ? Html::a(
-                                    '',
-                                    ['groupteacher/set-primary-teacher', 'id' => $params['gid'], 'tid' => $curteacher['id']],
+                                    Html::tag('i', '', ['class' => 'fa fa-star-o']),
+                                    'javascript:void(0)',
                                     [
-                                        'class' => 'fa fa-star-o',
+                                        'class' => 'js--change-group-params-btn',
                                         'style' => 'margin-right: 5px',
                                         'title' => 'Назначить основным',
+                                        'data' => [
+                                            'url' => Url::to(['groupteacher/change-params', 'id' => $params['gid'], 'name' => 'calc_teacher', 'value' => $curteacher['id']]),
+                                        ],
                                     ]
                                 ) : '';
                             echo Html::a(

@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use app\models\Eduage;
+use app\models\Edulevel;
 use app\models\Groupteacher;
 use app\models\Lang;
 use app\models\Office;
@@ -29,8 +30,7 @@ class GroupteacherController extends Controller
             'index', 'view', 'create', 'update',
             'status', 'addteacher', 'delteacher',
             'restoreteacher', 'addstudent', 'delstudent',
-            'restorestudent', 'corp', 'set-primary-teacher',
-            'change-office',
+            'restorestudent', 'change-params',
         ];
         return [
 	        'access' => [
@@ -52,7 +52,7 @@ class GroupteacherController extends Controller
             'verbs' => [
                 'class'   => VerbFilter::class,
                 'actions' => [
-                    'change-office' => ['post'],
+                    'change-params' => ['post'],
                 ],
             ],
         ];
@@ -63,11 +63,12 @@ class GroupteacherController extends Controller
         $searchModel = new GroupSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->get());
         return $this->render('index', [
-            'ages' => Eduage::getEduAgesSimple(),
-            'dataProvider' => $dataProvider,
-            'languages' => Lang::getLanguagesSimple(),
-            'offices' => Office::getOfficesListSimple(),
-            'searchModel' => $searchModel,
+            'ages'          => Eduage::getEduAgesSimple(),
+            'dataProvider'  => $dataProvider,
+            'levels'        => Edulevel::getEduLevelsSimple(),
+            'languages'     => Lang::getLanguagesSimple(),
+            'offices'       => Office::getOfficesListSimple(),
+            'searchModel'   => $searchModel,
             'userInfoBlock' => User::getUserInfoBlock(),
         ]);
     }
@@ -610,55 +611,14 @@ class GroupteacherController extends Controller
     }
 
     /**
-     * Функция для изменения состояния группы
-     */
-    public function actionCorp($id, $lid)
-    {
-        if ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
-        }
-        // получаем информацию по пользователю
-        $model = $this->findModel($id);
-        //проверяем текущее состояние
-        if ((int)$model->corp === 0) {
-            $model->corp = 1;
-            $model->save();
-        } else {
-            $model->corp = 0;
-            $model->save();
-        }
-        return $this->redirect(['teacher/view','id' => $lid]);
-    }
-
-    /**
-     * Функция для изменения основного преподавателя группы
-     * @param int $id
-     * @param int $tid
-     */
-    public function actionSetPrimaryTeacher($id, $tid)
-    {
-        if (!in_array(Yii::$app->session->get('user.ustatus'), [3, 4])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
-        }
-
-        $group = $this->findModel($id);
-        $group->calc_teacher = $tid;
-        if ($group->save(true, ['calc_teacher'])) {
-            Yii::$app->session->setFlash('success', 'Преподаватель успешно назначен основным в группе');
-        } else {
-            Yii::$app->session->setFlash('error', 'Не удалось назначить основного преподавателя группы');
-        }
-        return $this->redirect(['groupteacher/addteacher','gid' => $id]);
-    }
-
-    /**
-     * Изменяет офис в котором числится группа.
+     * Изменяет параметры группы: офис, уровень, корпоративный статус, основной преподаватель.
      * @param integer $id
-     * @param integer $officeId
+     * @param string  $name
+     * @param integer $value
      * 
      * @return mixed
      */
-    public function actionChangeOffice(int $id, int $officeId)
+    public function actionChangeParams(int $id, string $name, int $value)
     {
         if (!in_array(Yii::$app->session->get('user.ustatus'), [3, 4])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
@@ -666,17 +626,23 @@ class GroupteacherController extends Controller
 
         /** @var Groupteacher $group */
         $group = $this->findModel($id);
-        $group->calc_office = $officeId;
+        if (!$group->hasAttribute($name)) {
+            throw new NotFoundHttpException("Параметра группы - {$name}, не существует");
+        }
+        if (!in_array($name, ['calc_office', 'calc_edulevel', 'calc_teacher', 'corp'])) {
+            throw new ForbiddenHttpException("Параметр группы - {$name}, не подлежит изменению.");
+        }
+        $group->$name = $value;
 
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        if ($group->save(true, ['calc_office'])) {
-            Yii::$app->session->setFlash('success', 'Офис группы успешно изменен.');
+        if ($group->save(true, [$name])) {
+            Yii::$app->session->setFlash('success', 'Параметры группы успешно изменены.');
             return [
                 'status' => true,
             ];
         } else {
-            Yii::$app->session->setFlash('error', 'Не удалось изменить офис группы.');
+            Yii::$app->session->setFlash('error', 'Не удалось изменить параметры группы.');
             Yii::$app->response->statusCode = 500;
             return [
                 'status' => false,
@@ -685,10 +651,10 @@ class GroupteacherController extends Controller
     }
 
     /**
-     * Finds the CalcGroupteacher model based on its primary key value.
+     * Finds the Groupteacher model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return CalcGroupteacher the loaded model
+     * @return Groupteacher the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)

@@ -1,59 +1,72 @@
 <?php
-    use yii\helpers\Html;
-    use yii\widgets\Breadcrumbs;
-    $this->title = 'Система учета :: ' . $model->name;
-    if ((int)Yii::$app->session->get('user.ustatus') !== 5) {
-        $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Teachers'), 'url' => ['index']];
-    } else {
-        $this->params['breadcrumbs'][] = Yii::t('app','Teachers');
-    }
-    $this->params['breadcrumbs'][] = $model->name;
 
-    //формируем массив со списком названий дней недели
-    for($i=0; $i<7; $i++){
-        $days[date('N', strtotime('+'.$i.' day'))] = date('D', strtotime('+'.$i.' day'));
-    }
-    ksort($days);
-    // формируем список дней в которые есть занятия по расписанию
+use app\assets\ChangeGroupParamsAsset;
+use app\models\Teacher;
+use yii\helpers\Html;
+use yii\helpers\Url;
+use yii\web\View;
+use yii\widgets\Breadcrumbs;
+
+/**
+ * @var View    $this
+ * @var Teacher $model
+ */
+
+ChangeGroupParamsAsset::register($this);
+
+$this->title = Yii::$app->params['appTitle'] . $model->name;
+
+if ((int)Yii::$app->session->get('user.ustatus') !== 5) {
+    $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Teachers'), 'url' => ['index']];
+} else {
+    $this->params['breadcrumbs'][] = Yii::t('app','Teachers');
+}
+$this->params['breadcrumbs'][] = $model->name;
+
+//формируем массив со списком названий дней недели
+for($i=0; $i<7; $i++){
+    $days[date('N', strtotime('+'.$i.' day'))] = date('D', strtotime('+'.$i.' day'));
+}
+ksort($days);
+// формируем список дней в которые есть занятия по расписанию
+$i = 0;
+foreach ($teacherschedule as $sched)    {
+    $sscheddays[$i] = $sched['day'];
+    $i++;
+}
+//если нет занятий в расписании, создаем пустой массив
+if (empty($sscheddays)) {
+    $sscheddays[0] = 0;
+}
+// оставляем только уникальные значения
+$scheddays = array_unique($sscheddays);
+// сортируем по порядку
+ksort($scheddays);
+// проверяем какие данные выводить в карочку преподавателя: 1/2 - группы, 3 - начисления; 4 - выплаты фонда
+if (Yii::$app->request->get('tab')) {
+    $tab = Yii::$app->request->get('tab');
+} else {
+    if (Yii::$app->session->get('user.ustatus') == 8) {
+        $tab = 3;
+    } else {
+        $tab = 1;
+    }	
+}
+// выбираем даты начислений
+if($tab == 3){
+    if(!empty($teacherdata)){
     $i = 0;
-    foreach ($teacherschedule as $sched)    {
-        $sscheddays[$i] = $sched['day'];
-        $i++;
-    }
-    //если нет занятий в расписании, создаем пустой массив
-    if (empty($sscheddays)) {
-        $sscheddays[0] = 0;
+    foreach ($teacherdata as $accrual) {
+            $saccrualdates[$i]=$accrual['date'];
+            $i++;
     }
     // оставляем только уникальные значения
-    $scheddays = array_unique($sscheddays);
-    // сортируем по порядку
-    ksort($scheddays);
-    // проверяем какие данные выводить в карочку преподавателя: 1/2 - группы, 3 - начисления; 4 - выплаты фонда
-    if (Yii::$app->request->get('tab')) {
-        $tab = Yii::$app->request->get('tab');
-    } else {
-        if (Yii::$app->session->get('user.ustatus') == 8) {
-            $tab = 3;
-        } else {
-            $tab = 1;
-        }	
+    $accrualdates = array_unique($saccrualdates);
+    // сортируем в обратном порядке
+    rsort($accrualdates);
     }
-    // выбираем даты начислений
-    if($tab == 3){
-        if(!empty($teacherdata)){
-        $i = 0;
-        foreach ($teacherdata as $accrual) {
-                $saccrualdates[$i]=$accrual['date'];
-                $i++;
-        }
-        // оставляем только уникальные значения
-        $accrualdates = array_unique($saccrualdates);
-        // сортируем в обратном порядке
-        rsort($accrualdates);
-        }
-    }
+}
 ?>
-
 <!-- начало контент области -->
 <div class="row row-offcanvas row-offcanvas-left teacher-view">
     <!-- левая боковая панель -->
@@ -183,7 +196,7 @@
 	    }}
         ?>
         </div>
-        <!-- блок со списком проверенны занятий -->
+        <!-- блок со списком проверенных занятий -->
         <?php endif; ?>
         <p></p>
         <!-- блок с табами -->
@@ -244,7 +257,14 @@
                         echo Html::a((int)$groupact['visible'] == 1 ? Yii::t('app','Finish') : Yii::t('app','To active'), ['groupteacher/status', 'id' => $groupact['gid'], 'lid' => $model->id]);
                         echo "&nbsp;&nbsp;&nbsp;";
                         // выводим ссылку на изменение типа группы
-                        echo Html::a((int)$groupact['corp'] == 1 ? Yii::t('app','Make normal') : Yii::t('app','Make corporative'), ['groupteacher/corp', 'id' => $groupact['gid'], 'lid' => $model->id]);
+                        echo Html::a(
+                            Yii::t('app', (int)$groupact['corp'] === 1 ? 'Make normal' : 'Make corporative'),
+                            'javascript:void(0)',
+                            [
+                                'class' => 'js--change-group-params-btn',
+                                'data-url' => Url::to(['groupteacher/change-params', 'id' => $groupact['gid'], 'name' => 'corp', 'value' => (int)$groupact['corp'] === 1 ? '0' : '1'])
+                            ]
+                        );
                         echo "&nbsp;&nbsp;&nbsp;";
                         echo "Удалить";
                     }
