@@ -26,8 +26,8 @@ class OfficeBookSearch extends OfficeBook
     public function rules()
     {
         return [
-            [['id', 'language', 'year', 'office'], 'integer'],
-            [['name', 'author', 'isbn', 'status', 'comment'], 'string'],
+            [['language', 'year', 'office'], 'integer'],
+            [['serial_number', 'name', 'author', 'isbn', 'status', 'comment'], 'string'],
         ];
     }
 
@@ -52,15 +52,16 @@ class OfficeBookSearch extends OfficeBook
 
         $query = (new yii\db\Query())
         ->select([
-            'id'       => "{$obt}.id",
-            'name'     => "{$bt}.name",
-            'author'   => "{$bt}.author",
-            'isbn'     => "{$bt}.isbn",
-            'year'     => "{$obt}.year",
-            'language' => "{$bt}.language_id",
-            'office'   => "{$obt}.office_id",
-            'status'   => "{$obt}.status",
-            'comment'  => "{$obt}.comment",
+            'id'            => "{$obt}.id",
+            'serial_number' => "{$obt}.serial_number",
+            'name'          => "{$bt}.name",
+            'author'        => "{$bt}.author",
+            'isbn'          => "{$bt}.isbn",
+            'year'          => "{$obt}.year",
+            'language'      => "{$bt}.language_id",
+            'office'        => "{$obt}.office_id",
+            'status'        => "{$obt}.status",
+            'comment'       => "{$obt}.comment",
         ])
         ->from($obt)
         ->innerJoin($bt, "{$bt}.id = {$obt}.book_id")
@@ -70,6 +71,7 @@ class OfficeBookSearch extends OfficeBook
 
         if ($this->validate()) {
             $query->andWhere(["{$obt}.visible" => 1]);
+            $query->andFilterWhere(['like', "{$obt}.serial_number", $this->serial_number]);
             $query->andFilterWhere(['like', "{$bt}.name", $this->name]);
             $query->andFilterWhere(['like', "{$bt}.isbn", $this->isbn]);
             $query->andFilterWhere(['like', "{$bt}.author", $this->author]);
@@ -89,7 +91,7 @@ class OfficeBookSearch extends OfficeBook
             ],
             'sort'=> [
                 'attributes' => [
-                    'id',
+                    'serial_number',
                     'name',
                     'author',
                     'isbn',

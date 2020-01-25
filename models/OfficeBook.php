@@ -11,6 +11,7 @@ use Yii;
  * @property integer $id
  * @property integer $book_id
  * @property integer $office_id
+ * @property string  $serial_number
  * @property integer $year
  * @property integer $status
  * @property integer $comment
@@ -39,12 +40,12 @@ class OfficeBook extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['year', 'comment'], 'trim'],
+            [['year', 'comment', 'serial_number'], 'trim'],
             [['visible'],    'default', 'value' => 1],
             [['user_id'],    'default', 'value' => Yii::$app->user->identity->id ?? 0],
             [['created_at'], 'default', 'value' => date('Y-m-d')],
             [['book_id', 'office_id', 'user_id', 'year'], 'integer'],
-            [['comment'], 'string'],
+            [['comment', 'serial_number'], 'string'],
             [['status'], 'in', 'range' => [self::STATUS_PRESENT, self::STATUS_ISSUED]],
             [['book_id', 'office_id', 'status', 'visible', 'user_id', 'created_at'], 'required'],
         ];
@@ -73,12 +74,13 @@ class OfficeBook extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id'        => '№',
-            'book_id'   => Yii::t('app', 'Book'),
-            'office_id' => Yii::t('app', 'Office'),
-            'comment'   => Yii::t('app', 'Comment'),
-            'status'    => Yii::t('app', 'Status'),
-            'year'      => Yii::t('app', 'Year'),
+            'id'            => '№',
+            'book_id'       => Yii::t('app', 'Book'),
+            'office_id'     => Yii::t('app', 'Office'),
+            'serial_number' => Yii::t('app', 'Serial number'), 
+            'comment'       => Yii::t('app', 'Comment'),
+            'status'        => Yii::t('app', 'Status'),
+            'year'          => Yii::t('app', 'Year'),
         ];
     }
 

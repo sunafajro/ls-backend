@@ -53,7 +53,12 @@ $this->params['breadcrumbs'][] = Yii::t('app','Book presence');
                 'filterModel'  => $searchModel,
                 'layout'       => "{pager}\n{items}\n{pager}",
                 'columns'      => [
-                    'id',
+                    'serial_number' => [
+                        'attribute' => 'serial_number',
+                        'value' => function (array $book) {
+                            return $book['serial_number'] ?? $book['id'];
+                        }
+                    ],
                     'name',
                     'author',
                     'isbn',

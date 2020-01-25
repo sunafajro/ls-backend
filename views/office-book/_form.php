@@ -42,6 +42,7 @@ use yii\widgets\ActiveForm;
     <?= $form->field($model, 'office_id')->dropDownList($offices ?? [], [
         'prompt' => Yii::t('app', '-select-')
     ]) ?>
+    <?= $form->field($model, 'serial_number')->textInput() ?>
     <?= $form->field($model, 'year')->textInput() ?>
     <?= $form->field($model, 'status')->dropDownList($statuses ?? [], [
         'prompt' => Yii::t('app', '-select-')
