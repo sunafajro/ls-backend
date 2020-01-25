@@ -77,11 +77,15 @@ class OfficeBookController extends Controller
         $model = new OfficeBook();
 
         if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
-            if ($model->save()) {
-                Yii::$app->session->setFlash('success', 'Учебник успешно добавлен.');
-                return $this->redirect(['office-book/index']);
+            if (OfficeBook::find()->andWhere(['serial_number' => $model->serial_number, 'visible' => 1])->exists()) {
+                Yii::$app->session->setFlash('error', 'Инвентарный номер должен быть уникальным.');
             } else {
-                Yii::$app->session->setFlash('error', 'Не удалось добавить учебник.');
+                if ($model->save()) {
+                    Yii::$app->session->setFlash('success', 'Учебник успешно добавлен.');
+                    return $this->redirect(['office-book/index']);
+                } else {
+                    Yii::$app->session->setFlash('error', 'Не удалось добавить учебник.');
+                }
             }
         }
 
@@ -100,11 +104,15 @@ class OfficeBookController extends Controller
         }
         $model = $this->findModel($id);
         if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
-            if ($model->save(true, ['office_id', 'year', 'status', 'comment'])) {
-                Yii::$app->session->setFlash('success', 'Учебник успешно изменен.');
-                return $this->redirect(['office-book/index']);
+            if (OfficeBook::find()->andWhere(['serial_number' => $model->serial_number, 'visible' => 1])->andWhere(['!=', 'id', $model->id])->exists()) {
+                Yii::$app->session->setFlash('error', 'Инвентарный номер должен быть уникальным.');
             } else {
-                Yii::$app->session->setFlash('error', 'Не удалось изменить учебник.');
+                if ($model->save(true, ['office_id', 'serial_number', 'year', 'status', 'comment'])) {
+                    Yii::$app->session->setFlash('success', 'Учебник успешно изменен.');
+                    return $this->redirect(['office-book/index']);
+                } else {
+                    Yii::$app->session->setFlash('error', 'Не удалось изменить учебник.');
+                }
             }
         }
         return $this->render('update', [            

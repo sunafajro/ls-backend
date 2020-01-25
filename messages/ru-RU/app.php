@@ -441,6 +441,7 @@ return array(
     'Send' => 'Отправить',
     'Send notification' => 'Отправить уведомление',
     'Sending invoice data to server...' => 'Отправляем счет на сервер...',
+    'Serial number' => 'Инвентарный номер',
     'Service' => 'Услуга',
     'Service type' => 'Тип услуги',
     'Services' => 'Услуги',
