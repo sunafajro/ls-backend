@@ -132,7 +132,7 @@ class StudentGrade extends \yii\db\ActiveRecord
     public function rules() : array
     {
         return [
-            [['date', 'description', 'score', 'calc_studname'], 'required'],
+            [['date', 'description', 'calc_studname'], 'required'],
             [['description', 'score'], 'string'],
             [['visible', 'user', 'calc_studname', 'type'], 'integer'],
             [['user'],    'default', 'value' => Yii::$app->user->identity->id ?? 0],

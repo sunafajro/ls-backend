@@ -22,4 +22,13 @@ use yii\web\View;
 <div class="text-result-block">
     <?= $contents[StudentGrade::EXAM_CONTENT_BECAME_WHO] ?? '' ?>
 </div>
-<div class="empty-block-20"></div>
+<?php if ($attestation['score'] ?? false) { ?>
+    <div class="text-description-block">
+        получил(а) баллов
+    </div>
+    <div class="text-result-block">
+        <?= $attestation['score'] ?>
+    </div>
+<?php } else { ?>
+    <div class="empty-block-20"></div>
+<?php } ?>
