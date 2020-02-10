@@ -63,7 +63,7 @@ use yii\web\View;
 					        $actions[] = Html::a('Снова использовать', ['moneystud/enable', 'id' => $payment['pid']]);
 				        }
 				        if ((int)Yii::$app->session->get('user.ustatus') === 3) {
-						    $actions[] = Html::a('Удалить', ['moneystud/delete', 'id' => $payment['pid']]);
+						    $actions[] = Html::a('Удалить', ['moneystud/delete', 'id' => $payment['pid']], ['data-method' => 'post']);
 					    }
 						echo implode(' | ', $actions);
 					?>

@@ -23,25 +23,26 @@ class MoneystudController extends Controller
 {
     public function behaviors()
     {
+        $rules = ['create', 'delete', 'disable','enable', 'remain', 'unremain', 'autocomplete'];
         return [
             'access' => [
-                'class' => AccessControl::className(),
-                'only' => ['create', 'delete', 'disable','enable', 'remain', 'unremain', 'autocomplete'],
+                'class' => AccessControl::class,
+                'only' => $rules,
                 'rules' => [
                     [
-                        'actions' => ['create', 'delete', 'disable', 'enable', 'remain', 'unremain', 'autocomplete'],
+                        'actions' => $rules,
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['create', 'disable', 'enable', 'delete', 'remain', 'unremain', 'autocomplete'],
+                        'actions' => $rules,
                         'allow' => true,
                         'roles' => ['@'],
                     ],
                 ],
             ],
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'delete' => ['post'],
                     'autocomplete' => ['post'],
@@ -53,14 +54,15 @@ class MoneystudController extends Controller
     /**
      * Метод позволяет менеджерам и руководителям
      * создавать оплаты клиента. Для создания оплаты необходим ID клиента.
+     * @param int|null $sid
+     * @param int|null $oid
+     * 
+     * @return mixed
      */
 
-    public function actionCreate(string $sid = NULL, string $oid = NULL)
+    public function actionCreate(int $sid = NULL, int $oid = NULL)
     {
-        // оплаты принимают только менеджеры или руководители
-        if ((int)Yii::$app->session->get('user.ustatus') !== 3 &&
-            (int)Yii::$app->session->get('user.ustatus') !== 4 &&
-            (int)Yii::$app->session->get('user.ustatus') !== 11) {
+        if (!in_array(Yii::$app->session->get('user.ustatus'), [3, 4, 11])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
         // создаем пустую модель записи об оплате
@@ -88,9 +90,9 @@ class MoneystudController extends Controller
                     'userInfoBlock' => User::getUserInfoBlock()
                 ]);
             }
-            $model->value_cash      = $this->prepareInput($model->value_cash);
-            $model->value_card      = $this->prepareInput($model->value_card);
-            $model->value_bank      = $this->prepareInput($model->value_bank);
+            $model->value_cash      = $this->prepareInput((string)$model->value_cash);
+            $model->value_card      = $this->prepareInput((string)$model->value_card);
+            $model->value_bank      = $this->prepareInput((string)$model->value_bank);
             $model->value           = $model->value_cash + $model->value_card + $model->value_bank;
             $model->visible         = 1;
             $model->user            = Yii::$app->session->get('user.uid');
@@ -138,23 +140,22 @@ class MoneystudController extends Controller
     }
 
     /**
-    * метод позволяет менеджерам и руководителям 
-    * аннулировать оплату клиента. Для аннулирования необходим ID оплаты.
-    **/
-    public function actionDisable($id)
+     * метод позволяет менеджерам и руководителям 
+     * аннулировать оплату клиента. Для аннулирования необходим ID оплаты.
+     * @param int $id
+     * 
+     * @return mixed
+     */
+    public function actionDisable(int $id)
     {
-        // оплаты могут аннулировать только менеджеры или руководители
-        if ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+        if (!in_array(Yii::$app->session->get('user.ustatus'), [3, 4])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
         $model = $this->findModel($id);
         // проверяем что оплата действующая
         if ((int)$model->visible === 1) {
-            // помечаем оплату как аннулированную
-            $model->visible = 0;
-            // указываем пользователя аннулировавшего оплату
+            $model->visible      = 0;
             $model->user_visible = Yii::$app->session->get('user.uid');
-            // указываем дату анулирования оплаты
             $model->data_visible = date('Y-m-d');
             // уведомление об оплате
             $notification = Notification::find()->where([
@@ -166,9 +167,10 @@ class MoneystudController extends Controller
                 $notification->save(true, ['visible']);
             }
             // TODO create transaction
-            if($model->save()) {
+            if($model->save(true, ['visible', 'user_visible', 'data_visible'])) {
                 $student = Student::findOne($model->calc_studname);
                 $student->updateInvMonDebt();
+                Yii::$app->session->setFlash('success', 'Оплата успешно аннулирована.');
             }
             return $this->redirect(['studname/view', 'id' => $student->id, 'tab'=>4]);
         } else {
@@ -178,24 +180,22 @@ class MoneystudController extends Controller
     }
 
     /**
-    * метод позволяет менеджерам и руководителям 
-    * восстановить оплату клиента. Для восстановления необходим ID оплаты.
-    **/
-    
-    public function actionEnable($id)
+     * метод позволяет менеджерам и руководителям 
+     * восстановить оплату клиента. Для восстановления необходим ID оплаты.
+     * @param int $id
+     * 
+     * @return mixed
+     */    
+    public function actionEnable(int $id)
     {
-        // оплаты могут восстановить только менеджеры или руководители
-        if ((int)Yii::$app->session->get('user.ustatus') !==3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+        if (!in_array(Yii::$app->session->get('user.ustatus'), [3, 4])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
         $model = $this->findModel($id);
         // проверяем что оплата аннулирована
         if($model->visible==0) {
-            // помечаем оплату как действующую
-            $model->visible = 1;
-            // указываем пользователя восстановившего оплату
+            $model->visible      = 1;
             $model->user_visible = Yii::$app->session->get('user.uid');
-            // указываем дату восстановления оплаты
             $model->data_visible = date('Y-m-d');
             // уведомление об оплате
             $notification = Notification::find()->where([
@@ -207,9 +207,10 @@ class MoneystudController extends Controller
                 $notification->save(true, ['visible']);
             }
             // TODO create transaction
-            if($model->save()) {
+            if ($model->save(true, ['visible', 'user_visible', 'data_visible'])) {
                 $student = Student::findOne($model->calc_studname);
                 $student->updateInvMonDebt();
+                Yii::$app->session->setFlash('success', 'Оплата успешно восстановлена.');
             }
             return $this->redirect(['studname/view', 'id' => $student->id, 'tab' => 4]);
         } else {
@@ -219,81 +220,86 @@ class MoneystudController extends Controller
     }
 
     /**
-    * метод позволяет менеджерам и руководителям 
-    * перевести тип оплаты клиента в "остаточный". Для этого необходим ID оплаты.
-    **/
+     * метод позволяет менеджерам и руководителям 
+     * перевести тип оплаты клиента в "остаточный". Для этого необходим ID оплаты.
+     * @param int $id
+     * 
+     * @return mixed
+     */
 
-    public function actionRemain($id)
+    public function actionRemain(int $id)
     {
-        // оплаты могут делать остаточными только менеджеры или руководители
-        if ((int)Yii::$app->session->get('user.ustatus') !==3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+        if (!in_array(Yii::$app->session->get('user.ustatus'), [3, 4])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
         $model = $this->findModel($id);
         // проверяем что оплата действующая и не остаточная
         if ($model->visible==1 && $model->remain==0) {
-            // помечаем оплату как остаточную
             $model->remain = 1;
-            // сохраняем
-            $model->save();
+            if ($model->save(true, ['remain'])) {
+                Yii::$app->session->setFlash('success', 'Оплата из "обычной" переведена в "остаточную".');
+            }
             return $this->redirect(['studname/view', 'id' => $model->calc_studname, 'tab'=>4]);
         } else {
-            // возвращаемся обратно
             return $this->redirect(Yii::$app->request->referrer); 
         }
     }
 
     /**
-    * метод позволяет менеджерам и руководителям 
-    * перевести тип оплаты клиента в "нормальный". Для этого необходим ID оплаты.
-    **/
-
-    public function actionUnremain($id)
+     * метод позволяет менеджерам и руководителям 
+     * перевести тип оплаты клиента в "нормальный". Для этого необходим ID оплаты.
+     * @param int $id
+     * 
+     * @return mixed
+     */
+    public function actionUnremain(int $id)
     {
-        // оплаты могут делать остаточными только менеджеры или руководители
-        if ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+        if (!in_array(Yii::$app->session->get('user.ustatus'), [3, 4])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
         $model = $this->findModel($id);
         // проверяем что оплата действующая и остаточная
         if ($model->visible==1 && $model->remain==1) {
-            // помечаем оплату как обычную
             $model->remain = 0;
-            $model->save();
+            if ($model->save(true, ['remain'])) {
+                Yii::$app->session->setFlash('success', 'Оплата из "остаточной" переведена в "обычную".');
+            }
             return $this->redirect(['studname/view', 'id' => $model->calc_studname, 'tab'=>4]);
         } else {
-            // возвращаемся обратно
             return $this->redirect(Yii::$app->request->referrer); 
         }
     }
     
     /**
-     * Deletes an existing Moneystud model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param integer $id
+     * 
      * @return mixed
      */
     public function actionDelete($id)
     {
-        if ((int)Yii::$app->session->get('user.ustatus') !== 3) {
+        if (!in_array(Yii::$app->session->get('user.ustatus'), [3])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
         $payment = $this->findModel($id);
         $student = $payment->calc_studname;
-        $this->findModel($id)->delete();
-        return $this->redirect(['studname/view', 'id' => $student, 'tab'=>4]);
+        if ($this->findModel($id)->delete()) {
+            Yii::$app->session->setFlash('success', 'Оплата успешно удалена.');
+        }
+
+        return $this->redirect(['studname/view', 'id' => $student, 'tab' => 4]);
     }
 
+    /**
+     * @return mixed
+     */
 	public function actionAutocomplete()
     {
-        // оплаты принимают только менеджеры или руководители
-        if ((int)Yii::$app->session->get('user.ustatus') !== 3 &&
-        (int)Yii::$app->session->get('user.ustatus') !== 4 &&
-        (int)Yii::$app->session->get('user.ustatus') !== 11) {
+        if (!in_array(Yii::$app->session->get('user.ustatus'), [3, 4, 11])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
         $students = Student::getStudentsAutocomplete(Yii::$app->request->post('term') ?? NULL);
         Yii::$app->response->format = Response::FORMAT_JSON;
+
         return $students;
     }
 
@@ -313,12 +319,14 @@ class MoneystudController extends Controller
         }
     }
 
-	/*
-	* Метод высчитывает долг клиента и возвращает значение
- 	*/
-	
-	protected function studentDebt($id) {
-		
+	/**
+	 * Метод высчитывает долг клиента и возвращает значение
+     * @param int $id
+     * 
+     * @return int
+ 	 */
+    protected function studentDebt($id) : int
+    {	
 		// задаем переменную в которую будет подсчитан долг по занятиям
 		$debt_lessons = 0;
 		// задаем переменную в которую будет подсчитан долг по разнице между счетами и оплатами
@@ -373,9 +381,6 @@ class MoneystudController extends Controller
 				$services[$i]['num'] = $services[$i]['num'] - $lessons['cnt'];
 				$i++;
 			}
-			// уничтожаем переменные
-			unset($service);
-			unset($lessons);
 			
 			foreach($services as $s) {
                 if($s['num'] < 0){
@@ -390,15 +395,21 @@ class MoneystudController extends Controller
 				}				
 			}
 		}
-		unset($services);
 		$debt = $debt_common + $debt_lessons;
 		//$debt = number_format($debt, 1, '.', ' ');
 		return (int)$debt;
     }
     
-    protected function prepareInput($value) {
+    /**
+     * @param string $value
+     * 
+     * @return float
+     */
+    protected function prepareInput(string $value) : float
+    {
         $value = trim($value);
         $value = str_replace(',', '.', $value);
-        return $value;
+
+        return (float)$value;
     }
 }
