@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use app\components\helpers\DateHelper;
 use Yii;
 use yii\base\Model;
 use yii\data\Pagination;
@@ -366,10 +367,10 @@ class Report extends Model
         $startOfWeek = \DateTime::createFromFormat('Y-m-d', $params['start']);
         $endOfWeek = \DateTime::createFromFormat('Y-m-d', $params['end']);
         if (!$startOfWeek) {
-            $startOfWeek = (new \DateTime())->modify('monday this week');
+            $startOfWeek = DateHelper::getStartOfWeek(null, false);
         }
         if (!$endOfWeek) {
-            $endOfWeek = (new \DateTime())->modify('sunday this week');
+            $endOfWeek = DateHelper::getEndOfWeek(null, false);
         }
         $checkEndOfWeek = clone($startOfWeek);
         $checkEndOfWeek = $checkEndOfWeek->modify('+6 day');
@@ -417,9 +418,7 @@ class Report extends Model
         ->all();
 
         $result = [];
-        $nextMonday = clone($endOfWeek);
-        $nextMonday = $nextMonday->modify('+1 day');
-        while ($startOfWeek->format('Y-m-d') < $nextMonday->format('Y-m-d')) {
+        while ($startOfWeek->format('Y-m-d') <= $endOfWeek->format('Y-m-d')) {
             if (!isset($result[$startOfWeek->format('Y-m-d')])) {
                 $result[$startOfWeek->format('Y-m-d')] = [];
             }
@@ -428,11 +427,13 @@ class Report extends Model
                     if (!isset($result[$lesson['date']][$lesson['teacherId']])) {
                         $result[$lesson['date']][$lesson['teacherId']] = [];
                     }
+                    $lesson['periodHours'] = isset($lesson['period']) && $lesson['period'] ? DateHelper::strIntervalToCount($lesson['period'], ' - ', 'H:i', 'h') : null;
                     $result[$lesson['date']][$lesson['teacherId']][] = $lesson;
                 }
             }
             $startOfWeek->modify('+1 day');
         }
+        
         return [
             'teachers' => ArrayHelper::map($teachers, 'id', 'name'),
             'hours' => $result

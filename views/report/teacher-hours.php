@@ -50,20 +50,36 @@ $this->params['breadcrumbs'][] = Yii::t('app','Teacher hours');
                 <?php foreach (array_keys($data['hours'] ?? []) as $date) { ?>
                     <th style="width: 10%"><?= date('d.m.Y', strtotime($date)) ?></th>
                 <?php } ?>
+                <th>Итого, ч</th>
             </thead>
             <tbody>
                 <?php $i = 1; ?>
                 <?php foreach ($data['teachers'] ?? [] as $id => $name) { ?>
                     <tr>
                         <td style="width: 5%"><?= $i ?></td>
-                        <td style="width: 25%"><?= Html::a($name, ['teacher/view', 'id' => $id]) ?></td>
-                        <?php foreach (array_keys($data['hours'] ?? []) as $date) { ?>
+                        <td style="max-width: 20%"><?= Html::a($name, ['teacher/view', 'id' => $id]) ?></td>
+                        <?php
+                            $totalHours = 0;
+                            foreach (array_keys($data['hours'] ?? []) as $date) {
+                            $totalHoursByDay = 0;
+                            ?>
                             <td style="width: 10%">
                                 <?php foreach ($data['hours'][$date][$id] ?? [] as $lesson) { ?>
-                                    <div><?= $lesson['period'] ?></div>
+                                    <div>
+                                        <?= $lesson['period'] ?> <?= "({$lesson['periodHours']})" ?>
+                                    </div>
+                                    <?php
+                                        $totalHours += $lesson['periodHours'] ?? 0;
+                                        $totalHoursByDay += $lesson['periodHours'] ?? 0;
+                                    ?>
+                                <?php } ?>
+                                <?php if (count($data['hours'][$date][$id] ?? []) > 1) { ?>
+                                    <hr style="margin: 0" />
+                                    <div class="text-center"><?= $totalHoursByDay ?></div>
                                 <?php } ?>
                             </td>
                         <?php } ?>
+                        <td style="width: 5%"><?= $totalHours ?></td>
                     </tr>
                     <?php $i++; ?>
                 <?php } ?>
