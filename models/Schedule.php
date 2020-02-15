@@ -1,6 +1,10 @@
 <?php
 namespace app\models;
+
+use app\components\helpers\DateHelper;
 use Yii;
+use yii\helpers\ArrayHelper;
+
 /**
  * This is the model class for table "calc_schedule".
  *
@@ -67,19 +71,31 @@ class Schedule extends \yii\db\ActiveRecord
                     'id' => 'teacher',
                     'style' => 'width: 10%',
                     'title' => Yii::t('app', 'Teacher'),
-                    'show' => true
+                    'show' => true,
                 ],
                 [
                     'id' => 'language',
                     'style' => 'width: 10%',
                     'title' => Yii::t('app', 'Language'),
-                    'show' => true
+                    'show' => true,
                 ],
                 [
-                    'id' => 'hours',
+                    'id' => 'hoursByService',
                     'style' => 'width: 10%',
-                    'title' => Yii::t('app', 'Hours'),
-                    'show' => true
+                    'title' => Yii::t('app', 'Hours') . ' (усл.)',
+                    'show' => true,
+                ],
+                [
+                    'id' => 'hoursBySchedule',
+                    'style' => 'width: 10%',
+                    'title' => Yii::t('app', 'Hours') . ' (расп.)',
+                    'show' => true,
+                ],
+                [
+                    'id' => 'actualHours',
+                    'style' => 'width: 10%',
+                    'title' => Yii::t('app', 'Hours') . ' (факт.)',
+                    'show' => true,
                 ]
             ];
         } else {
@@ -161,121 +177,179 @@ class Schedule extends \yii\db\ActiveRecord
     }
     /**
      * метод возвращает расписание занятий студента
-     * вызывается из StudnameController.php actionView
      * @param integer $id
+     * 
      * @return array
      */
-    public function getStudentSchedule($sid)
+    public function getStudentSchedule(int $sid) : array
     {
         $schedule = (new \yii\db\Query())
-        ->select('s.id as lesson_id, gt.id as group_id, gt.calc_service as service_id, srv.name as service, s.calc_denned as day_id, dn.name as day, s.time_begin as begin, s.time_end as end')
-        ->from('calc_schedule s')
-        ->innerJoin('calc_groupteacher gt', 's.calc_groupteacher=gt.id')
-        ->innerJoin('calc_studgroup sg', 'sg.calc_groupteacher=gt.id')
-        ->innerJoin('calc_service srv', 'srv.id=gt.calc_service')
-        ->innerJoin('calc_denned dn', 'dn.id=s.calc_denned')
-        ->where('s.visible=:one AND gt.visible=:one AND sg.visible=:one AND sg.calc_studname=:sid', [':one' => 1, ':sid' => $sid])
-        ->orderby(['s.calc_denned' => SORT_ASC, 's.time_begin' => SORT_ASC])
+        ->select([
+            'lesson_id'  => 'sch.id',
+            'group_id'   => 'gt.id',
+            'service_id' => 'gt.calc_service',
+            'service'    => 's.name',
+            'day_id'     => 'sch.calc_denned',
+            'day'        => 'dn.name',
+            'begin'      => 'sch.time_begin',
+            'end'        => 'sch.time_end',
+        ])
+        ->from(['sch' => self::tableName()])
+        ->innerJoin(['gt' => Groupteacher::tableName()], 'sch.calc_groupteacher = gt.id')
+        ->innerJoin(['sg' => Studgroup::tableName()], 'sg.calc_groupteacher = gt.id')
+        ->innerJoin(['s' => Service::tableName()], 's.id = gt.calc_service')
+        ->innerJoin(['dn' => 'calc_denned'], 'dn.id = sch.calc_denned')
+        ->where([
+            'sch.visible'      => 1,
+            'gt.visible'       => 1,
+            'sg.visible'       => 1,
+            'sg.calc_studname' => $sid,
+        ])
+        ->orderby([
+            'sch.calc_denned' => SORT_ASC,
+            'sch.time_begin'  => SORT_ASC,
+        ])
         ->all();
+
         return $schedule;
     }
-    /** возвращает почасовку преподавателей */
-    public function getTeacherHours(array $params = [])
+
+    /**
+     * возвращает почасовку преподавателей
+     * @param array $params
+     * 
+     * @return array
+     */
+    public function getTeacherHours(array $params = []) : array
     {
+        $scht = 'sch';
+        $gt   = 'g';
+        $st   = 's';
+        $tnt  = 'tn';
+        $lt   = 'l';
+        $tt   = 't';
+        $ot   = 'o';
         $data = (new \yii\db\Query()) 
-        ->select('sch.id as schedule_id,
-        t.id as teacher_id,
-        t.name as teacher,
-        o.id as office_id,
-        o.name as office,
-        l.id as language_id,
-        l.name as language,
-        tn.value as hours')
-        ->distinct()
-        ->from('calc_schedule sch')
-        ->innerJoin('calc_groupteacher gt', 'gt.id=sch.calc_groupteacher')
-        ->innerJoin('calc_service s', 's.id=gt.calc_service')
-        ->innerJoin('calc_timenorm tn', 's.calc_timenorm=tn.id')
-        ->innerJoin('calc_lang l', 'l.id=s.calc_lang')
-        ->innerJoin('calc_teachergroup tg', 'tg.calc_teacher=sch.calc_teacher')
-        ->innerJoin('calc_teacher t', 't.id=sch.calc_teacher')
-        ->innerJoin('calc_office o', 'o.id=sch.calc_office')
+            ->select([
+                'schedule_id' => "{$scht}.id",
+                'teacher_id'  => "{$scht}.calc_teacher",
+                'teacher'     => "{$tt}.name",
+                'office_id'   => "{$scht}.calc_office",
+                'office'      => "{$ot}.name",
+                'language_id' => "{$st}.calc_lang",
+                'language'    => "{$lt}.name",
+                'hours'       => 'tn.value',
+                'period'      => "CONCAT({$scht}.time_begin,' - ', {$scht}.time_end)",
+            ])
+        ->from([$scht => self::tableName()])
+        ->innerJoin([$gt => Groupteacher::tableName()], "{$gt}.id = {$scht}.calc_groupteacher")
+        ->innerJoin([$st => Service::tableName()], "{$st}.id = {$gt}.calc_service")
+        ->innerJoin([$tnt => Timenorm::tableName()], "{$st}.calc_timenorm = {$tnt}.id")
+        ->innerJoin([$lt => Lang::tableName()], "{$lt}.id = {$st}.calc_lang")
+        ->innerJoin([$tt => Teacher::tableName()], "{$tt}.id = {$scht}.calc_teacher")
+        ->innerJoin([$ot => Office::tableName()], "{$ot}.id = {$scht}.calc_office")
         ->where([
-            'o.visible' => 1,
-            'sch.visible' => 1,
+            "{$ot}.visible"   => 1,
+            "{$scht}.visible" => 1,
         ])
-        ->andWhere(['!=', 'sch.calc_groupteacher', 0])
-        ->andFilterWhere(['sch.calc_teacher' => $params['tid'] ?? NULL])
-        ->andFilterWhere(['sch.calc_office' => $params['oid'] ?? NULL])
-        ->orderby(['t.name' => SORT_ASC, 'l.id' => SORT_ASC])
+        ->andWhere(['!=', "{$scht}.calc_groupteacher", 0])
+        ->andFilterWhere(["{$scht}.calc_teacher" => $params['tid'] ?? NULL])
+        ->andFilterWhere(["{$scht}.calc_office" => $params['oid'] ?? NULL])
+        ->orderby(["{$tt}.name" => SORT_ASC, "{$lt}.id" => SORT_ASC])
         ->all();
 
         $lessons = [];
         if (!empty($data)) {
-            foreach ($data as $l) {
+            list('hours' => $lessonHours) = (new Report())->getTeacherHours([
+                'start' => DateHelper::getStartOfWeek(-1, true),
+                'end'   => DateHelper::getEndOfWeek(-1, true),
+            ]);
+            foreach ($data ?? [] as $l) {
                 if (!isset($lessons[$l['teacher_id']])) {
                     $lessons[$l['teacher_id']] = [
                         'id' => $l['teacher_id'],
                         'teacher' => $l['teacher'],
                         'languages' => [
                             $l['language_id'] => [
-                                'name' => $l['language'],
-                                'hours' => $l['hours']
+                                'name'            => $l['language'],
+                                'hoursByService'  => (float)$l['hours'],
+                                'hoursBySchedule' => DateHelper::strIntervalToCount($l['period'], ' - ', 'H:i:s', 'h'),
                             ]
-                        ]
+                        ],
+                        'actualHours' => 0,
                     ];
                 } else {
                     if (!isset($lessons[$l['teacher_id']]['languages'][$l['language_id']])) {
                         $lessons[$l['teacher_id']]['languages'][$l['language_id']] = [
                             'name' => $l['language'],
-                            'hours' => $l['hours'] 
+                            'hoursByService'  => (float)$l['hours'],
+                            'hoursBySchedule' => DateHelper::strIntervalToCount($l['period'], ' - ', 'H:i:s', 'h'),
                         ];
                     } else {
-                        $lessons[$l['teacher_id']]['languages'][$l['language_id']]['hours'] = $lessons[$l['teacher_id']]['languages'][$l['language_id']]['hours'] + $l['hours'];
+                        $lessons[$l['teacher_id']]['languages'][$l['language_id']]['hoursByService']  += $l['hours'];
+                        $lessons[$l['teacher_id']]['languages'][$l['language_id']]['hoursBySchedule'] += DateHelper::strIntervalToCount($l['period'], ' - ', 'H:i:s', 'h');
                     }
                 }
             }
+            foreach ($lessonHours ?? [] as $dayDate => $dayData) {
+                foreach ($dayData ?? [] as $teacherId => $teacherData) {
+                    foreach ($teacherData ?? [] as $lessonsData) {
+                        if (isset($lessons[$teacherId]['actualHours'])) {
+                            $lessons[$teacherId]['actualHours'] += $lessonsData['periodHours'] ?? 0;
+                        }
+                    }
+                }
+            }
+            ArrayHelper::multisort($lessons, ['teacher'], [SORT_ASC]);
         }
+
         return $lessons;
     }
+
+    /**
+     * возвращает расписание
+     * @param array $params
+     * 
+     * @return array
+     */
     public function getScheduleData(array $params = [])
     {
     	$raw_lessons = (new \yii\db\Query()) 
         ->select([
-            'id' => 'sd.id',
-            'officeId' => 'sd.calc_office',
-            'office' => 'o.name',
-            'day' => 'sd.calc_denned',
-            'room' => 'r.name',
-            'time' => 'CONCAT(SUBSTR(sd.time_begin, 1, 5)," - ",SUBSTR(sd.time_end, 1, 5))',
+            'id'        => 'sd.id',
+            'officeId'  => 'sd.calc_office',
+            'office'    => 'o.name',
+            'day'       => 'sd.calc_denned',
+            'room'      => 'r.name',
+            'time'      => 'CONCAT(SUBSTR(sd.time_begin, 1, 5)," - ",SUBSTR(sd.time_end, 1, 5))',
             'teacherId' => 't.id',
-            'teacher' => 't.name',
-            'groupId' => 'gt.id',
-            'group' => 's.name',
-            'notes' => 'sd.notes'
+            'teacher'   => 't.name',
+            'groupId'   => 'gt.id',
+            'group'     => 's.name',
+            'notes'     => 'sd.notes'
         ])
-        ->from(['sd' => 'calc_schedule'])
-        ->innerJoin(['o' => 'calc_office'], 'o.id = sd.calc_office')
+        ->from(['sd' => self::tableName()])
+        ->innerJoin(['o' => Office::tableName()], 'o.id = sd.calc_office')
         ->innerJoin(['r' => 'calc_cabinetoffice'], 'r.id = sd.calc_cabinetoffice')
-        ->innerJoin(['t' => 'calc_teacher'], 't.id = sd.calc_teacher')
-        ->innerJoin(['gt' => 'calc_groupteacher'], 'gt.id = sd.calc_groupteacher')
-        ->innerJoin(['s' => 'calc_service'], 's.id = gt.calc_service')
+        ->innerJoin(['t' => Teacher::tableName()], 't.id = sd.calc_teacher')
+        ->innerJoin(['gt' => Groupteacher::tableName()], 'gt.id = sd.calc_groupteacher')
+        ->innerJoin(['s' => Service::tableName()], 's.id = gt.calc_service')
         ->where([
             'o.visible' => 1,
             'sd.visible' => 1
         ])
         ->andWhere(['!=', 'sd.calc_groupteacher', 0])
-        ->andFilterWhere(['sd.calc_denned' => $params['did'] ?? NULL])
-        ->andFilterWhere(['sd.calc_office' => $params['oid'] ?? NULL])
-        ->andFilterWhere(['s.calc_lang' => $params['lid'] ?? NULL])
-        ->andFilterWhere(['s.calc_eduform' => $params['fid'] ?? NULL])
-        ->andFilterWhere(['s.calc_eduage' => $params['aid'] ?? NULL])
+        ->andFilterWhere(['sd.calc_denned'  => $params['did'] ?? NULL])
+        ->andFilterWhere(['sd.calc_office'  => $params['oid'] ?? NULL])
+        ->andFilterWhere(['s.calc_lang'     => $params['lid'] ?? NULL])
+        ->andFilterWhere(['s.calc_eduform'  => $params['fid'] ?? NULL])
+        ->andFilterWhere(['s.calc_eduage'   => $params['aid'] ?? NULL])
         ->andFilterWhere(['sd.calc_teacher' => $params['tid'] ?? NULL])
         ->orderby([
             'sd.calc_office' => SORT_ASC,
             'sd.calc_denned' => SORT_ASC,
-            'r.name' => SORT_ASC,
-            'sd.time_begin' => SORT_ASC])
+            'r.name'         => SORT_ASC,
+            'sd.time_begin'  => SORT_ASC])
         ->all();
         $lessons = [];
         if ($raw_lessons && count($raw_lessons)) {
@@ -289,6 +363,7 @@ class Schedule extends \yii\db\ActiveRecord
               $lessons[$l['officeId']]['rows'][] = $l;
             }
         }
+
         return $lessons;
     }
 }
