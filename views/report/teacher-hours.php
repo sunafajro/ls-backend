@@ -43,30 +43,30 @@ $this->params['breadcrumbs'][] = Yii::t('app','Teacher hours');
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
         <?= Alert::widget() ?>
-        <table class="table table-striped table-bordered table-hover table-condensed small">
+        <table class="table table-striped table-bordered table-hover table-condensed text-center small">
             <thead>
-                <th style="width: 5%">№</th>
-                <th style="width: 25%"><?= Yii::t('app', 'Teacher') ?></th>
+                <th class="text-center" style="width: 5%">№</th>
+                <th class="text-center" style="width: 20%"><?= Yii::t('app', 'Teacher') ?></th>
                 <?php foreach (array_keys($data['hours'] ?? []) as $date) { ?>
-                    <th style="width: 10%"><?= date('d.m.Y', strtotime($date)) ?></th>
+                    <th class="text-center" style="width: 10%"><?= date('d.m.Y', strtotime($date)) ?></th>
                 <?php } ?>
-                <th>Итого, ч</th>
+                <th class="text-center" style="width: 5%">Итого</th>
             </thead>
             <tbody>
                 <?php $i = 1; ?>
                 <?php foreach ($data['teachers'] ?? [] as $id => $name) { ?>
                     <tr>
-                        <td style="width: 5%"><?= $i ?></td>
-                        <td style="max-width: 20%"><?= Html::a($name, ['teacher/view', 'id' => $id]) ?></td>
+                        <td><?= $i ?></td>
+                        <td><?= Html::a($name, ['teacher/view', 'id' => $id]) ?></td>
                         <?php
                             $totalHours = 0;
                             foreach (array_keys($data['hours'] ?? []) as $date) {
                             $totalHoursByDay = 0;
                             ?>
-                            <td style="width: 10%">
+                            <td>
                                 <?php foreach ($data['hours'][$date][$id] ?? [] as $lesson) { ?>
                                     <div>
-                                        <?= $lesson['period'] ?> <?= "({$lesson['periodHours']})" ?>
+                                        <?= $lesson['period'] ?> <?= "({$lesson['periodHours']} ч.)" ?>
                                     </div>
                                     <?php
                                         $totalHours += $lesson['periodHours'] ?? 0;
@@ -75,11 +75,11 @@ $this->params['breadcrumbs'][] = Yii::t('app','Teacher hours');
                                 <?php } ?>
                                 <?php if (count($data['hours'][$date][$id] ?? []) > 1) { ?>
                                     <hr style="margin: 0" />
-                                    <div class="text-center"><?= $totalHoursByDay ?></div>
+                                    <div class="text-center"><?= $totalHoursByDay ?> ч.</div>
                                 <?php } ?>
                             </td>
                         <?php } ?>
-                        <td style="width: 5%"><?= $totalHours ?></td>
+                        <td><?= $totalHours ?> ч.</td>
                     </tr>
                     <?php $i++; ?>
                 <?php } ?>
