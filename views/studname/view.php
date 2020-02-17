@@ -1,31 +1,35 @@
 <?php
 
+use app\models\search\LessonSearch;
 use app\models\Student;
 use app\widgets\Alert;
+use yii\data\ActiveDataProvider;
 use yii\helpers\Html;
+use yii\web\View;
 use yii\widgets\ActiveForm;
 use yii\widgets\Breadcrumbs;
-use yii\web\View;
 
 /**
- * @var View        $this
- * @var ActiveForm   $form
- * @var Student      $model
- * @var array        $commissions
- * @var array        $invoices
- * @var array        $payments
- * @var array        $groups
- * @var array        $lessons
- * @var array        $studsales
- * @var array        $services
- * @var array        $schedule
- * @var array        $years
- * @var array        $invcount
- * @var array        $permsale
- * @var string       $userInfoBlock
- * @var array        $offices
- * @var array        $contracts
- * @var array        $loginStatus
+ * @var View               $this
+ * @var ActiveDataProvider $dataProvider
+ * @var ActiveForm         $form
+ * @var LessonSearch       $searchModel
+ * @var Student            $model
+ * @var array              $commissions
+ * @var array              $invoices
+ * @var array              $payments
+ * @var array              $groups
+ * @var array              $lessons
+ * @var array              $studsales
+ * @var array              $services
+ * @var array              $schedule
+ * @var array              $years
+ * @var array              $invcount
+ * @var array              $permsale
+ * @var string             $userInfoBlock
+ * @var array              $offices
+ * @var array              $contracts
+ * @var array              $loginStatus
  */
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Students') . ' :: ' . $model->name;
@@ -271,25 +275,25 @@ if (Yii::$app->request->get('tab')) {
 		<?= Html::tag('h4', implode(' :: ', $userInfo)) ?>
         <div class="row">
           <div class="<?= (($model->description || $model->address) && ($contracts && !empty($contracts))) ? 'col-sm-6' : 'col-sm-12' ?>">
-            <?php if($model->description || $model->address): ?>
+            <?php if ($model->description || $model->address) { ?>
               <div class="well">
                 <?= $model->description ? Html::encode($model->description) : '' ?>
                 <?= $model->description !== '' && $model->address !== '' ? '<br />' : '' ?>
                 <?= $model->address ? '<b>' . Yii::t('app', 'Address') . ':</b> <i>' . Html::encode($model->address) . '</i>' : '' ?>
               </div>  
-		    <?php endif; ?>
+		    <?php } ?>
           </div>
           <div class="<?= (($model->description || $model->address) && ($contracts && !empty($contracts))) ? 'col-sm-6' : 'col-sm-12' ?>">
-            <?php if($contracts && !empty($contracts)): ?>
+            <?php if ($contracts && !empty($contracts)) { ?>
               <div class="well">
                 <?php foreach($contracts as $c) : ?>
                 <span style="display: block; font-style: italic">Договор № <?= Html::encode($c['number']) ?> от <?= date('d.m.y', strtotime($c['date'])) ?> оформлен на <?= Html::encode($c['signer']) ?></span>
                 <?php endforeach; ?>
               </div>  
-		    <?php endif; ?>
+            <?php } ?>
           </div>
         </div>
-        <?php if (in_array($roleId, [3, 4])): ?>
+        <?php if (in_array($roleId, [3, 4])) { ?>
             <?php if (!empty($studsales)) {
                 echo $this->render('_sales_block', [
                     'studsales' => $studsales,
@@ -304,7 +308,7 @@ if (Yii::$app->request->get('tab')) {
                 <!-- блок с информацией о постоянной скидке -->
             <?php } ?>
             <!-- блок с информацией о учтенных и оплаченных занятиях -->
-            <?php if(!empty($services)): ?>   
+            <?php if (!empty($services)) { ?>   
                 <p class="bg-info" style="padding: 15px">
                     <button type="button" class="btn btn-xs btn-default" data-container="body" data-toggle="popover" data-placement="top" data-content="Если у студента доступных занятий меньше или равно 0, проверить занятия на которых он присутствовал будет нельзя."><span class="glyphicon glyphicon-info-sign"></span></button>
                     <strong><a href="#collapse-lessons" role="button" data-toggle="collapse" aria-expanded="true" aria-controls="collapse-lessons" class="text-info"><?= Yii::t('app', 'Payed lessons count') ?></a></strong>
@@ -313,34 +317,34 @@ if (Yii::$app->request->get('tab')) {
                     <div class="panel panel-info">
                         <div class="panel-body">
                             <span class="muted small">
-                            <?php foreach($services as $service): ?>
-                            &nbsp;&nbsp;услуга <strong>#<?= $service['sid'] ?></strong> <?= $service['sname'] ?> - осталось <strong><?= $service['num'] ?></strong> занятий.
-                            <?php if ($service['npd'] !== 'none') : ?>
-                                <span class="label label-warning" title="Рекомендованная дата оплаты">
-                                    <?= $service['npd'] ?>
-                                </span>
-                            <?php else : ?>
-                                <span class="label label-info">Без расписания</span>
-                            <?php endif; ?><br />
-                            <?php endforeach; ?>
+                                <?php foreach($services as $service) { ?>
+                                    &nbsp;&nbsp;услуга <strong>#<?= $service['sid'] ?></strong> <?= $service['sname'] ?> - осталось <strong><?= $service['num'] ?></strong> занятий.
+                                    <?php if ($service['npd'] !== 'none') { ?>
+                                        <span class="label label-warning" title="Рекомендованная дата оплаты">
+                                            <?= $service['npd'] ?>
+                                        </span>
+                                    <?php } else { ?>
+                                        <span class="label label-info">Без расписания</span>
+                                    <?php } ?><br />
+                                <?php } ?>
                             </span>
                         </div>
                     </div>
                 </div>
-            <?php endif; ?>
+            <?php } ?>
             <!-- блок с информацией о учтенных и оплаченных занятиях -->
-	    <?php endif; ?>
-    <!-- блоки с информацией о скидках учтенных и оплаченных занятиях доступны только руководителям и менеджерам -->
-    <?php
-	// выводим блок с балансом клиента
-	if($model->debt < 0) {
-		// если баланс отрицательный - блок красный
-		$class = 'bg-danger text-danger';
-	} else {
-		// если баланс положительный - блок зеленый
-		$class = 'bg-success text-success';
-	}
-?>
+        <?php } ?>
+        <!-- блоки с информацией о скидках учтенных и оплаченных занятиях доступны только руководителям и менеджерам -->
+        <?php
+            // выводим блок с балансом клиента
+            if ($model->debt < 0) {
+                // если баланс отрицательный - блок красный
+                $class = 'bg-danger text-danger';
+            } else {
+                // если баланс положительный - блок зеленый
+                $class = 'bg-success text-success';
+            }
+        ?>
         <div class="<?= $class ?>" style="padding: 15px">
             <div style="float:left">
                 <button type="button" class="btn btn-xs btn-default" data-container="body" data-toggle="popover" data-placement="top" data-content="Баланс студента подсчитывается так: (сумма по оплатам - сумма по счетам) + долг по занятиям."><span class="glyphicon glyphicon-info-sign"></span></button>
@@ -364,57 +368,76 @@ if (Yii::$app->request->get('tab')) {
                 </b> р.
             </div>
         </div>
-    
+        <!-- Табы -->    
         <ul class="nav nav-tabs user-profile-tabs" style="margin-bottom: 10px">
             <?php if (in_array($roleId, [3, 4])) { ?>
-                <li role="presentation"<?= (($tab == 3) ? ' class="active"' : '') ?>>
-                    <?= Html::a(Yii::t('app','Invoices'),['studname/view','id' => $model->id,'tab' => 3]) ?>
+                <li role="presentation"<?= ((int)$tab === 3 ? ' class="active"' : '') ?>>
+                    <?= Html::a(Yii::t('app', 'Invoices'),['studname/view','id' => $model->id, 'tab' => 3]) ?>
                 </li>
-                <li role="presentation"<?= (($tab == 4) ? ' class="active"' : '') ?>>
-                    <?= Html::a(Yii::t('app','Payments'),['studname/view','id' => $model->id,'tab' => 4]) ?>
+                <li role="presentation"<?= ((int)$tab === 4 ? ' class="active"' : '') ?>>
+                    <?= Html::a(Yii::t('app', 'Payments'),['studname/view','id' => $model->id, 'tab' => 4]) ?>
                 </li>
-                <li role="presentation"<?= (($tab == 5) ? ' class="active"' : '') ?>>
-                    <?= Html::a(Yii::t('app','Commissions'),['studname/view','id' => $model->id,'tab' => 5]) ?>
+                <li role="presentation"<?= ((int)$tab === 5 ? ' class="active"' : '') ?>>
+                    <?= Html::a(Yii::t('app', 'Commissions'),['studname/view','id' => $model->id, 'tab' => 5]) ?>
                 </li>
             <?php } ?>
-            <li role="presentation"<?= (($tab == 1) ? ' class="active"' : '') ?>><?= Html::a(Yii::t('app','Active groups'),['studname/view','id'=>$model->id,'tab'=>1]) ?></li>
-            <li role="presentation"<?= (($tab == 2) ? ' class="active"' : '') ?>><?= Html::a(Yii::t('app','Finished groups'),['studname/view','id'=>$model->id,'tab'=>2]) ?></li>
+            <li role="presentation"<?= ((int)$tab === 1 ? ' class="active"' : '') ?>>
+                <?= Html::a(Yii::t('app', 'Active groups'),['studname/view','id' => $model->id, 'tab' => 1]) ?>
+            </li>
+            <li role="presentation"<?= ((int)$tab === 2 ? ' class="active"' : '') ?>>
+                <?= Html::a(Yii::t('app', 'Finished groups'),['studname/view','id' => $model->id, 'tab' => 2]) ?>
+            </li>
+            <li role="presentation"<?= ((int)$tab === 6 ? ' class="active"' : '') ?>>
+                <?= Html::a(Yii::t('app', 'Lessons'),['studname/view','id' => $model->id, 'tab' => 6]) ?>
+            </li>
         </ul>
-
-        <?php if ($tab == 1 || $tab == 2) {
-            /* активные и завершенные группы */
-            echo $this->render('_groups', [
-                'groups' => $groups,
-                'lessons' => $lessons,
-                'schedule' => $schedule
-            ]);
-        } else if ($tab == 3) {
-            /* счета */
-            if (in_array($roleId, [3, 4])) {
-                echo $this->render('_invoices', [
-                    'invoices' => $invoices,
-                    'invcount' => $invcount 
-                ]);
+        <?php
+            switch ($tab) {
+                case 1:
+                case 2:
+                    /* активные и завершенные группы */
+                    echo $this->render('_groups', [
+                        'groups' => $groups,
+                        'lessons' => $lessons,
+                        'schedule' => $schedule
+                    ]);
+                    break;
+                case  3:
+                    /* счета */
+                    if (in_array($roleId, [3, 4])) {
+                        echo $this->render('_invoices', [
+                            'invoices' => $invoices,
+                            'invcount' => $invcount 
+                        ]);
+                    }
+                    break;
+                case 4:
+                    if (in_array($roleId, [3, 4])) {
+                        echo $this->render('_payments', [
+                            'email'    => $model->email,
+                            'payments' => $payments,
+                            'years'    => $years,
+                        ]);
+                    }
+                    break;
+                case 5:
+                    /* оплаты */
+                    if (in_array($roleId, [3, 4])) {
+                        echo $this->render('_commissions', [
+                            'commissions' => $commissions,
+                            'years'      => $years,
+                        ]);
+                    }
+                    break;
+                case 6:
+                    /* занятия/комментарии */
+                    echo $this->render('_lessons', [
+                        'dataProvider' => $dataProvider,
+                        'searchModel'  => $searchModel,
+                    ]);
+                    break;
             }
-        /* выводим оплаты клиента */
-        } else if ($tab == 4) {
-            /* оплаты */
-            if (in_array($roleId, [3, 4])) {
-                echo $this->render('_payments', [
-                    'email'    => $model->email,
-                    'payments' => $payments,
-                    'years'    => $years,
-                ]);
-            }
-        } else if ($tab == 5) {
-            /* оплаты */
-            if (in_array($roleId, [3, 4])) {
-                echo $this->render('_commissions', [
-                    'commissions' => $commissions,
-                    'years'      => $years,
-                ]);
-            }
-        } ?>
+        ?>
     </div>
 </div>
 

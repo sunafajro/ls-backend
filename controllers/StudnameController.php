@@ -9,6 +9,7 @@ use app\models\Moneystud;
 use app\models\Office;
 use app\models\Salestud;
 use app\models\Schedule;
+use app\models\search\LessonSearch;
 use app\models\Student;
 use app\models\StudentCommission;
 use app\models\StudentMergeForm;
@@ -332,17 +333,19 @@ class StudnameController extends Controller
     public function actionView($id)
     {
         $student = $this->findModel($id);
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
         // проверяем какие данные выводить в карочку преподавателя: 1 - активные группы, 2 - завершенные группы, 3 - счета; 4 - оплаты
-        if(Yii::$app->request->get('tab')){
+        if (Yii::$app->request->get('tab')) {
             switch(Yii::$app->request->get('tab')){
                 case 1: $tab = 1; $vis = 1; break;
                 case 2: $tab = 2; $vis = 0; break;
                 case 3: $tab = 3; break;
                 case 4: $tab = 4; break;
                 case 5: $tab = 5; break;
+                case 6: $tab = 6; break;
                 default: {
                     // для менеджеров и руководителей по умолчанию раздел счетов
-                    if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4) {
+                    if (in_array($roleId, [3, 4])) {
                         $tab = 3;
                     } else {
                         // всем остальным раздел активных групп
@@ -353,7 +356,7 @@ class StudnameController extends Controller
             }
         } else {
             // для менеджеров и руководителей по умолчанию раздел счетов
-            if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.ustatus') === 4) {
+            if (in_array($roleId, [3, 4])) {
                 $tab = 3;
             } else {
                 // всем остальным раздел активных групп
@@ -363,7 +366,7 @@ class StudnameController extends Controller
         }
         
         /* данные по назначенным скидкам и по колич оплаченных занятий видны только менеджерам и руководителям */
-        if((int)Yii::$app->session->get('user.ustatus') === 3|| (int)Yii::$app->session->get('user.ustatus') === 4) {
+        if (in_array($roleId, [3, 4])) {
             // список скидок клиента
             $studsales = Salestud::getAllClientSales($id);
 				
@@ -381,28 +384,28 @@ class StudnameController extends Controller
             $studentSchedule = [];
         }
         
-        /* вкладка Счета */
+        #region вкладка Счета
         $invoices = [];
         $invcount = [];
         if ($tab == 3) {
             $invoices = Invoicestud::getStudentInvoiceById($id);
             
             $invcount = [1 => 0, 2 => 0, 3 => 0];
-            foreach($invoices as $in) {
-                if($in['idone']==0&&$in['ivisible']==1){
+            foreach ($invoices as $in) {
+                if ($in['idone'] == 0 && $in['ivisible'] == 1) {
                     $invcount[1] = $invcount[1] + 1;
                 }
-                if($in['idone']==1&&$in['ivisible']==1){
+                if ($in['idone'] == 1 && $in['ivisible'] == 1) {
                     $invcount[2] = $invcount[2] + 1;
                 }
-                if($in['ivisible']==0){
+                if ($in['ivisible'] == 0) {
                     $invcount[3] = $invcount[3] + 1;
                 }
             }
         }
-        /* вкладка Счета */
+        #endregion
 
-        /* вкладка Оплаты */
+        #region вкладка Оплаты
         $payments = [];
         $years = [];
         if ($tab == 4) {
@@ -412,9 +415,9 @@ class StudnameController extends Controller
             }
             $years = array_unique($years);
         }
-        /* вкладка Оплаты */
+        #endregion
 
-        /* вкладка Комиссии */
+        #region вкладка Комиссии
         $commissions = [];
         if ($tab == 5) {
             // получаем оплаты пользователя
@@ -424,10 +427,10 @@ class StudnameController extends Controller
             }
             $years = array_unique($years);
         }
-        /* вкладка Комиссии */
+        #endregion
 
-        // если нужны группы
-        if($tab==1 || $tab == 2) {
+        #region вкладка Группы
+        if ($tab==1 || $tab == 2) {
             // выбираем данные по группам 
             $groups = (new \yii\db\Query())
             ->select('cgt.id as gid, cs.id as sid, cs.name as sname, cgt.data as gdate, cel.name as elname, ct.id as tid, ct.name as tname, co.name as oname, ctn.value as tnvalue, csg.data as sgdate, cgt.data_visible as gvdate, cgt.visible as gvisible, csg.visible as sgvisible, csg.data_visible as sgvdate')
@@ -468,28 +471,42 @@ class StudnameController extends Controller
             $groups = [];
             $lessons = [];
         }
-        $office = new Office();
+        #endregion
+
+        #region вкладка Занятия
+        $searchOptions = [
+            'clientId' => $id,
+            'pageSize' => 10
+        ];
+        if ($roleId === 5) {
+            $searchOptions['teacherId'] = Yii::$app->session->get('user.uteacher_id');
+        }
+        $searchModel  = new LessonSearch();
+        $dataProvider = $searchModel->search(Yii::$app->request->get(), $searchOptions);
+        #endregion
 
         return $this->render('view', [
-            'model'         => $student,
-            'invoices'      => $invoices,
-            'payments'      => $payments,
             'commissions'   => $commissions,
+            'contracts'     => Contract::getClientContracts($id),
+            'dataProvider'  => $dataProvider,
             'groups'        => $groups,
-            'lessons'       => $lessons,
-            'studsales'     => $studsales,
-            'services'      => $services,
-            'schedule'      => $studentSchedule,
-            'years'         => $years,
             'invcount'      => $invcount,
-            'permsale'      => $permsale,
-            'userInfoBlock' => User::getUserInfoBlock(),
+            'invoices'      => $invoices,
+            'lessons'       => $lessons,
+            'loginStatus'   => $student->getStudentLoginStatus(),
+            'model'         => $student,
             'offices'       => [
                 'added' => $student->getStudentOffices($id),
-                'all'   => $office->getOfficesList(),
+                'all'   => (new Office())->getOfficesList(),
             ],
-            'contracts'     => Contract::getClientContracts($id),
-            'loginStatus'   => $student->getStudentLoginStatus(),
+            'payments'      => $payments,
+            'permsale'      => $permsale,
+            'schedule'      => $studentSchedule,
+            'searchModel'   => $searchModel,
+            'services'      => $services,
+            'studsales'     => $studsales,
+            'userInfoBlock' => User::getUserInfoBlock(),
+            'years'         => $years,
         ]);
     }
 
