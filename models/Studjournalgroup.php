@@ -13,16 +13,14 @@ use Yii;
  * @property integer $calc_journalgroup
  * @property integer $calc_studname
  * @property integer $calc_statusjournal
- * @property string $comments
- * @property string $data
+ * @property string  $comments
+ * @property string  $data
  * @property integer $user
  */
 class Studjournalgroup extends \yii\db\ActiveRecord
 {
     use StudentMergeTrait;
     
-    const STATUS_PRESENT = 1;
-    const STATUS_ABSENT  = 2;
     /**
      * @inheritdoc
      */
@@ -50,14 +48,14 @@ class Studjournalgroup extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => Yii::t('app', 'ID'),
-            'calc_groupteacher' => Yii::t('app', 'Calc Groupteacher'),
-            'calc_journalgroup' => Yii::t('app', 'Calc Journalgroup'),
-            'calc_studname' => Yii::t('app', 'Calc Studname'),
-            'calc_statusjournal' => Yii::t('app', 'Calc Statusjournal'),
-            'comments' => Yii::t('app', 'Comments'),
-            'data' => Yii::t('app', 'Data'),
-            'user' => Yii::t('app', 'User'),
+            'id'                 => Yii::t('app', 'ID'),
+            'calc_groupteacher'  => Yii::t('app', 'Group ID'),
+            'calc_journalgroup'  => Yii::t('app', 'Lesson ID'),
+            'calc_studname'      => Yii::t('app', 'Student ID'),
+            'calc_statusjournal' => Yii::t('app', 'Status'),
+            'comments'           => Yii::t('app', 'Comments'),
+            'data'               => Yii::t('app', 'Date'),
+            'user'               => Yii::t('app', 'User ID'),
         ];
     }
 
