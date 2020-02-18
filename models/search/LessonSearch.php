@@ -84,7 +84,8 @@ class LessonSearch extends Journalgroup
             ->innerJoin([$st => Service::tableName()], "{$st}.id = {$gt}.calc_service");
             if ($options['clientId'] ?? false) {
                 $query->addSelect([
-                        'comments' => "${sjt}.comments",
+                        'comments' => "{$sjt}.comments",
+                        'status'   => "{$sjt}.calc_statusjournal",
                     ])
                     ->innerJoin(
                         [$sjt => Studjournalgroup::tableName()],

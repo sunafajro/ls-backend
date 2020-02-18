@@ -434,6 +434,7 @@ if (Yii::$app->request->get('tab')) {
                     echo $this->render('_lessons', [
                         'dataProvider' => $dataProvider,
                         'searchModel'  => $searchModel,
+                        'studentId'    => $model->id,
                     ]);
                     break;
             }

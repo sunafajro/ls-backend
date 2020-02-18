@@ -293,11 +293,11 @@ function getStudentOptions($lesson, $lessonBalance) {
                             ['studname/view', 'id' => $student['sid']],
                             getStudentOptions($lesson, $groupStudents[$student['sid']])
                         );
-                        if (in_array($userRoleId, [3, 4]) && (int)$lesson['jview'] === 1 && (int)$lesson['jdone'] === 0) {
+                        if (in_array($userRoleId, [3, 4]) && (int)$lesson['jview'] === 1) {
                             $link .= ' ' . Html::a(
                                 Html::tag('span', null, ['class' => 'fa fa-times', 'aria-hidden' => 'true']),
-                                ['journalgroup/absent', 'jid' => $lesson['jid'], 'sid' => $student['sid'], 'gid' => $model->id],
-                                ['title' => Yii::t('app', 'To absent (was ill)')]
+                                ['journalgroup/absent', 'id' => $lesson['jid'], 'studentId' => $student['sid']],
+                                ['data-method' => 'post', 'title' => Yii::t('app', 'To absent (was ill)')]
                             );
                         }
                         $arr[] = $link . ')';

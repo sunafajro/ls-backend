@@ -6,6 +6,7 @@ use Yii;
 use app\models\Groupteacher;
 use app\models\Journalgroup;
 use app\models\Student;
+use app\models\Studjournalgroup;
 use app\models\User;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
@@ -674,71 +675,66 @@ class JournalgroupController extends Controller
     /** 
      *  метод позволяет менеджерам и руководителям
      *  изменить посещение урока учеником с "Не было"
-     *  на "Не было (справка)"
+     *  на "Не было (предупредил)"
+     * @param int $id
+     * @param int $studentId
      */
-    public function actionAbsent($jid, $sid, $gid)
+    public function actionAbsent($id, $studentId)
     {
-        /* проверяем права доступа (! переделать в поведения !) */
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+        if(!in_array((int)Yii::$app->session->get('user.ustatus'), [3, 4])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
-        /* получаем информацию по присутствию на занятии */ 
-        $data = (new \yii\db\Query())
-        ->select('*')
-        ->from('calc_studjournalgroup')
-        ->where('calc_journalgroup=:jid AND calc_studname=:sid', [':jid'=>$jid, ':sid'=>$sid])
-        ->one(); 
+        /** @var Studjournalgroup $model */
+        $model = Studjournalgroup::find()->andWhere([
+            'calc_journalgroup' => $id,
+            'calc_studname' => $studentId
+        ])->one();
 
-        if ($data) {
-            // генерим таймстемп который потом понадобиться при переносе занятий
-            $timestamp = time();
-            /* переносим старые записи из одной таблицы в другую */
-            /* пишем данные о посещаемости в базу */
-            $db = (new \yii\db\Query())
-            ->createCommand()
-            ->insert('calc_studjournalgrouphistory', [
-            'calc_groupteacher'=>$data['calc_groupteacher'],
-            'calc_journalgroup'=>$data['calc_journalgroup'],
-            'calc_studname'=>$data['calc_studname'],
-            'calc_statusjournal'=>$data['calc_statusjournal'],
-            'comments'=>$data['comments'],
-            'data'=>$data['data'],
-            'user'=>$data['user'],
-            'timestamp_id'=>$timestamp,
-            ])
-            ->execute();
-            unset($db);
+        if (!empty($model)) {
+            $t = Yii::$app->db->beginTransaction();
+            try {
+                // переносим копию записи в таблицу с историей изменений
+                $db = (new \yii\db\Query())
+                ->createCommand()
+                ->insert('calc_studjournalgrouphistory', [
+                    'calc_groupteacher'  => $model->calc_groupteacher,
+                    'calc_journalgroup'  => $model->calc_journalgroup,
+                    'calc_studname'      => $model->calc_studname,
+                    'calc_statusjournal' => $model->calc_statusjournal,
+                    'comments'           => $model->comments,
+                    'data'               => $model->data,
+                    'user'               => $model->user,
+                    'timestamp_id'       => time(),
+                ])
+                ->execute();
 
-            // удаляем записи о посещении занятия студентами
-            $db = (new \yii\db\Query())
-            ->createCommand()
-            ->delete('calc_studjournalgroup', 'id=:id')
-            ->bindParam(':id',$data['id'])
-            ->execute();
+                // удаляем запись о посещении занятия студентом
+                $model->delete();
 
-            /* пишем данные о посещаемости в базу */
-            $db = (new \yii\db\Query())
-            ->createCommand()
-            ->insert('calc_studjournalgroup', [
-            'calc_groupteacher'=>$data['calc_groupteacher'],
-            'calc_journalgroup'=>$data['calc_journalgroup'],
-            'calc_studname'=>$data['calc_studname'],
-            'calc_statusjournal'=> 2,
-            'comments'=>$data['comments'],
-            'data'=>date('Y-m-d'),
-            'user'=>Yii::$app->session->get('user.uid'),
-            ])
-            ->execute();
-            unset($db);
-           
-            /* если модель сохранилась, задаем сообщение об успешном изменении занятия */
-            Yii::$app->session->setFlash('success', 'Информация о посещении занятия учеником успешно обновлена.');
+                /* пишем данные о посещаемости в базу */
+                $db = (new \yii\db\Query())
+                ->createCommand()
+                ->insert(Studjournalgroup::tableName(), [
+                'calc_groupteacher'  => $model->calc_groupteacher,
+                'calc_journalgroup'  => $model->calc_journalgroup,
+                'calc_studname'      => $model->calc_studname,
+                'calc_statusjournal' => Journalgroup::STUDENT_STATUS_ABSENT_WARNED,
+                'comments'           => $model->comments,
+                'data'               => date('Y-m-d'),
+                'user'               => Yii::$app->session->get('user.uid'),
+                ])
+                ->execute();
+                Yii::$app->session->setFlash('success', 'Информация о посещении занятия учеником успешно обновлена.');
+                $t->commit();
+            } catch (\Exception $e) {
+                $t->rollBack();
+                Yii::$app->session->setFlash('success', 'Не удалось обновить информация о посещении занятия учеником.');
+            }
         } else {
-            /* если модель сохранилась, задаем сообщение об успешном изменении занятия */
             Yii::$app->session->setFlash('error', 'Не удалось найти информацию о посещении занятия.');
         }
 
-        return $this->redirect(['groupteacher/view', 'id' => $gid]);
+        return $this->redirect(Yii::$app->request->referrer);
     }
 
     /**
