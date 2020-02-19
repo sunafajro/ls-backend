@@ -56,7 +56,7 @@ $columns['status'] = [
     'attribute' => 'status',
     'format'    => 'raw',
     'label'     => Yii::t('app', 'Status'),
-    'value'     => function ($model) use ($statuses, $studentId) {
+    'value'     => function ($model) use ($statuses, $studentId, $roleId) {
         $color = (int)$model['status'] === Journalgroup::STUDENT_STATUS_PRESENT
             ? 'success'
             : ((int)$model['status'] === Journalgroup::STUDENT_STATUS_ABSENT_WARNED
@@ -65,7 +65,7 @@ $columns['status'] = [
         $items = [
             Html::tag('div',  ($statuses[$model['status']] ?? $model['status']), ['class' => "label label-{$color}"])
         ];
-        if ((int)$model['status'] === Journalgroup::STUDENT_STATUS_ABSENT_UNWARNED) {
+        if (in_array($roleId, [3, 4]) && (int)$model['status'] === Journalgroup::STUDENT_STATUS_ABSENT_UNWARNED) {
             $items[] = Html::a(
                 Html::tag('span', null, ['class' => 'fa fa-times', 'aria-hidden' => 'true']),
                 ['journalgroup/absent', 'id' => $model['id'], 'studentId' => $studentId],
