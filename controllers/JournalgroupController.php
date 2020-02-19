@@ -475,7 +475,7 @@ class JournalgroupController extends Controller
                 Yii::$app->session->setFlash('error', 'Студент ' . $lessonStudent['name'] . ' не найден');
                 return $this->redirect(['groupteacher/view', 'id' => $gid]);
             }
-            $services = $student->getServicesBalance($lessonStudent['serviceId'], null);
+            $services = $student->getServicesBalance([$lessonStudent['serviceId']], null);
 			if ($services[0]['num'] <= 0) {
 				$snames[] = $lessonStudent['name'];
 			}

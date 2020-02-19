@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use app\traits\ManageJsonTrait;
 use app\traits\StudentMergeTrait;
 use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
@@ -33,6 +34,7 @@ use yii\helpers\ArrayHelper;
  * @property integer $active
  * @property integer $calc_way
  * @property string  $description
+ * @property string  $settings
  * 
  * @property Contract[]   $contracts
  * @property ClientAccess $studentLogin
@@ -40,7 +42,7 @@ use yii\helpers\ArrayHelper;
 class Student extends ActiveRecord
 {
 
-    use StudentMergeTrait;
+    use StudentMergeTrait, ManageJsonTrait;
 
     /**
      * @inheritdoc
@@ -60,7 +62,7 @@ class Student extends ActiveRecord
             [['name', 'fname', 'lname', 'mname', 'email', 'phone', 'address', 'description'], 'string'],
             [['visible', 'history', 'calc_sex', 'calc_cumulativediscount', 'active', 'calc_way'], 'integer'],
             [['debt', 'debt2', 'invoice', 'money', 'commission'], 'number'],
-            [['birthdate'], 'safe'],
+            [['birthdate', 'settings'], 'safe'],
         ];
     }
 
@@ -70,26 +72,27 @@ class Student extends ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
-            'name' => Yii::t('app', 'Full name'),
-            'fname' => Yii::t('app', 'First name'),
-            'lname' => Yii::t('app', 'Last name'),
-            'mname' => Yii::t('app', 'Middle name'),
-            'birthdate' => Yii::t('app', 'Birthdate'),
-            'email' => Yii::t('app', 'Email'),
-            'address' => Yii::t('app', 'Address'),
-            'visible' => 'Visible',
-            'history' => 'History',
-            'phone' => Yii::t('app', 'Phone'),
-            'debt' => Yii::t('app', 'Debt'),
-            'invoice' => 'Invoice',
-            'money' => 'Money',
-            'commission' => 'Commission',
-            'calc_sex' => Yii::t('app', 'Sex'),
-            'calc_cumulativediscount' => 'Calc Cumulativediscount',
-            'active' => 'Active',
-            'calc_way' => Yii::t('app','Way to Attract'),
-            'description' => Yii::t('app', 'Description'),
+            'id'                      => 'ID',
+            'name'                    => Yii::t('app', 'Full name'),
+            'fname'                   => Yii::t('app', 'First name'),
+            'lname'                   => Yii::t('app', 'Last name'),
+            'mname'                   => Yii::t('app', 'Middle name'),
+            'birthdate'               => Yii::t('app', 'Birthdate'),
+            'email'                   => Yii::t('app', 'Email'),
+            'address'                 => Yii::t('app', 'Address'),
+            'visible'                 => Yii::t('app', 'Visible'),
+            'history'                 => Yii::t('app', 'History'),
+            'phone'                   => Yii::t('app', 'Phone'),
+            'debt'                    => Yii::t('app', 'Debt'),
+            'invoice'                 => Yii::t('app', 'Invoices sum'),
+            'money'                   => Yii::t('app', 'Payments sum'),
+            'commission'              => Yii::t('app', 'Commission'),
+            'calc_sex'                => Yii::t('app', 'Sex'),
+            'calc_cumulativediscount' => Yii::t('app', 'Cumulative discount'),
+            'active'                  => Yii::t('app', 'Active'),
+            'calc_way'                => Yii::t('app','Way to Attract'),
+            'description'             => Yii::t('app', 'Description'),
+            'settings'                => Yii::t('app', 'Settings'),
         ];
     }
 
@@ -367,7 +370,39 @@ class Student extends ActiveRecord
         ->all();
     }
 
-    public function getServicesBalance(int $serviceId = null, array $schedule = null)
+    /**
+     * @param int[]|null $serviceId
+     * 
+     * @return array 
+     */
+    public function getServices(array $serviceId = null) : array
+    {
+        return (new \yii\db\Query())
+            ->select('s.id as id, s.name as name, SUM(is.num) as num')
+            ->distinct()
+            ->from(['s' => Service::tableName()])
+            ->leftjoin(['is' => Invoicestud::tableName()], 'is.calc_service = s.id')
+            ->where([
+                'is.remain' => [
+                    Invoicestud::TYPE_NORMAL,
+                    Invoicestud::TYPE_NETTING
+                ],
+                'is.visible' => 1,
+                'is.calc_studname' => $this->id,
+            ])
+            ->andFilterWhere(['s.id' => $serviceId])
+            ->groupby(['is.calc_studname', 's.id'])
+            ->orderby(['s.id' => SORT_ASC])
+            ->all();
+    }
+
+    /**
+     * @param int[]|null $serviceId
+     * @param array|null $schedule
+     * 
+     * @return array 
+     */
+    public function getServicesBalance(array $serviceId = null, array $schedule = null) : array
     {
         // запрашиваем услуги назначенные студенту
         $services = (new \yii\db\Query())
@@ -396,7 +431,7 @@ class Student extends ActiveRecord
                 // запрашиваем из базы колич пройденных уроков
                 $lessons = (new \yii\db\Query())
                 ->select('COUNT(sjg.id) AS cnt')
-                ->from(['sjg' => 'calc_studjournalgroup'])
+                ->from(['sjg' => Studjournalgroup::tableName()])
                 ->leftjoin(['gt' => Groupteacher::tableName()], 'sjg.calc_groupteacher = gt.id')
                 ->leftjoin(['jg' => Journalgroup::tableName()], 'sjg.calc_journalgroup = jg.id')
                 ->where([
@@ -445,6 +480,29 @@ class Student extends ActiveRecord
         }
 
         return $status;
+    }
+
+    /**
+     * @param int $serviceId
+     * @param string $action
+     * 
+     * @return bool
+     */
+    public function updateServicesList(int $serviceId, string $action) : bool
+    {
+        $services = $this->getJsonColumnProperty('settings', 'hiddenServices', []);
+        if ($action === 'hide') {
+            if (!in_array($serviceId, $services)) {
+                $services[] = $serviceId;
+            }
+        } else if ($action === 'show') {
+            if (($index = array_search($serviceId, $services)) !== false) {
+                unset($services[$index]);
+            }
+        }
+        $this->setJsonColumnProperty('settings', 'hiddenServices', $services);
+
+        return $this->save(true, ['settings']);
     }
 
     /**

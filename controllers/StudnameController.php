@@ -10,6 +10,7 @@ use app\models\Office;
 use app\models\Salestud;
 use app\models\Schedule;
 use app\models\search\LessonSearch;
+use app\models\Service;
 use app\models\Student;
 use app\models\StudentCommission;
 use app\models\StudentMergeForm;
@@ -21,65 +22,35 @@ use yii\web\Response;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use yii\data\Pagination;
+use yii\data\ArrayDataProvider;
 use yii\helpers\ArrayHelper;
+use yii\web\BadRequestHttpException;
+
 /*
- * StudnameController implements the CRUD actions for CalcStudname model.
+ * StudnameController implements the CRUD actions for Student model.
  */
 class StudnameController extends Controller
 {
     public function behaviors()
     {
+        $rules = [
+            'index', 'view', 'create', 'update', 'delete',
+            'detail', 'active', 'inactive', 'merge',
+            'change-office', 'update-debt', 'offices',
+            'update-settings', 'settings',
+        ];
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => [
-                    'index',
-                    'view',
-                    'create',
-                    'update',
-                    'delete',
-                    'detail',
-                    'active',
-                    'inactive',
-                    'merge',
-                    'change-office',
-                    'update-debt',
-                    'offices',
-                ],
+                'only' => $rules,
                 'rules' => [
                     [
-                        'actions' => [
-                            'index',
-                            'view',
-                            'create',
-                            'update',
-                            'delete',
-                            'detail',
-                            'active',
-                            'inactive',
-                            'merge',
-                            'change-office',
-                            'update-debt',
-                            'offices',
-                        ],
+                        'actions' => $rules,
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => [
-                            'index',
-                            'view',
-                            'create',
-                            'update',
-                            'delete',
-                            'detail',
-                            'active',
-                            'inactive',
-                            'merge',
-                            'change-office',
-                            'update-debt',
-                            'offices',
-                        ],
+                        'actions' => $rules,
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -90,6 +61,7 @@ class StudnameController extends Controller
                 'actions' => [
                     'change-office'   => ['post'],
                     'update-debt'     => ['post'],
+                    'update-setting'  => ['post'],
                 ],
             ],
         ];
@@ -108,7 +80,6 @@ class StudnameController extends Controller
 	}
 
     /**
-     * Lists all CalcStudname models.
      * @return mixed
      */
     public function actionIndex()
@@ -175,7 +146,7 @@ class StudnameController extends Controller
                 'stsex'       => 's.calc_sex',
                 'active'      => 's.active'
             ])
-            ->from(['s' => 'calc_studname']);
+            ->from(['s' => Student::tableName()]);
             if ($oid) {
                 $students = $students->innerJoin('student_office so', 'so.student_id=s.id');
             }
@@ -252,12 +223,12 @@ class StudnameController extends Controller
 		// зададим пустой массив для услуг студента
 		$services = [];
 		// проверяем что выборка студентов не пустая
-		if(!empty($studentids)){
+		if (!empty($studentids)) {
             // запрашиваем услуги назначенные студенту
             $services = (new \yii\db\Query())
             ->select('s.id as sid, s.name as sname, is.calc_studname as stid, SUM(is.num) as num')
             ->distinct()
-            ->from('calc_service s')
+            ->from(['s' => Service::tableName()])
             ->leftjoin(['is' => Invoicestud::tableName()], 'is.calc_service = s.id')
             ->where([
                 'is.remain' => [Invoicestud::TYPE_NORMAL, Invoicestud::TYPE_NETTING],
@@ -269,7 +240,7 @@ class StudnameController extends Controller
             ->all();
 
             // проверяем что у студента есть назначенные услуги
-            if(!empty($services)){
+            if (!empty($services)) {
                 $i = 0;
                 // распечатываем массив
                 foreach($services as $service){
@@ -303,35 +274,27 @@ class StudnameController extends Controller
                 }
             }
         }
-        // получаем список офисов
-        $offices = (new \yii\db\Query())
-        ->select('id as oid, name as oname')
-        ->from('calc_office')
-        ->where('visible=1')
-        ->all();
-        // получаем список офисов
 
-        // выводим данные в представление
         return $this->render('index', [
-            'students' => $students,
-            'services' => $services,
-            'pages' => $pages,
-            'oid' => $oid,
-            'tss' => $tss,
-            'state' => $state,
-            'offices' => $offices,
+            'students'      => $students,
+            'services'      => $services,
+            'pages'         => $pages,
+            'oid'           => $oid,
+            'tss'           => $tss,
+            'state'         => $state,
+            'offices'       => (new Office())->getOfficesListSimple(),
             'userInfoBlock' => User::getUserInfoBlock()
         ]);
     }
 
     /**
-     * Метод позволяет вывести карточку клиента. Необходим ID клиента.
-     * Преподавателям виден баланс пклиента и группы в которые он зачислен.
-     * Менеджеры и руководители видят полную информацию по клиенту.
      * @param int $id
+     * 
+     * @return mixed
      */
     public function actionView($id)
     {
+        /** @var Student $student */
         $student = $this->findModel($id);
         $roleId = (int)Yii::$app->session->get('user.ustatus');
         // проверяем какие данные выводить в карочку преподавателя: 1 - активные группы, 2 - завершенные группы, 3 - счета; 4 - оплаты
@@ -376,7 +339,15 @@ class StudnameController extends Controller
             // расписание студента
             $schedule = new Schedule();
             $studentSchedule = $schedule->getStudentSchedule($id);
-            $services = $student->getServicesBalance(null, $studentSchedule);
+            $hiddenServices = $student->getJsonColumnProperty('settings', 'hiddenServices', []);
+            $studentServices = ArrayHelper::getColumn($student->getServices() ?? [], 'id');
+            $visibleServices = array_diff($studentServices, $hiddenServices);
+            $services = !empty($hiddenServices) && empty($visibleServices)
+                ? null :
+                $student->getServicesBalance(
+                    $visibleServices,
+                    $studentSchedule
+                );
         } else {
             $studsales = [];
             $permsale = [];
@@ -430,7 +401,7 @@ class StudnameController extends Controller
         #endregion
 
         #region вкладка Группы
-        if ($tab==1 || $tab == 2) {
+        if ($tab ==1 || $tab == 2) {
             // выбираем данные по группам 
             $groups = (new \yii\db\Query())
             ->select('cgt.id as gid, cs.id as sid, cs.name as sname, cgt.data as gdate, cel.name as elname, ct.id as tid, ct.name as tname, co.name as oname, ctn.value as tnvalue, csg.data as sgdate, cgt.data_visible as gvdate, cgt.visible as gvisible, csg.visible as sgvisible, csg.data_visible as sgvdate')
@@ -691,7 +662,6 @@ class StudnameController extends Controller
 
     public function actionMerge($id)
     {
-        $userInfoBlock = User::getUserInfoBlock();
         $student = $this->findModel($id);
         $log = NULL;
         $model = new StudentMergeForm();
@@ -744,7 +714,7 @@ class StudnameController extends Controller
             'student' => $student,
             'log' => $log,
             'model' => $model,
-            'userInfoBlock' => $userInfoBlock
+            'userInfoBlock' => User::getUserInfoBlock(),
         ]);
     }
 
@@ -830,7 +800,52 @@ class StudnameController extends Controller
         }
         Yii::$app->response->format = Response::FORMAT_JSON;
         return $student->getStudentOffices();
-    }	
+    }
+
+    public function actionUpdateSettings($id)
+    {
+        /** @var Student $student */
+        $student = $this->findModel($id);
+        $postData = Yii::$app->request->post();
+
+        switch ($postData['name']) {
+            case 'serviceId': {
+                if (!isset($postData['value']) && !isset($postData['action'])) {
+                    throw new BadRequestHttpException('Отсутствуют необходимые параметры.');
+                }
+                if ($student->updateServicesList($postData['value'], $postData['action'])) {
+                    Yii::$app->session->setFlash('success', 'Список услуг клиента успешно изменен.');
+                }
+            }
+            break;
+        }
+
+        return $this->redirect(Yii::$app->request->referrer);
+    }
+
+    public function actionSettings($id)
+    {
+        /** @var Student $student */
+        $student = $this->findModel($id);
+
+        $services = $student->getServices();
+        $hiddenServices = $student->getJsonColumnProperty('settings', 'hiddenServices', []);
+        foreach ($services as &$service) {
+            $service['visible'] = !in_array($service['id'], $hiddenServices);
+        }
+
+        $services = new ArrayDataProvider([
+            'allModels'  => $services,
+            'pagination' => false,
+            'sort'       => false,
+        ]);
+
+        return $this->render('settings', [
+            'model'         => $student,
+            'services'      => $services,
+            'userInfoBlock' => User::getUserInfoBlock(),
+        ]);
+    }
   
     /**
      * Finds the CalcStudname model based on its primary key value.

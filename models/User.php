@@ -271,30 +271,31 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     public static function checkAccess($controller, $action) 
     {
         $result = true;
-        switch($controller) {
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        switch ($controller) {
             /* раздел Клиенты */
             case 'studname':
-                if ($action === 'view' || $action === 'index') {
-                    switch(Yii::$app->session->get('user.ustatus')) {
+                if (in_array($action, ['view', 'index'])) {
+                    switch($roleId) {
                         case 3: $result = true; break;
                         case 4: $result = true; break;
                         case 5: $result = true; break;
                         case 6: $result = true; break;
                         default: $result = false;
                     }
-                } else if ($action === 'update' || $action === 'active' || $action === 'inactive' || $action === 'detail' || $action === 'change-office' || $action === 'update-debt') {
-                    switch(Yii::$app->session->get('user.ustatus')) {
+                } else if (in_array($action, ['update', 'active', 'inactive', 'detail', 'change-office', 'update-debt', 'settings', 'update-settings'])) {
+                    switch($roleId) {
                         case 3: $result = true; break;
                         case 4: $result = true; break;
                         default: $result = false;
                     }
-                } else if ($action === 'merge' || $action === 'delete') {
-                    switch(Yii::$app->session->get('user.ustatus')) {
+                } else if (in_array($action, ['merge', 'delete'])) {
+                    switch($roleId) {
                         case 3: $result = true; break;
                         default: $result = false;
                     }
-                } else if($action === 'offices') {
-                    switch(Yii::$app->session->get('user.ustatus')) {
+                } else if ($action === 'offices') {
+                    switch($roleId) {
                         case 3: $result  = true; break;
                         case 4: $result  = true; break;
                         case 8: $result  = true; break;
