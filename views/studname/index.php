@@ -53,8 +53,8 @@ $roleId = Yii::$app->session->get('user.ustatus');
         <div class="form-group">
             <select class="form-control input-sm" name="OID">
                 <option value='all'><?= Yii::t('app','-all offices-') ?></option>
-                <?php foreach($offices as $o) { ?>
-                <option value="<?= $o['oid'] ?>"<?= (int)$oid === (int)$o['oid'] ? 'selected' : '' ?>><?= $o['oname'] ?></option>
+                <?php foreach($offices as $key => $value) { ?>
+                    <option value="<?= $key ?>"<?= (int)$oid === (int)$key ? 'selected' : '' ?>><?= $value ?></option>
                 <?php } ?>
             </select>
         </div>

@@ -452,6 +452,7 @@ return array(
     'Set main office' => 'Назначить основным офисом',
     'Set netting' => 'Во "взаимозачет"',
     'Set remain' => 'В "остаточные"',
+    'Settings' => 'Настройки',
     'Severity' => 'Важность',
     'Sex' => 'Пол',
     'Social' => 'Соц. сеть',
