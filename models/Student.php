@@ -3,7 +3,6 @@
 namespace app\models;
 
 use Yii;
-use app\traits\ManageJsonTrait;
 use app\traits\StudentMergeTrait;
 use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
@@ -42,7 +41,7 @@ use yii\helpers\ArrayHelper;
 class Student extends ActiveRecord
 {
 
-    use StudentMergeTrait, ManageJsonTrait;
+    use StudentMergeTrait;
 
     /**
      * @inheritdoc
@@ -371,59 +370,14 @@ class Student extends ActiveRecord
     }
 
     /**
-     * @param int[]|null $serviceId
+     * @param array $serviceId
+     * @param array $schedule
      * 
      * @return array 
      */
-    public function getServices(array $serviceId = null) : array
+    public function getServicesBalance(array $serviceId, array $schedule) : array
     {
-        return (new \yii\db\Query())
-            ->select('s.id as id, s.name as name, SUM(is.num) as num')
-            ->distinct()
-            ->from(['s' => Service::tableName()])
-            ->leftjoin(['is' => Invoicestud::tableName()], 'is.calc_service = s.id')
-            ->where([
-                'is.remain' => [
-                    Invoicestud::TYPE_NORMAL,
-                    Invoicestud::TYPE_NETTING
-                ],
-                'is.visible' => 1,
-                'is.calc_studname' => $this->id,
-            ])
-            ->andFilterWhere(['s.id' => $serviceId])
-            ->groupby(['is.calc_studname', 's.id'])
-            ->orderby(['s.id' => SORT_ASC])
-            ->all();
-    }
-
-    /**
-     * @param int[]|null $serviceId
-     * @param array|null $schedule
-     * 
-     * @return array 
-     */
-    public function getServicesBalance(array $serviceId = null, array $schedule = null) : array
-    {
-        // запрашиваем услуги назначенные студенту
-        $services = (new \yii\db\Query())
-        ->select('s.id as sid, s.name as sname, SUM(is.num) as num')
-        ->distinct()
-        ->from(['s' => Service::tableName()])
-        ->leftjoin(['is' => Invoicestud::tableName()], 'is.calc_service = s.id')
-        ->where([
-            'is.remain' => [
-                Invoicestud::TYPE_NORMAL,
-                Invoicestud::TYPE_NETTING
-            ],
-            'is.visible' => 1,
-            'is.calc_studname' => $this->id,
-        ])
-        ->andFilterWhere(['s.id' => $serviceId])
-        ->groupby(['is.calc_studname', 's.id'])
-        ->orderby(['s.id' => SORT_ASC])
-        ->all();
-        
-        // проверяем что у студента есть назначенные услуги
+        $services = Service::getStudentServicesByInvoices([$this->id], $serviceId);
         if (!empty($services)) {
             $i = 0;
             // распечатываем массив
@@ -441,7 +395,7 @@ class Student extends ActiveRecord
                         Journalgroup::STUDENT_STATUS_PRESENT,
                         Journalgroup::STUDENT_STATUS_ABSENT_UNWARNED
                     ],
-                    'gt.calc_service'        => $service['sid'],
+                    'gt.calc_service'        => $service['id'],
                     'sjg.calc_studname'      => $this->id,
                 ])
                 ->one();
@@ -450,7 +404,7 @@ class Student extends ActiveRecord
                 $cnt = $services[$i]['num'] - $lessons['cnt'];
                 $services[$i]['num'] = $cnt;
                 if (!empty($schedule)) {
-                    $services[$i]['npd'] = Moneystud::getNextPaymentDay($schedule, $service['sid'], $cnt);
+                    $services[$i]['npd'] = Moneystud::getNextPaymentDay($schedule, $service['id'], $cnt);
                 } else {
                     $services[$i]['npd'] = 'none';
                 }
@@ -490,7 +444,8 @@ class Student extends ActiveRecord
      */
     public function updateServicesList(int $serviceId, string $action) : bool
     {
-        $services = $this->getJsonColumnProperty('settings', 'hiddenServices', []);
+        $settings = $this->settings ?? [];
+        $services = $settings['hiddenServices'] ?? [];
         if ($action === 'hide') {
             if (!in_array($serviceId, $services)) {
                 $services[] = $serviceId;
@@ -500,7 +455,8 @@ class Student extends ActiveRecord
                 unset($services[$index]);
             }
         }
-        $this->setJsonColumnProperty('settings', 'hiddenServices', $services);
+        $settings['hiddenServices'] = $services;
+        $this->settings = $settings;
 
         return $this->save(true, ['settings']);
     }

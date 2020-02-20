@@ -1,17 +1,22 @@
 <?php
 
 use app\widgets\Alert;
+use yii\data\Pagination;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
 use yii\widgets\Breadcrumbs;
 
 /**
- * @var View   $this
- * @var int    $oid
- * @var string $state
- * @var string $tss
- * @var string $userInfoBlock
+ * @var View       $this
+ * @var Pagination $pages
+ * @var array      $offices
+ * @var int        $oid
+ * @var array      $services
+ * @var string     $state
+ * @var array      $students
+ * @var string     $tss
+ * @var string     $userInfoBlock
  */
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app','Clients');
@@ -133,17 +138,21 @@ $roleId = Yii::$app->session->get('user.ustatus');
         </thead>
         <?php foreach($students as $student) { ?>
             <tr class="<?= $student['debt'] < 0 ? 'danger' : '' ?>">
-                <td class="text-center"><span class="fa <?= (int)$student['stsex'] === 1 ? 'fa-male' : 'fa-female' ?>" aria-hidden="true"></span></td>
-                <td><?= Html::a('[#'.$student['stid'].'] '.$student['stname'], ['studname/view','id' => $student['stid']]) ?><br />
-                <p class="muted">
-                <?php foreach($services as $service) {
-                    if($service['stid']==$student['stid']) {
-                        echo "&nbsp;&nbsp;услуга <strong>#".$service['sid']."</strong> ".$service['sname']." - осталось <strong>".$service['num']."</strong> занятий.<br />";
-                    }
-                } ?>
-                </p>
+                <td class="text-center">
+                    <span class="fa <?= (int)$student['stsex'] === 1 ? 'fa-male' : 'fa-female' ?>" aria-hidden="true"></span>
                 </td>
-                <td><?= isset($student['birthdate']) && $student['birthdate'] !== '' && $student['birthdate'] !== '0000-00-00' ? date('d.m.y', strtotime($student['birthdate'])) : null ?></td>
+                <td><?= Html::a('[#'.$student['stid'].'] '.$student['stname'], ['studname/view','id' => $student['stid']]) ?><br />
+                    <p class="muted">
+                        <?php foreach($services as $service) {
+                            if ((int)$service['studentId'] === (int)$student['stid'] && !in_array($service['id'], $student['hiddenServices'])) {
+                                echo "&nbsp;&nbsp;услуга <strong>#{$service['id']}</strong> {$service['name']} - осталось <strong>{$service['num']}</strong> занятий.<br />";
+                            }
+                        } ?>
+                    </p>
+                </td>
+                <td>
+                    <?= isset($student['birthdate']) && $student['birthdate'] !== '' && $student['birthdate'] !== '0000-00-00' ? date('d.m.y', strtotime($student['birthdate'])) : null ?>
+                </td>
                 <td><?= Html::encode($student['phone']) ?></td>
                 <td>
                     <?php if (isset($student['description'])) : ?>

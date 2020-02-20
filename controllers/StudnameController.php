@@ -4,7 +4,9 @@ namespace app\controllers;
 
 use Yii;
 use app\models\Contract;
+use app\models\Groupteacher;
 use app\models\Invoicestud;
+use app\models\Journalgroup;
 use app\models\Moneystud;
 use app\models\Office;
 use app\models\Salestud;
@@ -14,6 +16,7 @@ use app\models\Service;
 use app\models\Student;
 use app\models\StudentCommission;
 use app\models\StudentMergeForm;
+use app\models\Studjournalgroup;
 use app\models\User;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
@@ -24,6 +27,7 @@ use yii\filters\AccessControl;
 use yii\data\Pagination;
 use yii\data\ArrayDataProvider;
 use yii\helpers\ArrayHelper;
+use yii\helpers\Json;
 use yii\web\BadRequestHttpException;
 
 /*
@@ -129,23 +133,25 @@ class StudnameController extends Controller
             }
         }
 
+        $columns = [
+            'stid'           => 's.id',
+            'stname'         => 's.name',
+            'visible'        => 's.visible',
+            'birthdate'      => 's.birthdate',
+            'phone'          => 's.phone',
+            'description'    => 's.description',
+            'stinvoice'      => 's.invoice',
+            'stmoney'        => 's.money',
+            'debt'           => 's.debt',
+            'stsex'          => 's.calc_sex',
+            'active'         => 's.active',
+            'hiddenServices' => "(s.settings->'$.hiddenServices')",
+        ];
         // для руководителя и менеджера выводим полный список студентов
         if (in_array($roleId, [3, 4, 6]) || (int)Yii::$app->session->get('user.uid') === 296) {
             // формируем запрос
             $students = (new \yii\db\Query())
-            ->select([
-                'stid'        => 's.id',
-                'stname'      => 's.name',
-                'visible'     => 's.visible',
-                'birthdate'   => 's.birthdate',
-                'phone'       => 's.phone',
-                'description' => 's.description',
-                'stinvoice'   => 's.invoice',
-                'stmoney'     => 's.money',
-                'debt'        => 's.debt',
-                'stsex'       => 's.calc_sex',
-                'active'      => 's.active'
-            ])
+            ->select($columns)
             ->from(['s' => Student::tableName()]);
             if ($oid) {
                 $students = $students->innerJoin('student_office so', 'so.student_id=s.id');
@@ -156,36 +162,10 @@ class StudnameController extends Controller
             if ($oid) {
                 $students = $students->andFilterWhere(['so.office_id' => $oid]);
             }
-            // делаем клон запроса
-            $countQuery = clone $students;
-            // получаем данные для паджинации
-            $pages = new Pagination(['totalCount' => $countQuery->count()]);
-
-            $limit = 20;
-            $offset = 0;
-            if ($request->get('page')){
-                if($request->get('page') > 1 && $request->get('page') <= $pages->totalCount){
-                    $offset = 20 * ($request->get('page') - 1);
-                }
-            }
-            // доделываем запрос и выполняем
-            $students = $students->orderBy(['s.active' => SORT_DESC, 's.name' => SORT_ASC])->limit($limit)->offset($offset)->all();
         } else {
             // формируем запрос
             $students = (new \yii\db\Query())
-            ->select([
-                'stid'        => 's.id',
-                'stname'      => 's.name',
-                'visible'     => 's.visible',
-                'birthdate'   => 's.birthdate',
-                'phone'       => 's.phone',
-                'description' => 's.description',
-                'stinvoice'   => 's.invoice',
-                'stmoney'     => 's.money',
-                'debt'        => 's.debt',
-                'stsex'       => 's.calc_sex',
-                'active'      => 's.active'
-            ])
+            ->select($columns)
             ->distinct()
             ->from(['s' => Student::tableName()])
             ->leftjoin('calc_studgroup sg', 'sg.calc_studname = s.id')
@@ -193,77 +173,46 @@ class StudnameController extends Controller
             ->where(['s.visible' => 1, 'tg.calc_teacher' => $request->get('user.uteacher')])
             ->andFilterWhere(['s.active' => $state_id])
             ->andFilterWhere($tss_condition);
-            // делаем клон запроса
-            $countQuery = clone $students;
-            // получаем данные для паджинации
-            $pages = new Pagination(['totalCount' => $countQuery->count()]);
-
-            $limit = 20;
-            $offset = 0;
-            if($request->get('page')){
-                if($request->get('page') > 1&& $request->get('page') <= $pages->totalCount){
-                    $offset = 20 * ($request->get('page') - 1);
-                }
-            }
-            // доделываем запрос и выполняем
-            $students = $students->orderBy(['s.name' => SORT_ASC])->limit($limit)->offset($offset)->all();
         }
-		// задаем переменную которая будет ключами для массива
-		$i = 0;
-		// задаем пустой массив
-		$studentids = [];
-		// распечатываем массив со студентами
-		foreach($students as $student){
-			// заполняем пустой массив id-шниками студентов
-			$studentids[$i] = $student['stid'];
-			//$students[$i]['debt'] = number_format($this->studentDebt($student['stid']), 1, '.', ' ');
-			// увеличиваем переменную
-			$i++;
-		}
-		// зададим пустой массив для услуг студента
-		$services = [];
-		// проверяем что выборка студентов не пустая
-		if (!empty($studentids)) {
-            // запрашиваем услуги назначенные студенту
-            $services = (new \yii\db\Query())
-            ->select('s.id as sid, s.name as sname, is.calc_studname as stid, SUM(is.num) as num')
-            ->distinct()
-            ->from(['s' => Service::tableName()])
-            ->leftjoin(['is' => Invoicestud::tableName()], 'is.calc_service = s.id')
-            ->where([
-                'is.remain' => [Invoicestud::TYPE_NORMAL, Invoicestud::TYPE_NETTING],
-                'is.visible' => 1
-            ])
-            ->andWhere(['in', 'is.calc_studname', $studentids])
-            ->groupby(['is.calc_studname', 's.id'])
-            ->orderby(['s.id' => SORT_ASC])
-            ->all();
+        $countQuery = clone $students;
+        $pages = new Pagination(['totalCount' => $countQuery->count()]);
 
-            // проверяем что у студента есть назначенные услуги
+        $limit = 20;
+        $offset = 0;
+        if ($request->get('page')){
+            if($request->get('page') > 1 && $request->get('page') <= $pages->totalCount){
+                $offset = 20 * ($request->get('page') - 1);
+            }
+        }
+        $students = $students->orderBy(['s.active' => SORT_DESC, 's.name' => SORT_ASC])->limit($limit)->offset($offset)->all();
+
+		$studentIds = ArrayHelper::getColumn($students, 'stid');
+		$services = [];
+		if (!empty($studentIds)) {
+            $services = Service::getStudentServicesByInvoices($studentIds, []);
             if (!empty($services)) {
-                $i = 0;
-                // распечатываем массив
-                foreach($services as $service){
-                    // запрашиваем из базы колич пройденных уроков
+                foreach ($services as $i => $service) {
                     $lessons = (new \yii\db\Query())
                     ->select('COUNT(sjg.id) AS cnt')
-                    ->from('calc_studjournalgroup sjg')
-                    ->leftjoin('calc_groupteacher gt', 'sjg.calc_groupteacher=gt.id')
-                    ->leftjoin('calc_journalgroup jg', 'sjg.calc_journalgroup=jg.id')
-                    ->where('jg.view=:vis and jg.visible=:vis and (sjg.calc_statusjournal=:vis or sjg.calc_statusjournal=:stat) and gt.calc_service=:sid and sjg.calc_studname=:stid', [':vis'=>1, 'stat'=>3, ':sid'=>$service['sid'], ':stid'=>$service['stid']])
+                    ->from(['sjg' => Studjournalgroup::tableName()])
+                    ->leftjoin(['gt' => Groupteacher::tableName()], 'sjg.calc_groupteacher = gt.id')
+                    ->leftjoin(['jg' => Journalgroup::tableName()], 'sjg.calc_journalgroup = jg.id')
+                    ->where([
+                        'jg.view'                => 1,
+                        'jg.visible'             => 1,
+                        'gt.calc_service'        => $service['id'],
+                        'sjg.calc_studname'      => $service['studentId'],
+                        'sjg.calc_statusjournal' => [Journalgroup::STUDENT_STATUS_PRESENT, Journalgroup::STUDENT_STATUS_ABSENT_UNWARNED],
+                    ])
                     ->one();
-                    // считаем остаток уроков
                     $services[$i]['num'] = $services[$i]['num'] - $lessons['cnt'];
-                    $i++;
                 }
-                unset($service);
-                unset($lessons);
             }
             // готовим информацию по договорам и добавляем ее в массив клиентов
-            $contracts = Contract::getClientContracts($studentids);
+            $contracts = Contract::getClientContracts($studentIds);
             if (!empty($contracts)) {
-                foreach($students as $key => $val) {
-                    foreach($contracts as $c) {
+                foreach ($students as $key => $val) {
+                    foreach ($contracts as $c) {
                         if ((int)$val['stid'] === (int)$c['student']) {
                             if (!isset($students[$key]['contracts'])) {
                                 $students[$key]['contracts'] = [];
@@ -276,7 +225,10 @@ class StudnameController extends Controller
         }
 
         return $this->render('index', [
-            'students'      => $students,
+            'students'      => array_map(function ($student) {
+                $student['hiddenServices'] = Json::decode($student['hiddenServices']) ?? [];
+                return $student;
+            }, $students),
             'services'      => $services,
             'pages'         => $pages,
             'oid'           => $oid,
@@ -339,8 +291,11 @@ class StudnameController extends Controller
             // расписание студента
             $schedule = new Schedule();
             $studentSchedule = $schedule->getStudentSchedule($id);
-            $hiddenServices = $student->getJsonColumnProperty('settings', 'hiddenServices', []);
-            $studentServices = ArrayHelper::getColumn($student->getServices() ?? [], 'id');
+            $hiddenServices  = $student->settings['hiddenServices'] ?? [];
+            $studentServices = ArrayHelper::getColumn(
+                Service::getStudentServicesByInvoices([$student->id], []),
+                'id'
+            );
             $visibleServices = array_diff($studentServices, $hiddenServices);
             $services = !empty($hiddenServices) && empty($visibleServices)
                 ? null :
@@ -828,8 +783,8 @@ class StudnameController extends Controller
         /** @var Student $student */
         $student = $this->findModel($id);
 
-        $services = $student->getServices();
-        $hiddenServices = $student->getJsonColumnProperty('settings', 'hiddenServices', []);
+        $services = $student->getServicesBalance([], []);
+        $hiddenServices = $student->settings['hiddenServices'] ?? [];
         foreach ($services as &$service) {
             $service['visible'] = !in_array($service['id'], $hiddenServices);
         }

@@ -182,4 +182,36 @@ class Service extends \yii\db\ActiveRecord
 
         return !empty($services) ? $services : NULL;
     }
+
+    /**
+     * @param array $studentIds
+     * @param array $serviceId
+     * 
+     * @return array
+     */
+    public static function getStudentServicesByInvoices(array $studentIds, array $serviceId) : array
+    {
+        return (new \yii\db\Query())
+            ->select([
+               'id'        => 's.id',
+               'name'      => 's.name',
+               'studentId' => 'is.calc_studname',
+               'num'       => 'SUM(is.num)',
+            ])
+            ->distinct()
+            ->from(['s' => Service::tableName()])
+            ->leftjoin(['is' => Invoicestud::tableName()], 'is.calc_service = s.id')
+            ->where([
+                'is.remain' => [
+                    Invoicestud::TYPE_NORMAL,
+                    Invoicestud::TYPE_NETTING
+                ],
+                'is.visible' => 1,
+                'is.calc_studname' => $studentIds,
+            ])
+            ->andFilterWhere(['s.id' => $serviceId])
+            ->groupby(['is.calc_studname', 's.id', 's.name'])
+            ->orderby(['s.id' => SORT_ASC])
+            ->all();
+    }
 }
