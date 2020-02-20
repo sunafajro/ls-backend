@@ -26,11 +26,11 @@ use yii\web\View;
                             'title' => 'Скрыть из карточки клиента',
                             'data' => [
                                 'method'  => 'post',
-                                'params' => ['name' => 'serviceId', 'value' => $service['sid'], 'action' => 'hide']
+                                'params' => ['name' => 'serviceId', 'value' => $service['id'], 'action' => 'hide']
                             ],
                         ]
                     );
-                    echo "услуга " . Html::tag('b',"#{$service['sid']}") . " {$service['sname']} - осталось " . Html::tag('b', $service['num']) . " занятий.";
+                    echo "услуга " . Html::tag('b',"#{$service['id']}") . " {$service['name']} - осталось " . Html::tag('b', $service['num']) . " занятий.";
                     if ($service['npd'] !== 'none') {
                         echo Html::tag(
                             'span',

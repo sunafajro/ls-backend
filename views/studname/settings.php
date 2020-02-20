@@ -37,10 +37,10 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Settings');
                         return "#{$service['id']} {$service['name']}";
                     }
                 ],
-                // 'num' => [
-                //     'attribute' => 'num',
-                //     'label'     => 'Доступно занятий',
-                // ],
+                'num' => [
+                    'attribute' => 'num',
+                    'label'     => 'Доступно занятий',
+                ],
                 'visible' => [
                     'attribute' => 'visible',
                     'label'     => 'Видимый',

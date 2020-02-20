@@ -189,7 +189,7 @@ class GroupteacherController extends Controller
         foreach ($groupStudents as $studentId => $studentName) {
             $student = Student::findOne($studentId);
             if (!empty($student)) {
-                $data = $student->getServicesBalance([$group->calc_service], null);
+                $data = $student->getServicesBalance([$group->calc_service], []);
                 $groupStudents[$studentId] = $data[0]['num'] ?? 0;
             } else {
                 $groupStudents[$studentId] = 0;
