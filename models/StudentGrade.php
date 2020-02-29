@@ -166,7 +166,7 @@ class StudentGrade extends \yii\db\ActiveRecord
      * 
      * @return array
      */
-    public function getAttestation(int $id) : array
+    public static function getAttestation(int $id) : array
     {
         $attestation = (new \yii\db\Query())
         ->select([
@@ -196,7 +196,7 @@ class StudentGrade extends \yii\db\ActiveRecord
      * 
      * @return ActiveDataProvider
      */
-    public function getStudentGrades(int $sid) : ActiveDataProvider
+    public static function getStudentGrades(int $sid) : ActiveDataProvider
     {
         $query = (new \yii\db\Query())
         ->select([
@@ -210,7 +210,7 @@ class StudentGrade extends \yii\db\ActiveRecord
             'studentId'   => 'sg.calc_studname',
             'studentName' => 's.name',
         ])
-        ->from(['sg' => static::tableName()])
+        ->from(['sg' => self::tableName()])
         ->innerJoin(['u' => 'user'], 'sg.user = u.id')
         ->innerJoin(['s' => 'calc_studname'], 'sg.calc_studname = s.id')
         ->where([
@@ -240,7 +240,7 @@ class StudentGrade extends \yii\db\ActiveRecord
      * 
      * @return array
      */
-    public function getExamContents(string $exam) : array
+    public static function getExamContents(string $exam) : array
     {
         $result = [];
         switch ($exam) {

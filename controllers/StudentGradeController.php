@@ -67,11 +67,11 @@ class StudentGradeController extends Controller
         $examsAll = array_merge([NULL => Yii::t('app', 'Select an exam')], $exams);
         if ($student !== NULL) {
             return $this->render('index', [
-                'contentTypes' => StudentGrade::getExamContentTypes(),
-                'grades' => $model->getStudentGrades(intval($id)),
-                'exams' => $examsAll,
-                'model' => $model,
-                'student' => $student,
+                'contentTypes'  => StudentGrade::getExamContentTypes(),
+                'grades'        => StudentGrade::getStudentGrades(intval($id)),
+                'exams'         => $examsAll,
+                'model'         => $model,
+                'student'       => $student,
                 'userInfoBlock' => User::getUserInfoBlock()
             ]);
         } else {
@@ -100,11 +100,15 @@ class StudentGradeController extends Controller
 
     public function actionDelete($id)
     {
-        $grade = StudentGrade::findOne(intval($id));
+        $grade = StudentGrade::findOne($id);
         if ($grade !== NULL) {
+            $filePath = Yii::getAlias("@attestates/{$grade->calc_studname}/attestate-{$id}.pdf");
             if ((int)$grade->visible === 1) {
                 $grade->visible = 0;
-                if ($grade->save()) {
+                if ($grade->save(true, ['visible'])) {
+                    if (file_exists($filePath)) {
+                        unlink($filePath);
+                    }
                     Yii::$app->session->setFlash('success', "Аттестация успешно удалена!");
                 } else {
                     Yii::$app->session->setFlash('error', "Ошибка удаления аттестации!");
@@ -120,31 +124,44 @@ class StudentGradeController extends Controller
 
     public function actionDownloadAttestation($id)
     {
-        $model = new StudentGrade();
-        $attestation = $model->getAttestation(intval($id));
-        if ($attestation) {                
-            $pdf = new Pdf([
-                'mode'        => Pdf::MODE_UTF8,
-                'format'      => Pdf::FORMAT_A4,
-                'orientation' => Pdf::ORIENT_LANDSCAPE,
-                'destination' => Pdf::DEST_BROWSER, 
-                'content'     => $this->renderPartial('viewPdf', [
-                    'attestation'  => $attestation,
-                    'contentTypes' => StudentGrade::getExamContentTypes(),
-                    'exams'        => StudentGrade::getExams(),
-                ]),
-                'cssFile'     => '@app/web/css/print_attestate.css',
-                'options'     => [
-                    'title'   => Yii::t('app', 'Attestation'),
-                ],
-                'marginHeader' => 0,
-                'marginFooter' => 0,
-                'marginTop'    => 0,
-                'marginBottom' => 0,
-                'marginLeft'   => 0,
-                'marginRight'  => 0,
-            ]);
-            return $pdf->render();
+        $attestation = StudentGrade::getAttestation(intval($id));
+        if ($attestation) {
+            $attestationsDirPath = Yii::getAlias("@attestates");
+            $attestationsByStudentDirPath = "{$attestationsDirPath}/{$attestation['studentId']}";
+            $filePath = "$attestationsByStudentDirPath/attestate-{$id}.pdf";
+            if (!file_exists($filePath)) {
+                if (!file_exists($attestationsDirPath)) {
+                    mkdir($attestationsDirPath, 0775, true);
+                    if (!file_exists($attestationsByStudentDirPath)) {
+                        mkdir($attestationsByStudentDirPath, 0775, true);
+                    }
+                }
+                $pdf = new Pdf([
+                    'filename'    => $filePath,
+                    'mode'        => Pdf::MODE_UTF8,
+                    'format'      => Pdf::FORMAT_A4,
+                    'orientation' => Pdf::ORIENT_LANDSCAPE,
+                    'destination' => Pdf::DEST_FILE, 
+                    'content'     => $this->renderPartial('viewPdf', [
+                        'attestation'  => $attestation,
+                        'contentTypes' => StudentGrade::getExamContentTypes(),
+                        'exams'        => StudentGrade::getExams(),
+                    ]),
+                    'cssFile'     => '@app/web/css/print_attestate.css',
+                    'options'     => [
+                        'title'   => Yii::t('app', 'Attestation'),
+                    ],
+                    'marginHeader' => 0,
+                    'marginFooter' => 0,
+                    'marginTop'    => 0,
+                    'marginBottom' => 0,
+                    'marginLeft'   => 0,
+                    'marginRight'  => 0,
+                ]);
+                $pdf->render();
+            }
+            
+            return Yii::$app->response->sendFile($filePath);
         } else {
             throw new NotFoundHttpException(Yii::t('app', 'The requested page does not exist.'));
         }
@@ -153,7 +170,7 @@ class StudentGradeController extends Controller
     public function actionExamContents($exam)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        $grade = new StudentGrade();
-        return $grade->getExamContents($exam);
+
+        return StudentGrade::getExamContents($exam);
     }
 }
