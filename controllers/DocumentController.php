@@ -59,7 +59,7 @@ class DocumentController extends Controller
 
     public function actionIndex()
     {
-        $path = Yii::getAlias('@app/data/files/');
+        $path = Yii::getAlias('@documents');
         $files = scandir($path);
         $fileList = [];
         foreach($files as $file) {
@@ -79,7 +79,7 @@ class DocumentController extends Controller
 
     public function actionDownload(string $id)
     {
-        $path = Yii::getAlias('@app/data/files/');
+        $path = Yii::getAlias('@documents');
         $files = scandir($path);
         $fileName = '';
         foreach($files as $file) {
@@ -102,7 +102,7 @@ class DocumentController extends Controller
         $model = new UploadForm();
         $model->file = UploadedFile::getInstance($model, 'file');
         if ($model->file && $model->validate()) {
-            $path = Yii::getAlias('@app/data/files/');
+            $path = Yii::getAlias('@documents');
             if ($model->saveFile($path)) {
                 Yii::$app->session->setFlash('success', Yii::t('app', 'File successfully uploaded!'));
             } else {

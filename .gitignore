@@ -31,6 +31,7 @@ composer.phar
 /config/local
 /data/db
 /data/files
+/data/attestates
 /runtime
 /web/images
 /web/uploads
