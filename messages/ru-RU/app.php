@@ -213,7 +213,7 @@ return array(
     'E-mail notification successfully added to queue!' => 'Уведомление успешно добавлено в очередь на отправку!',
     'Evening time' => 'Вечернее время',
     'Exam contents' => 'Содержание экзамена',
-    'Exam description' => 'Описание экзаменаs',
+    'Exam description' => 'Описание экзамена',
     'Execute' => 'Выполнить',
     'Executor' => 'Исполнитель',
     'Executors' => 'Исполнители',

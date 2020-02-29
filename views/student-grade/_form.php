@@ -1,23 +1,41 @@
 <?php
-/**
- * @var yii\web\View             $this
- * @var yii\widgets\ActiveForm   $form
- * @var app\models\StudentGrades $model
- * @var array                    $exams
- * @var string                   $studentId
- */
+
+use app\models\StudentGrade;
 use yii\helpers\Html;
+use yii\helpers\Url;
+use yii\web\View;
 use yii\widgets\ActiveForm;
 use kartik\datetime\DateTimePicker;
+
+/**
+ * @var View         $this
+ * @var ActiveForm   $form
+ * @var StudentGrade $model
+ * @var array        $exams
+ * @var string       $studentId
+ */
 ?>
 <?php $form = ActiveForm::begin([
-  'action' => ['create', 'id' => $studentId],
+  'action' => Url::to(['create', 'id' => $studentId]),
   'method' => 'post',
+  'options' => ['class' => 'js--attestations-form'],
 ]); ?>
 <div class="row">
   <div class="col-xs-12 col-sm-1">
     <div class="form-group">
-      <?= Html::submitButton('<i class="fa fa-plus" aria-hidden="true"></i>', ['class' => 'btn btn-success btn-sm btn-block']) ?>
+      <?= Html::submitButton(
+              Html::tag('i', '', ['class' => 'fa fa-plus', 'aria-hidden' => 'true']),
+              [
+                  'class' => 'btn btn-success btn-sm btn-block js--create-button',
+              ]
+          ) ?>
+      <?= Html::submitButton(
+              Html::tag('i', '', ['class' => 'fa fa-save', 'aria-hidden' => 'true']),
+              [
+                  'class' => 'btn btn-warning btn-sm btn-block js--update-button hidden',
+                  'style' => 'margin-top: 0',
+              ]
+          ) ?>
     </div>
   </div>
   <div class="col-xs-12 col-sm-3">
@@ -51,50 +69,3 @@ use kartik\datetime\DateTimePicker;
   <?= Html::input('text', '', '', ['class' => 'form-control input-sm']) ?>
   <div class="help-block"></div>
 </div>
-<?php
-$js = <<<JS
-function hideCOmponent(content) {
-  var contentBlock = $(content);
-  if (!contentBlock.hasClass('hidden')) {
-    contentBlock.toggleClass('hidden');
-    var fields = contentBlock.find('input');
-    fields.each(function(el) {
-      fields[el].value = '';
-    });
-  }
-}
-function showCOmponent(content) {
-  var contentBlock = $(content);
-  if (contentBlock.hasClass('hidden')) {
-    contentBlock.toggleClass('hidden');
-  }
-}
-$('.js--exam-select').on('change', function(e) {
-  var contentsBlock = $('.js--exam-contents');
-  contentsBlock.html('');
-  if (e.target.value) {
-    $.get('/student-grade/exam-contents?exam=' + e.target.value, {}, function(data) {
-      console.log(data.hasOwnProperty('contents') && typeof(data.contents) === 'object' && Object.keys(data.contents).length)
-      if (data.hasOwnProperty('contents') && typeof(data.contents) === 'object' && Object.keys(data.contents).length) {
-        for(var key in data.contents) {
-          var col = Object.keys(data.contents).length ? Math.floor(12 / Object.keys(data.contents).length) : null;
-          var templateInput = $('#template-input').clone();
-          if (col) {
-            templateInput.addClass('col-sm-' + col);
-          }
-          templateInput.removeClass('hidden');
-          var inputField = templateInput.find('input');
-          inputField.prop('name', 'StudentGrade[contents][' + key + ']');
-          inputField.prop('placeholder', data.contents[key]);
-          contentsBlock.append(templateInput);
-        }
-      } else {
-        var alertBlock = '<div class="alert alert-danger">Не удалось получить содержание экзамена</div>';
-        contentsBlock.append(alertBlock);
-      }
-    });
-  }
-});
-JS;
-$this->registerJs($js);
-?>
