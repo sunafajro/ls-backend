@@ -3,8 +3,8 @@
 namespace app\models;
 
 use app\traits\StudentMergeTrait;
+use kartik\mpdf\Pdf;
 use Yii;
-
 use yii\data\ActiveDataProvider;
 
 /**
@@ -160,34 +160,70 @@ class StudentGrade extends \yii\db\ActiveRecord
         ];
     }
 
-    /**
-     * Возвращает одну оценку по id
-     * @param int $id
-     * 
-     * @return array
-     */
-    public static function getAttestation(int $id) : array
+    public function getFullFileName()
     {
-        $attestation = (new \yii\db\Query())
-        ->select([
-            'id'          => 'sg.id',
-            'date'        => 'sg.date',
-            'score'       => 'sg.score',
-            'type'        => 'sg.type',
-            'description' => 'sg.description',
-            'contents'    => 'sg.contents',
-            'studentId'   => 'sg.calc_studname',
-            'studentName' => 's.name',
-        ])
-        ->from(['sg' => 'student_grades'])
-        ->innerJoin(['s' => 'calc_studname'], 'sg.calc_studname = s.id')
-        ->where([
-            'sg.id' => $id,
-            'sg.visible' => 1,
-        ])
-        ->one();
+        return Yii::getAlias("@attestates/{$this->calc_studname}/attestate-{$this->id}.pdf");
+    }
 
-        return $attestation;
+    public function delete()
+    {
+        $this->visible = 0;
+        if ($this->save(true, ['visible'])) {
+            $filePath = $this->getFullFileName();
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public function writePdfFile()
+    {
+        $student = Student::find()->andWhere(['id' => $this->calc_studname])->one();
+        if (empty($student)) {
+            return false;
+        }
+        $attestation = $this->toArray();
+        $attestation['studentId'] = $student->id;
+        $attestation['studentName'] = $student->name;
+        unset($attestation['calc_studname']);
+
+        $attestatesDir = Yii::getAlias("@attestates");
+        $attestatesDirStudentSubDir = "{$attestatesDir}/{$attestation['studentId']}";
+        $filePath = $this->getFullFileName();
+        if (!file_exists($attestatesDir)) {
+            mkdir($attestatesDir, 0775, true);
+            if (!file_exists($attestatesDirStudentSubDir)) {
+                mkdir($attestatesDirStudentSubDir, 0775, true);
+            }
+        }
+        $pdf = new Pdf([
+            'filename'    => $filePath,
+            'mode'        => Pdf::MODE_UTF8,
+            'format'      => Pdf::FORMAT_A4,
+            'orientation' => Pdf::ORIENT_LANDSCAPE,
+            'destination' => Pdf::DEST_FILE, 
+            'content'     => Yii::$app->controller->renderPartial('viewPdf', [
+                'attestation'  => $attestation,
+                'contentTypes' => self::getExamContentTypes(),
+                'exams'        => self::getExams(),
+            ]),
+            'cssFile'     => '@app/web/css/print_attestate.css',
+            'options'     => [
+                'title'   => Yii::t('app', 'Attestation'),
+            ],
+            'marginHeader' => 0,
+            'marginFooter' => 0,
+            'marginTop'    => 0,
+            'marginBottom' => 0,
+            'marginLeft'   => 0,
+            'marginRight'  => 0,
+        ]);
+        $pdf->render();
+
+        return true;
     }
 
     /**
