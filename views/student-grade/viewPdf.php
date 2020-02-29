@@ -11,11 +11,6 @@ use yii\web\View;
  * @var array $contentTypes
  * @var array $exams
  */
-
-$contents = [];
-if ($attestation['contents']) {
-  $contents = json_decode($attestation['contents'], true);
-}
 ?>
 <div class="body">
 <div class="outer-block">
@@ -51,7 +46,7 @@ if ($attestation['contents']) {
           }
           echo $this->render("viewPdf/_{$fileName}", [
               'attestation' => $attestation,
-              'contents'    => $contents,
+              'contents'    => $attestation['contents'] ?? [],
               'exams'       => $exams,
           ]);   
       ?>
