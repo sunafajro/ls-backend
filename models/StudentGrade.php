@@ -195,9 +195,9 @@ class StudentGrade extends \yii\db\ActiveRecord
         $filePath = $this->getFullFileName();
         if (!file_exists($attestatesDir)) {
             mkdir($attestatesDir, 0775, true);
-            if (!file_exists($attestatesDirStudentSubDir)) {
-                mkdir($attestatesDirStudentSubDir, 0775, true);
-            }
+        }
+        if (!file_exists($attestatesDirStudentSubDir)) {
+            mkdir($attestatesDirStudentSubDir, 0775, true);
         }
         $pdf = new Pdf([
             'filename'    => $filePath,
