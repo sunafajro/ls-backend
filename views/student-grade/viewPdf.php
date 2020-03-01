@@ -2,7 +2,6 @@
 
 use app\models\StudentGrade;
 use yii\helpers\Html;
-use yii\helpers\Url;
 use yii\web\View;
 
 /**
@@ -11,12 +10,13 @@ use yii\web\View;
  * @var array $contentTypes
  * @var array $exams
  */
+$logo = base64_encode(file_get_contents(Yii::getAlias('@uploads/yazyk_uspekha_logo_2.png')));
 ?>
 <div class="body">
 <div class="outer-block">
       <div class="header-block">
         <div class="logo-block">
-          <?= Html::img(Url::to('./uploads/yazyk_uspekha_logo_2.png'), ['class' => 'logo']) ?>
+          <?= Html::img("data:image/png;base64,{$logo}", ['class' => 'logo']) ?>
         </div>
         <div class="title-block">
           <div>
