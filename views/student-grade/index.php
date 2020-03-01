@@ -133,14 +133,14 @@ if (((int)Yii::$app->session->get('user.ustatus') === 3 ||
                         'i',
                         '',
                         [
-                            'class' => 'fa fa-edit',
+                            'class' => 'fa fa-pencil',
                             'aria-hidden' => 'true',
                         ]
                     ),
                     'javascript:void(0)',
                     [
                         'class' => 'btn btn-xs btn-warning js--edit-attestation',
-                        'style' => 'margin-right: 0.2rem',
+                        'style' => 'margin-top: 0.2rem;margin-right: 0.2rem',
                         'data' => [
                             'action-url' => Url::to(['student-grade/update', 'id' => $grade['id']]),
                             'main-params' => JSON::encode($mainParams),
@@ -161,6 +161,7 @@ if (((int)Yii::$app->session->get('user.ustatus') === 3 ||
                     ['student-grade/delete', 'id' => $grade['id']],
                     [
                         'class' => 'btn btn-danger btn-xs',
+                        'style' => 'margin-top: 0.2rem',
                         'data' => [
                             'method'  => 'post',
                             'confirm' => 'Действительно удалить эту аттестацию?',

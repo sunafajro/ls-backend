@@ -1,7 +1,5 @@
 <?php
 
-Yii::setAlias('@tests', dirname(__DIR__) . '/tests');
-
 $params = require(__DIR__ . '/params.php');
 $db = require(__DIR__ . '/db.php');
 
@@ -29,6 +27,9 @@ $config = [
         'db' => $db,
     ],
     'params' => $params,
+    'aliases' => [
+        '@attestates' => '@app/data/attestates',
+    ],
 ];
 
 if (file_exists(__DIR__ . '/local/console.php')) {
