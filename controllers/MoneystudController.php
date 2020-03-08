@@ -281,12 +281,14 @@ class MoneystudController extends Controller
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
         $payment = $this->findModel($id);
-        $student = $payment->calc_studname;
+        /** @var Student $student */
+        $student = $payment->student;
         if ($this->findModel($id)->delete()) {
+            $student->updateInvMonDebt();
             Yii::$app->session->setFlash('success', 'Оплата успешно удалена.');
         }
 
-        return $this->redirect(['studname/view', 'id' => $student, 'tab' => 4]);
+        return $this->redirect(['studname/view', 'id' => $student->id, 'tab' => 4]);
     }
 
     /**
