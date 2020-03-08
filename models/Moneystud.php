@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use app\models\Student;
 use app\traits\StudentMergeTrait;
 use Yii;
 
@@ -27,6 +28,8 @@ use Yii;
  * @property integer $collection
  * @property string $data_collection
  * @property integer $user_collection
+ * 
+ * @property Student $student
  */
 class Moneystud extends \yii\db\ActiveRecord
 {
@@ -86,6 +89,11 @@ class Moneystud extends \yii\db\ActiveRecord
         ];
     }
     
+    public function getStudent()
+    {
+        return $this->hasOne(Student::class, ['id' => 'calc_studname']);
+    }
+
     public static function getPaymentTypeLabel(string $type = NULL): string
     {
         $result = '';
