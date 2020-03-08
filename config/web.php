@@ -1,7 +1,26 @@
 <?php
 
-$params = require(__DIR__ . '/params.php');
 $aliases = require(__DIR__ . '/aliases.php');
+
+$localPath = __DIR__ . '/local';
+
+$db  = require(__DIR__ . '/db.php');
+if (file_exists("{$localPath}/db.php")) {
+    $localDb = require("{$localPath}/db.php");
+    $db = array_merge($db, $localDb);
+}
+
+$params = require(__DIR__ . '/params.php');
+if (file_exists("{$localPath}/params.php")) {
+    $localParams = require("{$localPath}/params.php");
+    $params = array_merge($params, $localParams);
+}
+
+$options = require(__DIR__ . '/options.php');
+if (file_exists("{$localPath}/options.php")) {
+    $localOptions = require("{$localPath}/options.php");
+    $options = array_merge($options, $localOptions);
+}
 
 $config = [
     'id' => 'basic',
@@ -10,8 +29,8 @@ $config = [
     'language' => 'ru-RU',
     'components' => [
         'request' => [
-            'enableCsrfValidation' => false,
-            'cookieValidationKey' => '',
+            'enableCsrfValidation' => $options['enableCsrfValidation'],
+            'cookieValidationKey'  => $options['cookieValidationKey'],
             'parsers' => [
                 'application/json' => 'yii\web\JsonParser',
             ],
@@ -20,8 +39,9 @@ $config = [
             'class' => 'yii\caching\FileCache',
         ],
         'user' => [
-            'identityClass' => 'app\models\User',
-            'authTimeout' => 1200,
+            'identityClass'   => 'app\models\User',
+            'enableAutoLogin' => $options['enableAutoLogin'],
+            'authTimeout'     => $options['authTimeout'],
         ],
         'errorHandler' => [
             'errorAction' => 'site/error',
@@ -39,7 +59,7 @@ $config = [
                     ],
                 ],
             ],
-        'db' => require(__DIR__ . '/db.php'),
+        'db' => $db,
     	'i18n' => [
             'translations' => [
                 'app*' => [
@@ -73,10 +93,7 @@ if (YII_ENV === 'dev') {
     $config['bootstrap'][] = 'debug';
     $config['modules']['debug']['class'] = 'yii\debug\Module';
     $config['modules']['debug']['allowedIPs'] = ['*'];
-}
-
-if (file_exists(__DIR__ . '/local/web.php')) {
-    $config = array_merge($config, require(__DIR__ . '/local/web.php'));
+    $config['components']['assetManager']['forceCopy'] = true;
 }
 
 return $config;

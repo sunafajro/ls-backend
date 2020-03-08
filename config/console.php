@@ -1,7 +1,18 @@
 <?php
 
+$localPath = __DIR__ . '/local';
+
+$db  = require(__DIR__ . '/db.php');
+if (file_exists("{$localPath}/db.php")) {
+    $localDb = require("{$localPath}/db.php");
+    $db = array_merge($db, $localDb);
+}
+
 $params = require(__DIR__ . '/params.php');
-$db = require(__DIR__ . '/db.php');
+if (file_exists("{$localPath}/params.php")) {
+    $localParams = require("{$localPath}/params.php");
+    $params = array_merge($params, $localParams);
+}
 
 $config = [
     'id' => 'basic-console',
@@ -32,9 +43,5 @@ $config = [
         '@uploads'    => '@app/web/uploads',
     ],
 ];
-
-if (file_exists(__DIR__ . '/local/console.php')) {
-    $config = array_merge($config, require(__DIR__ . '/local/console.php'));
-}
 
 return $config;
