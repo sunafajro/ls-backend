@@ -3,15 +3,16 @@
 namespace app\models;
 
 use Yii;
+use yii\db\ActiveRecord;
 
 /**
  * This is the model class for table "calc_lang".
  *
  * @property integer $id
- * @property string $name
+ * @property string  $name
  * @property integer $visible
  */
-class Language extends \yii\db\ActiveRecord
+class Language extends ActiveRecord
 {
     /**
      * @inheritdoc
@@ -27,9 +28,10 @@ class Language extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'visible'], 'required'],
+            [['visible'], 'default', 'value' => 1],
             [['name'], 'string'],
-            [['visible'], 'integer']
+            [['visible'], 'integer'],
+            [['name', 'visible'], 'required'],
         ];
     }
 
@@ -39,10 +41,16 @@ class Language extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
-            'name' => Yii::t('app', 'Name'),
-            'visible' => 'Visible',
+            'id'      => 'ID',
+            'name'    => Yii::t('app', 'Name'),
+            'visible' => Yii::t('app', 'Visible'),
         ];
+    }
+
+    public function delete()
+    {
+        $this->visible = 0;
+        return $this->save(true, ['visible']);
     }
 
     /* возвращает список языков в виде ассоциативного массива */

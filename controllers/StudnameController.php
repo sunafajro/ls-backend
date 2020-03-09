@@ -468,7 +468,6 @@ class StudnameController extends Controller
             $groups = [];
             $lessons = [];
         }
-        $office = new Office();
 
         return $this->render('view', [
             'model'         => $student,
@@ -486,7 +485,7 @@ class StudnameController extends Controller
             'userInfoBlock' => User::getUserInfoBlock(),
             'offices'       => [
                 'added' => $student->getStudentOffices($id),
-                'all'   => $office->getOfficesList(),
+                'all'   => Office::getOfficesList(),
             ],
             'contracts'     => Contract::getClientContracts($id),
             'loginStatus'   => $student->getStudentLoginStatus(),

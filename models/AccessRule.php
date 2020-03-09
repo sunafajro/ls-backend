@@ -98,9 +98,9 @@ class AccessRule extends \yii\db\ActiveRecord
     public static function GetCRUD(string $controller)
     {
         return [
-            'create' => static::CheckAccess($controller, 'create'),
-            'update' => static::CheckAccess($controller, 'update'),
-            'delete' => static::CheckAccess($controller, 'delete'),
+            'create' => self::CheckAccess($controller, 'create'),
+            'update' => self::CheckAccess($controller, 'update'),
+            'delete' => self::CheckAccess($controller, 'delete'),
         ];
     }
 

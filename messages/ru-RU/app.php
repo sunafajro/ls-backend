@@ -551,6 +551,8 @@ return array(
     'Value' => 'Значение',
     'View enabled' => 'Активные',
     'View disabled' => 'Отключенные',
+    'Volunteer' => 'Волонтер',
+    'Volunteers' => 'Волонтеры',
     'Way to Attract' => 'Способ привлечения',
     'When added' => 'Когда добавлен(на)',
     'Who added' => 'Кем добавлен(на)',

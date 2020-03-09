@@ -14,9 +14,13 @@ class Reference extends Model
     {
         $links = [
             [
-                'url'     => '/phonebook',
-                'name'    => Yii::t('app','Phones'),
-            ]
+                'url'  => '/phonebook',
+                'name' => Yii::t('app','Phones'),
+            ],
+            [
+                'url'  => '/volunteer',
+                'name' => Yii::t('app','Volunteers'),
+            ],
         ];
         if ((int)Yii::$app->session->get('user.ustatus') === 3) {
             $links[] = [

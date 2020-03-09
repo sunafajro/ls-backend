@@ -4,6 +4,7 @@ namespace app\models;
 
 use yii\helpers\ArrayHelper;
 use Yii;
+use yii\db\ActiveRecord;
 
 /**
  * This is the model class for table "calc_office".
@@ -14,7 +15,7 @@ use Yii;
  * @property integer $calc_city
  * @property integer $num
  */
-class Office extends \yii\db\ActiveRecord
+class Office extends ActiveRecord
 {
     /**
      * @inheritdoc
@@ -30,9 +31,11 @@ class Office extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'visible', 'calc_city', 'num'], 'required'],
-            [['name'], 'string'],
+            [['visible'], 'default', 'value' => 1],
+            [['num'],     'default', 'value' => 0],
+            [['name'],    'string'],
             [['visible', 'calc_city', 'num'], 'integer'],
+            [['name', 'visible', 'calc_city', 'num'], 'required'],
         ];
     }
 
@@ -42,12 +45,18 @@ class Office extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => Yii::t('app', 'ID'),
-            'name' => Yii::t('app', 'Name'),
-            'visible' => Yii::t('app', 'Visible'),
+            'id'        => Yii::t('app', 'ID'),
+            'name'      => Yii::t('app', 'Name'),
+            'visible'   => Yii::t('app', 'Visible'),
             'calc_city' => Yii::t('app', 'Calc City'),
-            'num' => Yii::t('app', 'Num'),
+            'num'       => Yii::t('app', 'Num'),
         ];
+    }
+
+    public function delete()
+    {
+        $this->visible = 0;
+        return $this->save(true, ['visible']);
     }
 
     // возвращает список офисов по которым есть занятия в расписании
@@ -95,7 +104,7 @@ class Office extends \yii\db\ActiveRecord
     }
 
     /* возвращает список действующих офисов */
-    public function getOfficesList($id = null)
+    public static function getOfficesList($id = null)
     {
         $offices = (new \yii\db\Query())
         ->select('co.id as id, co.name as name')
@@ -156,7 +165,7 @@ class Office extends \yii\db\ActiveRecord
      */
     public static function getOfficesListSimple($id = null)
     {
-        $offices = ArrayHelper::map((new Office())->getOfficesList($id) ?? [], 'id', 'name');
+        $offices = ArrayHelper::map(self::getOfficesList($id) ?? [], 'id', 'name');
 
         return !empty($offices) ? $offices : NULL;
     }

@@ -8,9 +8,9 @@ use Yii;
  * This is the model class for table "calc_phonebook".
  *
  * @property integer $id
- * @property string $name
- * @property string $phonenumber
- * @property string $description
+ * @property string  $name
+ * @property string  $phonenumber
+ * @property string  $description
  * @property integer $visible
  */
 class Phonebook extends \yii\db\ActiveRecord
@@ -29,10 +29,11 @@ class Phonebook extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'phonenumber', 'description'], 'required'],
+            [['visible'], 'default', 'value' => 1],
             [['visible'], 'integer'],
             [['name', 'description'], 'string', 'max' => 128],
-            [['phonenumber'], 'string', 'max' => 10]
+            [['phonenumber'], 'string', 'max' => 10],
+            [['name', 'phonenumber', 'description'], 'required'],
         ];
     }
 
@@ -42,21 +43,32 @@ class Phonebook extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
-            'name' => Yii::t('app', 'Name'),
-            'phonenumber' => Yii::t('app','Phone'),
-            'description' => Yii::t('app','Description'),
-            'visible' => 'Visible',
+            'id'          => 'ID',
+            'name'        => Yii::t('app', 'Name'),
+            'phonenumber' => Yii::t('app', 'Phone'),
+            'description' => Yii::t('app', 'Description'),
+            'visible'     => 'Visible',
         ];
+    }
+
+    public function delete()
+    {
+        $this->visible = 0;
+        return $this->save(true, ['visible']);
     }
 
     /* возвращает список номеров телефонов */
     public static function getPhoneList()
     {
         $phones = (new \yii\db\Query())
-        ->select(['id'=> 'id', 'name'=> 'name', 'phone'=> 'phonenumber', 'description'=> 'description'])
-        ->from('calc_phonebook')
-        ->where('visible=:vis', [':vis'=>1])
+        ->select([
+            'id'          => 'id',
+            'name'        => 'name',
+            'phone'       => 'phonenumber',
+            'description' => 'description',
+        ])
+        ->from(self::tableName())
+        ->where(['visible' => 1])
         ->all();
 
         return [
