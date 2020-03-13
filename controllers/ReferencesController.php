@@ -7,11 +7,15 @@ use app\components\helpers\JsonResponse;
 use app\models\AccessRule;
 use app\models\City;
 use app\models\Coefficient;
+use app\models\Edunorm;
 use app\models\Language;
+use app\models\LanguagePremium;
 use app\models\Office;
 use app\models\Phonebook;
 use app\models\Reference;
 use app\models\Room;
+use app\models\Studnorm;
+use app\models\Timenorm;
 use app\models\Volonteer;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -21,14 +25,6 @@ use yii\web\Response;
 
 class ReferencesController extends Controller
 {
-    const TYPE_CITIES       = 'cities';
-    const TYPE_COEFFICIENTS = 'coefficients';
-    const TYPE_CONTACTS     = 'contacts';
-    const TYPE_LANGUAGES    = 'languages';
-    const TYPE_OFFICES      = 'offices';
-    const TYPE_ROOMS        = 'rooms';
-    const TYPE_VOLONTEERS   = 'volonteers';
-
     public function behaviors()
     {
         $actions = [
@@ -106,7 +102,7 @@ class ReferencesController extends Controller
         Yii::$app->response->format = Response::FORMAT_JSON;
         return [
             'status' => true,
-            'links'  => Reference::getItems()
+            'links'  => Reference::getLinks()
         ];
     }
 
@@ -131,7 +127,6 @@ class ReferencesController extends Controller
             if ($model->save()) {
                 return JsonResponse::ok(true, Yii::t('app', "{$entityName} successfully created!"));
             } else {
-                var_dump($model->getErrors()); die();
                 return JsonResponse::internalServerError(Yii::t('app', "{$entityName} create failed!"));
             }            
         } else {
@@ -158,7 +153,7 @@ class ReferencesController extends Controller
     {
         $condition = ['id' => $id, 'visible' => 1];
         switch ($name) {
-            case self::TYPE_CITIES:
+            case Reference::TYPE_CITIES:
                 if ($type === 'list') {
                     ['columns' => $columns, 'data' => $data] = City::getCitiesList();
                 } else {
@@ -166,7 +161,7 @@ class ReferencesController extends Controller
                     $entityName = 'City';
                 }
                 break;
-            case self::TYPE_COEFFICIENTS:
+            case Reference::TYPE_COEFFICIENTS:
                 if ($type === 'list') {
                     ['columns' => $columns, 'data' => $data] = Coefficient::getCoefficientsList();    
                 } else {
@@ -174,7 +169,7 @@ class ReferencesController extends Controller
                     $entityName = 'Coefficient';
                 }
                 break;
-            case self::TYPE_LANGUAGES:
+            case Reference::TYPE_LANGUAGES:
                 if ($type === 'list') {
                     ['columns' => $columns, 'data' => $data] = Language::getLanguages();    
                 } else {
@@ -182,7 +177,7 @@ class ReferencesController extends Controller
                     $entityName = 'Language';
                 }
                 break;
-            case self::TYPE_OFFICES:
+            case Reference::TYPE_OFFICES:
                 if ($type === 'list') {
                     ['columns' => $columns, 'data' => $data] = Office::getOfficesWithCitiesList();    
                 } else {
@@ -190,7 +185,15 @@ class ReferencesController extends Controller
                     $entityName = 'Office';
                 }
                 break;
-            case self::TYPE_ROOMS:
+            case Reference::TYPE_PREMIUMS:
+                if ($type === 'list') {
+                    ['columns' => $columns, 'data' => $data] = LanguagePremium::getLanguagePremiums();    
+                } else {
+                    $model = $id ? LanguagePremium::find()->andWhere($condition)->one() : new LanguagePremium();
+                    $entityName = 'Language premium';
+                }
+                break;
+            case Reference::TYPE_ROOMS:
                 if ($type === 'list') {
                     ['columns' => $columns, 'data' => $data] = Room::getRoomsList();    
                 } else {
@@ -198,7 +201,31 @@ class ReferencesController extends Controller
                     $entityName = 'Room';
                 }
                 break;
-            case self::TYPE_VOLONTEERS:
+            case Reference::TYPE_STUDENT_NORMS:
+                if ($type === 'list') {
+                    ['columns' => $columns, 'data' => $data] = Studnorm::getPaynorms();    
+                } else {
+                    $model = $id ? Studnorm::find()->andWhere($condition)->one() : new Studnorm();
+                    $entityName = 'Studnorm';
+                }
+                break;
+            case Reference::TYPE_TEACHER_NORMS:
+                if ($type === 'list') {
+                    ['columns' => $columns, 'data' => $data] = Edunorm::getPaynorms();    
+                } else {
+                    $model = $id ? Edunorm::find()->andWhere($condition)->one() : new Edunorm();
+                    $entityName = 'Teachernorm';
+                }
+                break;
+            case Reference::TYPE_TIME_NORMS:
+                if ($type === 'list') {
+                    ['columns' => $columns, 'data' => $data] = Timenorm::getTimenorms();
+                } else {
+                    $model = $id ? Timenorm::find()->andWhere($condition)->one() : new Timenorm();
+                    $entityName = 'Timenorm';
+                }
+                break;
+            case Reference::TYPE_VOLONTEERS:
                 if ($type === 'list') {
                     ['columns' => $columns, 'data' => $data] = Volonteer::getVolonteers();
                 } else {

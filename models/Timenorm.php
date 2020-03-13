@@ -53,6 +53,12 @@ class Timenorm extends \yii\db\ActiveRecord
         ];
     }
 
+    public function delete()
+    {
+        $this->visible = 0;
+        return $this->save(true, ['visible']);
+    }
+
     public static function getTimenorms()
     {
         $timenorm = (new \yii\db\Query())

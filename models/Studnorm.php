@@ -8,10 +8,10 @@ use Yii;
  * This is the model class for table "calc_studnorm".
  *
  * @property integer $id
- * @property string $name
+ * @property string  $name
  * @property integer $visible
- * @property double $value
- * @property string $data
+ * @property double  $value
+ * @property string  $data
  */
 class Studnorm extends \yii\db\ActiveRecord
 {
@@ -29,11 +29,13 @@ class Studnorm extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'visible', 'value', 'data'], 'required'],
-            [['name'], 'string'],
+            [['visible'], 'default', 'value' => 1],
+            [['data'],    'default', 'value' => date("Y-m-d H:i:s")],
+            [['name'],    'string'],
             [['visible'], 'integer'],
-            [['value'], 'number'],
-            [['data'], 'safe'],
+            [['value'],   'number'],
+            [['data'],    'safe'],
+            [['name', 'visible', 'value', 'data'], 'required'],
         ];
     }
 
@@ -43,22 +45,32 @@ class Studnorm extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
-            'name' => Yii::t('app', 'Name'),
-            'visible' => 'Visible',
-            'value' => Yii::t('app', 'Value'),
-            'data' => 'Data',
+            'id'      => 'ID',
+            'name'    => Yii::t('app', 'Name'),
+            'visible' => Yii::t('app', 'Visible'),
+            'value'   => Yii::t('app', 'Value'),
+            'data'    => Yii::t('app', 'Date'),
         ];
+    }
+
+    public function delete()
+    {
+        $this->visible = 0;
+        return $this->save(true, ['visible']);
     }
 
     public static function getPaynorms()
     {
         $studpaynorm = (new \yii\db\Query())
-        ->select(['id'=>'id', 'name'=>'name', 'value' => 'value'])
-        ->from('calc_studnorm')
-        ->where('visible=:vis', [':vis'=>1])
-        ->orderby(['name'=>SORT_ASC])
-        ->all();
+            ->select([
+                'id'    =>'id',
+                'name'  =>'name',
+                'value' => 'value'
+            ])
+            ->from(self::tableName())
+            ->where(['visible' => 1])
+            ->orderby(['name' => SORT_ASC])
+            ->all();
 
         return [
             'columns' => [
