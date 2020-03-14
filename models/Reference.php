@@ -10,54 +10,51 @@ use yii\base\Model;
  */
 class Reference extends Model
 {
-    public static function getItems()
-    {
-        $links = [
-            [
-                'url'     => '/phonebook',
-                'name'    => Yii::t('app','Phones'),
-            ]
+    const TYPE_CITIES        = 'cities';
+    const TYPE_COEFFICIENTS  = 'coefficients';
+    const TYPE_CONTACTS      = 'contacts';
+    const TYPE_LANGUAGES     = 'languages';
+    const TYPE_OFFICES       = 'offices';
+    const TYPE_PREMIUMS      = 'premiums';
+    const TYPE_ROOMS         = 'rooms';
+    const TYPE_STUDENT_NORMS = 'studentnorms';
+    const TYPE_TEACHER_NORMS = 'teachernorms';
+    const TYPE_TIME_NORMS    = 'timenorms';
+    const TYPE_VOLONTEERS    = 'volonteers';
+
+   public static function getReferenceTypes()
+   {
+        $types = [
+            self::TYPE_CONTACTS      => Yii::t('app','Phones'),
+            self::TYPE_VOLONTEERS    => Yii::t('app','Volunteers'),
         ];
         if ((int)Yii::$app->session->get('user.ustatus') === 3) {
+            $types = array_merge($types, [
+                self::TYPE_LANGUAGES     => Yii::t('app','Languages'),
+                self::TYPE_STUDENT_NORMS => Yii::t('app','Student norms'),
+                self::TYPE_TEACHER_NORMS => Yii::t('app','Teacher norms'),
+                self::TYPE_TIME_NORMS    => Yii::t('app','Time norms'),
+                self::TYPE_PREMIUMS      => Yii::t('app','Language premiums'),
+                self::TYPE_COEFFICIENTS  => Yii::t('app','Accrual coefficients'),
+                self::TYPE_CITIES        => Yii::t('app','Cities'),
+                self::TYPE_OFFICES       => Yii::t('app','Offices'),
+                self::TYPE_ROOMS         => Yii::t('app','Rooms'),
+            ]);
+        }
+
+        return $types;
+   }
+
+    public static function getLinks()
+    {
+        $links = [];
+        foreach (self::getReferenceTypes() as $key => $value) {
             $links[] = [
-                'url'     => '/languages',
-                'name'    => Yii::t('app','Languages'),
-            ];
-            $links[] = [
-                'url'     => '/studentnorms',
-                'name'    => Yii::t('app','Student norms'),
-            ];
-            $links[] = [
-                'url'     => '/teachernorms',
-                'name'    => Yii::t('app','Teacher norms'),
-            ];
-            $links[] = [ 
-                'url'     => '/timenorms',
-                'name'    => Yii::t('app','Time norms'),
-            ];
-            $links[] = [
-                'url'     => '/premiums',
-                'name'    => Yii::t('app','Language premiums'),
-            ];
-            $links[] = [
-                'url'     => '/coefficients',
-                'name'    => Yii::t('app','Accrual coefficients'),
-            ];
-            $links[] = [
-                'url'     => '/cities',
-                'name'    => Yii::t('app','Cities'),
-            ];
-            $links[] = [
-                'url'     => '/offices',
-                'name'    => Yii::t('app','Offices'),
-            ];
-            $links[] = [
-                'url'     => '/rooms',
-                'name'    => Yii::t('app','Rooms'),
+                'url'  => "/{$key}",
+                'name' => $value,
             ];
         }
 
-        return $links;
-  
+        return $links; 
     }
 }

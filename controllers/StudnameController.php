@@ -423,7 +423,7 @@ class StudnameController extends Controller
             'model'         => $student,
             'offices'       => [
                 'added' => $student->getStudentOffices($id),
-                'all'   => (new Office())->getOfficesList(),
+                'all'   => Office::getOfficesList(),
             ],
             'payments'      => $payments,
             'permsale'      => $permsale,

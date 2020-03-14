@@ -646,7 +646,7 @@ class TeacherController extends Controller
         // }
         /* запрашиваем список надбавок из справочника за исключением уже назначенных */
         $premium = new LanguagePremium();
-        $premiums = $premium->getLanguagePremiumsSimple();
+        $premiums = LanguagePremium::getLanguagePremiumsSimple();
         
         $model = new TeacherLanguagePremium();
         if ($model->load(Yii::$app->request->post())) {

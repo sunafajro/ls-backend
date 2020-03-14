@@ -138,7 +138,6 @@ class InvoiceController extends Controller
                 'saveSuccessMessage' => Yii::t('app', 'The invoice successfully saved on server!'),
                 'salepurpose' => Yii::t('app', 'Reason'),
             ];
-            $office = new Office();
             $user = new User();
             return [
                 'userData'  => $user->getUserInfo(),
@@ -146,7 +145,7 @@ class InvoiceController extends Controller
                 'services'  => Service::getInvoiceServicesList(),
                 'rubsales'  => $sales['rub'],
                 'procsales' => $sales['proc'],
-                'offices'   => (int)Yii::$app->session->get('user.ustatus') !== 4 ? $office->getOfficesList() : [],
+                'offices'   => (int)Yii::$app->session->get('user.ustatus') !== 4 ? Office::getOfficesList() : [],
                 'permsale'  => Salestud::getClientPermamentSale($sid),
                 'labels'    => $labels
             ];

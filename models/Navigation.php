@@ -212,7 +212,7 @@ class Navigation extends Model
             /* ссылка на раздел Справочники */
             $menu[] = [
                 'id' => 'references',
-                'url' => '/reference/index',
+                'url' => '/references/index',
                 'classes' => 'fa fa-cog',
                 'title' => Yii::t('app', 'References'),
                 'hasBadge' => false
