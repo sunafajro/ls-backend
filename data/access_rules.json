@@ -2,401 +2,401 @@
     {
         "controller": "user",
         "action": "get-info",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "user",
         "action": "get-info",
-        "role": "4"
+        "role_id": "4"
     },
     {
         "controller": "user",
         "action": "get-info",
-        "role": "5"
+        "role_id": "5"
     },
     {
         "controller": "user",
         "action": "get-info",
-        "role": "6"
+        "role_id": "6"
     },
     {
         "controller": "user",
         "action": "get-info",
-        "role": "7"
+        "role_id": "7"
     },
     {
         "controller": "user",
         "action": "get-info",
-        "role": "8"
+        "role_id": "8"
     },
     {
         "controller": "user",
         "action": "get-info",
-        "role": "9"
+        "role_id": "9"
     },
     {
         "controller": "user",
         "action": "get-info",
-        "role": "10"
+        "role_id": "10"
     },
     {
         "controller": "references",
         "action": "index",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references",
         "action": "index",
-        "role": "4"
+        "role_id": "4"
     },
     {
         "controller": "references",
         "action": "index",
-        "role": "9"
-    },
-    {
-        "controller": "references",
-        "action": "menu-links",
-        "role": "3"
+        "role_id": "9"
     },
     {
         "controller": "references",
         "action": "menu-links",
-        "role": "4"
+        "role_id": "3"
     },
     {
         "controller": "references",
         "action": "menu-links",
-        "role": "9"
+        "role_id": "4"
+    },
+    {
+        "controller": "references",
+        "action": "menu-links",
+        "role_id": "9"
     },
     {
         "controller": "references/contacts",
         "action": "list",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/contacts",
         "action": "list",
-        "role": "4"
+        "role_id": "4"
     },
     {
         "controller": "references/contacts",
         "action": "list",
-        "role": "9"
+        "role_id": "9"
     },
     {
         "controller": "references/contacts",
         "action": "create",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/contacts",
         "action": "delete",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/languages",
         "action": "list",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/languages",
         "action": "create",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/languages",
         "action": "delete",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/cities",
         "action": "list",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/cities",
         "action": "create",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/cities",
         "action": "delete",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/offices",
         "action": "list",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/offices",
         "action": "create",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/offices",
         "action": "delete",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/rooms",
         "action": "list",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/rooms",
         "action": "create",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/rooms",
         "action": "delete",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/teachernorms",
         "action": "list",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/teachernorms",
         "action": "create",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/teachernorms",
         "action": "delete",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/studentnorms",
         "action": "list",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/studentnorms",
         "action": "create",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/studentnorms",
         "action": "delete",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/timenorms",
         "action": "list",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/timenorms",
         "action": "create",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/timenorms",
         "action": "delete",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/premiums",
         "action": "list",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/premiums",
         "action": "create",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/premiums",
         "action": "delete",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/coefficients",
         "action": "list",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/coefficients",
         "action": "create",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "references/coefficients",
         "action": "delete",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "contract",
         "action": "create",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "contract",
         "action": "create",
-        "role": "4"
+        "role_id": "4"
     },
     {
         "controller": "contract",
         "action": "delete",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "contract",
         "action": "delete",
-        "role": "4"
+        "role_id": "4"
     },
     {
         "controller": "student-grade",
         "action": "index",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "student-grade",
         "action": "index",
-        "role": "4"
+        "role_id": "4"
     },
     {
         "controller": "student-grade",
         "action": "index",
-        "role": "5"
+        "role_id": "5"
     },
     {
         "controller": "student-grade",
         "action": "create",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "student-grade",
         "action": "create",
-        "role": "4"
+        "role_id": "4"
     },
     {
         "controller": "student-grade",
         "action": "delete",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "student-grade",
         "action": "delete",
-        "role": "4"
+        "role_id": "4"
     },
     {
         "controller": "student-grade",
         "action": "download-attestation",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "student-grade",
         "action": "download-attestation",
-        "role": "4"
+        "role_id": "4"
     },
     {
         "controller": "student-grade",
         "action": "exam-contents",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "student-grade",
         "action": "exam-contents",
-        "role": "4"
+        "role_id": "4"
     },
     {
         "controller": "student-grade",
         "action": "index",
-        "role": "6"
-    },
-    {
-        "controller": "student-grade",
-        "action": "update",
-        "role": "3"
+        "role_id": "6"
     },
     {
         "controller": "student-grade",
         "action": "update",
-        "role": "4"
+        "role_id": "3"
+    },
+    {
+        "controller": "student-grade",
+        "action": "update",
+        "role_id": "4"
     },
     {
         "controller": "receipt",
         "action": "index",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "receipt",
         "action": "index",
-        "role": "4"
+        "role_id": "4"
     },
     {
         "controller": "receipt",
         "action": "create",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "receipt",
         "action": "create",
-        "role": "4"
+        "role_id": "4"
     },
     {
         "controller": "receipt",
         "action": "delete",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "receipt",
         "action": "delete",
-        "role": "4"
+        "role_id": "4"
     },
     {
         "controller": "receipt",
         "action": "common",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "receipt",
         "action": "common",
-        "role": "4"
+        "role_id": "4"
     },
     {
         "controller": "receipt",
         "action": "common",
-        "role": "9"
+        "role_id": "9"
     },
     {
         "controller": "receipt",
         "action": "download-receipt",
-        "role": "9"
+        "role_id": "9"
     },
     {
         "controller": "document",
         "action": "index",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "document",
         "action": "index",
-        "role": "4"
+        "role_id": "4"
     },
     {
         "controller": "document",
         "action": "download",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "document",
         "action": "download",
-        "role": "4"
+        "role_id": "4"
     },
     {
         "controller": "document",
         "action": "upload",
-        "role": "3"
+        "role_id": "3"
     },
     {
         "controller": "document",
         "action": "delete",
-        "role": "3"
+        "role_id": "3"
     }
 ]

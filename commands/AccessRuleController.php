@@ -11,7 +11,15 @@ class AccessRuleController extends Controller {
     public function actionDbToFile()
     {
         try {
-            $rules = AccessRule::find()->select(['controller' => 'controller', 'action' => 'action', 'role' => 'role'])->andWhere(['visible' => 1])->asArray()->all();
+            $rules = AccessRule::find()
+                ->select([
+                    'controller' => 'controller',
+                    'action'     => 'action',
+                    'role_id'    => 'role_id'
+                ])
+                ->andWhere(['visible' => 1])
+                ->asArray()
+                ->all();
             file_put_contents(Yii::getALias('@app/data/access_rules.json'), Json::encode($rules));
             echo "Data wrote to the file.";
         } catch (\Exception $e) {

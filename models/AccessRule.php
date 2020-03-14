@@ -3,25 +3,26 @@
 namespace app\models;
 
 use Yii;
+use yii\db\ActiveRecord;
 
 /**
- * This is the model class for table "calc_accessrules".
+ * This is the model class for table "access_rules".
  *
  * @property integer $id
  * @property string  $action
  * @property string  $controller
- * @property integer $role
+ * @property integer $role_id
  * @property integer $visible
  */
 
-class AccessRule extends \yii\db\ActiveRecord
+class AccessRule extends ActiveRecord
 {
     /**
      * @inheritdoc
      */
     public static function tableName()
     {
-        return 'calc_accessrule';
+        return 'access_rules';
     }
 
     /**
@@ -32,8 +33,8 @@ class AccessRule extends \yii\db\ActiveRecord
         return [
             [['visible'], 'default', 'value' => 1],
             [['action', 'controller'], 'string'],
-            [['role',   'visible'], 'integer'],
-            [['action', 'controller', 'role', 'visible'], 'required'],
+            [['role_id',   'visible'], 'integer'],
+            [['action', 'controller', 'role_id', 'visible'], 'required'],
         ];
     }
 
@@ -46,7 +47,7 @@ class AccessRule extends \yii\db\ActiveRecord
             'id'         => 'ID',
             'action'     => Yii::t('app', 'Action'),
             'controller' => Yii::t('app', 'Controller'),
-            'role'       => Yii::t('app', 'Role'),
+            'role_id'    => Yii::t('app', 'Role'),
         ];
     }
 
@@ -62,11 +63,11 @@ class AccessRule extends \yii\db\ActiveRecord
             'id'         => 'r.id',
             'action'     => 'r.action',
             'controller' => 'r.controller',
-            'role_id'    => 'r.role',
+            'role_id'    => 'r.role_id',
             'role'       => 's.name',
         ])
         ->from(['r' => self::tableName()])
-        ->innerJoin(['s' => Role::tableName()], 's.id = r.role')
+        ->innerJoin(['s' => Role::tableName()], 's.id = r.role_id')
         ->where(['r.visible' => 1])
         ->orderby(['r.id' => SORT_ASC])
         ->all();
@@ -119,7 +120,7 @@ class AccessRule extends \yii\db\ActiveRecord
             $result = self::find()->where([
                 'action'     => $action,
                 'controller' => $controller,
-                'role'       => Yii::$app->session->get('user.ustatus'),
+                'role_id'    => Yii::$app->session->get('user.ustatus'),
             ])
             ->one();
         }
