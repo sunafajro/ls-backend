@@ -95,6 +95,26 @@
         "role_id": "3"
     },
     {
+        "controller": "references/volonteers",
+        "action": "list",
+        "role_id": "3"
+    },
+    {
+        "controller": "references/volonteers",
+        "action": "list",
+        "role_id": "4"
+    },
+    {
+        "controller": "references/volonteers",
+        "action": "create",
+        "role_id": "3"
+    },
+    {
+        "controller": "references/volonteers",
+        "action": "delete",
+        "role_id": "3"
+    },
+    {
         "controller": "references/languages",
         "action": "list",
         "role_id": "3"

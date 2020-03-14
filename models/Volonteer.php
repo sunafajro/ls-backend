@@ -10,8 +10,13 @@ use Yii;
  *
  * @property integer $id
  * @property string  $name
- * @property string  $date
+ * @property string  $birthdate
  * @property string  $city
+ * @property string  $occupation
+ * @property string  $type
+ * @property string  $social
+ * @property string  $phone
+ * @property string  $note
  */
 
 class Volonteer extends ActiveRecord
@@ -24,7 +29,46 @@ class Volonteer extends ActiveRecord
         return 'volonteers';
     }
 
-    public function getVolonteers()
+        /**
+     * @inheritdoc
+     */
+    public function rules()
+    {
+        return [
+            [['visible'], 'default', 'value' => 1],
+            [['visible'],   'integer'],
+            [['birthdate'], 'safe'],
+            [['name', 'city', 'occupation', 'type', 'social', 'phone', 'note'], 'string'],
+            [['name', 'phone', 'visible'], 'required'],
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function attributeLabels()
+    {
+        return [
+            'id'         => Yii::t('app', 'ID'),
+            'name'       => Yii::t('app', 'Name'),
+            'birthdate'  => Yii::t('app', 'Birthdate'),
+            'city'       => Yii::t('app', 'City'),
+            'occupation' => Yii::t('app', 'Occupation'),
+            'type'       => Yii::t('app', 'Type'),
+            'social'     => Yii::t('app', 'Social'),
+            'phone'      => Yii::t('app', 'Phone'),
+            'note'       => Yii::t('app', 'Note'),
+            'visible'    => Yii::t('app', 'Visible'),
+        ];
+    }
+
+    public function delete()
+    {
+        $this->visible = 0;
+        return $this->save(true, ['visible']);
+    }
+
+    public static function getVolonteers()
     {
         $data = (new \yii\db\Query())
         ->select([
