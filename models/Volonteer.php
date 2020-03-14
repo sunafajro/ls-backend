@@ -96,41 +96,41 @@ class Volonteer extends ActiveRecord
                 ],
                 [
                     'id'   => 'name',
-                    'name' => Yii::t('app', 'Name'),
+                    'name' => Yii::t('app', 'Full name'),
                     'show' => true
                 ],
                 [
-                    'id'   => 'value',
+                    'id'   => 'birthdate',
                     'name' => Yii::t('app', 'Birthdate'),
                     'show' => true
                 ],
                 [
-                    'id'   => 'value',
+                    'id'   => 'city',
                     'name' => Yii::t('app', 'City'),
                     'show' => true
                 ],
                 [
-                    'id'   => 'value',
+                    'id'   => 'occupation',
                     'name' => Yii::t('app', 'Occupation'),
                     'show' => true
                 ],
                 [
-                    'id'   => 'value',
+                    'id'   => 'type',
                     'name' => Yii::t('app', 'Type'),
                     'show' => true
                 ],
                 [
-                    'id'   => 'value',
+                    'id'   => 'social',
                     'name' => Yii::t('app', 'Social'),
                     'show' => true
                 ],
                 [
-                    'id'   => 'value',
+                    'id'   => 'phone',
                     'name' => Yii::t('app', 'Phone'),
                     'show' => true
                 ],
                 [
-                    'id'   => 'value',
+                    'id'   => 'note',
                     'name' => Yii::t('app', 'Note'),
                     'show' => true
                 ],
