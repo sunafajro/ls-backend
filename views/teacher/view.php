@@ -310,35 +310,43 @@ if($tab == 3){
         }
         }
         // выводим информацию по начислениям
-        if($tab == 3) {
-        if(!empty($accrualdates)){
-        foreach($accrualdates as $key=>$accrualdate) {
-            echo "<a href='#collapse-teacheraccruals-".$key."' role='button' data-toggle='collapse' aria-expanded='false' aria-controls='collapse-teacheraccruals-".$key."' class='text-warning'>Начисление от ".date('d.m.y', strtotime($accrualdate))."</a><br />";
-            echo "<div class='collapse' id='collapse-teacheraccruals-".$key."'>";
-            $total = 0;
-            foreach($teacherdata as $accrual) {
-                if($accrual['date']==$accrualdate) {
-                    echo "<div class='panel panel-default'><div class='panel-body'>";
-                    echo "<small>Начисление зарплаты #".$accrual['aid']." (за ".$accrual['hours']." ч. в группе #".$accrual['gid'].", ставка ".$accrual['tax']." р. на сумму ".round($accrual['value'])." р.";
-					if(Yii::$app->session->get('user.ustatus')==3 || Yii::$app->session->get('user.ustatus')==8) {
-						if(!$accrual['done']) {
-							echo " " . Html::a('', ['accrual/doneaccrual', 'id'=>$accrual['aid'], 'type'=>'profile'], ['class'=>'glyphicon glyphicon-ok', 'title'=>'Выплатить начисление']);
-							if(Yii::$app->session->get('user.ustatus')==3) {
-					            echo " " . Html::a('', ['accrual/delaccrual', 'id'=>$accrual['aid']], ['class'=>'glyphicon glyphicon-trash', 'title'=>'Отменить начисление']);
-						    }
-						} else {
-							if(Yii::$app->session->get('user.ustatus')==3) {
-							    echo " " . Html::a('', ['accrual/undoneaccrual', 'id'=>$accrual['aid']], ['class'=>'glyphicon glyphicon-remove', 'title'=>'Отменить выплату']);
-							}
-						}
-					}
-					echo "</small><br />";
-                    $total = $total + $accrual['value'];
-                    echo "<small>Начислено: ".$accrual['create_date'].", ".$accrual['creator']."</small><br/>";
-					if($accrual['done']) {
-						echo "<small>Выплачено: " . $accrual['finish_date'] . ", " . $accrual['finisher'] . "</small>";
-					}                    
-                        echo "</div></div>";
+        if ($tab == 3) {
+            if (!empty($accrualdates)) {
+                foreach ($accrualdates as $key => $accrualdate) {
+                    echo "<a href='#collapse-teacheraccruals-".$key."' role='button' data-toggle='collapse' aria-expanded='false' aria-controls='collapse-teacheraccruals-".$key."' class='text-warning'>Начисление от ".date('d.m.y', strtotime($accrualdate))."</a><br />";
+                    echo "<div class='collapse' id='collapse-teacheraccruals-".$key."'>";
+                    $total = 0;
+                    foreach ($teacherdata as $accrual) {
+                        if ($accrual['date']==$accrualdate) {
+                            echo Html::beginTag('div', ['class' => 'panel panel-default']);
+                            echo Html::beginTag('div', ['class' => 'panel-body small']);
+                            echo "Начисление зарплаты #{$accrual['aid']} ";
+                            echo "за {$accrual['hours']} ч. ";
+                            echo "в группе #{$accrual['gid']} (";
+                            echo $accrual['serviceName'] . ', ';
+                            echo Html::tag('span', (int)$accrual['groupCompany'] === 0 ? 'ШИЯ' : 'СРР', ['class' => (int)$accrual['groupCompany'] === 0 ? 'label label-success' : 'label label-info']);
+                            echo ") ставка {$accrual['tax']} р. ";
+                            echo "на сумму " . round($accrual['value']) . " р.";
+                            if (Yii::$app->session->get('user.ustatus')==3 || Yii::$app->session->get('user.ustatus')==8) {
+                                if (!$accrual['done']) {
+                                    echo " " . Html::a('', ['accrual/doneaccrual', 'id'=>$accrual['aid'], 'type'=>'profile'], ['class'=>'glyphicon glyphicon-ok', 'title'=>'Выплатить начисление']);
+                                    if (Yii::$app->session->get('user.ustatus')==3) {
+                                        echo " " . Html::a('', ['accrual/delaccrual', 'id'=>$accrual['aid']], ['class'=>'glyphicon glyphicon-trash', 'title'=>'Отменить начисление']);
+                                    }
+                                } else {
+                                    if (Yii::$app->session->get('user.ustatus')==3) {
+                                        echo " " . Html::a('', ['accrual/undoneaccrual', 'id'=>$accrual['aid']], ['class'=>'glyphicon glyphicon-remove', 'title'=>'Отменить выплату']);
+                                    }
+                                }
+                            }
+                            echo "<br />";
+                            $total = $total + $accrual['value'];
+                            echo "Начислено: " . $accrual['create_date'] . ", " . $accrual['creator'] . "<br/>";
+                            if ($accrual['done']) {
+                                echo "Выплачено: " . $accrual['finish_date'] . ", " . $accrual['finisher'];
+                            }                    
+                            echo Html::endTag('div');
+                            echo Html::endTag('div');
                         }
                     }
                     echo "</div>";

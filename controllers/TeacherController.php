@@ -4,7 +4,9 @@ namespace app\controllers;
 
 use Yii;
 use app\models\AccrualTeacher;
+use app\models\Groupteacher;
 use app\models\LanguagePremium;
+use app\models\Service;
 use app\models\Teacher;
 use app\models\TeacherLanguagePremium;
 use app\models\User;
@@ -452,8 +454,24 @@ class TeacherController extends Controller
 			->where('cjg.calc_accrual=cat.id');
 			// выбираем данные из базы
 			$teacherdata = (new \Yii\db\Query())
-			->select(['aid'=>'cat.id', 'date'=>'cat.data', 'gid'=>'cat.calc_groupteacher', 'tax'=>'cen.value', 'value'=>'cat.value', 'creator'=>'u1.name', 'create_date'=>'cat.data', 'done'=>'cat.done', 'finisher'=>'u2.name', 'finish_date'=>'cat.data_done', 'hours'=>$subQuery])
+			->select([
+				'aid'          => 'cat.id',
+				'date'         => 'cat.data',
+				'gid'          => 'cat.calc_groupteacher',
+				'groupCompany' => 'gt.company',
+				'serviceName'  => 's.name',
+				'tax'          => 'cen.value',
+				'value'        => 'cat.value',
+				'creator'      => 'u1.name',
+				'create_date'  => 'cat.data',
+				'done'         => 'cat.done',
+				'finisher'     => 'u2.name',
+				'finish_date'  => 'cat.data_done',
+				'hours'        => $subQuery
+			])
 			->from('calc_accrualteacher cat')
+			->leftJoin(['gt' => Groupteacher::tableName()], 'gt.id = cat.calc_groupteacher')
+			->leftJoin(['s' => Service::tableName()], 's.id = gt.calc_service')
 			->leftJoin('calc_edunormteacher cent', 'cat.calc_edunormteacher=cent.id')
 			->leftJoin('calc_edunorm cen', 'cen.id=cent.calc_edunorm')
 			->leftJoin('user u1', 'u1.id=cat.user')
