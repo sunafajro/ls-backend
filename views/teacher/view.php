@@ -324,7 +324,7 @@ if($tab == 3){
                             echo "за {$accrual['hours']} ч. ";
                             echo "в группе #{$accrual['gid']} (";
                             echo $accrual['serviceName'] . ', ';
-                            echo Html::tag('span', (int)$accrual['groupCompany'] === 0 ? 'ШИЯ' : 'СРР', ['class' => (int)$accrual['groupCompany'] === 0 ? 'label label-success' : 'label label-info']);
+                            echo Html::tag('span', (int)$accrual['groupCompany'] === 1 ? 'ШИЯ' : 'СРР', ['class' => (int)$accrual['groupCompany'] === 1 ? 'label label-success' : 'label label-info']);
                             echo ") ставка {$accrual['tax']} р. ";
                             echo "на сумму " . round($accrual['value']) . " р.";
                             if (Yii::$app->session->get('user.ustatus')==3 || Yii::$app->session->get('user.ustatus')==8) {
