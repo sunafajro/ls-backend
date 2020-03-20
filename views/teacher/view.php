@@ -323,7 +323,7 @@ if($tab == 3){
                             echo "Начисление зарплаты #{$accrual['aid']} ";
                             echo "за {$accrual['hours']} ч. ";
                             echo "в группе #{$accrual['gid']} (";
-                            echo $accrual['serviceName'] . ', ';
+                            echo trim($accrual['serviceName']) . ', ';
                             echo Html::tag('span', (int)$accrual['groupCompany'] === 1 ? 'ШИЯ' : 'СРР', ['class' => (int)$accrual['groupCompany'] === 1 ? 'label label-success' : 'label label-info']);
                             echo ") ставка {$accrual['tax']} р. ";
                             echo "на сумму " . round($accrual['value']) . " р.";
