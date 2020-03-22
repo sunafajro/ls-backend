@@ -416,6 +416,11 @@
     },
     {
         "controller": "document",
+        "action": "upload",
+        "role_id": "4"
+    },
+    {
+        "controller": "document",
         "action": "delete",
         "role_id": "3"
     }

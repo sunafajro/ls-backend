@@ -15,14 +15,15 @@ use yii\widgets\Breadcrumbs;
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app','Documents');
 $this->params['breadcrumbs'][] = Yii::t('app','Documents');
+$roleId = (int)Yii::$app->session->get('user.ustatus');
 ?>
 <div class="row row-offcanvas row-offcanvas-left document-index">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
-		<?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
+		<?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
             <div id="main-menu"></div>
-        <?php endif; ?>
+        <?php } ?>
         <?= $userInfoBlock ?>
-        <?php if ((int)Yii::$app->session->get('user.ustatus') === 3) { ?>
+        <?php if (in_array($roleId, [3, 4])) { ?>
             <h4><?= Yii::t('app', 'Actions') ?></h4>
             <?php $form = ActiveForm::begin([
                 'method' => 'post',
@@ -68,9 +69,10 @@ $this->params['breadcrumbs'][] = Yii::t('app','Documents');
                                     'id' => $file['fileHash'],
                                 ],
                                 [
-                                    'title' => Yii::t('app', 'Download'),
+                                    'target' => '_blank',
+                                    'title'  => Yii::t('app', 'Download'),
                                 ]) ?>
-                            <?php if ((int)Yii::$app->session->get('user.ustatus') === 3) { ?>
+                            <?php if (in_array($roleId, [3])) { ?>
                             <?= Html::a(
                                 Html::tag('i', '', ['class' => 'fa fa-trash', 'aria-hidden' => 'true']),
                                 [

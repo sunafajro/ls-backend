@@ -19,7 +19,7 @@ class DocumentController extends Controller
     {
         return [
             'access' => [
-                'class' => AccessControl::className(),
+                'class' => AccessControl::class,
                 'only' => ['index','download','upload','delete'],
                 'rules' => [
                     [
@@ -59,7 +59,7 @@ class DocumentController extends Controller
 
     public function actionIndex()
     {
-        $path = Yii::getAlias('@documents');
+        $path = Yii::getAlias('@documents/');
         $files = scandir($path);
         $fileList = [];
         foreach($files as $file) {
@@ -79,7 +79,7 @@ class DocumentController extends Controller
 
     public function actionDownload(string $id)
     {
-        $path = Yii::getAlias('@documents');
+        $path = Yii::getAlias('@documents/');
         $files = scandir($path);
         $fileName = '';
         foreach($files as $file) {
@@ -91,7 +91,7 @@ class DocumentController extends Controller
             }
         }
         if ($fileName) {
-            return Yii::$app->response->sendFile($path . $fileName, $fileName);
+            return Yii::$app->response->sendFile($path . $fileName, $fileName, ['inline' => true]);
         } else {
             throw new NotFoundHttpException(Yii::t('app', 'File not found!'));
         }
@@ -102,7 +102,7 @@ class DocumentController extends Controller
         $model = new UploadForm();
         $model->file = UploadedFile::getInstance($model, 'file');
         if ($model->file && $model->validate()) {
-            $path = Yii::getAlias('@documents');
+            $path = Yii::getAlias('@documents/');
             if ($model->saveFile($path)) {
                 Yii::$app->session->setFlash('success', Yii::t('app', 'File successfully uploaded!'));
             } else {
@@ -115,7 +115,7 @@ class DocumentController extends Controller
 
     public function actionDelete($id)
     {
-        $path = Yii::getAlias('@app/data/files/');
+        $path = Yii::getAlias('@documents/');
         $files = scandir($path);
         $filePath = '';
         foreach($files as $file) {
