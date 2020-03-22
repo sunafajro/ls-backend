@@ -11,7 +11,7 @@ use app\models\Lang;
  * @property integer $language_id
  * @property integer $value
  * @property integer $user_id
- * @property string $created_at
+ * @property string  $created_at
  * @property integer $visible
  */
 class LanguagePremium extends \yii\db\ActiveRecord
@@ -30,9 +30,12 @@ class LanguagePremium extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['language_id', 'value', 'user_id', 'created_at', 'visible'], 'required'],
+            [['visible'],    'default', 'value' => 1],
+            [['created_at'], 'default', 'value' => date('Y-m-d')],            
+            [['user_id'],    'default', 'value' => Yii::$app->user->identity->id],
             [['language_id', 'value', 'user_id', 'visible'], 'integer'],
             [['created_at'], 'safe'],
+            [['language_id', 'value', 'user_id', 'created_at', 'visible'], 'required'],
         ];
     }
 
@@ -51,7 +54,13 @@ class LanguagePremium extends \yii\db\ActiveRecord
         ];
     }
 
-    public function getLanguagePremiums($params = NULL)
+    public function delete()
+    {
+        $this->visible = 0;
+        return $this->save(true, ['visible']);
+    }
+
+    public static function getLanguagePremiums($params = NULL)
     {
         $lp = (new yii\db\Query())
         ->select([
@@ -59,7 +68,7 @@ class LanguagePremium extends \yii\db\ActiveRecord
             'language' => 'l.name',
             'value'    => 'lp.value',
         ])
-        ->from(['lp' => static::tableName()])
+        ->from(['lp' => self::tableName()])
         ->innerJoin(['l' => Lang::tableName()], 'lp.language_id = l.id')
         ->where([
             'lp.visible' => 1,
@@ -91,12 +100,12 @@ class LanguagePremium extends \yii\db\ActiveRecord
         ];
     }
 
-    public function getLanguagePremiumsSimple($params = NULL)
+    public static function getLanguagePremiumsSimple($params = NULL)
     {
         $result = [];
-        $lps = $this->getLanguagePremiums($params);
-        if(!empty($lps)) {
-            foreach($lps['data'] as $lp) {
+        $lps = self::getLanguagePremiums($params);
+        if (!empty($lps)) {
+            foreach ($lps['data'] as $lp) {
                 $result[$lp['id']] = $lp['language'] . ' ' . $lp['value'] . ' р.';
             }
         }

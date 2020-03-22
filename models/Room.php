@@ -3,16 +3,17 @@
 namespace app\models;
 
 use Yii;
+use yii\db\ActiveRecord;
 
 /**
  * This is the model class for table "calc_cabinetoffice".
  *
  * @property integer $id
- * @property string $name
+ * @property string  $name
  * @property integer $calc_office
  * @property integer $visible
  */
-class Room extends \yii\db\ActiveRecord
+class Room extends ActiveRecord
 {
     /**
      * @inheritdoc
@@ -28,9 +29,10 @@ class Room extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'calc_office', 'visible'], 'required'],
+            [['visible'], 'default', 'value' => 1],
             [['calc_office', 'visible'], 'integer'],
             [['name'], 'string', 'max' => 256],
+            [['name', 'calc_office', 'visible'], 'required'],
         ];
     }
 
@@ -40,24 +42,36 @@ class Room extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => Yii::t('app', 'ID'),
-            'name' => Yii::t('app', 'Name'),
+            'id'          => Yii::t('app', 'ID'),
+            'name'        => Yii::t('app', 'Name'),
             'calc_office' => Yii::t('app', 'Office'),
-            'visible' => Yii::t('app', 'Visible'),
+            'visible'     => Yii::t('app', 'Visible'),
         ];
+    }
+
+    public function delete()
+    {
+        $this->visible = 0;
+        return $this->save(true, ['visible']);
     }
 
     public static function getRoomsList()
     {
-        /* получаем список доступных кабинетов */
         $rooms = (new \yii\db\Query())
-        ->select('r.id as id, r.name as name, o.id as office_id, o.name as office')
-        ->from('calc_cabinetoffice r')
-        ->innerJoin('calc_office o', 'o.id=r.calc_office')
-        ->where('r.visible=:vis', [':vis'=>1])
-        ->orderBy(['o.name'=>SORT_ASC, 'r.name'=>SORT_ASC])
+        ->select([
+            'id'        => 'r.id',
+            'name'      => 'r.name',
+            'office_id' => 'o.id',
+            'office'    => 'o.name'
+        ])
+        ->from(['r' => self::tableName()])
+        ->innerJoin(['o' => Office::tableName()], 'o.id = r.calc_office')
+        ->where(['r.visible' => 1])
+        ->orderBy([
+            'o.name' => SORT_ASC,
+            'r.name' => SORT_ASC,
+        ])
         ->all();
-        /* получаем список доступных кабинетов */
         
         return [
             'columns' => [
@@ -90,7 +104,7 @@ class Room extends \yii\db\ActiveRecord
     {
     	$data = (new \yii\db\Query())
     	->select('id as id, name as name')
-        ->from(static::tableName())
+        ->from(self::tableName())
         ->andFilterWhere(['calc_office' => $oid])
     	->orderBy(['name'=>SORT_ASC])
         ->all();        

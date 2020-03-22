@@ -270,11 +270,8 @@ class ScheduleController extends Controller
     public function actionApiOffices()
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        $tool = new Tool();
-        $office = new Office();
-        $offices = $office->getOfficesList();
         return [
-            'offices' => $tool->prepareDataForSelectElement($offices)
+            'offices' => (new Tool())->prepareDataForSelectElement(Office::getOfficesList())
         ];
     }
 

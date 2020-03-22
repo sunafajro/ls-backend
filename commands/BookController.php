@@ -40,7 +40,7 @@ class BookController extends Controller
                 $newBook->user_id     = (int)$book['user_id'];
                 $newBook->created_at  = substr($book['created_at'], 0, 10);
                 if (!$newBook->save()) {
-                    throw new Exception('During book preparation an error occurs!');
+                    throw new \Exception('During book preparation an error occurs!');
                 }
             }
             $transaction->commit();

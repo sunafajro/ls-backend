@@ -3,15 +3,17 @@
 namespace app\models;
 
 use Yii;
+use yii\db\ActiveRecord;
+
 
 /**
  * This is the model class for table "calc_city".
  *
  * @property integer $id
- * @property string $name
+ * @property string  $name
  * @property integer $visible
  */
-class City extends \yii\db\ActiveRecord
+class City extends ActiveRecord
 {
     /**
      * @inheritdoc
@@ -27,9 +29,10 @@ class City extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'visible'], 'required'],
+            [['visible'], 'default', 'value' => 1],
             [['visible'], 'integer'],
-            [['name'], 'string', 'max' => 256],
+            [['name'],    'string', 'max' => 256],
+            [['name', 'visible'], 'required'],
         ];
     }
 
@@ -39,10 +42,16 @@ class City extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => Yii::t('app', 'ID'),
-            'name' => Yii::t('app', 'Name'),
+            'id'      => Yii::t('app', 'ID'),
+            'name'    => Yii::t('app', 'Name'),
             'visible' => Yii::t('app', 'Visible'),
         ];
+    }
+
+    public function delete()
+    {
+        $this->visible = 0;
+        return $this->save(true, ['visible']);
     }
 
     /* Метод возвращает список действующих городов */
@@ -73,14 +82,15 @@ class City extends \yii\db\ActiveRecord
 
     public static function getCitiesList()
     {
-        /* получаем список доступных городов */
         $cities = (new \yii\db\Query())
-        ->select(['id' => 'c.id', 'name' => 'c.name'])
-        ->from('calc_city c')
-        ->where('c.visible=:vis', [':vis'=>1])
-        ->orderBy(['c.name'=>SORT_ASC])
+        ->select([
+            'id' => 'id',
+            'name' => 'name',
+        ])
+        ->from(self::tableName())
+        ->where(['visible' => 1])
+        ->orderBy(['name' => SORT_ASC])
         ->all();
-        /* получаем список доступных городов */
         
         return [
             'columns' => [

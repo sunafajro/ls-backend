@@ -3,7 +3,12 @@
 Yii::setAlias('@tests', dirname(__DIR__) . '/tests');
 
 $params = require(__DIR__ . '/params.php');
+
 $db = require(__DIR__ . '/db.php');
+if (file_exists(__DIR__ . '/local/db.php')) {
+    $localDb = require(__DIR__ . '/local/db.php');
+    $db = array_merge($db, $localDb);
+}
 
 $config = [
     'id' => 'basic-console',
@@ -30,9 +35,5 @@ $config = [
     ],
     'params' => $params,
 ];
-
-if (file_exists(__DIR__ . '/local/console.php')) {
-    $config = array_merge($config, require(__DIR__ . '/local/console.php'));
-}
 
 return $config;
