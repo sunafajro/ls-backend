@@ -161,7 +161,7 @@ class Service extends \yii\db\ActiveRecord
         ->leftJoin('calc_studnorm sn', 'sn.id=s.calc_studnorm')
         ->where('s.visible=:one and sn.visible=:one and s.data>:data',
         [':one' => 1, ':data'=>date('Y-m-d')])
-        ->andWhere(['in', 's.calc_servicetype', [1, 3]])
+        ->andWhere(['in', 's.calc_servicetype', [1, 3, 4]])
         ->andFilterWhere(['in', 'calc_city', $serv])
         ->orderby(['s.id'=>SORT_ASC])
         ->all();
