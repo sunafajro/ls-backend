@@ -38,15 +38,19 @@ class JournalgroupController extends Controller
             ],
         ];
     }
-	
+
     /**
-    * Метод добавления занятия в журнал группы
-    * @param int $gid
-    */	
+     * Метод добавления занятия в журнал группы
+     * @param int $gid
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
+     */
     public function actionCreate($gid)
     {
-        $roleId = (int)Yii::$app->session->get('user.ustatus');
-        $userId = (int)Yii::$app->session->get('user.uid');
+        $roleId    = (int)Yii::$app->session->get('user.ustatus');
+        $userId    = (int)Yii::$app->session->get('user.uid');
         $teacherId = (int)Yii::$app->session->get('user.uteacher');
         /** @var Groupteacher group */
         $group = Groupteacher::findOne($gid);
@@ -69,7 +73,7 @@ class JournalgroupController extends Controller
             ->from('calc_studgroup sg')
             ->leftJoin('calc_studname s', 's.id=sg.calc_studname')
             ->where('sg.calc_groupteacher=:gid and s.visible=1 and sg.visible=1', [':gid'=>$gid])
-            ->orderby(['s.name'=>SORT_ASC])
+            ->orderby(['s.name' => SORT_ASC])
             ->all();
 
             // если пришли данные и моделька загрузилась успешно, переходим в картоку преподавателя
@@ -96,31 +100,7 @@ class JournalgroupController extends Controller
                     $keys = array_keys($groupTeachers);
                     $model->calc_teacher = $keys[0];
                 }
-                // указываем id группы
                 $model->calc_groupteacher = $gid;
-                // помечаем занятие как действующее
-                $model->visible = 1;
-                $model->data_visible = '0000-00-00';
-                $model->user_visible = 0;
-                // указываем id пользователя добавившего занятие
-                $model->user = Yii::$app->session->get('user.uid');
-                /* параметры проверки занятия */
-                $model->view = 0;
-                $model->data_view = '0000-00-00';
-                $model->user_done = 0;
-                /* параметры оплаты занятия */
-                $model->done = 0;
-                $model->data_done = '0000-00-00';
-                $model->user_view = 0;
-                $model->calc_accrual = 0;
-                /* параметры редактирования занятия */
-                $model->edit = 0;
-                $model->data_edit = '0000-00-00';
-                $model->user_edit = 0;
-                $model->audit = 0;
-                $model->data_audit = '0000-00-00';
-                $model->user_audit = 0;
-                $model->description_audit = '';
                 // если есть данные по посещению занятия студентами
                 if (Yii::$app->request->post('CalcStudjournalgroup') && !empty(Yii::$app->request->post('CalcStudjournalgroup'))) {
                     $transaction = Yii::$app->db->beginTransaction();

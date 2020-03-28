@@ -4,10 +4,11 @@ use app\models\Journalgroup;
 use kartik\datetime\DateTimePicker;
 use kartik\time\TimePicker;
 use yii\helpers\Html;
+use yii\web\View;
 use yii\widgets\ActiveForm;
 
 /**
- * @var yii\web\View $this
+ * @var View         $this
  * @var Journalgroup $model
  * @var ActiveForm   $form
  * @var int          $roleId
@@ -17,21 +18,27 @@ use yii\widgets\ActiveForm;
  */
 ?>
 <?php $form = ActiveForm::begin(); ?>
-    <?= $form->field($model, 'data')->widget(DateTimePicker::class, [
-        'options' => [
-            'autocomplete' => 'off',
-        ],
-        'pluginOptions' => [
-            'language' => 'ru',
-            'format' => 'yyyy-mm-dd',
-            'todayHighlight' => true,
-            'minView' => 2,
-            'maxView' => 2,
-            'weekStart' => 1,
-            'autoclose' => true,
-        ]
-    ]);
-    ?>
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+            <?= $form->field($model, 'data')->widget(DateTimePicker::class, [
+                'options' => [
+                    'autocomplete' => 'off',
+                ],
+                'pluginOptions' => [
+                    'language' => 'ru',
+                    'format' => 'yyyy-mm-dd',
+                    'todayHighlight' => true,
+                    'minView' => 2,
+                    'maxView' => 2,
+                    'weekStart' => 1,
+                    'autoclose' => true,
+                ]
+            ]) ?>
+        </div>
+        <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+            <?= $form->field($model, 'type')->dropDownList(Journalgroup::getLessonLocationTypes(), ['options' => [Journalgroup::TYPE_OFFICE => ['selected' => true]]]) ?>
+        </div>
+    </div>
     <?php if (count($teachers) > 1) { ?>
         <?= $form->field($model, 'calc_teacher')->dropDownList($teachers, ['options' => ['1' => ['selected' => true]]]) ?>
     <?php } ?>

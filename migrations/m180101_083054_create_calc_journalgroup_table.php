@@ -53,7 +53,7 @@ class m180101_083054_create_calc_journalgroup_table extends Migration
 
         $this->addForeignKey('fk-calc_journalgroup-calc_groupteacher', 'calc_journalgroup', 'calc_groupteacher', 'calc_groupteacher', 'id');
         $this->addForeignKey('fk-calc_journalgroup-calc_teacher', 'calc_journalgroup', 'calc_teacher', 'calc_teacher', 'id');
-        $this->addForeignKey('fk-calc_journalgroup-calc_accrual', 'calc_journalgroup', 'calc_accrual', 'calc_accrualteacher', 'id');
+        // $this->addForeignKey('fk-calc_journalgroup-calc_accrual', 'calc_journalgroup', 'calc_accrual', 'calc_accrualteacher', 'id');
         $this->addForeignKey('fk-calc_journalgroup-user', 'calc_journalgroup', 'user', 'user', 'id');
     }
 
