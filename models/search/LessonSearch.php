@@ -70,6 +70,7 @@ class LessonSearch extends Journalgroup
         $query = (new \yii\db\Query())
             ->select([
                 'id'          => "{$lt}.id",
+                'type'        => "{$lt}.type",
                 'date'        => "{$lt}.data",
                 'teacherId'   => "{$lt}.calc_teacher",
                 'teacherName' => "t.name",

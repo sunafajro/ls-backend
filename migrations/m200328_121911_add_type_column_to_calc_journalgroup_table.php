@@ -1,5 +1,6 @@
 <?php
 
+use app\models\Journalgroup;
 use yii\db\Migration;
 
 /**
@@ -12,7 +13,8 @@ class m200328_121911_add_type_column_to_calc_journalgroup_table extends Migratio
      */
     public function safeUp()
     {
-        $this->addColumn('calc_journalgroup', 'type', $this->string());
+        $this->addColumn('calc_journalgroup', 'type', $this->string()->defaultValue(Journalgroup::TYPE_OFFICE));
+        $this->alterColumn('calc_journalgroup', 'type', $this->string());
     }
 
     /**

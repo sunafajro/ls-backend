@@ -5,6 +5,7 @@ use app\models\search\LessonSearch;
 use yii\data\ActiveDataProvider;
 use yii\grid\GridView;
 use yii\helpers\Html;
+use yii\web\View;
 
 /**
  * @var View               $this
@@ -20,7 +21,36 @@ $columns['date'] = [
     'attribute' => 'date',
     'format'    => 'raw',
     'value'     => function (array $model) {
-        return date('d.m.Y', strtotime($model['date'])) . Html::tag('br') . Html::tag('small', "(#{$model['id']})");
+        $info = [
+            "(#{$model['id']})",
+        ];
+        switch ($model['type']) {
+            case Journalgroup::TYPE_ONLINE:
+                $info[] = Html::tag(
+                    'i',
+                    null,
+                    [
+                        'class'       => 'fa fa-skype',
+                        'aria-hidden' => 'true',
+                        'style'       => 'margin-left:5px',
+                        'title'       => Yii::t('app', 'Online lesson'),
+                    ]
+                );
+                break;
+            case Journalgroup::TYPE_OFFICE:
+                $info[] = Html::tag(
+                    'i',
+                    null,
+                    [
+                        'class'       => 'fa fa-building',
+                        'aria-hidden' => 'true',
+                        'style'       => 'margin-left:5px',
+                        'title'       => Yii::t('app', 'Office lesson'),
+                    ]
+                );
+                break;
+        }
+        return date('d.m.Y', strtotime($model['date'])) . Html::tag('br') . Html::tag('small', join('', $info));
     }
 ];
 if ($roleId !== 5) {

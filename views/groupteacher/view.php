@@ -139,6 +139,32 @@ function getStudentOptions($lesson, $lessonBalance) {
         }
         echo Html::beginTag('div', ['class' => 'panel panel-' . $color]);
         echo Html::beginTag('div', ['class' => 'panel-heading']);
+        switch ($lesson['type']) {
+            case Journalgroup::TYPE_ONLINE:
+                echo Html::tag(
+                        'i',
+                        null,
+                        [
+                            'class'       => 'fa fa-skype',
+                            'aria-hidden' => 'true',
+                            'style'       => 'margin-left:5px',
+                            'title'       => Yii::t('app', 'Online lesson'),
+                        ]
+                );
+                break;
+            case Journalgroup::TYPE_OFFICE:
+                echo Html::tag(
+                        'i',
+                        null,
+                        [
+                            'class'       => 'fa fa-building',
+                            'aria-hidden' => 'true',
+                            'style'       => 'margin-left:5px',
+                            'title'       => Yii::t('app', 'Office lesson'),
+                        ]
+                );
+                break;
+        }
         switch ($lesson['edutime']){
             case 1: echo Html::img('/images/day.png',['title'=>Yii::t('app','Work time')]);break;
             case 2: echo Html::img('/images/night.png',['title'=>Yii::t('app','Evening time')]);break;

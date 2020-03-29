@@ -5,10 +5,13 @@ namespace app\controllers;
 use app\models\Eduage;
 use app\models\Edulevel;
 use app\models\Groupteacher;
+use app\models\Journalgroup;
 use app\models\Lang;
 use app\models\Office;
 use app\models\Student;
 use app\models\Studgroup;
+use app\models\Studjournalgroup;
+use app\models\Teacher;
 use app\models\Teachergroup;
 use app\models\User;
 use app\models\search\GroupSearch;
@@ -76,19 +79,19 @@ class GroupteacherController extends Controller
     /**
      * Displays a single Groupteacher model.
      * @param integer $id
+     *
      * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
      */
     public function actionView($id)
     {
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
         /** @var Groupteacher $group */
         $group = $this->findModel($id);
 
         /* проверяем права доступа (! переделать в поведения !) */
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 &&
-           (int)Yii::$app->session->get('user.ustatus') !== 4 &&
-           (int)Yii::$app->session->get('user.ustatus') !== 5 &&
-           (int)Yii::$app->session->get('user.ustatus') !== 6 &&
-           ((int)Yii::$app->session->get('user.ustatus') === 10 && $group->company !== 2)) {
+        if(!in_array($roleId, [3, 4, 5, 6]) !== 3 && ($roleId === 10 && $group->company !== 2)) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
@@ -117,26 +120,49 @@ class GroupteacherController extends Controller
                 default: $checked = NULL; $payed = NULL; $deleted = NULL; break;
             }
         } else {
-            $state = NULL;
+            $state   = NULL;
             $checked = NULL;
-            $payed = NULL;
+            $payed   = NULL;
             $deleted = NULL;
         }
 		
         // выбираем занятия
         $lessons = (new \yii\db\Query())
-        ->select('jg.id as jid, jg.data as jdate, jg.time_begin as time_begin, jg.description as jdesc, jg.homework as jhwork, jg.visible as jvisible, u.name as uname, data_visible as visible_date, u2.name as jvuser, jg.data_edit as edit_date, u3.name as jeuser, jg.data_done as done_date, jg.done as jdone, u4.name as jduser, jg.data_view as view_date, jg.view as jview, u5.name as view_user, jg.calc_accrual as accrual, t.name as tname, jg.calc_edutime as edutime')
-        ->from('calc_journalgroup jg')
-        ->leftJoin('calc_teacher t', 't.id=jg.calc_teacher')
-        ->leftJoin('user u', 'u.id=jg.user')
+        ->select([
+            'jid'          => 'jg.id',
+            'jdate'        => 'jg.data',
+            'time_begin'   => 'jg.time_begin',
+            'jdesc'        => 'jg.description',
+            'jhwork'       => 'jg.homework',
+            'jvisible'     => 'jg.visible',
+            'uname'        => 'u.name',
+            'visible_date' => 'jg.data_visible',
+            'jvuser'       => 'u2.name',
+            'edit_date'    => 'jg.data_edit',
+            'jeuser'       => 'u3.name',
+            'done_date'    => 'jg.data_done',
+            'jdone'        => 'jg.done',
+            'jduser'       => 'u4.name',
+            'view_date'    => 'jg.data_view',
+            'jview'        => 'jg.view',
+            'view_user'    => 'u5.name',
+            'accrual'      => 'jg.calc_accrual',
+            'tname'        => 't.name',
+            'edutime'      => 'jg.calc_edutime',
+            'type'         => 'jg.type',
+        ])
+        ->from(['jg' => Journalgroup::tableName()])
+        ->leftJoin(['t' => Teacher::tableName()], 't.id = jg.calc_teacher')
+        ->leftJoin(['u' => User::tableName()], 'u.id = jg.user')
         ->leftJoin('user u2', 'u2.id=jg.user_visible')
         ->leftJoin('user u3', 'u3.id=jg.user_edit')
         ->leftJoin('user u4', 'u4.id=jg.user_done')
         ->leftJoin('user u5', 'u5.id=jg.user_view')
-        ->where('jg.calc_groupteacher=:id and jg.user!=:zero',[':id'=>$id, ':zero'=>0])
+        ->where(['jg.calc_groupteacher' => $id])
+        ->andWhere(['>', 'jg.user', 0])
         ->andFilterWhere(['jg.visible' => $deleted])
-        ->andFilterWhere(['jg.view' => $checked])
-        ->andFilterWhere(['jg.done' => $payed]);
+        ->andFilterWhere(['jg.view'    => $checked])
+        ->andFilterWhere(['jg.done'    => $payed]);
 
         // делаем клон запроса
         $countQuery = clone $lessons;
@@ -154,12 +180,12 @@ class GroupteacherController extends Controller
         if (!empty($list)) {
 	    // выбираем посещения занятий
 	    $students = (new \yii\db\Query())
-	    ->select('jg.id as jid, s.id as sid, s.name as sname, sjg.calc_statusjournal as status')
-	    ->from('calc_journalgroup jg')
-	    ->leftJoin('calc_studjournalgroup sjg', 'sjg.calc_journalgroup=jg.id')
-	    ->leftJoin('calc_studname s', 's.id=sjg.calc_studname')
+	    ->select(['jid' => 'jg.id', 'sid' => 's.id', 'sname' => 's.name', 'status' => 'sjg.calc_statusjournal'])
+	    ->from(['jg' => Journalgroup::tableName()])
+	    ->leftJoin(['sjg' => Studjournalgroup::tableName()], 'sjg.calc_journalgroup = jg.id')
+	    ->leftJoin(['s' => Student::tableName()], 's.id = sjg.calc_studname')
 	    ->where(['in', 'jg.id',$list])
-	    ->orderby(['jg.id'=>SORT_DESC,'sjg.calc_statusjournal'=>SORT_ASC])
+	    ->orderby(['jg.id' => SORT_DESC, 'sjg.calc_statusjournal' => SORT_ASC])
 	    ->all();
 
 	    $lesattend = [];

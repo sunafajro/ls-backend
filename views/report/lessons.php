@@ -51,9 +51,40 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Lessons report');
             'layout'       => "{pager}\n{items}\n{pager}",
             'columns'      => [
                 'id' => [
-                    'attribute' => 'id',
+                    'attribute'     => 'id',
+                    'format'        => 'raw',
                     'headerOptions' => ['width' => '5%'],
                     'label' => '№',
+                    'value' => function (array $model) {
+                        $type = '';
+                        switch ($model['type']) {
+                            case Journalgroup::TYPE_ONLINE:
+                                $type = Html::tag(
+                                    'i',
+                                    null,
+                                    [
+                                        'class'       => 'fa fa-skype',
+                                        'aria-hidden' => 'true',
+                                        'style'       => 'margin-left:5px',
+                                        'title'       => Yii::t('app', 'Online lesson'),
+                                    ]
+                                );
+                                break;
+                            case Journalgroup::TYPE_OFFICE:
+                                $type = Html::tag(
+                                    'i',
+                                    null,
+                                    [
+                                        'class'       => 'fa fa-building',
+                                        'aria-hidden' => 'true',
+                                        'style'       => 'margin-left:5px',
+                                        'title'       => Yii::t('app', 'Office lesson'),
+                                    ]
+                                );
+                                break;
+                        }
+                        return $model['id'] . Html::tag('br') . $type;
+                    }
                 ],
                 'date' => [
                     'attribute' => 'date',

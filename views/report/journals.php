@@ -1,24 +1,28 @@
 <?php
 
-/**
- * @var yii\web\View $this
- * @var string       $corp
- * @var array        $group
- * @var array        $lcount
- * @var array        $lessons
- * @var array        $offices
- * @var string       $oid
- * @var array        $reportlist
- * @var array        $teachers
- * @var array        $teacher_names
- * @var string       $tid
- * @var string       $userInfoBlock
- */
-
-use yii\helpers\Html;
-use yii\widgets\ActiveForm;
+use app\models\Journalgroup;
 use app\widgets\Alert;
+use yii\data\Pagination;
+use yii\helpers\Html;
+use yii\web\View;
+use yii\widgets\ActiveForm;
 use yii\widgets\Breadcrumbs;
+
+/**
+ * @var View       $this
+ * @var Pagination $pages
+ * @var string     $corp
+ * @var array      $groups
+ * @var array      $lcount
+ * @var array      $lessons
+ * @var array      $offices
+ * @var string     $oid
+ * @var array      $reportlist
+ * @var array      $teachers
+ * @var array      $teacher_names
+ * @var string     $tid
+ * @var string     $userInfoBlock
+ */
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app','Journals report');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
@@ -117,7 +121,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Journals report');
                     // считаем номер последней строки с учетом страницы
                         $end = $start + 9;
                     // если страничка последняя подменяем номер последнего элемента
-                    if($end>=$pages->totalCount){
+                    if($end >= $pages->totalCount){
                         $end = $pages->totalCount;
                     }
                     // считаем номер следующей страницы
@@ -147,23 +151,53 @@ $this->params['breadcrumbs'][] = Yii::t('app','Journals report');
                     <span class="label label-info" title="Количество занятий на проверке"><?= $lcount[$key]['totalCount'] ?></span>
                 </div>
             </div>
-            <?php foreach($groups as $g ) : ?>
+            <?php foreach($groups as $g) : ?>
                 <?php if ((int)$g['tid'] === (int)$key) : ?>
                 <div style="padding: 10px"><?= Html::a('#' . $g['gid'] . ' ' . $g['service'] . ', ур: ' . $g['ename'] . ' (усл.#' . $g['sid'] . ')', ['groupteacher/view', 'id' => $g['gid']]) ?></div>
                     <?php if ($lcount[$key][$g['gid']]['totalCount'] > 0) : ?>
                     <table class="table table-bordered table-stripped table-hover table-condensed' style='margin-bottom:10px">
                         <tbody>
-                        <?php foreach($lessons as $l) : ?>
-                            <?php if ((int)$l['gid'] === (int)$g['gid'] && (int)$key === (int)$l['tid']) : ?>
+                        <?php foreach($lessons as $l) { ?>
+                            <?php if ((int)$l['gid'] === (int)$g['gid'] && (int)$key === (int)$l['tid']) { ?>
                                 <tr <?=((int)$l['visible'] === 0 ? 'class="danger"' : '') ?>>
-                                    <td width="5%">#<? $l['lid'] ?></td>
+                                    <td width="5%">
+                                        #<?= $l['lid'] ?>
+                                        <?php
+                                        switch ($l['type']) {
+                                            case Journalgroup::TYPE_ONLINE:
+                                                echo Html::tag(
+                                                    'i',
+                                                    null,
+                                                    [
+                                                        'class'       => 'fa fa-skype',
+                                                        'aria-hidden' => 'true',
+                                                        'style'       => 'margin-left:5px',
+                                                        'title'       => Yii::t('app', 'Online lesson'),
+                                                    ]
+                                                );
+                                                break;
+                                            case Journalgroup::TYPE_OFFICE:
+                                                echo Html::tag(
+                                                    'i',
+                                                    null,
+                                                    [
+                                                        'class'       => 'fa fa-building',
+                                                        'aria-hidden' => 'true',
+                                                        'style'       => 'margin-left:5px',
+                                                        'title'       => Yii::t('app', 'Office lesson'),
+                                                    ]
+                                                );
+                                                break;
+                                        }
+                                        ?>
+                                    </td>
                                     <td width="2%"><?= ((int)$l['done'] === 1 ? '<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>' : '') ?></td>
                                     <td width="15%"><?= Html::a($l['date'] . ' →',['groupteacher/view', 'id' => $l['gid'], '#' => 'lesson_' . $l['lid']]) ?></td>
                                     <td><?= $l['desc'] ?></td>
                                     <td width="5%"><?= $g['hours'] ?> ч.</td>
                                 </tr>
-                            <?php endif; ?>
-                        <?php endforeach; ?>
+                            <?php } ?>
+                        <?php } ?>
                         </tbody>
                     </table>
                     <?php endif; ?>

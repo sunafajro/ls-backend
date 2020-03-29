@@ -1161,7 +1161,7 @@ class ReportController extends Controller
         if(!empty($teacher_names)) {
             // получаем данные по занятиям
             $lessons = (new \yii\db\Query())
-            ->select('jg.id as lid, jg.calc_groupteacher as gid, jg.data as date, jg.done as done, jg.calc_teacher as tid, t.name as tname, jg.description as desc, jg.visible as visible')
+            ->select('jg.id as lid, jg.type as type, jg.calc_groupteacher as gid, jg.data as date, jg.done as done, jg.calc_teacher as tid, t.name as tname, jg.description as desc, jg.visible as visible')
             ->from('calc_journalgroup jg')
             ->leftJoin('calc_teacher t', 't.id=jg.calc_teacher')
             ->leftJoin('calc_groupteacher gt', 'gt.id=jg.calc_groupteacher')

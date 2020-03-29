@@ -71,6 +71,12 @@ class StudnameController extends Controller
         ];
     }
 
+    /**
+     * @param \yii\base\Action $action
+     * @return bool
+     * @throws BadRequestHttpException
+     * @throws ForbiddenHttpException
+     */
     public function beforeAction($action)
 	{
 		if(parent::beforeAction($action)) {
@@ -243,6 +249,7 @@ class StudnameController extends Controller
      * @param int $id
      * 
      * @return mixed
+     * @throws NotFoundHttpException
      */
     public function actionView($id)
     {
@@ -422,7 +429,7 @@ class StudnameController extends Controller
             'loginStatus'   => $student->getStudentLoginStatus(),
             'model'         => $student,
             'offices'       => [
-                'added' => $student->getStudentOffices($id),
+                'added' => $student->getStudentOffices(),
                 'all'   => Office::getOfficesList(),
             ],
             'payments'      => $payments,
