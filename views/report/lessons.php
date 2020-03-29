@@ -2,7 +2,6 @@
 
 use app\models\Journalgroup;
 use app\widgets\Alert;
-use Yii;
 use yii\data\ActiveDataProvider;
 use yii\grid\GridView;
 use yii\helpers\Html;

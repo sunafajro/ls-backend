@@ -21,6 +21,8 @@ use kartik\datetime\DateTimePicker;
  * @var string     $tid
  * @var string     $userInfoBlock
  */
+unset($actionUrl['start']);
+unset($actionUrl['end']);
 ?>
 <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
     <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
