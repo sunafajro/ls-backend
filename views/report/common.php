@@ -78,7 +78,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Common report');
                                 [
                                 'class'       => 'fa fa-skype',
                                 'aria-hidden' => 'true',
-                                'style'       => 'margin-left:5px',
+                                'style'       => 'margin-right: 5px',
                                 'title'       => Yii::t('app', 'Online lesson'),
                                 ]
                             ) ?>
@@ -90,7 +90,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Common report');
                                 [
                                 'class'       => 'fa fa-building',
                                 'aria-hidden' => 'true',
-                                'style'       => 'margin-left:5px',
+                                'style'       => 'margin-right: 5px',
                                 'title'       => Yii::t('app', 'Office lesson'),
                                 ]
                             ) ?>

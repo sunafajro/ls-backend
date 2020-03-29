@@ -21,9 +21,7 @@ $columns['date'] = [
     'attribute' => 'date',
     'format'    => 'raw',
     'value'     => function (array $model) {
-        $info = [
-            "(#{$model['id']})",
-        ];
+        $info = [];
         switch ($model['type']) {
             case Journalgroup::TYPE_ONLINE:
                 $info[] = Html::tag(
@@ -32,7 +30,7 @@ $columns['date'] = [
                     [
                         'class'       => 'fa fa-skype',
                         'aria-hidden' => 'true',
-                        'style'       => 'margin-left:5px',
+                        'style'       => 'margin-right: 5px',
                         'title'       => Yii::t('app', 'Online lesson'),
                     ]
                 );
@@ -44,12 +42,13 @@ $columns['date'] = [
                     [
                         'class'       => 'fa fa-building',
                         'aria-hidden' => 'true',
-                        'style'       => 'margin-left:5px',
+                        'style'       => 'margin-right: 5px',
                         'title'       => Yii::t('app', 'Office lesson'),
                     ]
                 );
                 break;
         }
+        $info[] = "(#{$model['id']})";
         return date('d.m.Y', strtotime($model['date'])) . Html::tag('br') . Html::tag('small', join('', $info));
     }
 ];

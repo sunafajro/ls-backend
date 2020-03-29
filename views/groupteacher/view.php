@@ -147,7 +147,7 @@ function getStudentOptions($lesson, $lessonBalance) {
                         [
                             'class'       => 'fa fa-skype',
                             'aria-hidden' => 'true',
-                            'style'       => 'margin-left:5px',
+                            'style'       => 'margin-right: 5px',
                             'title'       => Yii::t('app', 'Online lesson'),
                         ]
                 );
@@ -159,16 +159,16 @@ function getStudentOptions($lesson, $lessonBalance) {
                         [
                             'class'       => 'fa fa-building',
                             'aria-hidden' => 'true',
-                            'style'       => 'margin-left:5px',
+                            'style'       => 'margin-right: 5px',
                             'title'       => Yii::t('app', 'Office lesson'),
                         ]
                 );
                 break;
         }
         switch ($lesson['edutime']){
-            case 1: echo Html::img('/images/day.png',['title'=>Yii::t('app','Work time')]);break;
-            case 2: echo Html::img('/images/night.png',['title'=>Yii::t('app','Evening time')]);break;
-            case 3: echo Html::img('/images/halfday.png',['title'=>Yii::t('app','Halfday time')]);break;
+            case 1: echo Html::img('@webroot/images/day.png',['title'=>Yii::t('app','Work time')]);break;
+            case 2: echo Html::img('@webroot/images/night.png',['title'=>Yii::t('app','Evening time')]);break;
+            case 3: echo Html::img('@webroot/images/halfday.png',['title'=>Yii::t('app','Halfday time')]);break;
         }
         if ($lesson['jview']==1) {
             echo " <span class='text-success' title='".Yii::t('app','Lesson viewed')."'>&#10003;</span>";
