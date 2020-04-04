@@ -1,21 +1,23 @@
 <?php
 
-/**
- * @var yii\web\View $this
- * @var array        $dates
- * @var string       $end
- * @var array        $invoices
- * @var array        $offices
- * @var string       $oid
- * @var array        $reportList
- * @var string       $start
- * @var string       $userInfoBlock
- */
-
 use app\models\Invoicestud;
 use app\widgets\Alert;
-use yii\widgets\Breadcrumbs;
+use app\widgets\filters\FiltersWidget;
 use yii\helpers\Html;
+use yii\web\View;
+use yii\widgets\Breadcrumbs;
+
+/**
+ * @var View        $this
+ * @var array       $dates
+ * @var string|null $end
+ * @var array       $invoices
+ * @var array       $offices
+ * @var string|null $oid
+ * @var array       $reportList
+ * @var string|null $start
+ * @var string      $userInfoBlock
+ */
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app','Reports');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
@@ -23,24 +25,53 @@ $this->params['breadcrumbs'][] = Yii::t('app','Invoices report');
 ?>
 <div class="row row-offcanvas row-offcanvas-left report-invoices">
     <?= $this->render('_sidebar', [
-        'actionUrl'     => ['report/invoices'],
-        'end'           => $end,
-        'offices'       => $offices,
-        'oid'           => $oid,
-        'reportList'    => $reportList,
-        'start'         => $start,
-        'userInfoBlock' => $userInfoBlock,
+            'actionUrl'     => ['report/invoices'],
+            'hints'         => [],
+            'items'         => [
+                [
+                    'name'  => 'start',
+                    'title' => 'Начало периода',
+                    'type'  => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+                    'value' => $start ?? '',
+                ],
+                [
+                    'name'  => 'end',
+                    'title' => 'Конец периода',
+                    'type'  => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+                    'value' => $end ?? '',
+                ],
+                [
+                    'name'    => 'oid',
+                    'options' => $offices ?? [],
+                    'prompt'  => Yii::t('app', '-all offices-'),
+                    'title'   => 'Офисы',
+                    'type'    => FiltersWidget::FIELD_TYPE_DROPDOWN,
+                    'value'   => $oid ?? '',
+                ],
+            ],
+            'reportList'    => $reportList,
+            'userInfoBlock' => $userInfoBlock,
     ]) ?>
     <div class="col-sm-10">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
-        <?= Breadcrumbs::widget([
-            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
-        ]); ?>
-        <?php } ?>
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') {
+            try {
+                echo Breadcrumbs::widget([
+                    'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+                ]);
+            } catch (Exception $e) {
+                echo Html::tag('div', 'Не удалось отобразить виджет. ' . $e->getMessage(), ['class' => 'alert alert-danger']);
+            }
+        } ?>
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
-        <?= Alert::widget() ?>
+        <?php
+            try {
+                echo Alert::widget();
+            } catch (Exception $e) {
+                echo Html::tag('div', 'Не удалось отобразить виджет. ' . $e->getMessage(), ['class' => 'alert alert-danger']);
+            }
+        ?>
         <?php $totalsum = 0; ?>
         <?php foreach ($dates as $key => $value) { ?>
         <a

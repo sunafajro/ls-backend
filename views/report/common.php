@@ -1,6 +1,7 @@
 <?php
 
 use app\widgets\Alert;
+use app\widgets\filters\FiltersWidget;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\Breadcrumbs;
@@ -19,26 +20,47 @@ $this->title = Yii::$app->params['appTitle'] . Yii::t('app','Common report');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
 $this->params['breadcrumbs'][] = Yii::t('app','Common report');
 ?>
-
 <div class="row row-offcanvas row-offcanvas-left report-common">
     <?= $this->render('_sidebar', [
         'actionUrl'     => $actionUrl,
-        'end'           => $end ?? '',
+        'items'         => [
+            [
+                'name'  => 'start',
+                'title' => 'Начало периода',
+                'type'  => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+                'value' => $start ?? '',
+            ],
+            [
+                'name'  => 'end',
+                'title' => 'Конец периода',
+                'type'  => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+                'value' => $end ?? '',
+            ],
+        ],
         'hints'         => [],
         'reportList'    => $reportList ?? [],
-        'start'         => $start ?? '',
         'userInfoBlock' => $userInfoBlock ?? '',
     ]) ?>
 	<div class="col-sm-10">
-		<?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
-            <?= Breadcrumbs::widget([
-                'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
-            ]) ?>
-        <?php } ?>
+		<?php if (Yii::$app->params['appMode'] === 'bitrix') {
+                try {
+                    echo Breadcrumbs::widget([
+                        'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+                    ]);
+                } catch (Exception $e) {
+                    echo Html::tag('div', 'Не удалось отобразить виджет. ' . $e->getMessage(), ['class' => 'alert alert-danger']);
+                }
+        } ?>
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
 		</p>
-        <?= Alert::widget() ?>
+        <?php
+            try {
+                echo Alert::widget();
+            } catch (Exception $e) {
+                echo Html::tag('div', 'Не удалось отобразить виджет. ' . $e->getMessage(), ['class' => 'alert alert-danger']);
+            }
+        ?>
 		<table class='table table-bordered table-stripped table-hover table-condensed small'>
             <thead>
                 <tr>

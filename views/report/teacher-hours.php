@@ -1,20 +1,20 @@
 <?php
 
-/**
- * @var yii\web\View $this
- * @var string       $end
- * @var array        $data
- * @var array        $reportList
- * @var string       $start
- * @var array        $teachers
- * @var string       $tid
- * @var string       $userInfoBlock
- */
-
-use Yii;
 use app\widgets\Alert;
+use app\widgets\filters\FiltersWidget;
 use yii\helpers\Html;
 use yii\widgets\Breadcrumbs;
+
+/**
+ * @var yii\web\View $this
+ * @var string|null  $end
+ * @var array        $data
+ * @var array        $reportList
+ * @var string|null  $start
+ * @var array        $teachers
+ * @var string|null  $tid
+ * @var string       $userInfoBlock
+ */
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app','Reports');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
@@ -22,27 +22,56 @@ $this->params['breadcrumbs'][] = Yii::t('app','Teacher hours');
 ?>
 <div class="row row-offcanvas row-offcanvas-left report-teacher-hours">
     <?= $this->render('_sidebar', [
-        'actionUrl'     => ['report/teacher-hours'],
-        'end'           => $end,
-        'reportList'    => $reportList,
-        'teachers'      => $teachers,
-        'tid'           => $tid,
-        'start'         => $start,
-        'userInfoBlock' => $userInfoBlock,
-        'hints'         => [
-            'При установке интервала более недели, отчет будет ограничен выборкой в 7 дней от даты начала периода.'
-        ],
+            'actionUrl'     => ['report/teacher-hours'],
+            'hints'         => [
+                'При установке интервала более недели, отчет будет ограничен выборкой в 7 дней от даты начала периода.'
+            ],
+            'items'         => [
+                [
+                    'name'  => 'start',
+                    'title' => 'Начало периода',
+                    'type'  => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+                    'value' => $start ?? '',
+                ],
+                [
+                    'name'  => 'end',
+                    'title' => 'Конец периода',
+                    'type'  => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+                    'value' => $end ?? '',
+                ],
+                [
+                    'name'    => 'tid',
+                    'options' => $teachers ?? [],
+                    'prompt'  => Yii::t('app', '-all teachers-'),
+                    'title'   => 'Преподаватели',
+                    'type'    => FiltersWidget::FIELD_TYPE_DROPDOWN,
+                    'value'   => $tid ?? '',
+                ],
+            ],
+            'reportList'    => $reportList,
+            'userInfoBlock' => $userInfoBlock,
+
     ]) ?>
     <div class="col-xs-12 col-sm-10">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
-        <?= Breadcrumbs::widget([
-            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
-        ]); ?>
-        <?php } ?>
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') {
+            try {
+                echo Breadcrumbs::widget([
+                    'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+                ]);
+            } catch (Exception $e) {
+                echo Html::tag('div', 'Не удалось отобразить виджет. ' . $e->getMessage(), ['class' => 'alert alert-danger']);
+            }
+        } ?>
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
-        <?= Alert::widget() ?>
+        <?php
+            try {
+                echo Alert::widget();
+            } catch (Exception $e) {
+                echo Html::tag('div', 'Не удалось отобразить виджет. ' . $e->getMessage(), ['class' => 'alert alert-danger']);
+            }
+        ?>
         <table class="table table-striped table-bordered table-hover table-condensed text-center small">
             <thead>
                 <th class="text-center" style="width: 5%">№</th>
