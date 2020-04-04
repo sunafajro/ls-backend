@@ -32,7 +32,7 @@ use yii\widgets\ActiveForm;
                         'i',
                         null,
                         ['class' => 'fa fa-filter', 'aria-hidden' => 'true']
-                ) . Yii::t('app', 'Apply'),
+                ) . ' ' . Yii::t('app', 'Apply'),
                 ['class' => 'btn btn-info btn-sm btn-block']
         ) ?>
     </div>

@@ -17,6 +17,7 @@ use kartik\datetime\DateTimePicker;
             'name' => $item['name'] ?? '',
             'options' => [
                 'autocomplete' => 'off',
+                'class'        => 'form-control ' . join(' ', $item['addClasses'] ?? []),
             ],
             'pluginOptions' => [
                 'language'       => 'ru',

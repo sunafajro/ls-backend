@@ -7,9 +7,10 @@ use yii\base\Widget;
 
 class FiltersWidget extends Widget
 {
-    const FIELD_TYPE_TEXT_INPUT = 'textInput';
-    const FIELD_TYPE_DROPDOWN   = 'dropdown';
-    const FIELD_TYPE_DATE_INPUT = 'dateInput';
+    const FIELD_TYPE_TEXT_INPUT   = 'textInput';
+    const FIELD_TYPE_DROPDOWN     = 'dropdown';
+    const FIELD_TYPE_DATE_INPUT   = 'dateInput';
+    const ADDITIONAL_DATE_BUTTONS = 'dateButtons';
 
     /** @var array  */
     public $actionUrl = '';
@@ -19,9 +20,10 @@ class FiltersWidget extends Widget
     protected static function getFilterTypes()
     {
         return [
-            self::FIELD_TYPE_TEXT_INPUT => '_input',
-            self::FIELD_TYPE_DROPDOWN   => '_select',
-            self::FIELD_TYPE_DATE_INPUT => '_date',
+            self::FIELD_TYPE_TEXT_INPUT   => '_input',
+            self::FIELD_TYPE_DROPDOWN     => '_select',
+            self::FIELD_TYPE_DATE_INPUT   => '_date',
+            self::ADDITIONAL_DATE_BUTTONS => '_dateButtons',
         ];
     }
 

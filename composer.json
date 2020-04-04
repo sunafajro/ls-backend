@@ -28,7 +28,8 @@
         "ext-curl": "*",
         "ext-gd": "*",
         "ext-mbstring": "*",
-        "ext-xml": "*"
+        "ext-xml": "*",
+        "conquer/momentjs": "*"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.0.0",

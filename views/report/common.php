@@ -25,17 +25,24 @@ $this->params['breadcrumbs'][] = Yii::t('app','Common report');
         'actionUrl'     => $actionUrl,
         'items'         => [
             [
-                'name'  => 'start',
-                'title' => 'Начало периода',
-                'type'  => FiltersWidget::FIELD_TYPE_DATE_INPUT,
-                'value' => $start ?? '',
+                'addClasses' => ['js--filter-start-date'],
+                'name'       => 'start',
+                'title'      => 'Начало периода',
+                'type'       => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+                'value'      => $start ?? '',
             ],
             [
-                'name'  => 'end',
-                'title' => 'Конец периода',
-                'type'  => FiltersWidget::FIELD_TYPE_DATE_INPUT,
-                'value' => $end ?? '',
+                'addClasses' => ['js--filter-end-date'],
+                'name'       => 'end',
+                'title'      => 'Конец периода',
+                'type'       => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+                'value'      => $end ?? '',
             ],
+            [
+                'dateStartClass' => 'js--filter-start-date',
+                'dateEndClass'   => 'js--filter-end-date',
+                'type'           => FiltersWidget::ADDITIONAL_DATE_BUTTONS,
+            ]
         ],
         'hints'         => [],
         'reportList'    => $reportList ?? [],
