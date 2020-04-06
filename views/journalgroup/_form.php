@@ -36,7 +36,7 @@ use yii\widgets\ActiveForm;
             ]) ?>
         </div>
         <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
-            <?= $form->field($model, 'type')->dropDownList(Journalgroup::getLessonLocationTypes(), ['options' => [Journalgroup::TYPE_OFFICE => ['selected' => true]]]) ?>
+            <?= $form->field($model, 'type')->dropDownList(Journalgroup::getLessonLocationTypes(), ['prompt' => Yii::t('app', '-select-')]) ?>
         </div>
     </div>
     <?php if (count($teachers) > 1) { ?>
