@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use app\models\Journalgroup;
+use DateTime;
 use Yii;
 use app\models\AccrualTeacher;
 use app\models\Invoicestud;
@@ -79,12 +80,17 @@ class ReportController extends Controller
 
     /**
      * отчет по Начислениям
+     * @param null $tid
+     * @param null $month
+     *
+     * @return mixed
      * @throws ForbiddenHttpException
      */
     public function actionAccrual($tid = null, $month = null)
     {
-        if ((int)Yii::$app->session->get('user.ustatus') !== 3) {
-            throw new ForbiddenHttpException('Access denied');
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        if (!in_array($roleId, [3])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
         
         /** @var array */
@@ -171,13 +177,16 @@ class ReportController extends Controller
         ]);
     }
 
+    /**
+     * @return mixed
+     * @throws ForbiddenHttpException
+     */
     public function actionMargin()
     {
-        /* всех кроме руководителей и бухгалтеров редиректим обратно */
-        if(Yii::$app->session->get('user.ustatus')!=3) {
-            return $this->redirect(Yii::$app->request->referrer);
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        if (!in_array($roleId, [3])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
-        /* всех кроме руководителей и бухгалтеров редиректим обратно */
 
         if(Yii::$app->request->get('month')) {
             $month = Yii::$app->request->get('month');
@@ -326,16 +335,17 @@ class ReportController extends Controller
      * @param string|null $start
      * @param string|null $end
      * @param string|null $oid
-     * @return string
+     *
+     * @return mixed
      * @throws ForbiddenHttpException
      */
     public function actionPayments (string $start = NULL, string $end = NULL, string $oid = NULL)
     {
-        if ((int)Yii::$app->session->get('user.ustatus') !== 3 &&
-            (int)Yii::$app->session->get('user.ustatus') !== 4 &&
-            (int)Yii::$app->session->get('user.ustatus') !== 8) {
-                throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        if (!in_array($roleId, [3, 4, 8])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
+
         if (!($start && $end)) {
             $start = date("Y-m-d", strtotime('monday this week'));
             $end = date("Y-m-d", strtotime('sunday this week'));
@@ -359,14 +369,17 @@ class ReportController extends Controller
      * @param string $start
      * @param string $end
      * @param string $oid
-     * @return string
+     *
+     * @return mixed
      * @throws ForbiddenHttpException
      */
-    public function actionInvoices(string $start = '', string $end = '', string $oid = '') {
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 &&
-           (int)Yii::$app->session->get('user.ustatus') !== 4) {
+    public function actionInvoices(string $start = '', string $end = '', string $oid = '')
+    {
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        if (!in_array($roleId, [3, 4])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
+
         if (!($start && $end)) {
             $start = date("Y-m-d", strtotime('monday this week'));
             $end = date("Y-m-d", strtotime('sunday this week'));
@@ -397,9 +410,15 @@ class ReportController extends Controller
         ]);
     }
 
+    /**
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws \Exception
+     */
     public function actionPlan()
 	{
-        if ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 8) {
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        if (!in_array($roleId, [3, 8])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 		
@@ -458,7 +477,7 @@ class ReportController extends Controller
 			foreach($schedule as $s) {
 				// если необходима инфармация по следующему месяцу, опрелеляем след месяц и год
 				if($next) {
-					$dt = new \DateTime(date('Y-m-d'));
+					$dt = new DateTime(date('Y-m-d'));
 					$dt->modify('next month');
 					$month = $dt->format('n');
 					$year = $dt->format('Y');
@@ -495,12 +514,23 @@ class ReportController extends Controller
 		/* выводим данные в вьюз */
 	}
 
+    /**
+     * @param null $end
+     * @param int $limit
+     * @param int $offset
+     * @param null $tid
+     * @param null $start
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     */
     public function actionSalaries ($end = null, $limit = 10, $offset = 0, $tid = null, $start = null)
     {
-        /* всех кроме руководителей и бухгалтеров редиректим обратно */
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 8) {
-            return $this->redirect(Yii::$app->request->referrer);
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        if (!in_array($roleId, [3, 8])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
+
         if (Yii::$app->request->isPost) {
             Yii::$app->response->format = Response::FORMAT_JSON;
             $salaries = Report::getSalariesReportRows([
@@ -524,13 +554,16 @@ class ReportController extends Controller
         }
     }
 
+    /**
+     * @return mixed
+     * @throws ForbiddenHttpException
+     */
     public function actionSale()
     {
-        /* всех кроме руководителей редиректим обратно */
-        if(Yii::$app->session->get('user.ustatus')!=3) {
-            return $this->redirect(Yii::$app->request->referrer);
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        if (!in_array($roleId, [3])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
-        /* всех кроме руководителей редиректим обратно */
 
         $params = [
 		    'page' => 1,
@@ -587,7 +620,6 @@ class ReportController extends Controller
     public function actionCommon(string $start = null, string $end = null)
     {
         $roleId = (int)Yii::$app->session->get('user.ustatus');
-
         if (!in_array($roleId, [3, 8])) {
             throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
@@ -1003,8 +1035,9 @@ class ReportController extends Controller
     /**
      * @param string $end
      * @param string $start
-     * 
+     *
      * @return mixed
+     * @throws ForbiddenHttpException
      */
     public function actionCommissions(string $end = '', string $start = '')
     {
@@ -1012,6 +1045,7 @@ class ReportController extends Controller
         if (!in_array($roleId, [3, 4, 8])) {            
             throw new ForbiddenHttpException('Доступ ограничен.');
         }
+
         if (!($start && $end)) {
             $start = date("Y-m-d", strtotime('monday this week'));
             $end   = date("Y-m-d", strtotime('sunday this week'));
@@ -1051,17 +1085,25 @@ class ReportController extends Controller
             return $this->redirect(Yii::$app->request->referrer);
         }
     }
-    
-    /*
-    * метод выборки данных для построения отчета по Журналам 
-    */
+
+    /**
+     * метод выборки данных для построения отчета по Журналам
+     * @param int $corp
+     * @param null $oid
+     * @param null $tid
+     * @param null $page
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     */
     
     public function actionJournals($corp = 0, $oid = NULL, $tid = NULL, $page = NULL) 
     {
-        /* всех кроме руководителей, менеджеров редиректим обратно */
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
-            return $this->redirect(Yii::$app->request->referrer);
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        if (!in_array($roleId, [3, 4])) {
+            throw new ForbiddenHttpException('Доступ ограничен.');
         }
+
         // для менеджеров задаем переменную с id офиса
         if ((int)Yii::$app->session->get('user.ustatus') === 4) {
             $oid = $oid ?? Yii::$app->session->get('user.uoffice_id');
@@ -1095,7 +1137,7 @@ class ReportController extends Controller
             }
         }
         // доделываем запрос и выполняем
-        $teachers = $teachers->orderBy(['t.name'=>SORT_ASC])->limit($limit)->offset($offset)->all();            
+        $teachers = $teachers->orderBy(['t.name'=>SORT_ASC])->limit($limit)->offset($offset)->all();
         $teachersall = $countQuery->orderBy(['t.name'=>SORT_ASC])->all();
 
         // зададим пустое значение, оно будет использоваться если фильтр по преподавателю не задан
@@ -1175,7 +1217,6 @@ class ReportController extends Controller
             $lessons = [];
             $groups = [];
         }
-        $teachers = $teachersall;
 
         return $this->render('journals', [
             'corp'          => $corp,
@@ -1193,15 +1234,28 @@ class ReportController extends Controller
         ]);
     }
 
-    // Отчет по оплатам
+    /**
+     * Отчет по почасовке преподавателей
+     * @param null $start
+     * @param null $end
+     * @param null $tid
+     * @param int $limit
+     * @param int $offset
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     */
     public function actionTeacherHours($start = null, $end = null, $tid = null, $limit = 10, $offset = 0)
     {
-        if ((int)Yii::$app->session->get('user.ustatus') !== 3 &&
-            (int)Yii::$app->session->get('user.ustatus') !== 4 &&
-            (int)Yii::$app->session->get('user.ustatus') !== 6 &&
-            (int)Yii::$app->session->get('user.uid') !== 296) {
-                throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        $userId = (int)Yii::$app->session->get('user.uid');
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        if (!in_array($roleId, [3, 4, 6])) {
+            throw new ForbiddenHttpException('Доступ ограничен.');
         }
+        if (!in_array($userId, [296])) {
+            throw new ForbiddenHttpException('Доступ ограничен.');
+        }
+
 
         if (!($start && $end)) {
             $start = date("Y-m-d", strtotime('monday last week'));
