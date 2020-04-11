@@ -24,6 +24,9 @@ class LessonSearch extends Journalgroup
     /* @var int */
     public $officeId;
 
+    /** @var Query */
+    private $query;
+
     /**
      * @inheritdoc
      */
@@ -120,7 +123,9 @@ class LessonSearch extends Journalgroup
         } else {
             $query->andWhere('0 = 1');
         }
-        
+
+        $this->query = $query;
+
         return new ActiveDataProvider([
             'query' => $query,
             'pagination' => [
@@ -138,5 +143,31 @@ class LessonSearch extends Journalgroup
                 ],
             ],
         ]);
+    }
+
+    /**
+     * @return array
+     */
+    public function getAttendanceStatistics()
+    {
+        $lt  = 'l';
+        $sjt = 'sj';
+
+        $query = clone $this->query;
+        $query->innerJoin([$sjt => Studjournalgroup::tableName()], "{$lt}.id = {$sjt}.calc_journalgroup");
+        $query->andWhere(["{$sjt}.calc_statusjournal" => Journalgroup::STUDENT_STATUS_PRESENT]);
+
+        $presentQuery = clone $query;
+        $presentQuery->select("COUNT({$sjt}.calc_studname) as present");
+        $present = $presentQuery->one() ?? 0;
+
+        $presentRealQuery = clone $query;
+        $presentRealQuery->select("COUNT(DISTINCT {$sjt}.calc_studname) as present");
+        $presentReal = $presentRealQuery->one() ?? 0;
+
+        return [
+            'present'     => $present['present'] ?? 0,
+            'presentReal' => $presentReal['present'] ?? 0,
+        ];
     }
 }

@@ -1,6 +1,7 @@
 <?php
 
 use app\models\Journalgroup;
+use app\models\search\LessonSearch;
 use app\widgets\Alert;
 use app\widgets\filters\FiltersWidget;
 use yii\data\ActiveDataProvider;
@@ -10,8 +11,8 @@ use yii\web\View;
 use yii\widgets\Breadcrumbs;
 
 /**
- * @var View               $this 
- * @var Journalgroup       $searchModel
+ * @var View               $this
+ * @var LessonSearch       $searchModel
  * @var ActiveDataProvider $dataProvider
  * @var string             $actionUrl
  * @var string|null        $end
@@ -31,7 +32,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Lessons report');
             'hints'         => [
                 'Столбец Группа поддерживает фильтрацию как по названию группы так и по её номеру.',
                 'Столбец Комментарии отображает только студентов присутствовавших на занятии.',
-                'При фильтрации по столбцу Дата, фильтр по периоду игнорируется.'
+                'Статистика по студентам учитывает всех студентов отмесенных в журналах групп.'
             ],
             'items' => [
                 [
@@ -70,6 +71,19 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Lessons report');
                 echo Html::tag('div', 'Не удалось отобразить виджет. ' . $e->getMessage(), ['class' => 'alert alert-danger']);
             }
         ?>
+        <?php
+            $statistics = $searchModel->getAttendanceStatistics();
+        ?>
+        <h3 class="text-center">
+            <span style="margin-right: 10px">
+                <i class="fa fa-user" aria-hidden="true"></i>
+                Отметок в журнале: <?= $statistics['present'] ?? 0 ?>,
+            </span>
+            <span style="margin-right: 10px">
+                <i class="fa fa-user-o" aria-hidden="true"></i>
+                Уникальных студентов: <?= $statistics['presentReal'] ?? 0 ?>.
+            </span>
+        </h3>
         <?php
             try {
                 echo GridView::widget([
