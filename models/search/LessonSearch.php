@@ -9,6 +9,7 @@ use app\models\Service;
 use app\models\Studjournalgroup;
 use app\models\Teacher;
 use yii\data\ActiveDataProvider;
+use yii\db\Query;
 
 class LessonSearch extends Journalgroup
 {
@@ -20,6 +21,8 @@ class LessonSearch extends Journalgroup
     public $teacherName;
     /* @var string */
     public $groupName;
+    /* @var int */
+    public $officeId;
 
     /**
      * @inheritdoc
@@ -27,9 +30,8 @@ class LessonSearch extends Journalgroup
     public function rules()
     {
         return [
-            [['id'], 'integer'],
-            [['teacherName', 'groupName'], 'string'],
-            [['date'], 'safe'],
+            [['id', 'officeId'], 'integer'],
+            [['teacherName', 'groupName', 'date'], 'string'],
         ];
     }
 
@@ -43,6 +45,7 @@ class LessonSearch extends Journalgroup
             'date'        => Yii::t('app', 'Date'),
             'groupName'   => Yii::t('app', 'Group'),
             'teacherName' => Yii::t('app', 'Teacher'),
+            'officeId'    => Yii::t('app', 'Office'),
         ];
     }
 
@@ -59,6 +62,12 @@ class LessonSearch extends Journalgroup
 
         $this->load($params);
 
+        if ((int)Yii::$app->session->get('user.ustatus') === 4) {
+            if (!isset($params['LessonSearch']['officeId'])) {
+                $this->officeId = (int)Yii::$app->session->get('user.uoffice_id');
+            }
+        }
+
         $groupId = NULL;
         $groupName = NUll;
         if ((int)$this->groupName > 0) {
@@ -67,17 +76,18 @@ class LessonSearch extends Journalgroup
             $groupName = $this->groupName;
         }
 
-        $query = (new \yii\db\Query())
+        $query = (new Query())
             ->select([
                 'id'          => "{$lt}.id",
                 'type'        => "{$lt}.type",
                 'date'        => "{$lt}.data",
                 'teacherId'   => "{$lt}.calc_teacher",
-                'teacherName' => "t.name",
+                'teacherName' => "{$tt}.name",
                 'subject'     => "{$lt}.description",
                 'hometask'    => "{$lt}.homework",
                 'groupId'     => "{$lt}.calc_groupteacher",
-                'groupName'   => "s.name",
+                'groupName'   => "{$st}.name",
+                'officeId'    => "{$gt}.calc_office"
             ])
             ->from([$lt => static::tableName()])
             ->innerJoin([$tt => Teacher::tableName()], "{$tt}.id = {$lt}.calc_teacher")
@@ -106,6 +116,7 @@ class LessonSearch extends Journalgroup
             $query->andFilterWhere(['like', "DATE_FORMAT({$lt}.data, \"%d.%m.%Y\")", $this->date]);
             $query->andFilterWhere(['>=', "{$lt}.data", $params['start']]);
             $query->andFilterWhere(['<=', "{$lt}.data", $params['end']]);
+            $query->andFilterWhere(["{$gt}.calc_office" => $this->officeId]);
         } else {
             $query->andWhere('0 = 1');
         }

@@ -17,6 +17,7 @@ use app\models\Teacher;
 use app\models\Tool;
 use app\models\User;
 use app\models\search\LessonSearch;
+use yii\db\Query;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
@@ -75,10 +76,11 @@ class ReportController extends Controller
             ],
         ];
     }
-    
+
     /**
-    * отчет по Начислениям 
-    */
+     * отчет по Начислениям
+     * @throws ForbiddenHttpException
+     */
     public function actionAccrual($tid = null, $month = null)
     {
         if ((int)Yii::$app->session->get('user.ustatus') !== 3) {
@@ -189,7 +191,7 @@ class ReportController extends Controller
             $year = date('Y');
         }
 		
-		$teachers = (new \yii\db\Query())
+		$teachers = (new Query())
         ->select('t.id as tid, t.name as teacher_name')
         ->distinct()
         ->from('calc_teacher t')
@@ -202,7 +204,7 @@ class ReportController extends Controller
         ->all();
 		
 		if(!empty($teachers)) {
-			$lessons = (new \yii\db\Query())
+			$lessons = (new Query())
 			->select('t.id as tid, COUNT(jg.id) as count')
 			->from('calc_teacher t')
 			->innerJoin('calc_accrualteacher at', 't.id=at.calc_teacher')
@@ -213,7 +215,7 @@ class ReportController extends Controller
 			->groupby(['t.id'])
 			->all();
 		
-			$accruals = (new \yii\db\Query())
+			$accruals = (new Query())
 			->select('t.id as tid, at.id as aid, at.value as value')
 			->distinct()
 			->from('calc_teacher t')
@@ -224,12 +226,12 @@ class ReportController extends Controller
 			->andFilterWhere(['YEAR(jg.data)' => $year])
 			->all();
 		
-			$subQuery = (new \yii\db\Query())
+			$subQuery = (new Query())
 			->select('COUNT(sjg.id)')
 			->from('calc_studjournalgroup sjg')
 			->where('sjg.calc_journalgroup=jg.id and sjg.calc_statusjournal!=:two');
 		
-			$income = (new \yii\db\Query())
+			$income = (new Query())
 			->select('t.id as tid, jg.id as jid, gt.calc_service as sid, jg.data as date')
 			->addSelect(['count' => $subQuery])
 			->from('calc_teacher t')
@@ -246,7 +248,7 @@ class ReportController extends Controller
 				foreach($income as $in) {
 				$cost = 0;
 				
-				$servhist = (new \yii\db\Query())
+				$servhist = (new Query())
 				->select('date as date, value as value')
 				->from('calc_servicehistory')
 				->where('calc_service=:sid', [':sid'=>$in['sid']])
@@ -267,7 +269,7 @@ class ReportController extends Controller
 				}
 				
 				if($cost == 0) {
-					$lesson_cost = (new \yii\db\Query())
+					$lesson_cost = (new Query())
 					->select('sn.value as value')
 					->from('calc_service s')
 					->leftJoin('calc_studnorm sn', 'sn.id=s.calc_studnorm')
@@ -319,7 +321,14 @@ class ReportController extends Controller
 
     }
 
-    // Отчет по оплатам
+    /**
+     * Отчет по оплатам
+     * @param string|null $start
+     * @param string|null $end
+     * @param string|null $oid
+     * @return string
+     * @throws ForbiddenHttpException
+     */
     public function actionPayments (string $start = NULL, string $end = NULL, string $oid = NULL)
     {
         if ((int)Yii::$app->session->get('user.ustatus') !== 3 &&
@@ -345,7 +354,14 @@ class ReportController extends Controller
         ]);
     }
 
-    // Отчет по счетам
+    /**
+     * Отчет по счетам
+     * @param string $start
+     * @param string $end
+     * @param string $oid
+     * @return string
+     * @throws ForbiddenHttpException
+     */
     public function actionInvoices(string $start = '', string $end = '', string $oid = '') {
         if((int)Yii::$app->session->get('user.ustatus') !== 3 &&
            (int)Yii::$app->session->get('user.ustatus') !== 4) {
@@ -414,14 +430,14 @@ class ReportController extends Controller
 		// находим информацию по офису
 		
 		// формируем субзапрос для получения колич учеников в группе
-		$subQuery = (new \yii\db\Query())
+		$subQuery = (new Query())
 		->select('COUNT(sg.calc_studname) as cnt')
 		->from('calc_studgroup sg')
 		->where('sg.calc_groupteacher=gt.id and sg.visible=:one', [':one' => 1]);
 		// формируем субзапрос для получения колич учеников в группе
 		
 		// получаем данные для таблицы
-		$schedule = (new \yii\db\Query())
+		$schedule = (new Query())
 		->select('gt.id as group, sn.value as cost, sch.calc_denned as day, COUNT(sch.id) as cnt')
 		->addSelect(['pupils' => $subQuery])
 		->from('calc_schedule sch')
@@ -582,7 +598,7 @@ class ReportController extends Controller
         }
 
         #region офисы
-        $offices = (new \yii\db\Query())
+        $offices = (new Query())
         ->select('id as oid, name as oname')
         ->from('calc_office')
         ->where('visible=1')
@@ -591,7 +607,7 @@ class ReportController extends Controller
         #endregion
             
         #region оплаты
-        $common_payments = (new \yii\db\Query())
+        $common_payments = (new Query())
         ->select('ms.calc_office as oid, SUM(value_card) as card, SUM(value_cash) as cash, SUM(value_bank) as bank, SUM(ms.value) as money')
         ->from('calc_moneystud ms')
         ->where('ms.visible=1 and ms.remain=0')
@@ -602,7 +618,7 @@ class ReportController extends Controller
         #endregion
 
         #region счета
-        $common_invoices = (new \yii\db\Query())
+        $common_invoices = (new Query())
         ->select('is.calc_office as oid, SUM(is.value) as money, SUM(is.value_discount) as discount')
         ->from('calc_invoicestud is')
         ->where('is.visible=1')
@@ -613,7 +629,7 @@ class ReportController extends Controller
         #endregion
 
         #region начисления
-        $common_accruals = (new \yii\db\Query())
+        $common_accruals = (new Query())
         ->select('gt.calc_office as oid, SUM(at.value) as money')
         ->from('calc_accrualteacher at')
         ->leftjoin('calc_groupteacher gt', 'gt.id=at.calc_groupteacher')
@@ -626,7 +642,7 @@ class ReportController extends Controller
         #region часы
         $online = Journalgroup::TYPE_ONLINE;
         $office = Journalgroup::TYPE_OFFICE;
-        $common_hours = (new \yii\db\Query())
+        $common_hours = (new Query())
         ->select([
             'oid'          => 'gt.calc_office',
             'hours_online' => "SUM(CASE WHEN jg.type = '{$online}' THEN tn.value ELSE 0 END)",
@@ -644,7 +660,7 @@ class ReportController extends Controller
         #endregion
 
         #region студентов
-        $subQuery = (new \yii\db\Query())
+        $subQuery = (new Query())
         ->select('count(DISTINCT sjg.calc_studname) as students')
         ->from('calc_studjournalgroup sjg')
         ->leftJoin('calc_journalgroup jg', 'jg.id=sjg.calc_journalgroup')
@@ -653,7 +669,7 @@ class ReportController extends Controller
         ->andFilterWhere(['>=', 'jg.data', $start])
         ->andFilterWhere(['<=', 'jg.data', $end]);
         
-        $common_students = (new \yii\db\Query())
+        $common_students = (new Query())
         ->select('o.id as oid')
         ->addSelect(['students'=>$subQuery])
         ->from('calc_office o')
@@ -666,7 +682,7 @@ class ReportController extends Controller
         $common_debts = [];
         $i = 0;
         foreach($offices as $o) {
-            $tmp_debts = (new \yii\db\Query())
+            $tmp_debts = (new Query())
             ->select('s.debt as debts')
             ->from('calc_studname s')
             ->leftjoin('calc_studgroup sg', 's.id=sg.calc_studname')
@@ -850,7 +866,7 @@ class ReportController extends Controller
         $tss   = $req->get('TSS', NULL);
 
         // запрашиваем список студентов
-        $stds = (new \yii\db\Query())
+        $stds = (new Query())
         ->select(['id' => 'sn.id', 'name' => 'sn.name', 'debt' => 'sn.debt'])
         ->from(['sn' => Student::tableName()]);
         if ($oid) {
@@ -894,7 +910,7 @@ class ReportController extends Controller
         $students = [];
         if(!empty($stids)) {
             // запрашиваем услуги назначенные студенту
-            $students = (new \yii\db\Query())
+            $students = (new Query())
             ->select('s.id as sid, s.name as sname, is.calc_studname as stid, SUM(is.num) as num')
             ->distinct()
             ->from('calc_service s')
@@ -917,7 +933,7 @@ class ReportController extends Controller
                     $schedule = new Schedule();
                     $studentSchedule = $schedule->getStudentSchedule($service['stid']);
                     // запрашиваем из базы колич пройденных уроков
-                    $lssns = (new \yii\db\Query())
+                    $lssns = (new Query())
                     ->select('COUNT(sjg.id) AS cnt')
                     ->from('calc_studjournalgroup sjg')
                     ->leftjoin('calc_groupteacher gt', 'sjg.calc_groupteacher=gt.id')
@@ -976,6 +992,7 @@ class ReportController extends Controller
             'actionUrl'     => array_merge(['report/lessons'], $params),
             'dataProvider'  => $searchModel->search($params),
             'end'           => $end,
+            'offices'       => Office::getOfficeInScheduleListSimple(),
             'reportList'    => Report::getReportTypeList(),
             'searchModel'   => $searchModel,
             'start'         => $start,
@@ -1053,7 +1070,7 @@ class ReportController extends Controller
             }
         }
         // получим массив преподавателей у которых его активные группы
-        $teachers = (new \yii\db\Query())
+        $teachers = (new Query())
         ->select('t.id as tid, t.name as tname')
         ->distinct()
         ->from('calc_teachergroup tg')
@@ -1110,7 +1127,7 @@ class ReportController extends Controller
 
         if(!empty($teacher_names)) {
             // получаем данные по занятиям
-            $lessons = (new \yii\db\Query())
+            $lessons = (new Query())
             ->select('jg.id as lid, jg.type as type, jg.calc_groupteacher as gid, jg.data as date, jg.done as done, jg.calc_teacher as tid, t.name as tname, jg.description as desc, jg.visible as visible')
             ->from('calc_journalgroup jg')
             ->leftJoin('calc_teacher t', 't.id=jg.calc_teacher')
@@ -1128,7 +1145,7 @@ class ReportController extends Controller
             ->all();
 
             // выбираем группы преподавателей
-            $groups = (new \yii\db\Query())
+            $groups = (new Query())
             ->select('tg.calc_groupteacher as gid, tg.calc_teacher as tid, s.id as sid, s.name as service, el.name as ename, tn.value as hours')
             ->from('calc_teachergroup tg')
             ->leftJoin('calc_groupteacher gt', 'gt.id=tg.calc_groupteacher')
@@ -1215,7 +1232,7 @@ class ReportController extends Controller
     protected function reportAccruals($tid)
     {
         //получаем список преподавателей у которых есть занятия к начислению
-        $tmpteachers = (new \yii\db\Query()) 
+        $tmpteachers = (new Query())
         ->select('jg.calc_teacher as id, t.name as name')
         ->from('calc_journalgroup jg')
         ->leftJoin('calc_groupteacher gt', 'gt.id=jg.calc_groupteacher')
@@ -1259,7 +1276,7 @@ class ReportController extends Controller
             $list[0] = $tid;
         }
         // получаем список преподавателей
-        $teachers = (new \yii\db\Query()) 
+        $teachers = (new Query())
         ->select('t.id as id, t.name as name, t.calc_statusjob as stjob, t.value_corp as vcorp, en.value as norm')
         ->from('calc_teacher t')
         ->leftJoin('calc_edunormteacher as ent', 'ent.calc_teacher=t.id')
@@ -1274,13 +1291,13 @@ class ReportController extends Controller
         $teachers = $teachers->orderby(['t.name'=>SORT_ASC])->all();
 
         // формируем подзапрос для выборки количество учеников на занятии
-        $SubQuery = (new \yii\db\Query())
+        $SubQuery = (new Query())
         ->select('count(sjg.id) as pupil')
         ->from('calc_studjournalgroup sjg')
         ->where('sjg.calc_journalgroup=jg.id and sjg.calc_statusjournal!=2');
         
         // получаем данные по занятиям ожидающим начисление
-        $lessons = (new \yii\db\Query()) 
+        $lessons = (new Query())
         ->select('jg.id as jid, jg.data as jdate, jg.calc_groupteacher as gid, s.id as sid, s.name as service, tn.value as time, jg.calc_teacher as tid, el.name as level, o.name as office, jg.description as desc, jg.calc_edutime as edutime, jg.view as view, gt.corp as corp')
         ->addSelect(['pcount'=>$SubQuery])
         ->from('calc_journalgroup jg')
@@ -1503,7 +1520,7 @@ class ReportController extends Controller
     
     private function getMonths()
     {
-        return ArrayHelper::map((new \yii\db\Query())
+        return ArrayHelper::map((new Query())
         ->select('id as id, name as name')
         ->from('calc_month')
         ->where(['visible' => 1])

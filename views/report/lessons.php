@@ -15,6 +15,7 @@ use yii\widgets\Breadcrumbs;
  * @var ActiveDataProvider $dataProvider
  * @var string             $actionUrl
  * @var string|null        $end
+ * @var array              $offices
  * @var array              $reportList
  * @var string|null        $start
  * @var string             $userInfoBlock
@@ -163,6 +164,14 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Lessons report');
                                 return implode('', $comments);
                             }
                         ],
+                        'officeId' => [
+                            'attribute' => 'officeId',
+                            'filter' => $offices,
+                            'format' => 'raw',
+                            'value' => function ($model) use ($offices) {
+                                return $offices[$model['officeId']] ?? $model['officeId'];
+                            }
+                        ]
                     ],
                 ]);
             } catch (Exception $e) {
