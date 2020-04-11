@@ -99,16 +99,13 @@ class LessonSearch extends Journalgroup
         $query->where(["{$lt}.visible" => 1]);
 
         if ($this->validate()) {
-            $query->andFilterWhere(["{$lt}.id" => $this->id])
-                ->andFilterWhere(['like', "{$tt}.name", $this->teacherName])
-                ->andFilterWhere(["{$gt}.id" => $groupId])
-                ->andFilterWhere(['like', "{$st}.name", $groupName]);
-            if ($this->date) {
-                $query->andFilterWhere(['like', "DATE_FORMAT({$lt}.data, \"%d.%m.%Y\")", $this->date]);
-            } else if (($params['end'] ?? null) && ($params['start'] ?? null)) {
-                $query->andFilterWhere(['>=', "{$lt}.data", $params['start']]);
-                $query->andFilterWhere(['<=', "{$lt}.data", $params['end']]);
-            }
+            $query->andFilterWhere(["{$lt}.id" => $this->id]);
+            $query->andFilterWhere(['like', "{$tt}.name", $this->teacherName]);
+            $query->andFilterWhere(["{$gt}.id" => $groupId]);
+            $query->andFilterWhere(['like', "{$st}.name", $groupName]);
+            $query->andFilterWhere(['like', "DATE_FORMAT({$lt}.data, \"%d.%m.%Y\")", $this->date]);
+            $query->andFilterWhere(['>=', "{$lt}.data", $params['start']]);
+            $query->andFilterWhere(['<=', "{$lt}.data", $params['end']]);
         } else {
             $query->andWhere('0 = 1');
         }
