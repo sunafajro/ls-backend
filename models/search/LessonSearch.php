@@ -117,8 +117,10 @@ class LessonSearch extends Journalgroup
             $query->andFilterWhere(["{$gt}.id" => $groupId]);
             $query->andFilterWhere(['like', "{$st}.name", $groupName]);
             $query->andFilterWhere(['like', "DATE_FORMAT({$lt}.data, \"%d.%m.%Y\")", $this->date]);
-            $query->andFilterWhere(['>=', "{$lt}.data", $params['start']]);
-            $query->andFilterWhere(['<=', "{$lt}.data", $params['end']]);
+            if (($params['end'] ?? false) && ($params['start'] ?? false)) {
+                $query->andFilterWhere(['>=', "{$lt}.data", $params['start']]);
+                $query->andFilterWhere(['<=', "{$lt}.data", $params['end']]);
+            }
             $query->andFilterWhere(["{$gt}.calc_office" => $this->officeId]);
         } else {
             $query->andWhere('0 = 1');
