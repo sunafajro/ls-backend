@@ -407,21 +407,23 @@ class StudnameController extends Controller
         #endregion
 
         #region вкладка Занятия
-        $searchOptions = [
-            'clientId' => $id,
-            'pageSize' => 10
-        ];
-        if ($roleId === 5) {
-            $searchOptions['teacherId'] = Yii::$app->session->get('user.uteacher_id');
+        if ($tab == 6) {
+            $searchOptions = [
+                'clientId' => $id,
+                'pageSize' => 10
+            ];
+            if ($roleId === 5) {
+                $searchOptions['teacherId'] = Yii::$app->session->get('user.uteacher_id');
+            }
+            $searchModel  = new LessonSearch();
+            $dataProvider = $searchModel->search(Yii::$app->request->get(), $searchOptions);
         }
-        $searchModel  = new LessonSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->get(), $searchOptions);
         #endregion
 
         return $this->render('view', [
             'commissions'   => $commissions,
             'contracts'     => Contract::getClientContracts($id),
-            'dataProvider'  => $dataProvider,
+            'dataProvider'  => $dataProvider ?? null,
             'groups'        => $groups,
             'invcount'      => $invcount,
             'invoices'      => $invoices,
@@ -435,7 +437,7 @@ class StudnameController extends Controller
             'payments'      => $payments,
             'permsale'      => $permsale,
             'schedule'      => $studentSchedule,
-            'searchModel'   => $searchModel,
+            'searchModel'   => $searchModel ?? null,
             'services'      => $services,
             'studsales'     => $studsales,
             'userInfoBlock' => User::getUserInfoBlock(),
