@@ -1249,10 +1249,7 @@ class ReportController extends Controller
     {
         $userId = (int)Yii::$app->session->get('user.uid');
         $roleId = (int)Yii::$app->session->get('user.ustatus');
-        if (!in_array($roleId, [3, 4, 6])) {
-            throw new ForbiddenHttpException('Доступ ограничен.');
-        }
-        if (!in_array($userId, [296])) {
+        if (!(in_array($roleId, [3, 4, 6]) || in_array($userId, [296]))) {
             throw new ForbiddenHttpException('Доступ ограничен.');
         }
 
