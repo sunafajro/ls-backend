@@ -1,11 +1,5 @@
 <?php
 
-use app\widgets\Alert;
-use app\models\Journalgroup;
-use yii\helpers\Html;
-use yii\web\View;
-use yii\widgets\Breadcrumbs;
-
 /**
  * @var View         $this
  * @var Journalgroup $model
@@ -19,6 +13,12 @@ use yii\widgets\Breadcrumbs;
  * @var int          $userId
  * @var string       $userInfoBlock
  */
+
+use app\widgets\Alert;
+use app\models\Journalgroup;
+use yii\helpers\Html;
+use yii\web\View;
+use yii\widgets\Breadcrumbs;
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Add lesson');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Group') . ' №' . $params['gid'], 'url' => ['groupteacher/view', 'id' => $params['gid']]];

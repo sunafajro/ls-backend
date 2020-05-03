@@ -1,21 +1,23 @@
 <?php
 
-use app\models\Journalgroup;
-use app\widgets\Alert;
-use yii\helpers\Html;
-use yii\widgets\Breadcrumbs;
-
 /**
- * @var yii\web\View $this
+ * @var View $this
  * @var Journalgroup $model
  * @var array  $groupInfo
  * @var array  $items
  * @var array  $params
  * @var int    $roleId
  * @var array  $teachers
+ * @var array  $timeHints
  * @var int    $userId
  * @var string $userInfoBlock
  */
+
+use app\models\Journalgroup;
+use app\widgets\Alert;
+use yii\helpers\Html;
+use yii\web\View;
+use yii\widgets\Breadcrumbs;
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app','Update lesson');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Group').' №' . $params['gid'], 'url' => ['groupteacher/view', 'id' => $params['gid']]];
@@ -57,10 +59,11 @@ foreach($groupInfo as $key => $value) {
 
         <?= Alert::widget() ?>
         <?= $this->render('_form', [
-            'model'    => $model,
-            'roleId'   => $roleId,
-            'teachers' => $teachers,
-            'userId'   => $userId,
+                'model'    => $model,
+                'roleId'   => $roleId,
+                'teachers' => $teachers,
+                 'timeHints' => $timeHints,
+                'userId'   => $userId,
         ]) ?>
     </div>
 </div>

@@ -206,7 +206,14 @@ function getStudentOptions($lesson, $lessonBalance) {
         } else {
             $actions[] = Html::a("Восстановить в журнал",['journalgroup/restore','gid'=>$model->id,'id'=>$lesson['jid']]);
             if (in_array($userRoleId, [3, 4])) {
-                $actions[] = Html::a(Yii::t('app', 'Delete'), ['journalgroup/remove','gid' => $model->id,'id' => $lesson['jid']]);
+                $actions[] = Html::a(
+                        Yii::t('app', 'Delete'),
+                        ['journalgroup/remove', 'gid' => $model->id, 'id' => $lesson['jid']],
+                        [
+                            'data-method' => 'post',
+                            'data-confirm' => 'Вы действительно хотите полностью удалить запись из журнала?',
+                        ]
+                );
             }
         }
         echo join(' | ', $actions);
