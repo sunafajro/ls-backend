@@ -4,6 +4,7 @@ namespace app\models;
 
 use app\traits\StudentMergeTrait;
 use Yii;
+use yii\db\ActiveRecord;
 
 /**
  * This is the model class for table "calc_studjournalgroup".
@@ -17,7 +18,7 @@ use Yii;
  * @property string  $data
  * @property integer $user
  */
-class Studjournalgroup extends \yii\db\ActiveRecord
+class Studjournalgroup extends ActiveRecord
 {
     use StudentMergeTrait;
     
@@ -35,10 +36,11 @@ class Studjournalgroup extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['calc_groupteacher', 'calc_journalgroup', 'calc_studname', 'calc_statusjournal', 'comments', 'data', 'user'], 'required'],
+            [['data'], 'default', 'value' => date('Y-m-d')],
+            [['user'], 'default', 'value' => Yii::$app->user->identity->id ?? 0],
             [['calc_groupteacher', 'calc_journalgroup', 'calc_studname', 'calc_statusjournal', 'user'], 'integer'],
-            [['comments'], 'string'],
-            [['data'], 'safe'],
+            [['data', 'comments'], 'string'],
+            [['calc_groupteacher', 'calc_journalgroup', 'calc_studname', 'calc_statusjournal', 'comments', 'data', 'user'], 'required'],
         ];
     }
 

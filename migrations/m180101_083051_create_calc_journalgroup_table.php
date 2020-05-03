@@ -5,7 +5,7 @@ use yii\db\Migration;
 /**
  * Handles the creation of table `calc_journalgroup`.
  */
-class m180101_083054_create_calc_journalgroup_table extends Migration
+class m180101_083051_create_calc_journalgroup_table extends Migration
 {
     /**
      * {@inheritdoc}
