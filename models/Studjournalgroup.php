@@ -14,6 +14,7 @@ use yii\db\ActiveRecord;
  * @property integer $calc_journalgroup
  * @property integer $calc_studname
  * @property integer $calc_statusjournal
+ * @property integer $successes
  * @property string  $comments
  * @property string  $data
  * @property integer $user
@@ -21,7 +22,10 @@ use yii\db\ActiveRecord;
 class Studjournalgroup extends ActiveRecord
 {
     use StudentMergeTrait;
-    
+
+    const SUCCESSES_MIN_COUNT = 0;
+    const SUCCESSES_MAX_COUNT = 3;
+
     /**
      * @inheritdoc
      */
@@ -38,7 +42,9 @@ class Studjournalgroup extends ActiveRecord
         return [
             [['data'], 'default', 'value' => date('Y-m-d')],
             [['user'], 'default', 'value' => Yii::$app->user->identity->id ?? 0],
+            [['successes'], 'default', 'value' => 0],
             [['calc_groupteacher', 'calc_journalgroup', 'calc_studname', 'calc_statusjournal', 'user'], 'integer'],
+            [['successes'], 'number', 'min' => self::SUCCESSES_MIN_COUNT, 'max' => self::SUCCESSES_MAX_COUNT],
             [['data', 'comments'], 'string'],
             [['calc_groupteacher', 'calc_journalgroup', 'calc_studname', 'calc_statusjournal', 'comments', 'data', 'user'], 'required'],
         ];

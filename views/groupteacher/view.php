@@ -288,11 +288,17 @@ function getStudentOptions($lesson, $lessonBalance) {
                 foreach ($students as $student) {
                     // проверяем что студент присутствовал на занятии
                     if ((int)$student['jid'] === (int)$lesson['jid'] && (int)$student['status'] === Journalgroup::STUDENT_STATUS_PRESENT) {
+                        $successes = [];
+                        if ($student['successes'] > 0) {
+                            for ($num = 1; $num <= $student['successes']; $num++) {
+                                $successes[] = Html::tag('i', '', ['class' => 'fa fa-ticket', 'aria-hidden' => 'true']);
+                            }
+                        }
                         $arr[] = '(' . Html::a(
                             $student['sname'],
                             ['studname/view', 'id' => $student['sid']],
                             getStudentOptions($lesson, $groupStudents[$student['sid']])
-                        ) . ')';
+                        ) . join('', $successes) . ')';
                     }
                 }
                 echo "присутствовал: " . join(' ', $arr);

@@ -171,40 +171,34 @@ class GroupteacherController extends Controller
         //завершаем запрос
         $lessons = $lessons->orderby(['jg.data'=>SORT_DESC])->limit($limit)->offset($offset)->all();
 
-        $i = 0;
-            $list= [];
-        foreach ($lessons as $lesson) {
-            $list[$i] = $lesson['jid'];
-            $i++;
-        }
+        $list= ArrayHelper::getColumn($lessons,'jid');
         if (!empty($list)) {
 	    // выбираем посещения занятий
 	    $students = (new \yii\db\Query())
-	    ->select(['jid' => 'jg.id', 'sid' => 's.id', 'sname' => 's.name', 'status' => 'sjg.calc_statusjournal'])
+	    ->select(['jid' => 'jg.id', 'sid' => 's.id', 'sname' => 's.name', 'status' => 'sjg.calc_statusjournal', 'successes' => 'sjg.successes'])
 	    ->from(['jg' => Journalgroup::tableName()])
 	    ->leftJoin(['sjg' => Studjournalgroup::tableName()], 'sjg.calc_journalgroup = jg.id')
 	    ->leftJoin(['s' => Student::tableName()], 's.id = sjg.calc_studname')
-	    ->where(['in', 'jg.id',$list])
+	    ->where(['in', 'jg.id', $list])
 	    ->orderby(['jg.id' => SORT_DESC, 'sjg.calc_statusjournal' => SORT_ASC])
 	    ->all();
 
 	    $lesattend = [];
 	    foreach ($students as $student) {
-	        switch($student['status']){
-		    case 1: 
-			$lesattend[$student['jid']]['id']=$student['jid'];
-			$lesattend[$student['jid']]['p'] = 1;
-			break;
-		    case 2: 
-			$lesattend[$student['jid']]['id']=$student['jid'];
-			$lesattend[$student['jid']]['a1'] = 1;
-			break;
-		    case 3: 
-			$lesattend[$student['jid']]['id']=$student['jid'];
-			$lesattend[$student['jid']]['a2'] = 1;
-			break;
+	        switch ($student['status']) {
+                case 1:
+                    $lesattend[$student['jid']]['id']=$student['jid'];
+                    $lesattend[$student['jid']]['p'] = 1;
+                    break;
+                case 2:
+                    $lesattend[$student['jid']]['id']=$student['jid'];
+                    $lesattend[$student['jid']]['a1'] = 1;
+                    break;
+                case 3:
+                    $lesattend[$student['jid']]['id']=$student['jid'];
+                    $lesattend[$student['jid']]['a2'] = 1;
+                    break;
 	        }
-	        $i++;
 	     }
         } else {
             $students = [];

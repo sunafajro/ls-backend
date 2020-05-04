@@ -1,6 +1,7 @@
 <?php
 
 use app\models\Journalgroup;
+use app\models\Studjournalgroup;
 use yii\helpers\Html;
 use yii\web\View;
 
@@ -38,8 +39,13 @@ $this->registerJs($script, View::POS_READY);
                 <?= Html::input(
                      'number',
                     "Studjournalgroup[successes_{$student['id']}]",
-                    $student['successes'] ?? 0,
-                    ['class' => 'form-control js--student-successes', 'id' => "calcstudjournalgroup-successes_{$student['id']}"]
+                    $student['successes'] ?? Studjournalgroup::SUCCESSES_MIN_COUNT,
+                    [
+                        'class' => 'form-control js--student-successes',
+                        'id'    => "calcstudjournalgroup-successes_{$student['id']}",
+                        'min'   => Studjournalgroup::SUCCESSES_MIN_COUNT,
+                        'max'   => Studjournalgroup::SUCCESSES_MAX_COUNT,
+                    ]
                 )?>
             </div>
             <div class="col-sm-3">
