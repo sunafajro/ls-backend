@@ -69,7 +69,7 @@ foreach($groupInfo as $key => $value) {
 
     <?php
 	if (!empty($students)) {
-        echo $this->render('_attendance', ['students' => $students]);
+        echo $this->render('_attendance', ['students' => $students, 'isNew' => false]);
 		echo Html::submitButton(Yii::t('app', 'Update'), ['class' => 'btn btn-primary']);
 	}
     ActiveForm::end(); ?>

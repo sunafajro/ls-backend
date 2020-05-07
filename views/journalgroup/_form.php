@@ -118,7 +118,7 @@ $this->registerJs($script, View::POS_READY);
     <?= $form->field($model, 'description')->textArea(['rows' => 3]) ?>
     <?= $form->field($model, 'homework')->textArea(['rows' => 3]) ?>
     <?php if ($model->isNewRecord && !empty($students)) {
-        echo $this->render('_attendance', ['students' => $students]);
+        echo $this->render('_attendance', ['students' => $students, 'isNew' => true]);
     } ?>
     <div class="form-group">
         <?= Html::submitButton(Yii::t('app', $model->isNewRecord ? 'Add' : 'Update'), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>

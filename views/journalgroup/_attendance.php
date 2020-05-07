@@ -6,8 +6,9 @@ use yii\helpers\Html;
 use yii\web\View;
 
 /**
- * @var View $this
+ * @var View  $this
  * @var array $students
+ $ @var bool  $isNew
  */
 
 $script = <<< JS
@@ -53,7 +54,7 @@ $this->registerJs($script, View::POS_READY);
                 <?= Html::dropDownList(
                     "Studjournalgroup[status_{$student['id']}]",
                     Journalgroup::STUDENT_STATUS_PRESENT,
-                    Journalgroup::getAttendanceScopedStatuses(),
+                    $isNew ? Journalgroup::getAttendanceScopedStatuses() : Journalgroup::getAttendanceAllStatuses(),
                     ['class' => 'form-control js--student-status', 'id' => "calcstudjournalgroup-status_{$student['id']}"]
                 )?>
             </div>
