@@ -53,7 +53,7 @@ $this->registerJs($script, View::POS_READY);
                 <label class="control-label" for="calcstudjournalgroup-status_<?= $student['id'] ?>">Статус:</label>
                 <?= Html::dropDownList(
                     "Studjournalgroup[status_{$student['id']}]",
-                    Journalgroup::STUDENT_STATUS_PRESENT,
+                    $student['status'] ?? Journalgroup::STUDENT_STATUS_PRESENT,
                     $isNew ? Journalgroup::getAttendanceScopedStatuses() : Journalgroup::getAttendanceAllStatuses(),
                     ['class' => 'form-control js--student-status', 'id' => "calcstudjournalgroup-status_{$student['id']}"]
                 )?>
