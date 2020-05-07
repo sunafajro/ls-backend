@@ -46,7 +46,7 @@ class Studjournalgroup extends ActiveRecord
             [['calc_groupteacher', 'calc_journalgroup', 'calc_studname', 'calc_statusjournal', 'user'], 'integer'],
             [['successes'], 'number', 'min' => self::SUCCESSES_MIN_COUNT, 'max' => self::SUCCESSES_MAX_COUNT],
             [['data', 'comments'], 'string'],
-            [['calc_groupteacher', 'calc_journalgroup', 'calc_studname', 'calc_statusjournal', 'comments', 'data', 'user'], 'required'],
+            [['calc_groupteacher', 'calc_journalgroup', 'calc_studname', 'calc_statusjournal', 'data', 'user'], 'required'],
         ];
     }
 
