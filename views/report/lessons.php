@@ -124,7 +124,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Lessons report');
                                         );
                                         break;
                                 }
-                                return $model['id'] . Html::tag('br') . $type;
+                                return join(Html::tag('br'), [Html::a($model['id'], ['groupteacher/view', 'id' => $model['groupId'], 'lid' => $model['id']]), $type]);
                             }
                         ],
                         'date' => [
@@ -169,13 +169,35 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Lessons report');
                                 $commentsArr = $searchModel->getCommentsByLesson($model['id']);
                                 $comments = [];
                                 foreach ($commentsArr as $comment) {
-                                    $comments[] = Html::tag('p',
-                                        Html::a($comment['studentName'], ['studname/view', 'id' => $comment['studentId']])
-                                        . Html::tag('br')
-                                        . Html::tag('i', $comment['comment'] ?? '(пусто)')
+                                    $comments[] = Html::tag(
+                                            'p',
+                                            join('', [
+                                                Html::a($comment['studentName'], ['studname/view', 'id' => $comment['studentId']]),
+                                                Html::tag('br'),
+                                                Html::tag('i', isset($comment['comment']) && trim($comment['comment']) !== '' ? $comment['comment'] : '(пусто)'),
+                                                $comment['successes'] ? ' (' . join('', Journalgroup::prepareStudentSuccessesList((int)$comment['successes'])) . ')' : '',
+                                            ])
                                     );
                                 }
-                                return implode('', $comments);
+                                $first = array_shift($comments);
+                                $result = [
+                                    $first,
+                                ];
+                                if (!empty($comments)) {
+                                    $result[] = Html::tag('div', join('', $comments), ['id' => "collapseComments_{$model['id']}", 'class' => 'collapse']);
+                                    $result[] = Html::a(
+                                            'развернуть/свернуть (' . count($comments) . ')...',
+                                            "#collapseComments_{$model['id']}",
+                                            [
+                                                'class'         => 'small',
+                                                'role'          => 'button',
+                                                'data-toggle'   => 'collapse',
+                                                'aria-expanded' => 'false',
+                                                'aria-controls' => "collapseComments_{$model['id']}",
+                                            ]
+                                    );
+                                }
+                                return join('', $result);
                             }
                         ],
                         'officeId' => [

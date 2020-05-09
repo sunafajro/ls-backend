@@ -36,7 +36,9 @@ $this->registerJs($script, View::POS_READY);
                 ) ?>
             </div>
             <div class="col-sm-3">
-                <label class="control-label" for="calcstudjournalgroup-successes_<?= $student['id'] ?>">Получил "успешиков":</label>
+                <label class="control-label" for="calcstudjournalgroup-successes_<?= $student['id'] ?>">
+                    <?= Yii::t('app', 'Count of "successes"') ?>:
+                </label>
                 <?= Html::input(
                      'number',
                     "Studjournalgroup[successes_{$student['id']}]",

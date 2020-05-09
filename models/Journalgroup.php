@@ -4,6 +4,7 @@ namespace app\models;
 
 use Yii;
 use yii\db\ActiveRecord;
+use yii\helpers\Html;
 
 /**
  * This is the model class for table "calc_journalgroup".
@@ -212,7 +213,8 @@ class Journalgroup extends ActiveRecord
         ->select([
             'studentId'   => 's.id',
             'studentName' => 's.name',
-            'comment'     => 'sc.comments'
+            'comment'     => 'sc.comments',
+            'successes'   => 'sc.successes',
         ])
         ->from(['sc' => Studjournalgroup::tableName()])
         ->innerJoin(['s' => Student::tableName()], 's.id = sc.calc_studname')
@@ -252,5 +254,17 @@ class Journalgroup extends ActiveRecord
         ->all();
 
         return $lessons;
+    }
+
+    public static function prepareStudentSuccessesList(int $count)
+    {
+        $successes = [];
+        if ($count > 0) {
+            for ($num = 1; $num <= $count; $num++) {
+                $successes[] = Html::tag('i', '', ['class' => 'fa fa-ticket', 'aria-hidden' => 'true', 'title' => 'Успешик']);
+            }
+        }
+
+        return $successes;
     }
 }

@@ -84,7 +84,7 @@ class GroupteacherController extends Controller
      * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
      */
-    public function actionView($id)
+    public function actionView(int $id)
     {
         $roleId = (int)Yii::$app->session->get('user.ustatus');
         /** @var Groupteacher $group */
@@ -95,35 +95,40 @@ class GroupteacherController extends Controller
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
+        $lid     = NULL;
+        $state   = NULL;
+        $checked = NULL;
+        $payed   = NULL;
+        $deleted = NULL;
+        $page    = NULL;
+
         // задаем дефолтный лимит по количеству занятий
         $limit = 5;
         $offset = 0;
-        if ((int)Yii::$app->request->get('page') > 1) {
+        if ((int)Yii::$app->request->get('page', null) > 1) {
             $offset = 5 * ((int)Yii::$app->request->get('page') - 1);
         } else {
             $offset = 0;
         }
 
-        if (Yii::$app->request->get('page')) {
+        if (Yii::$app->request->get('page', false)) {
             $page = (int)Yii::$app->request->get('page');
         } else {
             $page = 1;
         }
 
+        if (Yii::$app->request->get('lid', false)) {
+            $lid = Yii::$app->request->get('lid');
+        }
+
         if (Yii::$app->request->get('status')) {
             $state = (int)Yii::$app->request->get('status');
-            switch($state) {
+            switch ($state) {
                 case 1: $checked = 0; $payed = 0; $deleted = 1; break;
                 case 2: $checked = 1; $payed = 0; $deleted = 1; break;
                 case 3: $checked = 1; $payed = 1; $deleted = 1;  break;
-                case 4: $checked = NULL; $payed = NULL; $deleted = 0; break;
-                default: $checked = NULL; $payed = NULL; $deleted = NULL; break;
+                case 4: $deleted = 0; break;
             }
-        } else {
-            $state   = NULL;
-            $checked = NULL;
-            $payed   = NULL;
-            $deleted = NULL;
         }
 		
         // выбираем занятия
@@ -160,6 +165,7 @@ class GroupteacherController extends Controller
         ->leftJoin('user u5', 'u5.id=jg.user_view')
         ->where(['jg.calc_groupteacher' => $id])
         ->andWhere(['>', 'jg.user', 0])
+        ->andFilterWhere(['jg.id'      => $lid])
         ->andFilterWhere(['jg.visible' => $deleted])
         ->andFilterWhere(['jg.view'    => $checked])
         ->andFilterWhere(['jg.done'    => $payed]);
@@ -221,6 +227,7 @@ class GroupteacherController extends Controller
             'groupInfo'     => $group->getInfo(),
             'groupStudents' => $groupStudents,
             'lessons'       => $lessons,
+            'lid'           => $lid,
             'pages'         => $pages,
             'page'          => $page,
             'state'         => $state,
@@ -234,9 +241,11 @@ class GroupteacherController extends Controller
     }
 
     /**
-     * Creates a new CalcGroupteacher model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
+     * @param int $tid
      * @return mixed
+     *
+     * @throws ForbiddenHttpException
+     * @throws \yii\db\Exception
      */
     public function actionCreate($tid)
     {

@@ -19,8 +19,9 @@ use yii\web\View;
  * @var array        $groupStudents
  * @var array        $lesattend
  * @var array        $lessons
- * @var int          $page
- * @var int          $state
+ * @var int|null     $lid
+ * @var int|null     $page
+ * @var int|null     $state
  * @var array        $students
  * @var string       $userInfoBlock
  */
@@ -76,13 +77,16 @@ function getStudentOptions($lesson, $lessonBalance) {
                 'action' => ['groupteacher/view', 'id'=>$model->id],
             ]); ?>
         <div class="form-group">
-            <select class="form-control input-sm" name="status">
-                <option value='all'><?= Yii::t('app','-all states-') ?></option>
-                <option value="1" <?= $state == 1 ? ' selected' : '' ?>>На проверке</option>
-                <option value="2" <?= $state == 2 ? ' selected' : '' ?>>Проверено</option>
-                <option value="3" <?= $state == 3 ? ' selected' : '' ?>>Оплачено</option>
-                <option value="4" <?= $state == 4 ? ' selected' : '' ?>>Исключено</option>
-            </select>
+            <?= Html::input('number', 'lid', $lid ?? null, ['class' => 'form-control input-sm', 'placeholder' => 'номер урока']); ?>
+        </div>
+        <div class="form-group">
+            <?= Html::dropDownList('status', $state, [
+                'all' => Yii::t('app', '-all states-'),
+                1 => 'На проверке',
+                2 => 'Проверено',
+                3 => 'Оплачено',
+                4 => 'Исключено',
+            ], ['class' => 'form-control input-sm']) ?>
         </div>
         <div class="form-group">
             <?= Html::submitButton('<span class="fa fa-filter" aria-hidden="true"></span> ' . Yii::t('app', 'Apply'), ['class' => 'btn btn-info btn-sm btn-block']) ?>
@@ -288,12 +292,7 @@ function getStudentOptions($lesson, $lessonBalance) {
                 foreach ($students as $student) {
                     // проверяем что студент присутствовал на занятии
                     if ((int)$student['jid'] === (int)$lesson['jid'] && (int)$student['status'] === Journalgroup::STUDENT_STATUS_PRESENT) {
-                        $successes = [];
-                        if ($student['successes'] > 0) {
-                            for ($num = 1; $num <= $student['successes']; $num++) {
-                                $successes[] = Html::tag('i', '', ['class' => 'fa fa-ticket', 'aria-hidden' => 'true']);
-                            }
-                        }
+                        $successes = Journalgroup::prepareStudentSuccessesList((int)$student['successes']);
                         $arr[] = '(' . Html::a(
                             $student['sname'],
                             ['studname/view', 'id' => $student['sid']],

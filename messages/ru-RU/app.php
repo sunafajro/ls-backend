@@ -149,6 +149,7 @@ return array(
     'Cost' => 'Стоимость',
     'Cost for one account unit' => 'Стоимость за 1 учетную единицу',
     'Count' => 'Количество',
+    'Count of "successes"' => 'Получил "успешиков"',
     'Create' => 'Создать',
     'Create call' => 'Создать звонок',
     'Create client' => 'Создать клиента',
