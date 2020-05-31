@@ -107,7 +107,7 @@ class FilesController extends Controller
     public function actionDelete($id)
     {
         $file = $this->findModel($id);
-        if ($file->user_id === Yii::$app->user->identity->id) {
+        if ((int)$file->user_id === (int)Yii::$app->user->identity->id) {
             Yii::$app->response->format = Response::FORMAT_JSON;
             try {
                 if ($file->delete()) {
