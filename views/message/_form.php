@@ -1,17 +1,22 @@
 <?php
 
-use app\models\Message;
-use moonland\tinymce\TinyMCE;
-use yii\helpers\Html;
-use yii\web\View;
-use yii\widgets\ActiveForm;
-
 /**
  * @var View    $this
  * @var Message $model
  * @var array   $types
  * @var array   $receivers
  */
+
+use app\assets\MessageFormAsset;
+use app\models\File;
+use app\models\Message;
+use moonland\tinymce\TinyMCE;
+use yii\helpers\Html;
+use yii\helpers\Url;
+use yii\web\View;
+use yii\widgets\ActiveForm;
+
+MessageFormAsset::register($this);
 ?>
 <div class="message-form">
     <?php $form = ActiveForm::begin();?>
@@ -69,36 +74,36 @@ use yii\widgets\ActiveForm;
             }
         }
     ?>
+    <div class="form-group js--files-block">
+        <div class="js--file-ids" data-delete-url="<?= Url::to(['files/delete']) ?>">
+            <?= Html::button(
+                    Html::tag('i', null, ['class' => 'fa fa-paperclip', 'aria-hidden' => 'true'])
+                    . ' '
+                    . Yii::t('app', 'Attach file'), ['class' => 'btn btn-default btn-xs js--upload-file-btn', 'style' => 'margin-right: 5px']) ?>
+            <?php
+                $files = File::find()->andWhere(['user_id' => Yii::$app->user->identity->id])->andWhere([
+                    'or',
+                    ['entity_type' => File::TYPE_TEMP, 'entity_id' => null],
+                    ['entity_type' => File::TYPE_ATTACHMENTS, 'entity_id' => $model->id ?? null]
+                ])->all();
+                foreach ($files as $file) {
+                    echo $this->render('_file_template', [
+                        'file' => $file,
+                        'model' => $model,
+                    ]);
+                }
+            ?>
+        </div>
+        <?= Html::input('file', 'file', null, ['class' => 'hidden js--upload-file', 'data-upload-url' => Url::to(['files/upload'])]) ?>
+    </div>
     <div class="form-group">
         <?= Html::hiddenInput('send', 1, ['class' => 'js--send-now-input', 'disabled' => true]); ?>
         <?= Html::button(Yii::t('app', 'Send'), ['class' => 'btn btn-primary js--send-now-button', 'title' => 'Отправить немедленно'])?>
         <?= Html::submitButton(Yii::t('app', 'Save'), ['class' => 'btn btn-success', 'title' => 'Сохранить, но не отправлять'])?>
     </div>
     <?php ActiveForm::end();?>
+    <?= $this->render('_file_template', [
+            'file' => null,
+            'model' => $model,
+        ]) ?>
 </div>
-<?php
-$js = <<< 'SCRIPT'
-$(document).ready(
-    function(){
-        $('.js--send-now-button').on('click', function () {
-            var _this = $(this);
-            _this.closest('div').find('.js--send-now-input').prop('disabled', false);
-            _this.closest('form').submit();
-        });
-        $("#message-calc_messwhomtype").change(
-            function() {
-                var key = $("#message-calc_messwhomtype option:selected").val();
-    	        $.ajax({
-                    type:"POST",
-                    url:"/message/ajaxgroup",
-                    data: "type="+key,
-                    success: function(users) {
-                        $(".field-message-refinement_id").html(users);
-                    }
-                });
-            }
-        );
-    }
-);
-SCRIPT;
-$this->registerJs($js);

@@ -2,9 +2,12 @@
 
 namespace app\controllers;
 
+use app\models\File;
 use Yii;
 use app\models\AccessRule;
 use app\models\User;
+use yii\base\Action;
+use yii\web\BadRequestHttpException;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
@@ -35,7 +38,7 @@ class DocumentController extends Controller
                 ],
             ],
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'delete' => ['post'],
                     'upload' => ['post'],
@@ -44,6 +47,12 @@ class DocumentController extends Controller
         ];
     }
 
+    /**
+     * @param Action $action
+     * @return bool
+     * @throws ForbiddenHttpException
+     * @throws BadRequestHttpException
+     */
     public function beforeAction($action)
     {
 		if(parent::beforeAction($action)) {
@@ -59,51 +68,49 @@ class DocumentController extends Controller
 
     public function actionIndex()
     {
-        $path = Yii::getAlias('@documents/');
-        $files = scandir($path);
-        $fileList = [];
-        foreach($files as $file) {
-            if ($file !== '.' && $file !== '..' && $file !== '.gitkeep') {
-                $fileList[] = [
-                    'fileName' => $file,
-                    'fileHash' => md5($path . $file),
-                ];
-            }
-        }
         return $this->render('index', [
-            'fileList'      => $fileList,
+            'fileList'      => File::find()->andWhere(['entity_type' => File::TYPE_DOCUMENTS])->all(),
             'uploadForm'    => new UploadForm(),
             'userInfoBlock' => User::getUserInfoBlock(),
         ]);
     }
 
-    public function actionDownload(string $id)
+    /**
+     * @param int $id
+     *
+     * @return mixed
+     * @throws NotFoundHttpException
+     */
+    public function actionDownload(int $id)
     {
-        $path = Yii::getAlias('@documents/');
-        $files = scandir($path);
-        $fileName = '';
-        foreach($files as $file) {
-            $tmpFilePath = md5($path . $file);
-            if ($file !== '.' && $file !== '..' && $file !== '.gitkeep') {
-                if ($tmpFilePath === $id) {
-                    $fileName = $file;
-                }
-            }
-        }
-        if ($fileName) {
-            return Yii::$app->response->sendFile($path . $fileName, $fileName, ['inline' => true]);
-        } else {
+        /** @var File|null $file */
+        $file = File::find()->andWhere(['id' => $id])->one();
+        if (empty($file)) {
             throw new NotFoundHttpException(Yii::t('app', 'File not found!'));
         }
+
+        return Yii::$app->response->sendFile($file->getPath(), $file->original_name, ['inline' => true]);
     }
 
+    /**
+     * @return mixed
+     *
+     * @throws ForbiddenHttpException
+     * @throws \yii\base\Exception
+     */
     public function actionUpload()
     {
         $model = new UploadForm();
         $model->file = UploadedFile::getInstance($model, 'file');
         if ($model->file && $model->validate()) {
-            $path = Yii::getAlias('@documents/');
-            if ($model->saveFile($path)) {
+            if ($model->saveFile(Yii::getAlias('@files/temp'))) {
+                $file = new File([
+                    'file_name' => $model->file_name,
+                    'original_name' => $model->original_name,
+                ]);
+                if ($file->save()) {
+                    $file->setEntity(File::TYPE_DOCUMENTS);
+                }
                 Yii::$app->session->setFlash('success', Yii::t('app', 'File successfully uploaded!'));
             } else {
                 Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to upload file!'));
@@ -113,28 +120,29 @@ class DocumentController extends Controller
         throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
     }
 
-    public function actionDelete($id)
+    /**
+     * @param int $id
+     *
+     * @return mixed
+     * @throws NotFoundHttpException
+     */
+    public function actionDelete(int $id)
     {
-        $path = Yii::getAlias('@documents/');
-        $files = scandir($path);
-        $filePath = '';
-        foreach($files as $file) {
-            $tmpFilePath = md5($path . $file);
-            if ($file !== '.' && $file !== '..' && $file !== '.gitkeep') {
-                if ($tmpFilePath === $id) {
-                    $filePath = $path . $file;
-                }
-            }
+        $file = File::find()->andWhere(['id' => $id])->one();
+        if (empty($file)) {
+            throw new NotFoundHttpException(Yii::t('app', 'File not found!'));
         }
-        if ($filePath) {
-            if (unlink($filePath)) {
+        try {
+            if ($file->delete()) {
                 Yii::$app->session->setFlash('success', Yii::t('app', 'File successfully deleted!'));
             } else {
                 Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to delete file!'));
             }
-            return $this->redirect('index');
-        } else {
-            throw new NotFoundHttpException(Yii::t('app', 'File not found!'));
+        } catch (\Exception $e) {
+            Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to delete file!'));
+        } catch (\Throwable $e) {
+            Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to delete file!'));
         }
+        return $this->redirect(['document/index']);
     }
 }

@@ -6,6 +6,7 @@
  * @var array        $url
  */
 
+use app\models\File;
 use yii\helpers\Html;
 ?>
 <div id="<?= $id ?>" class="modal fade" tabindex="-1" role="dialog">
@@ -13,23 +14,38 @@ use yii\helpers\Html;
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title"><?= $data['title'] ?? '' ?></h4>
+                <h4 class="modal-title"><?= isset($data['date']) ? date('d.m.Y - H:i', strtotime($data['date'])) : '-' ?></h4>
             </div>
             <div class="modal-body">
                 <p>
-                    <strong>От кого:</strong> <span class="text-primary"><?= $data['sender'] ?? '' ?></span>
+                    <b>От кого:</b> <span class="text-primary"><?= $data['sender'] ?? '' ?></span>
                 </p>
                 <p>
-                    <strong>Кому:</strong> <span class="text-primary"><?= $data['groupName'] ?? '' ?></span>
+                    <b>Кому:</b> <span class="text-primary"><?= $data['groupName'] ?? '' ?></span>
                 </p>
                 <p>
-                    <strong>Текст:</strong>
+                    <b>Текст:</b>
                 </p>
                 <?= $data['body'] ?? '' ?>
-                <?php if ($data['image'] ?? false) { ?>
-                    <p><strong>Файл:</strong></p>
-                    <?= Html::img($data['image'], ['alt' => 'image', 'style' => 'width: 200px']) ?>
-                <?php } ?>
+                <?php
+                    /** @var File[] $files */
+                    $files = File::find()->andWhere([
+                        'entity_type' => File::TYPE_ATTACHMENTS, 'entity_id' => $data['mid']
+                    ])->all();
+                    if (!empty($files)) {
+                        echo Html::beginTag('div');
+                        echo Html::tag('b', 'Файлы:');
+                        echo Html::beginTag('ul');
+                        foreach ($files as $file) {
+                            echo Html::tag(
+                                'li',
+                                Html::a($file->original_name, ['files/download', 'id' => $file->id], ['target' => '_blank'])
+                            );
+                        }
+                        echo Html::endTag('ul');
+                        echo Html::endTag('div');
+                    }
+                ?>
             </div>
             <div class="modal-footer">
                 <?php

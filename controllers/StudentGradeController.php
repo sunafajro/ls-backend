@@ -134,7 +134,7 @@ class StudentGradeController extends Controller
         if (!file_exists($filePath)) {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
-        return Yii::$app->response->sendFile($filePath);
+        return Yii::$app->response->sendFile($filePath, null, ['inline' => true]);
     }
 
     public function actionExamContents($exam)

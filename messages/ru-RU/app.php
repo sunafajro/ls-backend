@@ -68,6 +68,7 @@ return array(
     'Approve discounts' => 'Подтвердить скидки',
     'Assign date' => 'Дата назначения',
     'Are you sure?' => 'Вы уверены?',
+    'Attach file' => 'Прикрепить файл',
     'Attestations' => 'Аттестации',
     'Attract ways' => 'Способы привлечения',
     'Author' => 'Автор',

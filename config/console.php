@@ -40,6 +40,7 @@ $config = [
     'params' => $params,
     'aliases' => [
         '@attestates' => '@app/data/attestates',
+        '@files'      => '@app/data/files',
         '@uploads'    => '@app/web/uploads',
     ],
 ];

@@ -6,6 +6,7 @@ use app\traits\StudentMergeTrait;
 use kartik\mpdf\Pdf;
 use Yii;
 use yii\data\ActiveDataProvider;
+use yii\helpers\FileHelper;
 
 /**
  * This is the model class for table "student_grades".
@@ -190,14 +191,10 @@ class StudentGrade extends \yii\db\ActiveRecord
         $attestation['studentName'] = $student->name;
         unset($attestation['calc_studname']);
 
-        $attestatesDir = Yii::getAlias("@attestates");
-        $attestatesDirStudentSubDir = "{$attestatesDir}/{$attestation['studentId']}";
+        $certificatesDir = Yii::getAlias("@attestates/{$attestation['studentId']}");
         $filePath = $this->getFullFileName();
-        if (!file_exists($attestatesDir)) {
-            mkdir($attestatesDir, 0775, true);
-        }
-        if (!file_exists($attestatesDirStudentSubDir)) {
-            mkdir($attestatesDirStudentSubDir, 0775, true);
+        if (!file_exists($certificatesDir)) {
+            FileHelper::createDirectory($certificatesDir);
         }
         $pdf = new Pdf([
             'filename'    => $filePath,
