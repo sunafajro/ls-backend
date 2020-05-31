@@ -21,8 +21,11 @@ class m200530_202434_create_files_table extends Migration
             'user_id'       => $this->integer(),
             'create_date'   => $this->date(),
         ]);
-    }
 
+        $this->createIndex('files-entity_id-idx', '{{%files}}', 'entity_id');
+        $this->createIndex('files-user_id-idx', '{{%files}}', 'user_id');
+
+    }
     /**
      * {@inheritdoc}
      */

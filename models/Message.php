@@ -122,7 +122,7 @@ class Message extends \yii\db\ActiveRecord
                 (int)$message['destination_type'] === 5
                 || (int)$message['destination_type'] === 100
             ) {
-                $message['canResponse'] = true;
+                $message['canResponse'] = (int)$message['sender_id'] !== Yii::$app->user->identity->id ? true : false;
                 $receiver = (new \yii\db\Query())
                 ->select(['id' => 'id', 'name' => 'name'])
                 ->from(['u' => 'user'])

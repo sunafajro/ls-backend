@@ -7,6 +7,7 @@ use app\models\File;
 use Yii;
 use yii\console\Controller;
 use yii\db\Query;
+use yii\helpers\FileHelper;
 
 class FilesController extends Controller
 {
@@ -18,6 +19,9 @@ class FilesController extends Controller
             File::TYPE_CERTIFICATES, File::TYPE_USERS,
         ];
         $path  = Yii::getAlias('@files');
+        if (!file_exists($path . '/' . File::TYPE_DOCUMENTS)) {
+            FileHelper::createDirectory($path . '/' . File::TYPE_DOCUMENTS);
+        }
         $files = scandir($path);
         foreach($files as $fileName) {
             if (!in_array($fileName, $exclude)) {
