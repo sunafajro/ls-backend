@@ -47,7 +47,10 @@ class ClientaccessController extends Controller
     }
 
     /**
+     * @param integer $sid
      * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
      */
     public function actionCreate($sid)
     {
@@ -65,18 +68,17 @@ class ClientaccessController extends Controller
                 $model->password = md5($model->password);
                 if ($model->save()) {
                     Yii::$app->session->setFlash('success', "Логин и пароль к ЛК успешно созданы.");
+                    return $this->redirect(['studname/view', 'id' => $model->calc_studname]);
                 } else {
-                    Yii::$app->session->setFlash('error', "Не удалось создать логин и парооль к ЛК.");
+                    Yii::$app->session->setFlash('error', "Не удалось создать логин и пароль к ЛК.");
                 }
-                return $this->redirect(['studname/view', 'id' => $model->calc_studname]);
-            } else {
-                return $this->render('create', [
-                    'model'         => $model,
-                    'student'       => $student,
-                    'loginStatus'   => $student->getStudentLoginStatus(),
-                    'userInfoBlock' => User::getUserInfoBlock()
-                ]);
             }
+            return $this->render('create', [
+                'model'         => $model,
+                'student'       => $student,
+                'loginStatus'   => $student->getStudentLoginStatus(),
+                'userInfoBlock' => User::getUserInfoBlock()
+            ]);
 	    } else {
             throw new ForbiddenHttpException('Доступ к данной странице ограничен.');
         }
@@ -85,6 +87,8 @@ class ClientaccessController extends Controller
     /**
      * @param integer $sid
      * @return mixed
+     * @throws NotFoundHttpException
+     * @throws ForbiddenHttpException
      */
     public function actionUpdate($sid)
     {
@@ -99,25 +103,30 @@ class ClientaccessController extends Controller
             }
     	    if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
                 $model->password = md5($model->password);
-                if ($model->save(true, ['password'])) {
+                if ($model->save(true, ['username', 'password'])) {
                     Yii::$app->session->setFlash('success', "Логин и пароль к ЛК успешно изменены.");
+                    return $this->redirect(['studname/view', 'id' => $model->calc_studname]);
                 } else {
-                    Yii::$app->session->setFlash('error', "Не удалось изменить логин или парооль к ЛК.");
+                    Yii::$app->session->setFlash('error', "Не удалось изменить логин или пароль к ЛК.");
                 }
-                return $this->redirect(['studname/view', 'id' => $model->calc_studname]);
-            } else {
-                return $this->render('update', [
-                        'model'         => $model,
-                        'student'       => $student,
-                        'loginStatus'   => $student->getStudentLoginStatus(),
-                        'userInfoBlock' => User::getUserInfoBlock(),
-                ]);
             }
+            return $this->render('update', [
+                    'model'         => $model,
+                    'student'       => $student,
+                    'loginStatus'   => $student->getStudentLoginStatus(),
+                    'userInfoBlock' => User::getUserInfoBlock(),
+            ]);
         } else {
             throw new ForbiddenHttpException('Доступ к данной странице ограничен.');
         }
     }
 
+    /**
+     * @param $sid
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
+     */
     public function actionEnable($sid)
     {
         $student = Student::findOne($sid);
