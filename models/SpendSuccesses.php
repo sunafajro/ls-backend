@@ -54,7 +54,7 @@ class SpendSuccesses extends ActiveRecord
         $student = Student::find()->andWhere(['id' => $this->student_id])->one();
         if ($student) {
             if ($student->getSuccessesCount() < $this->$attribute) {
-                $this->addError($attribute, 'Невожно списать больше "успешиков" чем есть на балансе.');
+                $this->addError($attribute, 'Невозжно списать "успешиков" большеб чем на балансе у клиента.');
             }
         }
     }
