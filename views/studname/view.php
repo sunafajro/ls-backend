@@ -142,12 +142,24 @@ if (Yii::$app->request->get('tab')) {
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle</button>
 		</p>
         <?= Alert::widget() ?>
-        <?= Html::tag(
+        <?php
+            $successesCount = $model->getSuccessesCount();
+            echo Html::tag(
                 'h3',
                 join(' ', [
                     "[#{$model->id}]",
                     Html::encode($model->name),
-                    Html::tag('i', '', ['class' => 'fa fa-ticket', 'title' => 'Баланс успешиков', 'aria-hidden' => 'true']) . $model->getSuccessesCount(),
+                    Html::a(
+                        Html::tag(
+                            'i',
+                            '',
+                            [
+                                'class' => 'fa fa-ticket',
+                                'title' => 'Баланс успешиков',
+                                'aria-hidden' => 'true',
+                            ]) . $successesCount,
+                        ['studname/successes', 'id' => $model->id]
+                    ),
                 ])
         ) ?>
         <?php

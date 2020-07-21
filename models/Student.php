@@ -421,7 +421,7 @@ class Student extends ActiveRecord
      */
     public function getSuccessesCount() : int
     {
-        return $this->getReceivedSuccessesCount() - 0;
+        return $this->getReceivedSuccessesCount() - $this->getSpendSuccessesCount();
     }
 
     /**
@@ -442,6 +442,43 @@ class Student extends ActiveRecord
             ->one();
 
         return $count['successes'] ?? 0;
+    }
+
+    /**
+     * Количество успешиков полученных клиентом за занятиям
+     * @return int
+     */
+    public function getSpendSuccessesCount() : int
+    {
+        $count = (new \yii\db\Query())
+            ->select(['successes' => 'SUM(ss.count)'])
+            ->from(['ss' => SpendSuccesses::tableName()])
+            ->andWhere([
+                'ss.student_id' => $this->id,
+                'ss.visible' => 1,
+            ])
+            ->one();
+
+        return $count['successes'] ?? 0;
+    }
+
+    public function getSpendSuccessesHistory()
+    {
+        return (new \yii\db\Query())
+            ->select([
+                'count' => 'ss.count',
+                'cause' => 'ss.cause',
+                'user_id' => 'ss.user_id',
+                'user_name' => 'u.name',
+                'created_at' => 'ss.created_at',
+            ])
+            ->from(['ss' => SpendSuccesses::tableName()])
+            ->innerJoin(['u' => User::tableName()], 'u.id = ss.user_id')
+            ->where([
+                'ss.student_id' => $this->id,
+                'ss.visible' => 1
+            ])
+            ->all();
     }
 
     public function getStudentLoginStatus() : array

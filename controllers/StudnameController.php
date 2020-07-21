@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\models\SpendSuccesses;
 use Yii;
 use app\models\Contract;
 use app\models\Groupteacher;
@@ -41,7 +42,7 @@ class StudnameController extends Controller
             'index', 'view', 'create', 'update', 'delete',
             'detail', 'active', 'inactive', 'merge',
             'change-office', 'update-debt', 'offices',
-            'update-settings', 'settings',
+            'update-settings', 'settings', 'successes',
         ];
         return [
             'access' => [
@@ -787,7 +788,13 @@ class StudnameController extends Controller
         return $this->redirect(Yii::$app->request->referrer);
     }
 
-    public function actionSettings($id)
+    /**
+     * @param int $id
+     *
+     * @return mixed
+     * @throws NotFoundHttpException
+     */
+    public function actionSettings(int $id)
     {
         /** @var Student $student */
         $student = $this->findModel($id);
@@ -808,6 +815,41 @@ class StudnameController extends Controller
             'model'         => $student,
             'services'      => $services,
             'userInfoBlock' => User::getUserInfoBlock(),
+        ]);
+    }
+
+    /**
+     * @param int $id
+     *
+     * @return mixed
+     * @throws NotFoundHttpException
+     */
+    public function actionSuccesses(int $id)
+    {
+        /** @var Student $student */
+        $student = $this->findModel($id);
+
+        $spendSuccessesForm = new SpendSuccesses();
+        $spendSuccessesForm->student_id = $id;
+        if (Yii::$app->request->isPost) {
+            if ($spendSuccessesForm->load(Yii::$app->request->post())) {
+                if ($spendSuccessesForm->save()) {
+                    return $this->redirect(['studname/successes', 'id' => $student->id]);
+                }
+            }
+        }
+
+        $spendedSuccesses = new ArrayDataProvider([
+            'allModels'  => $student->getSpendSuccessesHistory(),
+            'pagination' => false,
+            'sort'       => false,
+        ]);
+
+        return $this->render('successes', [
+            'model'              => $student,
+            'spendSuccessesForm' => $spendSuccessesForm,
+            'spendedSuccesses'   => $spendedSuccesses,
+            'userInfoBlock'      => User::getUserInfoBlock(),
         ]);
     }
   

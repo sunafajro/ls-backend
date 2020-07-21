@@ -26,6 +26,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Settings');
         <?= $userInfoBlock ?>
     </div>
     <div id="content" class="col-sm-10">
+        <?= Alert::widget() ?>
         <h3>Видимость услуг в блоке "Количество оплаченных и учтенных занятий"</h3>
         <?= GridView::widget([
             'dataProvider' => $services,
