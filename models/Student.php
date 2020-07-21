@@ -415,6 +415,35 @@ class Student extends ActiveRecord
         return $services;
     }
 
+    /**
+     * Количество успешиков клиента (полученные минус списанные)
+     * @return int
+     */
+    public function getSuccessesCount() : int
+    {
+        return $this->getReceivedSuccessesCount() - 0;
+    }
+
+    /**
+     * Количество успешиков полученных клиентом за занятиям
+     * @return int
+     */
+    public function getReceivedSuccessesCount() : int
+    {
+        $count = (new \yii\db\Query())
+            ->select(['successes' => 'SUM(sjg.successes)'])
+            ->from(['sjg' => Studjournalgroup::tableName()])
+            ->innerJoin(['jg' => Journalgroup::tableName()], 'jg.id = sjg.calc_journalgroup')
+            ->andWhere([
+                'sjg.calc_studname' => $this->id,
+                'sjg.calc_statusjournal' => Journalgroup::STUDENT_STATUS_PRESENT,
+                'jg.visible' => 1,
+            ])
+            ->one();
+
+        return $count['successes'] ?? 0;
+    }
+
     public function getStudentLoginStatus() : array
     {
         /** @var ClientAccess $studentLogin */

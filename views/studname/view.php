@@ -142,7 +142,14 @@ if (Yii::$app->request->get('tab')) {
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle</button>
 		</p>
         <?= Alert::widget() ?>
-        <?= Html::tag('h3', '[#' . $model->id . '] ' .  Html::encode($model->name)) ?>
+        <?= Html::tag(
+                'h3',
+                join(' ', [
+                    "[#{$model->id}]",
+                    Html::encode($model->name),
+                    Html::tag('i', '', ['class' => 'fa fa-ticket', 'title' => 'Баланс успешиков', 'aria-hidden' => 'true']) . $model->getSuccessesCount(),
+                ])
+        ) ?>
         <?php
             $userInfo = [];
             if (isset($model->birthdate) && $model->birthdate !== '' && $model->birthdate !== '0000-00-00') {
