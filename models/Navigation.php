@@ -91,7 +91,7 @@ class Navigation extends Model
             'id' => 'tasks',
             'url' => '/ticket/index',
             'classes' => 'fa fa-tasks',
-            'title' => Yii::t('app', 'Task'),
+            'title' => Yii::t('app', 'Tickets'),
             'hasBadge' => true,
             'cnt' => Ticket::getTasksCount()
         ];
