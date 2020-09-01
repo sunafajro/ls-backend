@@ -86,6 +86,17 @@ class Navigation extends Model
             ];
         }
 
+        /* ссылка на раздел Задачи */
+        $menu[] = [
+            'id' => 'tasks',
+            'url' => '/ticket/index',
+            'classes' => 'fa fa-tasks',
+            'title' => Yii::t('app', 'Task'),
+            'hasBadge' => true,
+            'cnt' => Ticket::getTasksCount()
+        ];
+
+
         if((int)Yii::$app->session->get('user.ustatus') === 3 ||
            (int)Yii::$app->session->get('user.ustatus') === 4) {
             /* ссылка на раздел Группы */
