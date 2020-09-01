@@ -10,6 +10,7 @@ use app\models\Office;
 use yii\data\ActiveDataProvider;
 use yii\db\Expression;
 use Yii;
+use yii\db\Query;
 
 class BookOrderPositionSearch extends BookOrderPosition
 {
@@ -29,6 +30,7 @@ class BookOrderPositionSearch extends BookOrderPosition
     public $language;
     /** @var int */
     public $office;
+    public $payment_type;
 
     /**
      * @inheritdoc
@@ -36,7 +38,7 @@ class BookOrderPositionSearch extends BookOrderPosition
     public function rules()
     {
         return [
-            [['name', 'isbn', 'author', 'description', 'publisher'], 'string'],
+            [['name', 'isbn', 'author', 'description', 'publisher', 'payment_type'], 'string'],
             [['language', 'office'], 'integer'],
         ];
     }
@@ -61,19 +63,21 @@ class BookOrderPositionSearch extends BookOrderPosition
         $lt   = Lang::tableName();
         $ot   = Office::tableName();
 
-        $query = (new \yii\db\Query());
+        $query = (new Query());
         $query->select([
-            'id'          => "{$bopt}.id",
-            'book_id'     => "{$bt}.id",
-            'name'        => "{$bt}.name",
-            'author'      => "{$bt}.author",
-            'description' => "{$bt}.description",
-            'isbn'        => "{$bt}.isbn",
-            'publisher'   => "{$bt}.publisher",
-            'language'    => "{$bt}.language_id",
-            'count'       => "{$bopt}.count",
-            'paid'        => "{$bopt}.paid",
-            'office'      => "{$bopt}.office_id",
+            'id'           => "{$bopt}.id",
+            'book_id'      => "{$bt}.id",
+            'name'         => "{$bt}.name",
+            'author'       => "{$bt}.author",
+            'description'  => "{$bt}.description",
+            'isbn'         => "{$bt}.isbn",
+            'publisher'    => "{$bt}.publisher",
+            'language'     => "{$bt}.language_id",
+            'count'        => "{$bopt}.count",
+            'paid'         => "{$bopt}.paid",
+            'payment_type' => "{$bopt}.payment_type",
+            'payment_comment' => "{$bopt}.payment_comment",
+            'office'       => "{$bopt}.office_id",
         ]);
         $query->from($bopt);
         $query->innerJoin($bt, "{$bt}.id = {$bopt}.book_id");
@@ -90,6 +94,7 @@ class BookOrderPositionSearch extends BookOrderPosition
             $query->andFilterWhere(['like', "{$bt}.publisher", $this->publisher]);
             $query->andFilterWhere(["{$bt}.language_id" => $this->language]);
             $query->andFilterWhere(["{$bopt}.office_id" => $this->office]);
+            $query->andFilterWhere(["{$bopt}.payment_type" => $this->payment_type]);
         } else {
             $query->andWhere(new Expression("(0 = 1)"));
         }
@@ -117,6 +122,7 @@ class BookOrderPositionSearch extends BookOrderPosition
                     ],
                     'count',
                     'paid',
+                    'payment_type',
                     'office' => [
                         'asc' => ["{$ot}.name" => SORT_ASC],
                         'desc' => ["{$ot}.name" => SORT_DESC],

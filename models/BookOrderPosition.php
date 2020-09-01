@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use yii\db\ActiveRecord;
 
 /**
  * This is the model class for table "book_order_positions".
@@ -14,6 +15,8 @@ use Yii;
  * @property integer $selling_cost_id
  * @property integer $count
  * @property float   $paid
+ * @property string  $payment_type
+ * @property string  $payment_comment
  * @property integer $office_id
  * @property integer $user_id
  * @property string  $created_at
@@ -27,8 +30,11 @@ use Yii;
  * @property Office    $office
  */
 
-class BookOrderPosition extends \yii\db\ActiveRecord
+class BookOrderPosition extends ActiveRecord
 {
+    const PAYMENT_TYPE_CASH = 'cash';
+    const PAYMENT_TYPE_BANK = 'bank';
+
     /**
      * @inheritdoc
      */
@@ -43,8 +49,10 @@ class BookOrderPosition extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['book_order_id', 'book_id', 'purchase_cost_id', 'selling_cost_id', 'count', 'paid'], 'required'],
+            [['book_order_id', 'book_id', 'purchase_cost_id', 'selling_cost_id', 'count', 'paid', 'payment_type'], 'required'],
             [['book_order_id', 'book_id', 'purchase_cost_id', 'selling_cost_id', 'count', 'office_id', 'user_id', 'visible'], 'integer'],
+            [['payment_type'], 'in', 'range' => [self::PAYMENT_TYPE_CASH, self::PAYMENT_TYPE_BANK]],
+            [['payment_comment'], 'string'],
             [['paid'],       'number'],
             [['user_id'],    'default', 'value'=> Yii::$app->user->identity->id],
             [['created_at'], 'default', 'value'=> date('Y-m-d')],
@@ -66,10 +74,20 @@ class BookOrderPosition extends \yii\db\ActiveRecord
             'selling_cost_id'  => Yii::t('app', 'Selling cost'),
             'count'            => Yii::t('app', 'Count'),
             'paid'             => Yii::t('app', 'Paid'),
+            'payment_type'     => Yii::t('app', 'Payment type'),
+            'payment_comment'  => Yii::t('app', 'Payment comment'),
             'office_id'        => Yii::t('app', 'Office'),
             'user_id'          => Yii::t('app', 'User'),
             'created_at'       => Yii::t('app', 'Created at'),
             'visible'          => Yii::t('app', 'Active'),
+        ];
+    }
+
+    public function getPaymentTypes()
+    {
+        return [
+            'cash' => Yii::t('app', 'Payment by cash'),
+            'bank' => Yii::t('app', 'Payment by bank'),
         ];
     }
 
