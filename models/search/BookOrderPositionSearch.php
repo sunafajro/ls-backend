@@ -30,7 +30,6 @@ class BookOrderPositionSearch extends BookOrderPosition
     public $language;
     /** @var int */
     public $office;
-    public $payment_type;
 
     /**
      * @inheritdoc
@@ -38,7 +37,7 @@ class BookOrderPositionSearch extends BookOrderPosition
     public function rules()
     {
         return [
-            [['name', 'isbn', 'author', 'description', 'publisher', 'payment_type'], 'string'],
+            [['name', 'isbn', 'author', 'description', 'publisher'], 'string'],
             [['language', 'office'], 'integer'],
         ];
     }
@@ -75,8 +74,6 @@ class BookOrderPositionSearch extends BookOrderPosition
             'language'     => "{$bt}.language_id",
             'count'        => "{$bopt}.count",
             'paid'         => "{$bopt}.paid",
-            'payment_type' => "{$bopt}.payment_type",
-            'payment_comment' => "{$bopt}.payment_comment",
             'office'       => "{$bopt}.office_id",
         ]);
         $query->from($bopt);
@@ -94,7 +91,6 @@ class BookOrderPositionSearch extends BookOrderPosition
             $query->andFilterWhere(['like', "{$bt}.publisher", $this->publisher]);
             $query->andFilterWhere(["{$bt}.language_id" => $this->language]);
             $query->andFilterWhere(["{$bopt}.office_id" => $this->office]);
-            $query->andFilterWhere(["{$bopt}.payment_type" => $this->payment_type]);
         } else {
             $query->andWhere(new Expression("(0 = 1)"));
         }
@@ -122,7 +118,6 @@ class BookOrderPositionSearch extends BookOrderPosition
                     ],
                     'count',
                     'paid',
-                    'payment_type',
                     'office' => [
                         'asc' => ["{$ot}.name" => SORT_ASC],
                         'desc' => ["{$ot}.name" => SORT_DESC],

@@ -38,10 +38,6 @@ $roleId = (int)Yii::$app->session->get('user.ustatus');
 
     <?= $form->field($model, 'paid')->textInput() ?>
 
-    <?= $form->field($model, 'payment_type')->radioList($model->getPaymentTypes()) ?>
-
-    <?= $form->field($model, 'payment_comment')->textInput() ?>
-
     <?php if ($roleId !== 4) { ?>
         <?= $form->field($model, 'office_id')->dropDownList($offices, ['prompt' => Yii::t('app', '-select-')]) ?>
     <?php } ?>

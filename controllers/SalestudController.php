@@ -213,6 +213,11 @@ class SalestudController extends Controller
         return $this->redirect(Yii::$app->request->referrer);
     }
 
+    /**
+     * @param string $sid
+     * @return array
+     * @throws NotFoundHttpException
+     */
     public function actionAutocomplete(string $sid)
     {
         $student = Student::findOne($sid);

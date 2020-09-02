@@ -27,7 +27,7 @@ $this->title = Yii::$app->params['appTitle'] . $title;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Books'), 'url' => ['book/index']];
 $this->params['breadcrumbs'][] = $title;
 $roleId = (int)Yii::$app->session->get('user.ustatus');
-$paymentTypes = $searchModel->getPaymentTypes();
+// $paymentTypes = $searchModel->getPaymentTypes();
 ?>
 <div class="row row-offcanvas row-offcanvas-left book-order">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
@@ -98,18 +98,18 @@ $paymentTypes = $searchModel->getPaymentTypes();
                     return ($book['paid'] ?? 0) . ' руб.';
                 }
             ];
-            $columns['payment_type'] = [
-                'attribute' => 'payment_type',
-                'filter'    => $paymentTypes,
-                'format'    => 'raw',
-                'value'     => function (array $book) use ($paymentTypes) {
-                    $result = [
-                        Html::tag('b', $paymentTypes[$book['payment_type']] ?? $book['payment_type']),
-                        Html::tag('small', Html::encode($book['payment_comment'] ?? '')),
-                    ];
-                    return join(Html::tag('br'), $result);
-                }
-            ];
+//            $columns['payment_type'] = [
+//                'attribute' => 'payment_type',
+//                'filter'    => $paymentTypes,
+//                'format'    => 'raw',
+//                'value'     => function (array $book) use ($paymentTypes) {
+//                    $result = [
+//                        Html::tag('b', $paymentTypes[$book['payment_type']] ?? $book['payment_type']),
+//                        Html::tag('small', Html::encode($book['payment_comment'] ?? '')),
+//                    ];
+//                    return join(Html::tag('br'), $result);
+//                }
+//            ];
             $columns['actions'] = [
                 'attribute' => 'actions',
                 'format'    => 'raw',
