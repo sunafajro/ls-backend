@@ -16,8 +16,6 @@ use yii\db\ActiveRecord;
  * @property integer $selling_cost_id
  * @property integer $count
  * @property float   $paid
- * @property string  $payment_type
- * @property string  $payment_comment
  * @property integer $office_id
  * @property integer $user_id
  * @property string  $created_at
@@ -55,7 +53,7 @@ class BookOrderPosition extends ActiveRecord
             [['created_at'], 'default', 'value'=> date('Y-m-d')],
             [['visible'],    'default', 'value'=> 1],
 
-            [['book_order_id', 'book_id', 'purchase_cost_id', 'selling_cost_id', 'count', 'paid', 'payment_type', 'user_id'], 'required'],
+            [['book_order_id', 'book_id', 'purchase_cost_id', 'selling_cost_id', 'count', 'paid', 'user_id'], 'required'],
         ];
     }
 
