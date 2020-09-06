@@ -110,6 +110,7 @@ return array(
     'City successfully created!' => 'Город успешно добавлен!',
     'City successfully deleted!' => 'Город успешно удален!',
     'Cities' => 'Города',
+    'Clear' => 'Очистить',
     'Client' => 'Клиент',
     'Client account size' => 'Сумма оплат клиента',
     'Client contracts' => 'Договора клиента',

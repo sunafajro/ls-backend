@@ -186,6 +186,12 @@ class BookOrderPositionController extends Controller
         ]);
     }
 
+    /**
+     * @param $id
+     * @return Response
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
+     */
     public function actionDelete($id)
     {
         $roleId = (int)Yii::$app->session->get('user.ustatus');
@@ -208,7 +214,16 @@ class BookOrderPositionController extends Controller
         return $this->redirect(['book/index']);
     }
 
-    public function actionChangeItems($id, $action)
+    /**
+     * @param int $id
+     * @param string $action
+     * @param int $itemId
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function actionChangeItems(int $id, string $action, int $itemId = null)
     {
         $roleId = (int)Yii::$app->session->get('user.ustatus');
         if (!in_array($roleId, [3, 4, 7])) {
@@ -222,11 +237,14 @@ class BookOrderPositionController extends Controller
         if ($roleId === 4 && $model->office_id !== (int)Yii::$app->session->get('user.uoffice_id')) {
             throw new ForbiddenHttpException('Доступ ограничен');
         }
-        if ($action === 'create') {
-            $newItemModel = new BookOrderPositionItem([
-                'book_order_position_id' => $id,
-            ]);
-            $formName = $newItemModel->formName();
+        $itemModel = new BookOrderPositionItem([
+            'book_order_position_id' => $id,
+        ]);
+        if (!empty($itemId) && in_array($action, ['update', 'delete'])) {
+            $itemModel = BookOrderPositionItem::find()->andWhere(['id' => $itemId, 'book_order_position_id' => $id])->one();
+        }
+        if (in_array($action, ['create', 'update'])) {
+            $formName = $itemModel->formName();
             /** @var BookCost $sellingCost */
             $sellingCost = $model->getSellingCost()->one();
             $postData = Yii::$app->request->post();
@@ -239,13 +257,20 @@ class BookOrderPositionController extends Controller
                     unset($postData[$formName]['student_id']);
                 }
             }
-            if ($newItemModel->load($postData) && $newItemModel->save()) {
-                Yii::$app->session->setFlash('success', 'Студент успешно добавлен к позиции заказа.');
+            if ($itemModel->load($postData) && $itemModel->save()) {
+                Yii::$app->session->setFlash('success', $action === 'create' ? 'Запись успешно добавлена к позиции заказа.' : 'Запись успешно изменена.');
             } else {
-                Yii::$app->session->setFlash('error', 'Не удалось добавить студента к позиции заказа.');
+                Yii::$app->session->setFlash('error', $action === 'create' ? 'Не удалось добавить запись к позиции заказа.' : 'Не удалось изменить запись');
             }
         } else if ($action === 'delete') {
-
+            if (empty($itemModel)) {
+                throw new NotFoundHttpException('Позиция заказа не найдена');
+            }
+            if ($itemModel->delete()) {
+                Yii::$app->session->setFlash('success', 'Запись успешно удалена из позиции заказа.');
+            } else {
+                Yii::$app->session->setFlash('error', 'Не удалось удалить запись из позиции заказа.');
+            }
         }
 
         return $this->redirect(Yii::$app->request->referrer);
