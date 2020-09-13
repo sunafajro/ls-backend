@@ -28,8 +28,10 @@ class BookOrderPositionSearch extends BookOrderPosition
     public $publisher;
     /** @var int */
     public $language;
-    /** @var int */
-    public $office;
+    /** @var string */
+    public $officeId;
+    /** @var string */
+    public $officeName;
 
     /**
      * @inheritdoc
@@ -38,7 +40,7 @@ class BookOrderPositionSearch extends BookOrderPosition
     {
         return [
             [['name', 'isbn', 'author', 'description', 'publisher'], 'string'],
-            [['language', 'office'], 'integer'],
+            [['language', 'officeName'], 'integer'],
         ];
     }
 
@@ -49,7 +51,7 @@ class BookOrderPositionSearch extends BookOrderPosition
     {
         return array_merge((new Book)->attributeLabels(), parent::attributeLabels(), [
             'language'      => Yii::t('app', 'Language'),
-            'office'        => Yii::t('app', 'Office'),
+            'officeName'    => Yii::t('app', 'Office'),
             'purchase_cost' => Yii::t('app', 'Purchase cost'),
             'selling_cost'  => Yii::t('app', 'Selling cost'),
         ]);
@@ -72,13 +74,15 @@ class BookOrderPositionSearch extends BookOrderPosition
             'isbn'         => "{$bt}.isbn",
             'publisher'    => "{$bt}.publisher",
             'language'     => "{$bt}.language_id",
-            'count'        => "{$bopt}.count",
-            'paid'         => "{$bopt}.paid",
-            'office'       => "{$bopt}.office_id",
+            'count'        => "SUM({$bopt}.count)",
+            'paid'         => "SUM({$bopt}.paid)",
+            'officeId'     => "GROUP_CONCAT({$ot}.id SEPARATOR ', ')",
+            'officeName'   => "GROUP_CONCAT({$ot}.name SEPARATOR ', ')",
         ]);
         $query->from($bopt);
         $query->innerJoin($bt, "{$bt}.id = {$bopt}.book_id");
         $query->innerJoin($lt, "{$lt}.id = {$bt}.language_id");
+        $query->innerJoin($ot, "{$ot}.id = {$bopt}.office_id");
 
         $this->load($params);
         if ($this->validate()) {
@@ -87,10 +91,9 @@ class BookOrderPositionSearch extends BookOrderPosition
             $query->andFilterWhere(['like', "{$bt}.name", $this->name]);
             $query->andFilterWhere(["{$bt}.isbn" => $this->isbn]);
             $query->andFilterWhere(['like', "{$bt}.author", $this->author]);
-            $query->andFilterWhere(['like', "{$bt}.description", $this->description]);
             $query->andFilterWhere(['like', "{$bt}.publisher", $this->publisher]);
             $query->andFilterWhere(["{$bt}.language_id" => $this->language]);
-            $query->andFilterWhere(["{$bopt}.office_id" => $this->office]);
+            $query->andFilterWhere(["{$bopt}.office_id" => $this->officeName]);
         } else {
             $query->andWhere(new Expression("(0 = 1)"));
         }
@@ -99,6 +102,8 @@ class BookOrderPositionSearch extends BookOrderPosition
             $query->andWhere(["{$bopt}.office_id" => Yii::$app->session->get('user.uoffice_id')]);
         }
 
+        $query->groupBy("{$bt}.id");
+
         return new ActiveDataProvider([
             'query' => $query,
             'pagination' => [
@@ -106,7 +111,7 @@ class BookOrderPositionSearch extends BookOrderPosition
             ],
             'sort'=> [
                 'attributes' => [
-                    'id',
+
                     'name',
                     'author',
                     'description',
@@ -118,13 +123,13 @@ class BookOrderPositionSearch extends BookOrderPosition
                     ],
                     'count',
                     'paid',
-                    'office' => [
-                        'asc' => ["{$ot}.name" => SORT_ASC],
-                        'desc' => ["{$ot}.name" => SORT_DESC],
+                    'officeName' => [
+                        'asc' => ["officeName" => SORT_ASC],
+                        'desc' => ["officeName" => SORT_DESC],
                     ],
                 ],
                 'defaultOrder' => [
-                    'id' => SORT_ASC,
+                    'name' => SORT_ASC,
                 ],
             ],
         ]);
