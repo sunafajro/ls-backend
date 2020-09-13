@@ -427,7 +427,7 @@ class JournalgroupController extends Controller
                 return $this->redirect(['groupteacher/view', 'id' => $gid]);
             }
             $services = $student->getServicesBalance([$lessonStudent['serviceId']], []);
-			if ($services[0]['num'] <= 0) {
+			if (empty($services) || $services[0]['num'] <= 0) {
 				$snames[] = $lessonStudent['name'];
 			}
 			$i++;
