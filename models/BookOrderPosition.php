@@ -3,6 +3,8 @@
 namespace app\models;
 
 use Yii;
+use yii\db\ActiveQuery;
+use yii\db\ActiveRecord;
 
 /**
  * This is the model class for table "book_order_positions".
@@ -25,9 +27,10 @@ use Yii;
  * @property BookCost  $purchaseCost
  * @property BookCost  $sellingCost
  * @property Office    $office
+ * @property BookOrderPositionItem[] $bookOrderPositionItems
  */
 
-class BookOrderPosition extends \yii\db\ActiveRecord
+class BookOrderPosition extends ActiveRecord
 {
     /**
      * @inheritdoc
@@ -43,13 +46,14 @@ class BookOrderPosition extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['book_order_id', 'book_id', 'purchase_cost_id', 'selling_cost_id', 'count', 'paid'], 'required'],
             [['book_order_id', 'book_id', 'purchase_cost_id', 'selling_cost_id', 'count', 'office_id', 'user_id', 'visible'], 'integer'],
             [['paid'],       'number'],
+            [['created_at'], 'safe'],
             [['user_id'],    'default', 'value'=> Yii::$app->user->identity->id],
             [['created_at'], 'default', 'value'=> date('Y-m-d')],
             [['visible'],    'default', 'value'=> 1],
-            [['created_at'], 'safe'],
+
+            [['book_order_id', 'book_id', 'purchase_cost_id', 'selling_cost_id', 'count', 'paid', 'user_id'], 'required'],
         ];
     }
 
@@ -73,12 +77,18 @@ class BookOrderPosition extends \yii\db\ActiveRecord
         ];
     }
 
+    /**
+     * @return bool
+     */
     public function restore()
     {
         $this->visible = 1;
         return $this->save(true, ['visible']);
     }
 
+    /**
+     * @return bool
+     */
     public function delete()
     {
         $this->visible = 0;
@@ -90,29 +100,53 @@ class BookOrderPosition extends \yii\db\ActiveRecord
         return $this->hasOne(User::class, ['id' => 'user_id']);
     }
 
+    /**
+     * @return ActiveQuery
+     */
     public function getBook()
     {
         return $this->hasOne(Book::class, ['id' => 'book_id']);
     }
 
+    /**
+     * @return ActiveQuery
+     */
     public function getOrder()
     {
         return $this->hasOne(BookOrder::class, ['id' => 'book_order_id']);
     }
 
+    /**
+     * @return ActiveQuery
+     */
     public function getOffice()
     {
         return $this->hasOne(Office::class, ['id' => 'office_id']);
     }
 
+    /**
+     * @return ActiveQuery
+     */
     public function getPurchaseCost()
     {
         return $this->hasOne(BookCost::class, ['id' => 'purchase_cost_id'])
         ->andOnCondition(['type' => BookCost::TYPE_PURCHASE]);
     }
+
+    /**
+     * @return ActiveQuery
+     */
     public function getSellingCost()
     {
         return $this->hasOne(BookCost::class, ['id' => 'selling_cost_id'])
         ->andOnCondition(['type' => BookCost::TYPE_SELLING]);
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getBookOrderPositionItems()
+    {
+        return $this->hasMany(BookOrderPositionItem::class, ['book_order_position_id' => 'id']);
     }
 }

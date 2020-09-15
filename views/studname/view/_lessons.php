@@ -1,17 +1,18 @@
 <?php
 
-use app\models\Journalgroup;
-use app\models\search\LessonSearch;
-use yii\data\ActiveDataProvider;
-use yii\grid\GridView;
-use yii\helpers\Html;
-
 /**
  * @var View               $this
  * @var ActiveDataProvider $dataProvider
  * @var LessonSearch       $searchModel
  * @var int                $studentId
  */
+
+use app\models\Journalgroup;
+use app\models\search\LessonSearch;
+use yii\data\ActiveDataProvider;
+use yii\grid\GridView;
+use yii\helpers\Html;
+use yii\web\View;
 
 $roleId = (int)Yii::$app->session->get('user.ustatus');
 $statuses = Journalgroup::getAttendanceAllStatuses();
@@ -20,7 +21,35 @@ $columns['date'] = [
     'attribute' => 'date',
     'format'    => 'raw',
     'value'     => function (array $model) {
-        return date('d.m.Y', strtotime($model['date'])) . Html::tag('br') . Html::tag('small', "(#{$model['id']})");
+        $info = [];
+        switch ($model['type']) {
+            case Journalgroup::TYPE_ONLINE:
+                $info[] = Html::tag(
+                    'i',
+                    null,
+                    [
+                        'class'       => 'fa fa-skype',
+                        'aria-hidden' => 'true',
+                        'style'       => 'margin-right: 5px',
+                        'title'       => Yii::t('app', 'Online lesson'),
+                    ]
+                );
+                break;
+            case Journalgroup::TYPE_OFFICE:
+                $info[] = Html::tag(
+                    'i',
+                    null,
+                    [
+                        'class'       => 'fa fa-building',
+                        'aria-hidden' => 'true',
+                        'style'       => 'margin-right: 5px',
+                        'title'       => Yii::t('app', 'Office lesson'),
+                    ]
+                );
+                break;
+        }
+        $info[] = '(' . Html::a("#{$model['id']}", ['groupteacher/view', 'id' => $model['groupId'], 'lid' => $model['id']]) . ')';
+        return date('d.m.Y', strtotime($model['date'])) . Html::tag('br') . Html::tag('small', join('', $info));
     }
 ];
 if ($roleId !== 5) {
@@ -51,6 +80,14 @@ $columns['subject'] = [
 $columns['comments'] = [
     'attribute' => 'comments',
     'label'     => Yii::t('app', 'Comments'),
+];
+$columns['successes'] = [
+    'attribute' => 'successes',
+    'format'    => 'raw',
+    'label'     => Yii::t('app', 'Count of "successes"'),
+    'value'     => function (array $model) {
+        return $model['successes'] ? join('', Journalgroup::prepareStudentSuccessesList((int)$model['successes'])) : '';
+    }
 ];
 $columns['status'] = [
     'attribute' => 'status',

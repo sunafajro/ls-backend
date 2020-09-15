@@ -1,14 +1,16 @@
 <?php
 
 /**
- * @var yii\web\View          $this
- * @var app\models\UploadForm $uploadForm
- * @var array                 $fileList
- * @var string                $userInfoBlock
+ * @var View       $this
+ * @var UploadForm $uploadForm
+ * @var File[]     $fileList
+ * @var string     $userInfoBlock
  */
 
-use Yii;
+use app\models\File;
+use app\models\UploadForm;
 use yii\helpers\Html;
+use yii\web\View;
 use yii\widgets\ActiveForm;
 use app\widgets\Alert;
 use yii\widgets\Breadcrumbs;
@@ -60,13 +62,13 @@ $roleId = (int)Yii::$app->session->get('user.ustatus');
                 <?php foreach($fileList ?? [] as $key => $file) { ?>
                     <tr>
                         <td><?= $key + 1 ?></td>
-                        <td><?= $file['fileName'] ?></td>
+                        <td><?= $file->original_name ?></td>
                         <td>
                             <?= Html::a(
                                 Html::tag('i', '', ['class' => 'fa fa-download', 'aria-hidden' => 'true']),
                                 [
                                     'document/download',
-                                    'id' => $file['fileHash'],
+                                    'id' => $file->id,
                                 ],
                                 [
                                     'target' => '_blank',
@@ -77,7 +79,7 @@ $roleId = (int)Yii::$app->session->get('user.ustatus');
                                 Html::tag('i', '', ['class' => 'fa fa-trash', 'aria-hidden' => 'true']),
                                 [
                                     'document/delete',
-                                    'id' => $file['fileHash'],
+                                    'id' => $file->id,
                                 ],
                                 [
                                     'title' => Yii::t('app', 'Delete'),

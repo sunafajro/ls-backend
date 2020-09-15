@@ -415,6 +415,72 @@ class Student extends ActiveRecord
         return $services;
     }
 
+    /**
+     * Количество успешиков клиента (полученные минус списанные)
+     * @return int
+     */
+    public function getSuccessesCount() : int
+    {
+        return $this->getReceivedSuccessesCount() - $this->getSpendSuccessesCount();
+    }
+
+    /**
+     * Количество успешиков полученных клиентом за занятиям
+     * @return int
+     */
+    public function getReceivedSuccessesCount() : int
+    {
+        $count = (new \yii\db\Query())
+            ->select(['successes' => 'SUM(sjg.successes)'])
+            ->from(['sjg' => Studjournalgroup::tableName()])
+            ->innerJoin(['jg' => Journalgroup::tableName()], 'jg.id = sjg.calc_journalgroup')
+            ->andWhere([
+                'sjg.calc_studname' => $this->id,
+                'sjg.calc_statusjournal' => Journalgroup::STUDENT_STATUS_PRESENT,
+                'jg.visible' => 1,
+            ])
+            ->one();
+
+        return $count['successes'] ?? 0;
+    }
+
+    /**
+     * Количество успешиков полученных клиентом за занятиям
+     * @return int
+     */
+    public function getSpendSuccessesCount() : int
+    {
+        $count = (new \yii\db\Query())
+            ->select(['successes' => 'SUM(ss.count)'])
+            ->from(['ss' => SpendSuccesses::tableName()])
+            ->andWhere([
+                'ss.student_id' => $this->id,
+                'ss.visible' => 1,
+            ])
+            ->one();
+
+        return $count['successes'] ?? 0;
+    }
+
+    public function getSpendSuccessesHistory()
+    {
+        return (new \yii\db\Query())
+            ->select([
+                'count' => 'ss.count',
+                'cause' => 'ss.cause',
+                'user_id' => 'ss.user_id',
+                'user_name' => 'u.name',
+                'created_at' => 'ss.created_at',
+            ])
+            ->from(['ss' => SpendSuccesses::tableName()])
+            ->innerJoin(['u' => User::tableName()], 'u.id = ss.user_id')
+            ->where([
+                'ss.student_id' => $this->id,
+                'ss.visible' => 1
+            ])
+            ->all();
+    }
+
     public function getStudentLoginStatus() : array
     {
         /** @var ClientAccess $studentLogin */

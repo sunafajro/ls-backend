@@ -19,18 +19,19 @@ class CallController extends Controller
 {
     public function behaviors()
     {
+        $rules = ['index','view','create','update','delete','transform','disable', 'ajaxgroup', 'autocomplete'];
         return [
-	    'access' => [
-                'class' => AccessControl::className(),
-                'only' => ['index','view','create','update','delete','transform','disable', 'ajaxgroup', 'autocomplete'],
+	        'access' => [
+                'class' => AccessControl::class,
+                'only' => $rules,
                 'rules' => [
                     [
-                        'actions' => ['index','view','create','update','delete','transform','disable', 'ajaxgroup', 'autocomplete'],
+                        'actions' => $rules,
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index','view','create','update','transform','disable', 'ajaxgroup', 'autocomplete'],
+                        'actions' => $rules,
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -43,7 +44,7 @@ class CallController extends Controller
             ],
 
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'delete' => ['post'],
                     'autocomplete' => ['post'],
@@ -811,11 +812,15 @@ class CallController extends Controller
             }
         }
     }
-	
+
+    /**
+     * @return array
+     */
 	public function actionAutocomplete()
     {
         $students = Student::getStudentsAutocomplete(Yii::$app->request->post('term') ?? NULL);
         Yii::$app->response->format = Response::FORMAT_JSON;
+
         return $students;
     }
 
@@ -823,7 +828,7 @@ class CallController extends Controller
      * Finds the CalcCall model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return CalcCall the loaded model
+     * @return Call the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)

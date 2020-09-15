@@ -3,10 +3,13 @@
 namespace app\controllers;
 
 use app\models\Book;
+use app\models\BookCost;
 use app\models\BookOrder;
 use app\models\BookOrderPosition;
+use app\models\BookOrderPositionItem;
 use app\models\Lang;
 use app\models\Office;
+use app\models\Student;
 use app\models\User;
 use app\models\search\BookOrderPositionSearch;
 use Yii;
@@ -15,6 +18,7 @@ use yii\filters\VerbFilter;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
+use yii\web\Response;
 
 /**
  * BookOrderPositionController implements the CRUD actions for BookPositionOrder model.
@@ -23,28 +27,19 @@ class BookOrderPositionController extends Controller
 {
     public function behaviors()
     {
+        $rules = ['index', 'autocomplete', 'create', 'update', 'delete', 'change-items'];
         return [
             'access' => [
                 'class' => AccessControl::class,
-                'only' => ['index', 'create', 'update', 'delete'],
+                'only' => $rules,
                 'rules' => [
                     [
-                        'actions' => [
-                            'index',
-                            'create',
-                            'update',
-                            'delete',
-                        ],
+                        'actions' => $rules,
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => [
-                            'index',
-                            'create',
-                            'update',
-                            'delete',
-                        ],
+                        'actions' => $rules,
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -54,6 +49,8 @@ class BookOrderPositionController extends Controller
                 'class' => VerbFilter::class,
                 'actions' => [
                     'delete' => ['post'],
+                    'autocomplete' => ['post'],
+                    'change-items' => ['post'],
                 ],
             ],
         ];
@@ -182,12 +179,19 @@ class BookOrderPositionController extends Controller
         return $this->render('update', [
             'book'          => $book,
             'bookOrder'     => $bookOrder,
+            'itemModel'     => new BookOrderPositionItem(),
             'model'         => $model,
             'offices'       => Office::getOfficesListSimple(),
             'userInfoBlock' => User::getUserInfoBlock(),
         ]);
     }
 
+    /**
+     * @param $id
+     * @return Response
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
+     */
     public function actionDelete($id)
     {
         $roleId = (int)Yii::$app->session->get('user.ustatus');
@@ -208,6 +212,81 @@ class BookOrderPositionController extends Controller
             Yii::$app->session->setFlash('error', 'Не удалось удалить позицию заказа.');
         }
         return $this->redirect(['book/index']);
+    }
+
+    /**
+     * @param int $id
+     * @param string $action
+     * @param int $itemId
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function actionChangeItems(int $id, string $action, int $itemId = null)
+    {
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        if (!in_array($roleId, [3, 4, 7])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        }
+
+        $model = $this->findModel($id);
+        if (empty($model)) {
+            throw new NotFoundHttpException('Позиция заказа не найдена');
+        }
+        if ($roleId === 4 && $model->office_id !== (int)Yii::$app->session->get('user.uoffice_id')) {
+            throw new ForbiddenHttpException('Доступ ограничен');
+        }
+        $itemModel = new BookOrderPositionItem([
+            'book_order_position_id' => $id,
+        ]);
+        if (!empty($itemId) && in_array($action, ['update', 'delete'])) {
+            $itemModel = BookOrderPositionItem::find()->andWhere(['id' => $itemId, 'book_order_position_id' => $id])->one();
+        }
+        if (in_array($action, ['create', 'update'])) {
+            $formName = $itemModel->formName();
+            /** @var BookCost $sellingCost */
+            $sellingCost = $model->getSellingCost()->one();
+            $postData = Yii::$app->request->post();
+            $postData[$formName]['paid'] = $sellingCost->cost * ($postData[$formName]['count'] ?? 0);
+            if (isset($postData[$formName]['student_id']) && $postData[$formName]['student_id']) {
+                $student = Student::find()->andWhere(['id' => $postData[$formName]['student_id']])->one();
+                if (!empty($student)) {
+                    $postData[$formName]['student_name'] = $student->name;
+                } else {
+                    unset($postData[$formName]['student_id']);
+                }
+            }
+            if ($itemModel->load($postData) && $itemModel->save()) {
+                Yii::$app->session->setFlash('success', $action === 'create' ? 'Запись успешно добавлена к позиции заказа.' : 'Запись успешно изменена.');
+            } else {
+                Yii::$app->session->setFlash('error', $action === 'create' ? 'Не удалось добавить запись к позиции заказа.' : 'Не удалось изменить запись');
+            }
+        } else if ($action === 'delete') {
+            if (empty($itemModel)) {
+                throw new NotFoundHttpException('Позиция заказа не найдена');
+            }
+            if ($itemModel->delete()) {
+                Yii::$app->session->setFlash('success', 'Запись успешно удалена из позиции заказа.');
+            } else {
+                Yii::$app->session->setFlash('error', 'Не удалось удалить запись из позиции заказа.');
+            }
+        }
+
+        return $this->redirect(Yii::$app->request->referrer);
+    }
+
+    /**
+     * @param string $sid
+     * @return array
+     * @throws NotFoundHttpException
+     */
+    public function actionAutocomplete()
+    {
+        $students = Student::getStudentsAutocomplete(Yii::$app->request->post('term') ?? NULL);
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        return $students;
     }
 
     /**

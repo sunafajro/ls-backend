@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\models\SpendSuccesses;
 use Yii;
 use app\models\Contract;
 use app\models\Groupteacher;
@@ -41,7 +42,7 @@ class StudnameController extends Controller
             'index', 'view', 'create', 'update', 'delete',
             'detail', 'active', 'inactive', 'merge',
             'change-office', 'update-debt', 'offices',
-            'update-settings', 'settings',
+            'update-settings', 'settings', 'successes',
         ];
         return [
             'access' => [
@@ -71,6 +72,12 @@ class StudnameController extends Controller
         ];
     }
 
+    /**
+     * @param \yii\base\Action $action
+     * @return bool
+     * @throws BadRequestHttpException
+     * @throws ForbiddenHttpException
+     */
     public function beforeAction($action)
 	{
 		if(parent::beforeAction($action)) {
@@ -243,6 +250,7 @@ class StudnameController extends Controller
      * @param int $id
      * 
      * @return mixed
+     * @throws NotFoundHttpException
      */
     public function actionView($id)
     {
@@ -400,21 +408,23 @@ class StudnameController extends Controller
         #endregion
 
         #region вкладка Занятия
-        $searchOptions = [
-            'clientId' => $id,
-            'pageSize' => 10
-        ];
-        if ($roleId === 5) {
-            $searchOptions['teacherId'] = Yii::$app->session->get('user.uteacher_id');
+        if ($tab == 6) {
+            $searchOptions = [
+                'clientId' => $id,
+                'pageSize' => 10
+            ];
+            if ($roleId === 5) {
+                $searchOptions['teacherId'] = Yii::$app->session->get('user.uteacher_id');
+            }
+            $searchModel  = new LessonSearch();
+            $dataProvider = $searchModel->search(Yii::$app->request->get(), $searchOptions);
         }
-        $searchModel  = new LessonSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->get(), $searchOptions);
         #endregion
 
         return $this->render('view', [
             'commissions'   => $commissions,
             'contracts'     => Contract::getClientContracts($id),
-            'dataProvider'  => $dataProvider,
+            'dataProvider'  => $dataProvider ?? null,
             'groups'        => $groups,
             'invcount'      => $invcount,
             'invoices'      => $invoices,
@@ -422,13 +432,13 @@ class StudnameController extends Controller
             'loginStatus'   => $student->getStudentLoginStatus(),
             'model'         => $student,
             'offices'       => [
-                'added' => $student->getStudentOffices($id),
+                'added' => $student->getStudentOffices(),
                 'all'   => Office::getOfficesList(),
             ],
             'payments'      => $payments,
             'permsale'      => $permsale,
             'schedule'      => $studentSchedule,
-            'searchModel'   => $searchModel,
+            'searchModel'   => $searchModel ?? null,
             'services'      => $services,
             'studsales'     => $studsales,
             'userInfoBlock' => User::getUserInfoBlock(),
@@ -778,7 +788,13 @@ class StudnameController extends Controller
         return $this->redirect(Yii::$app->request->referrer);
     }
 
-    public function actionSettings($id)
+    /**
+     * @param int $id
+     *
+     * @return mixed
+     * @throws NotFoundHttpException
+     */
+    public function actionSettings(int $id)
     {
         /** @var Student $student */
         $student = $this->findModel($id);
@@ -799,6 +815,41 @@ class StudnameController extends Controller
             'model'         => $student,
             'services'      => $services,
             'userInfoBlock' => User::getUserInfoBlock(),
+        ]);
+    }
+
+    /**
+     * @param int $id
+     *
+     * @return mixed
+     * @throws NotFoundHttpException
+     */
+    public function actionSuccesses(int $id)
+    {
+        /** @var Student $student */
+        $student = $this->findModel($id);
+
+        $spendSuccessesForm = new SpendSuccesses();
+        $spendSuccessesForm->student_id = $id;
+        if (Yii::$app->request->isPost) {
+            if ($spendSuccessesForm->load(Yii::$app->request->post())) {
+                if ($spendSuccessesForm->save()) {
+                    return $this->redirect(['studname/successes', 'id' => $student->id]);
+                }
+            }
+        }
+
+        $spendedSuccesses = new ArrayDataProvider([
+            'allModels'  => $student->getSpendSuccessesHistory(),
+            'pagination' => false,
+            'sort'       => false,
+        ]);
+
+        return $this->render('successes', [
+            'model'              => $student,
+            'spendSuccessesForm' => $spendSuccessesForm,
+            'spendedSuccesses'   => $spendedSuccesses,
+            'userInfoBlock'      => User::getUserInfoBlock(),
         ]);
     }
   

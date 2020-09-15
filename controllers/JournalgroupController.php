@@ -8,6 +8,9 @@ use app\models\Journalgroup;
 use app\models\Student;
 use app\models\Studjournalgroup;
 use app\models\User;
+use yii\base\Exception;
+use yii\db\Query;
+use yii\filters\VerbFilter;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
@@ -36,17 +39,27 @@ class JournalgroupController extends Controller
                     ],
                 ],
             ],
+            'verbs' => [
+                'class' => VerbFilter::class,
+                'actions' => [
+                    'remove' => ['post'],
+                ],
+            ],
         ];
     }
-	
+
     /**
-    * Метод добавления занятия в журнал группы
-    * @param int $gid
-    */	
+     * Метод добавления занятия в журнал группы
+     * @param int $gid
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
+     */
     public function actionCreate($gid)
     {
-        $roleId = (int)Yii::$app->session->get('user.ustatus');
-        $userId = (int)Yii::$app->session->get('user.uid');
+        $roleId    = (int)Yii::$app->session->get('user.ustatus');
+        $userId    = (int)Yii::$app->session->get('user.uid');
         $teacherId = (int)Yii::$app->session->get('user.uteacher');
         /** @var Groupteacher group */
         $group = Groupteacher::findOne($gid);
@@ -64,12 +77,12 @@ class JournalgroupController extends Controller
             $model = new Journalgroup();
 		
             // получаем список текущих студентов в группе
-            $students = (new \yii\db\Query())
+            $students = (new Query())
             ->select('s.id, s.name')
             ->from('calc_studgroup sg')
             ->leftJoin('calc_studname s', 's.id=sg.calc_studname')
             ->where('sg.calc_groupteacher=:gid and s.visible=1 and sg.visible=1', [':gid'=>$gid])
-            ->orderby(['s.name'=>SORT_ASC])
+            ->orderby(['s.name' => SORT_ASC])
             ->all();
 
             // если пришли данные и моделька загрузилась успешно, переходим в картоку преподавателя
@@ -91,85 +104,49 @@ class JournalgroupController extends Controller
                     }
                 }
                 // если в группу назначен только один преподаватель и в post-запросе его id явно не указан
-                if(!$model->calc_teacher && count($groupTeachers) == 1) {
+                if (!$model->calc_teacher && count($groupTeachers) == 1) {
                     // пишем id преподавателя из ранее полученного списка преподавателей
                     $keys = array_keys($groupTeachers);
                     $model->calc_teacher = $keys[0];
                 }
-                // указываем id группы
                 $model->calc_groupteacher = $gid;
-                // помечаем занятие как действующее
-                $model->visible = 1;
-                $model->data_visible = '0000-00-00';
-                $model->user_visible = 0;
-                // указываем id пользователя добавившего занятие
-                $model->user = Yii::$app->session->get('user.uid');
-                /* параметры проверки занятия */
-                $model->view = 0;
-                $model->data_view = '0000-00-00';
-                $model->user_done = 0;
-                /* параметры оплаты занятия */
-                $model->done = 0;
-                $model->data_done = '0000-00-00';
-                $model->user_view = 0;
-                $model->calc_accrual = 0;
-                /* параметры редактирования занятия */
-                $model->edit = 0;
-                $model->data_edit = '0000-00-00';
-                $model->user_edit = 0;
-                $model->audit = 0;
-                $model->data_audit = '0000-00-00';
-                $model->user_audit = 0;
-                $model->description_audit = '';
-                // если есть данные по посещению занятия студентами
-                if (Yii::$app->request->post('CalcStudjournalgroup') && !empty(Yii::$app->request->post('CalcStudjournalgroup'))) {
+                $postData = Yii::$app->request->post('Studjournalgroup');
+                if (!empty($postData)) {
                     $transaction = Yii::$app->db->beginTransaction();
                     try {
-                        if(!$model->save()) {
-                            throw new \Exception('Не удалось добавить занятие!');
+                        if (!$model->save()) {
+                            throw new Exception('Не удалось добавить занятие!');
                         }
-                        // переприсваиваем массив из post в переменную
-                        $arrs = Yii::$app->request->post('CalcStudjournalgroup');
-                        // распечатываем массив и формируем новый многоуровневый
-                        foreach ($arrs as $key => $value) {
-                            if (substr($key, 0, 7) == 'comment') {
-                                $arr[substr($key, 8)]['id'] = substr($key, 8);
-                                $arr[substr($key, 8)]['comment'] = $value;
-                            } else if (substr($key, 0, 6) == 'status') {
-                                $arr[substr($key, 7)]['status'] = $value;
+                        $studentsData = $this->convertPostData($postData);
+                        foreach ($studentsData as $student) {
+                            $studentRecord = new Studjournalgroup([
+                                'calc_groupteacher'  => $gid,
+                                'calc_journalgroup'  => $model->id,
+                                'calc_studname'      => (int)$student['id'],
+                                'calc_statusjournal' => $student['status'],
+                                'successes'          => $student['successes'],
+                                'comments'           => $student['comment'],
+                            ]);
+                            if (!$studentRecord->save()) {
+                                throw new Exception('Не удалось создать запись о присутствии.');
                             }
                         }
-                        // распечатываем масcив с списком студентов
-                        foreach ($arr as $s) {
-                            // пишем данные о посещаемости в базу
-                            $db = (new \yii\db\Query())
-                                ->createCommand()
-                                ->insert('calc_studjournalgroup', [
-                                    'calc_groupteacher'=>$gid,
-                                    'calc_journalgroup'=>$model->id,
-                                    'calc_studname'=>$s['id'],
-                                    'calc_statusjournal'=>$s['status'],
-                                    'comments'=>$s['comment'],
-                                    'data'=>$model->data,
-                                    'user'=>$model->user,
-                                ])
-                                ->execute();
-                        }
-                        $transaction->commit();
                         Yii::$app->session->setFlash('success', 'Запись о занятии успешно добавлена в журнал.');
+                        $transaction->commit();
+
                         return $this->redirect(['groupteacher/view', 'id' => $gid]);
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         $transaction->rollBack();
                         Yii::$app->session->setFlash('error', 'Не удалось добавить занятие!');
+
                         return $this->redirect(['groupteacher/view', 'id' => $gid]);
                     }
                 } else {
-                    // если нет никакой информации по студентам на занятии, возвращаем ошибку
                     Yii::$app->session->setFlash('error', 'Не удалось добавить занятие!');
+
                     return $this->redirect(['groupteacher/view', 'id' => $gid]);
                 }
             } else {
-                // выводим форму добавления занятия
                 return $this->render('create', [
                     'groupInfo'      => $group->getInfo(),
                     'items'          => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
@@ -183,19 +160,22 @@ class JournalgroupController extends Controller
                     'userInfoBlock'  => User::getUserInfoBlock(),
                 ]);
             }
-        }
-        // если у пользователя другая роль
-        else {
-            // возвращаемся в журнал группы
+        } else {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
     }
- 
+
     /**
-    * метод позволяет менеджерам, руководителям
-    * и преподавателям назначенным в группу
-    * редактировать запись о занятии в журнале
-    **/
+     * метод позволяет менеджерам, руководителям
+     * и преподавателям назначенным в группу
+     * редактировать запись о занятии в журнале
+     * @param $id
+     * @param $gid
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
+     */
     public function actionUpdate($id, $gid)
     {
         $roleId = (int)Yii::$app->session->get('user.ustatus');
@@ -227,7 +207,7 @@ class JournalgroupController extends Controller
                         return $this->redirect(['groupteacher/view', 'id' => $gid]);
                     }
                 }
-                if($model->save()) {
+                if ($model->save()) {
                     // если модель сохранилась, задаем сообщение об успешном изменении занятия
                     Yii::$app->session->setFlash('success', 'Информация о занятии успешно обновлена!');
 				} else {
@@ -244,6 +224,7 @@ class JournalgroupController extends Controller
                 'params'        => $params,
                 'roleId'        => $roleId,
                 'teachers'      => $groupTeachers,
+                'timeHints'     => Journalgroup::getLastLessonTimesByGroup($gid),
                 'userId'        => $userId,
                 'userInfoBlock' => User::getUserInfoBlock(),
             ]);
@@ -251,15 +232,21 @@ class JournalgroupController extends Controller
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
     }
-	
-    /** 
-	* метод позволяет менеджерам отредактировать состав студентов
-	* посетивших или пропустивших занятие 
-	**/
+
+    /**
+     * метод позволяет менеджерам отредактировать состав студентов
+     * посетивших или пропустивших занятие
+     * @param $id
+     * @param $gid
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
+     * @throws Exception
+     */
     public function actionChange($id, $gid)
 	{
-	    /* проверяем права доступа (! переделать в поведения !) */
-	    if ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+	    if (!in_array(Yii::$app->session->get('user.ustatus'), [3, 4])) {
 	        throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
@@ -268,19 +255,29 @@ class JournalgroupController extends Controller
             throw new NotFoundHttpException("Группа №{$gid} не найдена.");
         }
 
-	    // получаем список студентов занятия для редактирования состава 
-	    $students = (new \yii\db\Query())
-	    ->select('s.id as sid, s.name as sname, sjg.calc_statusjournal as status, sjg.comments as comment, sjg.data as ldate, u.name as user')
-	    ->from('calc_journalgroup jg')
-	    ->leftJoin('calc_studjournalgroup sjg', 'jg.id=sjg.calc_journalgroup')
-	    ->leftJoin('calc_studname s', 's.id=sjg.calc_studname')
-	    ->leftjoin('user u', 'sjg.user=u.id')
-	    ->where('jg.calc_groupteacher=:gid and jg.id=:lid', [':gid'=>$gid, ':lid'=>$id])
-	    ->orderby(['s.name'=>SORT_ASC])
+	    $students = (new Query())
+	    ->select([
+	        'id'        => 's.id',
+            'name'      => 's.name',
+            'status'    => 'sjg.calc_statusjournal',
+            'successes' => 'sjg.successes',
+            'comment'   => 'sjg.comments',
+            'date'      => 'sjg.data',
+            'user'      => 'u.name',
+        ])
+	    ->from(['jg' => Journalgroup::tableName()])
+	    ->leftJoin(['sjg' => Studjournalgroup::tableName()], 'jg.id = sjg.calc_journalgroup')
+	    ->leftJoin(['s' => Student::tableName()], 's.id = sjg.calc_studname')
+	    ->leftjoin(['u' => User::tableName()], 'jg.user = u.id')
+	    ->where([
+	        'jg.calc_groupteacher' => $gid,
+            'jg.id'                => $id,
+        ])
+	    ->orderby(['s.name' => SORT_ASC])
 	    ->all();
 
 		// получаем историю статусов студентов
-		$history = (new \yii\db\Query())
+		$history = (new Query())
         ->select('s.id as sid, s.name as sname, sjgh.data as date, sj.name as stname, sjgh.timestamp_id as timestamp')
         ->from('calc_studjournalgrouphistory sjgh')
 	    ->leftJoin('calc_studname s', 's.id=sjgh.calc_studname')
@@ -297,123 +294,73 @@ class JournalgroupController extends Controller
 			unset($h);
 		}
 		// проверяем массив на наличие нулевых записей
-		$i = 0;
-		//$j = 0;
-		//$exist_in_array = [];
-		//$count_of_elements = count($students);
-		foreach($students as $s) {
-			// если такие есть
-			if($s['sid']==NULL && $s['sname']==NULL && $s['status']==NULL && $s['comment']==NULL && $s['ldate']==NULL && $s['user']==NULL){
-				//удаляем
-				unset($students[$i]);
-			}// else {
-			//	$exist_in_array[j] = $s['sid'];
-			//	$j++;
-			//}
-		}
-		unset($s);
-		/*
-		// проверяем что в исходном массиве не хватает статусов студентов 
-		if($count_of_elements!=count($exist_in_array)){
-			// если массив пустой то фильтр к запросу применяться не будет
-			if(empty($exist_in_array)){
-				$ss = NULL;
-			}
-			// находим студентов назначенных в группу
-			$tmp_stds = (new \yii\db\Query())
-			->select('s.id, s.name')
-			->from('calc_studgroup sg')
-			->leftJoin('calc_studname s', 's.id=sg.calc_studname')
-			->where('sg.calc_groupteacher=:gid and s.visible=1 and sg.visible=1', [':gid'=>$gid])
-			->andFilterWhere(['not in', 's.id', $ss])
-			->orderby(['s.name'=>SORT_ASC])
-			->all();
-				
-				if(!empty($tmp_stds)) {
-				    foreach() {
-					
-				    }
-				}
-			}
-		}
-		*/
-	    if(Yii::$app->request->post()){
-			
-			// если есть данные по посещению занятия студентами
-			if(Yii::$app->request->post('Studjournalgroup') && !empty(Yii::$app->request->post('Studjournalgroup'))){
-				// переприсваиваем массив из post в переменную
-				$arrs = Yii::$app->request->post('Studjournalgroup');
-				// распечатываем массив и формируем новый многоуровневый
-				foreach($arrs as $key => $value){
-					if(substr($key,0,7)=='comment'){
-						$arr[substr($key,8)]['id'] = substr($key,8);
-						$arr[substr($key,8)]['comment'] = $value;
-					}
-					elseif(substr($key,0,6)=='status'){
-						$arr[substr($key,7)]['status'] = $value;
-					}
-				}
-				unset($arrs);
-				// получаем старые статусы
-				$oldstatuses = (new \yii\db\Query())
+        $students = array_filter($students, function ($student) {
+            return !empty($student['id']);
+        });
+	    if (Yii::$app->request->isPost) {
+            $postData = Yii::$app->request->post('Studjournalgroup', []);
+			if (!empty($postData)) {
+				$studentsData = $this->convertPostData($postData);
+
+				$oldstatuses = (new Query())
 				->select('*')
-				->from('calc_studjournalgroup')
-				->where('calc_journalgroup=:lid',[':lid'=>$id])
+				->from(Studjournalgroup::tableName())
+				->where(['calc_journalgroup' => $id])
 				->all();
-				
-				// генерим таймстемп который потом понадобиться при переносе занятий
-			    $timestamp = time();
-				//переносим старые записи из одной таблицы в другую				
-				foreach($oldstatuses as $os) {
-					// пишем данные о посещаемости в базу
-					$db = (new \yii\db\Query())
-					->createCommand()
-					->insert('calc_studjournalgrouphistory', [
-					'calc_groupteacher'=>$os['calc_groupteacher'],
-					'calc_journalgroup'=>$os['calc_journalgroup'],
-					'calc_studname'=>$os['calc_studname'],
-					'calc_statusjournal'=>$os['calc_statusjournal'],
-					'comments'=>$os['comments'],
-					'data'=>$os['data'],
-					'user'=>$os['user'],
-					'timestamp_id'=>$timestamp,
-					])
-					->execute();
-					unset($db);
-					// удаляем записи о посещении занятия студентами
-	                $db = (new \yii\db\Query())
-					->createCommand()
-					->delete('calc_studjournalgroup', 'id=:id')
-					->bindParam(':id',$os['id'])
-					->execute();
-					unset($db);
-				}
-				unset($os);
-				unset($oldstatuses);
-				
-				// распечатываем массив с списком 
-				foreach($arr as $s){
-					// пишем данные о посещаемости в базу
-					$db = (new \yii\db\Query())
-					->createCommand()
-					->insert('calc_studjournalgroup', [
-					'calc_groupteacher'=>$gid,
-					'calc_journalgroup'=>$id,
-					'calc_studname'=>$s['id'],
-					'calc_statusjournal'=>$s['status'],
-					'comments'=>$s['comment'],
-					'data'=>date('Y-m-d'),
-					'user'=>Yii::$app->session->get('user.uid'),
-					])
-					->execute();
-					if (in_array($s['status'], [1, 3])) {
-						$student = Student::findOne($s['id']);
-						$student->updateInvMonDebt();
-					}
-				}
-			}			
-			// если модель сохранилась, задаем сообщение об успешном изменении занятия
-            Yii::$app->session->setFlash('success', 'Информация о составе занятия успешно обновлена.');
+
+                $transaction = Yii::$app->db->beginTransaction();
+                try {
+                    $timestamp = time();
+                    foreach ($oldstatuses as $os) {
+                        $db = (new Query())
+                            ->createCommand()
+                            ->insert('calc_studjournalgrouphistory', [
+                                'calc_groupteacher'  => $os['calc_groupteacher'],
+                                'calc_journalgroup'  => $os['calc_journalgroup'],
+                                'calc_studname'      => $os['calc_studname'],
+                                'calc_statusjournal' => $os['calc_statusjournal'],
+                                'comments'           => $os['comments'],
+                                'data'               => $os['data'],
+                                'user'               => $os['user'],
+                                'timestamp_id'       => $timestamp,
+                            ])
+                            ->execute();
+                        /** @var Studjournalgroup $model */
+                        if (($model = Studjournalgroup::find()->andWhere(['id' => $os['id']])->one()) !== NULL) {
+                            if (!$model->delete()) {
+                                throw new Exception('Не удалось удалить запись о присутствии.');
+                            }
+                        }
+                    }
+
+                    foreach ($studentsData ?? [] as $student) {
+                        $model = new Studjournalgroup([
+                            'calc_groupteacher'  => $gid,
+                            'calc_journalgroup'  => $id,
+                            'calc_studname'      => (int)$student['id'],
+                            'calc_statusjournal' => $student['status'],
+                            'successes'          => $student['successes'],
+                            'comments'           => $student['comment'],
+                        ]);
+                        if (!$model->save()) {
+                            throw new Exception('Не удалось создать запись о присутствии.');
+                        }
+                        if (in_array($student['status'], [1, 3])) {
+                            if (($studentModel = Student::find()->andWhere(['id' => $student['id']])->one()) !== NULL) {
+                                $studentModel->updateInvMonDebt();
+                            }
+                        }
+                    }
+                    Yii::$app->session->setFlash('success', 'Информация о составе занятия успешно обновлена.');
+                    $transaction->commit();
+                } catch (Exception $e) {
+                    Yii::$app->session->setFlash('error', 'Не удалось обновить информацию о составе занятия.');
+                    $transaction->rollBack();
+                }
+			} else {
+                Yii::$app->session->setFlash('error', 'Нет информации для изменения.');
+            }
+
 			return $this->redirect(['groupteacher/view', 'id' => $gid]);	        
 	    } else {
 	        return $this->render('change', [
@@ -432,11 +379,15 @@ class JournalgroupController extends Controller
     		]);
 		}
     }
-	
-	/**
+
+    /**
      * Помечает занятие как проверенное
      * @param int $gid
      * @param int $id
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
      */
     public function actionView($gid, $id)
 	{
@@ -447,7 +398,7 @@ class JournalgroupController extends Controller
 		
         $model = $this->findModel($id);
 		
-		$students = (new \yii\db\Query())
+		$students = (new Query())
 		->select([
             'id'        => 'sjg.calc_studname',
             'name'      => 'sn.name',
@@ -476,7 +427,7 @@ class JournalgroupController extends Controller
                 return $this->redirect(['groupteacher/view', 'id' => $gid]);
             }
             $services = $student->getServicesBalance([$lessonStudent['serviceId']], []);
-			if ($services[0]['num'] <= 0) {
+			if (empty($services) || $services[0]['num'] <= 0) {
 				$snames[] = $lessonStudent['name'];
 			}
 			$i++;
@@ -491,11 +442,15 @@ class JournalgroupController extends Controller
 
         return $this->redirect(Yii::$app->request->referrer);
     }
-	
-	/**
+
+    /**
      * Снимает с занятия отметку о проверке
      * @param int $gid
      * @param int $id
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
      */
     public function actionUnview($gid, $id)
 	{
@@ -513,11 +468,17 @@ class JournalgroupController extends Controller
         
         return $this->redirect(Yii::$app->request->referrer);
     }
-	
+
     /**
      * метод позволяет преподавателю назначенному в группу,
      * менеджеру или руководителю,
      * исключить запись о занятии из журнала
+     * @param $gid
+     * @param $id
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
      */
     public function actionDelete($gid, $id)
     {
@@ -526,7 +487,7 @@ class JournalgroupController extends Controller
         $model = $this->findModel($id);
 
         // получаем массив со списком преподавателей назначенных группе
-        $teachers = (new \yii\db\Query())
+        $teachers = (new Query())
         ->select('tg.calc_teacher as id, t.name as name')
         ->from('calc_teachergroup tg')
         ->leftjoin('calc_teacher t', 't.id=tg.calc_teacher')
@@ -560,18 +521,18 @@ class JournalgroupController extends Controller
             // если модель сохранилась, задаем сообщение об успешном изменении занятия
             Yii::$app->session->setFlash('success', 'Занятие успешно исключено из журнала.');
 			// получаем список студентов занятия
-			$tmp_students = (new \yii\db\Query())
+			$tmp_students = (new Query())
 			->select('sjg.calc_studname as id, sjg.calc_statusjournal as status')
 			->from('calc_studjournalgroup sjg')
 			->where('sjg.calc_journalgroup=:sjid', [':sjid'=>$model->id])
 			->all();
 			//var_dump($tmp_students);die();
-			foreach ($tmp_students as $s) {
+			foreach ($tmp_students as $student) {
 				// апдейтим баланс клиента
-				if (in_array($s['status'], [1, 3])) {
-					// находим информацию по клиенту
-					$student = Student::findOne($s['id']);
-					$student->updateInvMonDebt();
+				if (in_array($student['status'], [1, 3])) {
+                    if (($studentModel = Student::find()->andWhere(['id' => $student['id']])->one()) !== NULL) {
+                        $studentModel->updateInvMonDebt();
+                    }
 				}
 			}
 			unset($s);
@@ -583,12 +544,18 @@ class JournalgroupController extends Controller
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
     }
-	
+
     /**
-    * метод позволяет менеджерам или руководителям
-    * восстановить занятие, которое 
-    * ранее было исключено из журнала
-    **/
+     * метод позволяет менеджерам или руководителям
+     * восстановить занятие, которое
+     * ранее было исключено из журнала
+     * @param $gid
+     * @param $id
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
+     */
 	
     public function actionRestore($gid, $id)
     {
@@ -597,7 +564,7 @@ class JournalgroupController extends Controller
         $model = $this->findModel($id);
 
         // получаем массив со списком преподавателей назначенных группе
-        $teachers = (new \yii\db\Query())
+        $teachers = (new Query())
         ->select('tg.calc_teacher as id, t.name as name')
         ->from('calc_teachergroup tg')
         ->leftjoin('calc_teacher t', 't.id=tg.calc_teacher')
@@ -631,7 +598,7 @@ class JournalgroupController extends Controller
             // если модель сохранилась, задаем сообщение об успешном изменении занятия
             Yii::$app->session->setFlash('success', 'Занятие успешно восстановлено в журнал.');
 			// получаем список студентов занятия
-			$tmp_students = (new \yii\db\Query())
+			$tmp_students = (new Query())
 			->select('sjg.calc_studname as id, sjg.calc_statusjournal as status')
 			->from('calc_studjournalgroup sjg')
 			->where('sjg.calc_journalgroup=:sjid', [':sjid'=>$id])
@@ -651,33 +618,50 @@ class JournalgroupController extends Controller
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
     }
-	
-	/**
-    * метод позволяет руководителям 
-	* физически удалить запись о занятии из базы
-    **/
+
+    /**
+     * метод позволяет руководителям
+     * физически удалить запись о занятии из базы
+     *
+     * @param $gid
+     * @param $id
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws \yii\db\Exception
+     */
     public function actionRemove($gid, $id)
 	{
-        /* проверяем права доступа (! переделать в поведения !) */
-        if((int)Yii::$app->session->get('user.ustatus') !== 3) {
+        if ((int)Yii::$app->session->get('user.ustatus') !== 3) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
-        // удаляем запись
-        $db = (new \yii\db\Query())->createCommand()->delete('calc_journalgroup', 'id=:lid')->bindParam(':lid',$lid)->execute();
-        // удаляем записи о посещении занятия студентами
-        $db = (new \yii\db\Query())->createCommand()->delete('calc_studjournalgroup', 'calc_journalgroup=:lid')->bindParam(':lid',$lid)->execute();
-        // удаляем записи опосещении занятия студентами из истории
-        $db = (new \yii\db\Query())->createCommand()->delete('calc_studjournalgrouphistory', 'calc_journalgroup=:lid')->bindParam(':lid',$lid)->execute();
-        // возвращаемся на страницу журнала
-        return $this->redirect(['groupteacher/view', 'id'=>$gid]);		
+
+        $db = (new Query())->createCommand()
+            ->delete(Journalgroup::tableName(), 'id=:lid')
+            ->bindParam(':lid',$id)
+            ->execute();
+        $db = (new Query())->createCommand()
+            ->delete(Studjournalgroup::tableName(), 'calc_journalgroup=:lid')
+            ->bindParam(':lid',$id)
+            ->execute();
+        $db = (new Query())->createCommand()
+            ->delete('calc_studjournalgrouphistory', 'calc_journalgroup=:lid')
+            ->bindParam(':lid',$id)
+            ->execute();
+
+        return $this->redirect(['groupteacher/view', 'id' => $gid]);
     }
 
-    /** 
+    /**
      *  метод позволяет менеджерам и руководителям
      *  изменить посещение урока учеником с "Не было"
      *  на "Не было (предупредил)"
      * @param int $id
      * @param int $studentId
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws \Throwable
      */
     public function actionAbsent($id, $studentId)
     {
@@ -694,7 +678,7 @@ class JournalgroupController extends Controller
             $t = Yii::$app->db->beginTransaction();
             try {
                 // переносим копию записи в таблицу с историей изменений
-                $db = (new \yii\db\Query())
+                $db = (new Query())
                 ->createCommand()
                 ->insert('calc_studjournalgrouphistory', [
                     'calc_groupteacher'  => $model->calc_groupteacher,
@@ -712,21 +696,20 @@ class JournalgroupController extends Controller
                 $model->delete();
 
                 /* пишем данные о посещаемости в базу */
-                $db = (new \yii\db\Query())
-                ->createCommand()
-                ->insert(Studjournalgroup::tableName(), [
-                'calc_groupteacher'  => $model->calc_groupteacher,
-                'calc_journalgroup'  => $model->calc_journalgroup,
-                'calc_studname'      => $model->calc_studname,
-                'calc_statusjournal' => Journalgroup::STUDENT_STATUS_ABSENT_WARNED,
-                'comments'           => $model->comments,
-                'data'               => date('Y-m-d'),
-                'user'               => Yii::$app->session->get('user.uid'),
-                ])
-                ->execute();
+                $studentRecord = new Studjournalgroup([
+                    'calc_groupteacher'  => $model->calc_groupteacher,
+                    'calc_journalgroup'  => $model->calc_journalgroup,
+                    'calc_studname'      => $model->calc_studname,
+                    'calc_statusjournal' => Journalgroup::STUDENT_STATUS_ABSENT_WARNED,
+                    'successes'          => $model->successes,
+                    'comments'           => $model->comments,
+                ]);
+                if (!$studentRecord->save()) {
+                    throw new Exception('Не удалось создать запись о присутствии.');
+                }
                 Yii::$app->session->setFlash('success', 'Информация о посещении занятия учеником успешно обновлена.');
                 $t->commit();
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $t->rollBack();
                 Yii::$app->session->setFlash('success', 'Не удалось обновить информация о посещении занятия учеником.');
             }
@@ -738,10 +721,11 @@ class JournalgroupController extends Controller
     }
 
     /**
-     * Finds the CalcJournalgroup model based on its primary key value.
+     * Finds the Journalgroup model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return CalcJournalgroup the loaded model
+     *
+     * @return Journalgroup the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
@@ -757,7 +741,6 @@ class JournalgroupController extends Controller
      * Метод позволяет менеджерам и руководителям
      * создавать оплаты клиента. Для создания оплаты необходим ID клиента.
      */
-	
 	protected function studentDebt($id) {
 		
 		// задаем переменную в которую будет подсчитан долг по занятиям
@@ -768,14 +751,14 @@ class JournalgroupController extends Controller
 		$debt = 0;
 		
 		// получаем информацию по счетам
-		$invoices_sum = (new \yii\db\Query())
+		$invoices_sum = (new Query())
         ->select('sum(value) as money')
         ->from('calc_invoicestud')
 		->where('visible=:vis and calc_studname=:sid', [':vis'=>1, ':sid'=>$id])
         ->one();
 		
 		// получаем информацию по оплатам
-		$payments_sum = (new \yii\db\Query())
+		$payments_sum = (new Query())
         ->select('sum(value) as money')
         ->from('calc_moneystud')
 		->where('visible=:vis and calc_studname=:sid', [':vis'=>1, ':sid'=>$id])
@@ -785,7 +768,7 @@ class JournalgroupController extends Controller
 		$debt_common = $payments_sum['money'] - $invoices_sum['money'];
 		
 		// запрашиваем услуги назначенные студенту
-		$services = (new \yii\db\Query())
+		$services = (new Query())
 		->select('s.id as sid, s.name as sname, SUM(is.num) as num')
 		->distinct()
 		->from('calc_service s')
@@ -802,7 +785,7 @@ class JournalgroupController extends Controller
 			// распечатываем массив
 			foreach($services as $service){
 				// запрашиваем из базы колич пройденных уроков
-				$lessons = (new \yii\db\Query())
+				$lessons = (new Query())
 				->select('COUNT(sjg.id) AS cnt')
 				->from('calc_studjournalgroup sjg')
 				->leftjoin('calc_groupteacher gt', 'sjg.calc_groupteacher=gt.id')
@@ -820,7 +803,7 @@ class JournalgroupController extends Controller
 			
 			foreach($services as $s) {
                 if($s['num'] < 0){
-						$lesson_cost = (new \yii\db\Query())
+						$lesson_cost = (new Query())
 						->select('(value/num) as money')
 						->from('calc_invoicestud')
 						->where('visible=:vis and calc_studname=:stid and calc_service=:sid', [':vis'=>1, ':stid'=>$id, ':sid'=>$s['sid']])
@@ -836,4 +819,27 @@ class JournalgroupController extends Controller
 		//$debt = number_format($debt, 1, '.', ' ');
 		return (int)$debt;
 	}
+
+    /**
+     * @param $postData
+     * @return array
+     */
+	private function convertPostData($postData)
+    {
+        $studentsData = [];
+
+        foreach ($postData ?? [] as $key => $value) {
+            $keys = explode('_', $key);
+            if (!empty($keys) && isset($keys[0]) && isset($keys[1])) {
+                if (!isset($studentsData[$keys[1]])) {
+                    $studentsData[$keys[1]] = [
+                        'id' => $keys[1],
+                    ];
+                }
+                $studentsData[$keys[1]][$keys[0]] = $value;
+            }
+        }
+
+        return $studentsData;
+    }
 }

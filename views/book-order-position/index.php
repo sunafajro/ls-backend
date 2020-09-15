@@ -1,29 +1,35 @@
 <?php
 
+/**
+ * @var View                    $this
+ * @var Book                    $book
+ * @var BookOrder               $bookOrder
+ * @var ActiveDataProvider      $dataProvider
+ * @var BookOrderPositionSearch $searchModel
+ * @var array                   $bookOrderCounters
+ * @var array                   $languages
+ * @var array                   $offices
+ */
+
 use app\models\Book;
 use app\models\BookCost;
 use app\models\BookOrder;
 use app\models\BookOrderPosition;
+use app\models\search\BookOrderPositionSearch;
 use app\widgets\Alert;
+use yii\data\ActiveDataProvider;
 use yii\grid\GridView;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\Breadcrumbs;
-
-/**
- * @var View              $this
- * @var Book              $book
- * @var BookOrder         $bookOrder
- * @var BookOrderPosition $model
- * @var array             $bookOrderCounters
- * @var array             $languages
- */
 
 $title = Yii::t('app','Book order') . ' №' . $bookOrder->id;
 $this->title = Yii::$app->params['appTitle'] . $title;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Books'), 'url' => ['book/index']];
 $this->params['breadcrumbs'][] = $title;
 $roleId = (int)Yii::$app->session->get('user.ustatus');
+$officeId = in_array($roleId, [4]) ? (int)Yii::$app->session->get('user.uoffice_id') : null;
+$bookOrderId = $bookOrder->id;
 ?>
 <div class="row row-offcanvas row-offcanvas-left book-order">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
@@ -51,12 +57,24 @@ $roleId = (int)Yii::$app->session->get('user.ustatus');
         <?= Alert::widget() ?>
 
         <?php
-            $columns = [];
-            $columns['id']          = ['attribute' => 'id'];
-            $columns['name']        = ['attribute' => 'name'];
+            $columns = [
+                    ['class' => 'yii\grid\SerialColumn']
+            ];
+            $columns['name'] = [
+                'attribute' => 'name',
+                'format' => 'raw',
+                'value' => function (array $book) {
+                    return join(
+                            '',
+                            [
+                                Html::tag('div', $book['name']),
+                                Html::tag('div', $book['description'], ['class' => 'small'])
+                            ]
+                    );
+                }
+            ];
             $columns['author']      = ['attribute' => 'author'];
             $columns['isbn']        = ['attribute' => 'isbn'];
-            $columns['description'] = ['attribute' => 'description'];
             $columns['publisher']   = ['attribute' => 'publisher'];
             $columns['language']    = [
                 'attribute' => 'language',
@@ -71,53 +89,95 @@ $roleId = (int)Yii::$app->session->get('user.ustatus');
                     return ($book['count'] ?? 0) . ' шт.';
                 }
             ];
-            if (in_array($roleId, [3, 7])) {
-                $columns['office'] = [
-                    'attribute' => 'office',
-                    'filter'    => $offices,
-                    'value'     => function (array $book) use ($offices) {
-                        return $offices[$book['office']] ?? '';
-                    }
-                ];
-                $columns['purchase_cost'] = [
-                    'attribute' => 'purchase_cost',
-                    'value'     => function (array $book) {
+            $columns['purchase_cost'] = [
+                'attribute' => 'purchase_cost',
+                'format'    => 'raw',
+                'label'     => 'Цена',
+                'value'     => function (array $book) use ($roleId) {
+                    $str = [
+                        Html::tag(
+                                'span',
+                                number_format($book['paid'] ?? 0, 2, '.', ' ') . ' руб.',
+                                ['title' => 'Цена продажи']
+                        ),
+                    ];
+                    if (in_array($roleId, [3, 7])) {
                         $bookCost = BookCost::find()->andWhere(['book_id' => $book['book_id'], 'type' => BookCost::TYPE_PURCHASE, 'visible' => 1])->one();
-                        return number_format((($bookCost->cost ?? 0) * $book['count']), 2, '.', '') . ' руб.';
+                        $str[] = Html::tag(
+                            'span',
+                            '(' . number_format((($bookCost->cost ?? 0) * $book['count']), 2, '.', ' ') . ' руб.)',
+                            ['title' => 'Закупочная цена']
+                        );
+                    }
+                    return join(Html::tag('br'), $str);
+                }
+            ];
+            if (in_array($roleId, [3, 7])) {
+                $columns['officeName'] = [
+                    'attribute' => 'officeName',
+                    'filter'    => $offices,
+                    'format'    => 'raw',
+                    'value'     => function (array $book) use ($offices, $bookOrderId) {
+                        $ids = explode(',',$book['officeId'] ?? '');
+                        $positionsByOffices = [];
+                        foreach ($ids ?? [] as $id) {
+                            $id = trim($id);
+                            if ($id && isset($offices[$id])) {
+                                $positionsByOffices[] = $this->render('_positions_by_offices_info', [
+                                    'bookId'      => $book['book_id'],
+                                    'bookOrderId' => $bookOrderId,
+                                    'officeId'    => $id,
+                                    'offices'     => $offices,
+                                ]);
+                            }
+                        }
+                        return join('', $positionsByOffices);
                     }
                 ];
             }
-            $columns['selling_cost'] = [
-                'attribute' => 'selling_cost',
-                'label'     => in_array($roleId, [3, 7]) ? 'Цена продажи' : 'Цена',
-                'value'     => function (array $book) {
-                    return ($book['paid'] ?? 0) . ' руб.';
-                }
-            ];
-            $columns['actions'] = [
-                'attribute' => 'actions',
-                'format'    => 'raw',
-                'label'     => Yii::t('app', 'Act.'),
-                'value'     => function (array $book) use ($bookOrder, $roleId) {
-                    $actions = [];
-                    if ($bookOrder->status === BookOrder::STATUS_OPENED) {
-                        if (in_array($roleId, [3, 4, 7])) {
-                            $actions[] = Html::a(
-                                Html::tag('i', '', ['class' => 'fa fa-edit', 'aria-hidden' => 'true']),
-                                ['book-order-position/update', 'id' => $book['id']],
-                                ['title' => Yii::t('app', 'Edit book order position')]
-                            );
-                            $actions[] = Html::a(
-                                Html::tag('i', '', ['class' => 'fa fa-trash', 'aria-hidden' => 'true']),
-                                ['book-order-position/delete', 'id' => $book['id']],
-                                ['data-method' => 'POST', 'title' => Yii::t('app', 'Delete book order position')]
-                            );
-                        }
+            if (in_array($roleId, [4])) {
+                $columns['items'] = [
+                    'format' => 'raw',
+                    'label' => 'По студентам',
+                    'value' => function(array $book) use ($bookOrderId, $officeId) {
+                        /** @var BookOrderPosition $position */
+                        $position = BookOrderPosition::find()->andWhere([
+                            'book_id'       => $book['book_id'],
+                            'book_order_id' => $bookOrderId,
+                            'office_id'     => $officeId,
+                            'visible'       => 1,
+                        ])->one();
+                        return $this->render('_position_items_by_student', [
+                            'position' => $position
+                        ]);
                     }
+                ];
+                $columns['actions'] = [
+                    'attribute' => 'actions',
+                    'format'    => 'raw',
+                    'label'     => Yii::t('app', 'Act.'),
+                    'value'     => function (array $book) use ($bookOrder, $roleId) {
+                        $actions = [];
+                        if ($bookOrder->status === BookOrder::STATUS_OPENED) {
+                            if (in_array($roleId, [3, 4, 7])) {
+                                $actions[] = Html::a(
+                                    Html::tag('i', '', ['class' => 'fa fa-edit', 'aria-hidden' => 'true']),
+                                    ['book-order-position/update', 'id' => $book['id']],
+                                    ['title' => Yii::t('app', 'Edit book order position')]
+                                );
+                                $actions[] = Html::a(
+                                    Html::tag('i', '', ['class' => 'fa fa-trash', 'aria-hidden' => 'true']),
+                                    ['book-order-position/delete', 'id' => $book['id']],
+                                    ['data-method' => 'POST', 'title' => Yii::t('app', 'Delete book order position')]
+                                );
+                            }
+                        }
 
-                    return join(' ', $actions);
-                }
-            ];
+                        return join(' ', $actions);
+                    }
+                ];
+            }
+
             echo GridView::widget([
                 'dataProvider' => $dataProvider,
                 'filterModel'  => $searchModel,

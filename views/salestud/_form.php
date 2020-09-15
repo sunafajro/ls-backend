@@ -16,7 +16,7 @@ use app\widgets\autocomplete\AutoCompleteWidget;
     <?php $form = ActiveForm::begin(); ?>
     <?= AutoCompleteWidget::widget([
         'hiddenField' => [
-            'name' => 'Salestud[calc_sale]',
+            'name' => Html::getInputName($model, 'calc_sale'),
         ],
         'searchField' => [
             'label'     => Yii::t('app', 'Sale'),

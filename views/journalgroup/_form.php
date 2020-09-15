@@ -1,13 +1,7 @@
 <?php
 
-use app\models\Journalgroup;
-use kartik\datetime\DateTimePicker;
-use kartik\time\TimePicker;
-use yii\helpers\Html;
-use yii\widgets\ActiveForm;
-
 /**
- * @var yii\web\View $this
+ * @var View         $this
  * @var Journalgroup $model
  * @var ActiveForm   $form
  * @var int          $roleId
@@ -15,23 +9,50 @@ use yii\widgets\ActiveForm;
  * @var array        $timeHints
  * @var int          $userId
  */
+
+use app\models\Journalgroup;
+use kartik\datetime\DateTimePicker;
+use kartik\time\TimePicker;
+use yii\helpers\Html;
+use yii\web\View;
+use yii\widgets\ActiveForm;
+
+$script = <<< JS
+$(".js--previous-times").on('click', function () {
+    $("#journalgroup-time_begin").val($(this).data('begin'));
+    $("#journalgroup-time_end").val($(this).data('end'));
+});
+JS;
+$this->registerJs($script, View::POS_READY);
 ?>
 <?php $form = ActiveForm::begin(); ?>
-    <?= $form->field($model, 'data')->widget(DateTimePicker::class, [
-        'options' => [
-            'autocomplete' => 'off',
-        ],
-        'pluginOptions' => [
-            'language' => 'ru',
-            'format' => 'yyyy-mm-dd',
-            'todayHighlight' => true,
-            'minView' => 2,
-            'maxView' => 2,
-            'weekStart' => 1,
-            'autoclose' => true,
-        ]
-    ]);
-    ?>
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+            <?php
+                try {
+                    echo $form->field($model, 'data')->widget(DateTimePicker::class, [
+                        'options' => [
+                            'autocomplete' => 'off',
+                        ],
+                        'pluginOptions' => [
+                            'language' => 'ru',
+                            'format' => 'yyyy-mm-dd',
+                            'todayHighlight' => true,
+                            'minView' => 2,
+                            'maxView' => 2,
+                            'weekStart' => 1,
+                            'autoclose' => true,
+                        ]
+                    ]);
+                } catch (Exception $e) {
+                    echo Html::tag('div', 'Неудалось отобразить виджет.', ['class' => 'alert alert-danger']);
+                }
+            ?>
+        </div>
+        <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+            <?= $form->field($model, 'type')->dropDownList(Journalgroup::getLessonLocationTypes(), ['prompt' => Yii::t('app', '-select-')]) ?>
+        </div>
+    </div>
     <?php if (count($teachers) > 1) { ?>
         <?= $form->field($model, 'calc_teacher')->dropDownList($teachers, ['options' => ['1' => ['selected' => true]]]) ?>
     <?php } ?>
@@ -41,20 +62,32 @@ use yii\widgets\ActiveForm;
     <?php } ?>
     <div class="row">
         <div class="col-sm-4">
-            <?= $form->field($model, 'time_begin')->widget(TimePicker::class, [
-                    'pluginOptions' => [
-                        'showMeridian' => false,
-                        'defaultTime' => $model->isNewRecord ? '' : $model->time_begin,
-                    ],
-            ]) ?>
+            <?php
+                try {
+                    echo $form->field($model, 'time_begin')->widget(TimePicker::class, [
+                             'pluginOptions' => [
+                                 'showMeridian' => false,
+                                 'defaultTime' => $model->isNewRecord ? '' : $model->time_begin,
+                             ],
+                    ]);
+                } catch (Exception $e) {
+                    echo Html::tag('div', 'Неудалось отобразить виджет.', ['class' => 'alert alert-danger']);
+                }
+            ?>
         </div>
         <div class="col-sm-4">
-            <?= $form->field($model, 'time_end')->widget(TimePicker::class, [
-                    'pluginOptions' => [
-                        'showMeridian' => false,
-                        'defaultTime' => $model->isNewRecord ? '' : $model->time_end,
-                    ],
-            ]) ?>
+            <?php
+                try {
+                    echo $form->field($model, 'time_end')->widget(TimePicker::class, [
+                            'pluginOptions' => [
+                                'showMeridian' => false,
+                                'defaultTime' => $model->isNewRecord ? '' : $model->time_end,
+                            ],
+                    ]);
+                } catch (Exception $e) {
+                    echo Html::tag('div', 'Неудалось отобразить виджет.', ['class' => 'alert alert-danger']);
+                }
+            ?>
         </div>
         <div class="col-sm-4">
             <label class="control-label">Предыдущие занятия:</label>
@@ -85,19 +118,9 @@ use yii\widgets\ActiveForm;
     <?= $form->field($model, 'description')->textArea(['rows' => 3]) ?>
     <?= $form->field($model, 'homework')->textArea(['rows' => 3]) ?>
     <?php if ($model->isNewRecord && !empty($students)) {
-        echo $this->render('_attendance', ['students' => $students]);
+        echo $this->render('_attendance', ['students' => $students, 'isNew' => true]);
     } ?>
     <div class="form-group">
         <?= Html::submitButton(Yii::t('app', $model->isNewRecord ? 'Add' : 'Update'), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
     </div>
-<?php
-ActiveForm::end();
-
-$script = <<< JS
-$(".js--previous-times").on('click', function () {
-    $("#journalgroup-time_begin").val($(this).data('begin'));
-    $("#journalgroup-time_end").val($(this).data('end'));
-});
-JS;
-$this->registerJs($script, yii\web\View::POS_READY);
-?>
+<?php ActiveForm::end();

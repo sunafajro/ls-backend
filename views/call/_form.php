@@ -61,7 +61,7 @@ $sex = [1=>Yii::t('app','Male'), 2=>Yii::t('app','Female')];
   
     <?= AutoCompleteWidget::widget([
         'hiddenField' => [
-            'name' => 'Call[calc_studname]',
+            'name' => Html::getInputName($model, 'calc_studname'),
         ],
         'searchField' => [
             'label' => Yii::t('app','Link to Client'),

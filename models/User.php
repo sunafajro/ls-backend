@@ -283,7 +283,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
                         case 6: $result = true; break;
                         default: $result = false;
                     }
-                } else if (in_array($action, ['update', 'active', 'inactive', 'detail', 'change-office', 'update-debt', 'settings', 'update-settings'])) {
+                } else if (in_array($action, ['update', 'active', 'inactive', 'detail', 'change-office', 'update-debt', 'settings', 'update-settings', 'successes'])) {
                     switch($roleId) {
                         case 3: $result = true; break;
                         case 4: $result = true; break;

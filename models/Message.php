@@ -122,7 +122,7 @@ class Message extends \yii\db\ActiveRecord
                 (int)$message['destination_type'] === 5
                 || (int)$message['destination_type'] === 100
             ) {
-                $message['canResponse'] = true;
+                $message['canResponse'] = (int)$message['sender_id'] !== Yii::$app->user->identity->id ? true : false;
                 $receiver = (new \yii\db\Query())
                 ->select(['id' => 'id', 'name' => 'name'])
                 ->from(['u' => 'user'])
@@ -219,6 +219,12 @@ class Message extends \yii\db\ActiveRecord
      */
     public static function getUserMessages($start = NULL, $end = NULL, $direction = 'in') : array
     {
+        if ($start) {
+            $start = $start . ' 00:00:00';
+        }
+        if ($end) {
+            $end = $end . ' 23:59:59';
+        }
         $student = Student::tableName();
         $user    = User::tableName();
 
@@ -244,20 +250,17 @@ class Message extends \yii\db\ActiveRecord
         ->leftJoin(['sn1' => $student], 'sn1.id = m.user')
         ->leftJoin(['u2' => $user], 'u2.id = m.refinement_id')
         ->leftJoin(['sn2' => $student], 'sn2.id = m.refinement_id')
-        ->leftJoin(['mwt' => 'calc_messwhomtype'], 'mwt.id = m.calc_messwhomtype');
+        ->leftJoin(['mwt' => 'calc_messwhomtype'], 'mwt.id = m.calc_messwhomtype')
+        ->andWhere(['m.visible' => 1]);
         if($direction === 'in') {
-            $messages = $messages->leftJoin(['mr' => 'calc_messreport'], 'mr.calc_message = m.id');
-            $messages = $messages->where([
+            $messages->leftJoin(['mr' => 'calc_messreport'], 'mr.calc_message = m.id')
+            ->andWhere([
                 'mr.user' => Yii::$app->user->identity->id,
-                'm.visible' => 1
             ]);
         }
         if ($direction === 'out') {
             if ((int)Yii::$app->session->get('user.ustatus') === 3) {
-                $messages = $messages->where([
-                    'm.visible' => 1
-                ])
-                ->andWhere([
+                $messages->andWhere([
                     'not', [
                         'and',
                         ['m.calc_messwhomtype' => 5],
@@ -265,9 +268,8 @@ class Message extends \yii\db\ActiveRecord
                     ]
                 ]);
             } else {
-                $messages = $messages->where([
+                $messages->andWhere([
                     'm.user' => Yii::$app->session->get('user.uid'),
-                    'm.visible' => 1
                 ]);
             }
         }
@@ -323,6 +325,7 @@ class Message extends \yii\db\ActiveRecord
             'student'    => 's.name',
             'group_id'   => 'm.calc_messwhomtype',
             'group_name' => 'mwt.name',
+            'date'       => 'm.data',
         ])
         ->from(['mr'      => 'calc_messreport'])
         ->leftjoin(['m'   => 'calc_message'], 'm.id = mr.calc_message')
@@ -357,6 +360,7 @@ class Message extends \yii\db\ActiveRecord
             } 
 
             $mess = [
+                'date'        => $message['date'],
                 'mid'         => $message['mid'],
                 'rid'         => $message['mrid'],
                 'sender'      => $sender, 

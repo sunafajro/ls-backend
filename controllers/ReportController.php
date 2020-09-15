@@ -2,6 +2,8 @@
 
 namespace app\controllers;
 
+use app\models\Journalgroup;
+use DateTime;
 use Yii;
 use app\models\AccrualTeacher;
 use app\models\Invoicestud;
@@ -16,6 +18,7 @@ use app\models\Teacher;
 use app\models\Tool;
 use app\models\User;
 use app\models\search\LessonSearch;
+use yii\db\Query;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
@@ -74,14 +77,20 @@ class ReportController extends Controller
             ],
         ];
     }
-    
+
     /**
-    * отчет по Начислениям 
-    */
+     * отчет по Начислениям
+     * @param null $tid
+     * @param null $month
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     */
     public function actionAccrual($tid = null, $month = null)
     {
-        if ((int)Yii::$app->session->get('user.ustatus') !== 3) {
-            throw new ForbiddenHttpException('Access denied');
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        if (!in_array($roleId, [3])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
         
         /** @var array */
@@ -168,13 +177,16 @@ class ReportController extends Controller
         ]);
     }
 
+    /**
+     * @return mixed
+     * @throws ForbiddenHttpException
+     */
     public function actionMargin()
     {
-        /* всех кроме руководителей и бухгалтеров редиректим обратно */
-        if(Yii::$app->session->get('user.ustatus')!=3) {
-            return $this->redirect(Yii::$app->request->referrer);
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        if (!in_array($roleId, [3])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
-        /* всех кроме руководителей и бухгалтеров редиректим обратно */
 
         if(Yii::$app->request->get('month')) {
             $month = Yii::$app->request->get('month');
@@ -188,7 +200,7 @@ class ReportController extends Controller
             $year = date('Y');
         }
 		
-		$teachers = (new \yii\db\Query())
+		$teachers = (new Query())
         ->select('t.id as tid, t.name as teacher_name')
         ->distinct()
         ->from('calc_teacher t')
@@ -201,7 +213,7 @@ class ReportController extends Controller
         ->all();
 		
 		if(!empty($teachers)) {
-			$lessons = (new \yii\db\Query())
+			$lessons = (new Query())
 			->select('t.id as tid, COUNT(jg.id) as count')
 			->from('calc_teacher t')
 			->innerJoin('calc_accrualteacher at', 't.id=at.calc_teacher')
@@ -212,7 +224,7 @@ class ReportController extends Controller
 			->groupby(['t.id'])
 			->all();
 		
-			$accruals = (new \yii\db\Query())
+			$accruals = (new Query())
 			->select('t.id as tid, at.id as aid, at.value as value')
 			->distinct()
 			->from('calc_teacher t')
@@ -223,12 +235,12 @@ class ReportController extends Controller
 			->andFilterWhere(['YEAR(jg.data)' => $year])
 			->all();
 		
-			$subQuery = (new \yii\db\Query())
+			$subQuery = (new Query())
 			->select('COUNT(sjg.id)')
 			->from('calc_studjournalgroup sjg')
 			->where('sjg.calc_journalgroup=jg.id and sjg.calc_statusjournal!=:two');
 		
-			$income = (new \yii\db\Query())
+			$income = (new Query())
 			->select('t.id as tid, jg.id as jid, gt.calc_service as sid, jg.data as date')
 			->addSelect(['count' => $subQuery])
 			->from('calc_teacher t')
@@ -245,7 +257,7 @@ class ReportController extends Controller
 				foreach($income as $in) {
 				$cost = 0;
 				
-				$servhist = (new \yii\db\Query())
+				$servhist = (new Query())
 				->select('date as date, value as value')
 				->from('calc_servicehistory')
 				->where('calc_service=:sid', [':sid'=>$in['sid']])
@@ -266,7 +278,7 @@ class ReportController extends Controller
 				}
 				
 				if($cost == 0) {
-					$lesson_cost = (new \yii\db\Query())
+					$lesson_cost = (new Query())
 					->select('sn.value as value')
 					->from('calc_service s')
 					->leftJoin('calc_studnorm sn', 'sn.id=s.calc_studnorm')
@@ -318,14 +330,22 @@ class ReportController extends Controller
 
     }
 
-    // Отчет по оплатам
+    /**
+     * Отчет по оплатам
+     * @param string|null $start
+     * @param string|null $end
+     * @param string|null $oid
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     */
     public function actionPayments (string $start = NULL, string $end = NULL, string $oid = NULL)
     {
-        if ((int)Yii::$app->session->get('user.ustatus') !== 3 &&
-            (int)Yii::$app->session->get('user.ustatus') !== 4 &&
-            (int)Yii::$app->session->get('user.ustatus') !== 8) {
-                throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        if (!in_array($roleId, [3, 4, 8])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
+
         if (!($start && $end)) {
             $start = date("Y-m-d", strtotime('monday this week'));
             $end = date("Y-m-d", strtotime('sunday this week'));
@@ -344,12 +364,22 @@ class ReportController extends Controller
         ]);
     }
 
-    // Отчет по счетам
-    public function actionInvoices(string $start = '', string $end = '', string $oid = '') {
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 &&
-           (int)Yii::$app->session->get('user.ustatus') !== 4) {
+    /**
+     * Отчет по счетам
+     * @param string $start
+     * @param string $end
+     * @param string $oid
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     */
+    public function actionInvoices(string $start = '', string $end = '', string $oid = '')
+    {
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        if (!in_array($roleId, [3, 4])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
+
         if (!($start && $end)) {
             $start = date("Y-m-d", strtotime('monday this week'));
             $end = date("Y-m-d", strtotime('sunday this week'));
@@ -380,9 +410,15 @@ class ReportController extends Controller
         ]);
     }
 
+    /**
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws \Exception
+     */
     public function actionPlan()
 	{
-        if ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 8) {
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        if (!in_array($roleId, [3, 8])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 		
@@ -413,14 +449,14 @@ class ReportController extends Controller
 		// находим информацию по офису
 		
 		// формируем субзапрос для получения колич учеников в группе
-		$subQuery = (new \yii\db\Query())
+		$subQuery = (new Query())
 		->select('COUNT(sg.calc_studname) as cnt')
 		->from('calc_studgroup sg')
 		->where('sg.calc_groupteacher=gt.id and sg.visible=:one', [':one' => 1]);
 		// формируем субзапрос для получения колич учеников в группе
 		
 		// получаем данные для таблицы
-		$schedule = (new \yii\db\Query())
+		$schedule = (new Query())
 		->select('gt.id as group, sn.value as cost, sch.calc_denned as day, COUNT(sch.id) as cnt')
 		->addSelect(['pupils' => $subQuery])
 		->from('calc_schedule sch')
@@ -441,7 +477,7 @@ class ReportController extends Controller
 			foreach($schedule as $s) {
 				// если необходима инфармация по следующему месяцу, опрелеляем след месяц и год
 				if($next) {
-					$dt = new \DateTime(date('Y-m-d'));
+					$dt = new DateTime(date('Y-m-d'));
 					$dt->modify('next month');
 					$month = $dt->format('n');
 					$year = $dt->format('Y');
@@ -478,12 +514,23 @@ class ReportController extends Controller
 		/* выводим данные в вьюз */
 	}
 
+    /**
+     * @param null $end
+     * @param int $limit
+     * @param int $offset
+     * @param null $tid
+     * @param null $start
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     */
     public function actionSalaries ($end = null, $limit = 10, $offset = 0, $tid = null, $start = null)
     {
-        /* всех кроме руководителей и бухгалтеров редиректим обратно */
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 8) {
-            return $this->redirect(Yii::$app->request->referrer);
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        if (!in_array($roleId, [3, 8])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
+
         if (Yii::$app->request->isPost) {
             Yii::$app->response->format = Response::FORMAT_JSON;
             $salaries = Report::getSalariesReportRows([
@@ -507,13 +554,16 @@ class ReportController extends Controller
         }
     }
 
+    /**
+     * @return mixed
+     * @throws ForbiddenHttpException
+     */
     public function actionSale()
     {
-        /* всех кроме руководителей редиректим обратно */
-        if(Yii::$app->session->get('user.ustatus')!=3) {
-            return $this->redirect(Yii::$app->request->referrer);
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        if (!in_array($roleId, [3])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
-        /* всех кроме руководителей редиректим обратно */
 
         $params = [
 		    'page' => 1,
@@ -560,170 +610,112 @@ class ReportController extends Controller
     
     /**
      * Общий отчет
+     * @param string|null $start
+     * @param string|null $end
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
      */ 
 
-    public function actionCommon()
+    public function actionCommon(string $start = null, string $end = null)
     {
-        /* всех кроме бухгалтера и руководителей редиректим туда откуда пришли */
-        if(Yii::$app->session->get('user.ustatus')!=3 && Yii::$app->session->get('user.ustatus')!=8) {            
-            return $this->redirect(Yii::$app->request->referrer);
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        if (!in_array($roleId, [3, 8])) {
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
-        /* всех кроме бухгалтера и руководителей редиректим туда откуда пришли */
 
-        /* проверяем get-запрос на наличие информации о годе и задаем переменную $year */
-        if(Yii::$app->request->get('year')){
-            $year = Yii::$app->request->get('year');
-        } else {
-            $year = date('Y');
+        if (!($start && $end)) {
+            $start = date("Y-m-d", strtotime('monday this week'));
+            $end   = date("Y-m-d", strtotime('sunday this week'));
         }
-        /* проверяем get-запрос на наличие информации о годе и задаем переменную $year */
-        
-        /* проверяем get-запрос на наличие информации о месяце и задаем переменную $mon */
-        if(Yii::$app->request->get('month')) {
-            if(Yii::$app->request->get('month')>=1 && Yii::$app->request->get('month')<=12) {
-                $month = Yii::$app->request->get('month');
-            } else {
-                $month = NULL;
-            }
-        } else {
-            $month = NULL;
-        }
-        /* проверяем get-запрос на наличие информации о месяце и задаем переменную $mon */
-        
-        /* проверяем get-запрос на наличие информации о неделе и задаем переменные $week, $first_day, $last_day */
-        if(Yii::$app->request->get('week')){
-            if(Yii::$app->request->get('week')!='all') {
-                $week = Yii::$app->request->get('week');
-                $first_day = date('Y-m-d', $week * 7 * 86400 + strtotime('1/1/' . $year) - date('w', strtotime('1/1/' . $year)) * 86400 + 86400);
-                $last_day = date('Y-m-d', ($week + 1) * 7 * 86400 + strtotime('1/1/' . $year) - date('w', strtotime('1/1/' . $year)) * 86400);
-            } else {
-                $week = NULL;
-                $first_day = NULL;
-                $last_day = NULL;
-            }
-        } else {
-            $weekinfo = Report::getWeekInfo(date('j'), date('m'), date('Y'));
-            $week = $weekinfo['num'];          
-            $first_day = date('Y-m-d', $weekinfo['start']);
-            $last_day = date('Y-m-d', $weekinfo['end']);
-        }
-        /* проверяем get-запрос на наличие информации о неделе и задаем переменные $week, $first_day, $last_day */
 
-        $months = $this->getMonths();
-        
-        /* задаем пустые переменные */
-        $common_report = [];
-        /* задаем пустые переменные */
-
-        /* определяем условия выборки данных для отчета */
-        if($month && $year) {
-            $fd = NULL;
-            $ld = NULL;
-            $m = $month;
-            $y = $year;
-        } elseif(!$first_day && !$last_day && !$month && $year) {
-            $fd = NULL;
-            $ld = NULL;
-            $m = NULL;
-            $y = $year;
-        } else {
-            $fd = $first_day;
-            $ld = $last_day;
-            $m = NULL;
-            $y = NULL;
-        }
-        /* определяем условия выборки данных для отчета */
-            
-        /* получаем список офисов */
-        $offices = (new \yii\db\Query())
+        #region офисы
+        $offices = (new Query())
         ->select('id as oid, name as oname')
         ->from('calc_office')
         ->where('visible=1')
         ->andWhere(['not in','id',['20','17','15','14','13']])
+        ->orderBy(['name' => SORT_ASC])
         ->all();
-        /* получаем список офисов */
+        #endregion
             
-        /* получаем оплаты */
-        $common_payments = (new \yii\db\Query())
+        #region оплаты
+        $common_payments = (new Query())
         ->select('ms.calc_office as oid, SUM(value_card) as card, SUM(value_cash) as cash, SUM(value_bank) as bank, SUM(ms.value) as money')
         ->from('calc_moneystud ms')
         ->where('ms.visible=1 and ms.remain=0')
-        ->andFilterWhere(['>=', 'ms.data', $fd])
-        ->andFilterWhere(['<=', 'ms.data', $ld])
-        ->andFilterWhere(['MONTH(ms.data)'=>$m])
-        ->andFilterWhere(['YEAR(ms.data)'=>$y])
+        ->andFilterWhere(['>=', 'ms.data', $start])
+        ->andFilterWhere(['<=', 'ms.data', $end])
         ->groupby(['ms.calc_office'])
         ->all();
-        /* получаем оплаты */
-            
-        /* получаем счета */
-        $common_invoices = (new \yii\db\Query())
+        #endregion
+
+        #region счета
+        $common_invoices = (new Query())
         ->select('is.calc_office as oid, SUM(is.value) as money, SUM(is.value_discount) as discount')
         ->from('calc_invoicestud is')
         ->where('is.visible=1')
-        ->andFilterWhere(['>=', 'is.data', $fd])
-        ->andFilterWhere(['<=', 'is.data', $ld])
-        ->andFilterWhere(['MONTH(is.data)'=>$m])
-        ->andFilterWhere(['YEAR(is.data)'=>$y])
+        ->andFilterWhere(['>=', 'is.data', $start])
+        ->andFilterWhere(['<=', 'is.data', $end])
         ->groupby(['is.calc_office'])
-        ->all();           
-        /* получаем счета */
-            
-        /* получаем начисления */
-        $common_accruals = (new \yii\db\Query())
+        ->all();
+        #endregion
+
+        #region начисления
+        $common_accruals = (new Query())
         ->select('gt.calc_office as oid, SUM(at.value) as money')
         ->from('calc_accrualteacher at')
         ->leftjoin('calc_groupteacher gt', 'gt.id=at.calc_groupteacher')
-        ->andFilterWhere(['>=', 'at.data', $fd])
-        ->andFilterWhere(['<=', 'at.data', $ld])
-        ->andFilterWhere(['MONTH(at.data)'=>$m])
-        ->andFilterWhere(['YEAR(at.data)'=>$y])
+        ->andFilterWhere(['>=', 'at.data', $start])
+        ->andFilterWhere(['<=', 'at.data', $end])
         ->groupby(['gt.calc_office'])
         ->all();
-        /* получаем начисления */
-            
-        /* получаем часы */
-        $common_hours = (new \yii\db\Query())
-        ->select('gt.calc_office as oid, SUM(tn.value) as hours')
+        #endregion
+
+        #region часы
+        $online = Journalgroup::TYPE_ONLINE;
+        $office = Journalgroup::TYPE_OFFICE;
+        $common_hours = (new Query())
+        ->select([
+            'oid'          => 'gt.calc_office',
+            'hours_online' => "SUM(CASE WHEN jg.type = '{$online}' THEN tn.value ELSE 0 END)",
+            'hours_office' => "SUM(CASE WHEN jg.type = '{$office}' THEN tn.value ELSE 0 END)",
+        ])
         ->from('calc_journalgroup jg')
         ->leftjoin('calc_groupteacher gt', 'gt.id=jg.calc_groupteacher')
         ->leftjoin('calc_service s', 's.id=gt.calc_service')
         ->leftjoin('calc_timenorm tn', 'tn.id=s.calc_timenorm')
-        ->where('jg.visible=1')
-        ->andFilterWhere(['>=', 'jg.data', $fd])
-        ->andFilterWhere(['<=', 'jg.data', $ld])
-        ->andFilterWhere(['MONTH(jg.data)'=>$m])
-        ->andFilterWhere(['YEAR(jg.data)'=>$y])
+        ->where(['jg.visible' => 1])
+        ->andFilterWhere(['>=', 'jg.data', $start])
+        ->andFilterWhere(['<=', 'jg.data', $end])
         ->groupby(['gt.calc_office'])
         ->all();
-        /* получаем часы */
+        #endregion
 
-        /* получаем количество студентов */
-        $subQuery = (new \yii\db\Query())
+        #region студентов
+        $subQuery = (new Query())
         ->select('count(DISTINCT sjg.calc_studname) as students')
         ->from('calc_studjournalgroup sjg')
         ->leftJoin('calc_journalgroup jg', 'jg.id=sjg.calc_journalgroup')
         ->leftJoin('calc_groupteacher gt', 'gt.id=jg.calc_groupteacher')
         ->where('gt.calc_office=o.id and jg.view=:vis and sjg.calc_statusjournal=:vis', [':vis'=>1])
-        ->andFilterWhere(['>=', 'jg.data', $fd])
-        ->andFilterWhere(['<=', 'jg.data', $ld])
-        ->andFilterWhere(['MONTH(jg.data)'=>$m])
-        ->andFilterWhere(['YEAR(jg.data)'=>$y]);
+        ->andFilterWhere(['>=', 'jg.data', $start])
+        ->andFilterWhere(['<=', 'jg.data', $end]);
         
-        $common_students = (new \yii\db\Query())
+        $common_students = (new Query())
         ->select('o.id as oid')
         ->addSelect(['students'=>$subQuery])
         ->from('calc_office o')
         ->where('o.visible=:vis', [':vis'=>1])
         ->andWhere(['not in','o.id',['20','17','15','14','13']])
         ->all();
-        /* получаем количество студентов */
+        #endregion
 
         /* получаем долги */
         $common_debts = [];
         $i = 0;
         foreach($offices as $o) {
-            $tmp_debts = (new \yii\db\Query())
+            $tmp_debts = (new Query())
             ->select('s.debt as debts')
             ->from('calc_studname s')
             ->leftjoin('calc_studgroup sg', 's.id=sg.calc_studname')
@@ -756,7 +748,10 @@ class ReportController extends Controller
         /* начисления */
         $ccrls = 0;
         /* часы */
-        $hrs = 0;
+        $hrs = [
+            'hours_online' => 0,
+            'hours_office' => 0,
+        ];
         /* долги */
         $dbts = 0;
         /* долги */
@@ -778,7 +773,8 @@ class ReportController extends Controller
             // задаем дефолтное значение начислений по офису
             $common_report[$i]['accruals'] = 0;
             // задаем дефолтное значение часов по офису
-            $common_report[$i]['hours'] = 0;
+            $common_report[$i]['hours_online'] = 0;
+            $common_report[$i]['hours_office'] = 0;
             // задаем дефолтное значение долгов по офису
             $common_report[$i]['debts'] = 0;
             // распечатываем массив с оплатами
@@ -823,9 +819,11 @@ class ReportController extends Controller
                 // выбираем часы по id офиса
                 if($common_report[$i]['oid'] == $hr['oid']) {
                     // вносим сумму часов по офису в массив
-                    $common_report[$i]['hours'] = $hr['hours'];
+                    $common_report[$i]['hours_online'] = $hr['hours_online'];
+                    $common_report[$i]['hours_office'] = $hr['hours_office'];
                     // суммируем часы для последущего получения итогового значения
-                    $hrs = $hrs + $hr['hours'];
+                    $hrs['hours_online'] = $hrs['hours_online'] + $hr['hours_online'];
+                    $hrs['hours_office'] = $hrs['hours_office'] + $hr['hours_office'];
                 }
             }
             // распечатываем массив со студентами
@@ -870,20 +868,19 @@ class ReportController extends Controller
         /* задаем итоговую сумму по начислениям */
         $common_report[999]['accruals'] = $ccrls;
         /* задаем итоговую сумму по часам */
-        $common_report[999]['hours'] = $hrs;
+        $common_report[999]['hours_online'] = $hrs['hours_online'];
+        $common_report[999]['hours_office'] = $hrs['hours_office'];
         /* задаем итоговую сумму по студентам */
         $common_report[999]['students'] = $sts;
         /* задаем итоговую сумму по долгам */
         $common_report[999]['debts'] = $dbts;
 
         return $this->render('common',[
-            'months' => $months,
-            'common_report' => $common_report,
-            'year' => $year,
-            'month' => $month,
-            'week' => $week,
-            'weeks' => Report::getWeekList($year),
-            'reportlist' => Report::getReportTypeList(),
+            'actionUrl'     => ['report/common'],
+            'commonReport'  => $common_report,
+            'end'           => $end,
+            'start'         => $start,
+            'reportList'    => Report::getReportTypeList(),
 			'userInfoBlock' => User::getUserInfoBlock(),
         ]);
 
@@ -902,7 +899,7 @@ class ReportController extends Controller
         $tss   = $req->get('TSS', NULL);
 
         // запрашиваем список студентов
-        $stds = (new \yii\db\Query())
+        $stds = (new Query())
         ->select(['id' => 'sn.id', 'name' => 'sn.name', 'debt' => 'sn.debt'])
         ->from(['sn' => Student::tableName()]);
         if ($oid) {
@@ -946,7 +943,7 @@ class ReportController extends Controller
         $students = [];
         if(!empty($stids)) {
             // запрашиваем услуги назначенные студенту
-            $students = (new \yii\db\Query())
+            $students = (new Query())
             ->select('s.id as sid, s.name as sname, is.calc_studname as stid, SUM(is.num) as num')
             ->distinct()
             ->from('calc_service s')
@@ -969,7 +966,7 @@ class ReportController extends Controller
                     $schedule = new Schedule();
                     $studentSchedule = $schedule->getStudentSchedule($service['stid']);
                     // запрашиваем из базы колич пройденных уроков
-                    $lssns = (new \yii\db\Query())
+                    $lssns = (new Query())
                     ->select('COUNT(sjg.id) AS cnt')
                     ->from('calc_studjournalgroup sjg')
                     ->leftjoin('calc_groupteacher gt', 'sjg.calc_groupteacher=gt.id')
@@ -1002,10 +999,12 @@ class ReportController extends Controller
     }
 
     /**
-     * @param string $end
-     * @param string $start
-     * 
+     * Отчет по занятиям
+     * @param string|null $start
+     * @param string|null $end
+     *
      * @return mixed
+     * @throws ForbiddenHttpException
      */
     public function actionLessons(string $end = '', string $start = '')
     {
@@ -1026,6 +1025,7 @@ class ReportController extends Controller
             'actionUrl'     => array_merge(['report/lessons'], $params),
             'dataProvider'  => $searchModel->search($params),
             'end'           => $end,
+            'offices'       => Office::getOfficeInScheduleListSimple(),
             'reportList'    => Report::getReportTypeList(),
             'searchModel'   => $searchModel,
             'start'         => $start,
@@ -1036,8 +1036,9 @@ class ReportController extends Controller
     /**
      * @param string $end
      * @param string $start
-     * 
+     *
      * @return mixed
+     * @throws ForbiddenHttpException
      */
     public function actionCommissions(string $end = '', string $start = '')
     {
@@ -1045,6 +1046,7 @@ class ReportController extends Controller
         if (!in_array($roleId, [3, 4, 8])) {            
             throw new ForbiddenHttpException('Доступ ограничен.');
         }
+
         if (!($start && $end)) {
             $start = date("Y-m-d", strtotime('monday this week'));
             $end   = date("Y-m-d", strtotime('sunday this week'));
@@ -1084,17 +1086,25 @@ class ReportController extends Controller
             return $this->redirect(Yii::$app->request->referrer);
         }
     }
-    
-    /*
-    * метод выборки данных для построения отчета по Журналам 
-    */
+
+    /**
+     * метод выборки данных для построения отчета по Журналам
+     * @param int $corp
+     * @param null $oid
+     * @param null $tid
+     * @param null $page
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     */
     
     public function actionJournals($corp = 0, $oid = NULL, $tid = NULL, $page = NULL) 
     {
-        /* всех кроме руководителей, менеджеров редиректим обратно */
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
-            return $this->redirect(Yii::$app->request->referrer);
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        if (!in_array($roleId, [3, 4])) {
+            throw new ForbiddenHttpException('Доступ ограничен.');
         }
+
         // для менеджеров задаем переменную с id офиса
         if ((int)Yii::$app->session->get('user.ustatus') === 4) {
             $oid = $oid ?? Yii::$app->session->get('user.uoffice_id');
@@ -1103,7 +1113,7 @@ class ReportController extends Controller
             }
         }
         // получим массив преподавателей у которых его активные группы
-        $teachers = (new \yii\db\Query())
+        $teachers = (new Query())
         ->select('t.id as tid, t.name as tname')
         ->distinct()
         ->from('calc_teachergroup tg')
@@ -1128,7 +1138,7 @@ class ReportController extends Controller
             }
         }
         // доделываем запрос и выполняем
-        $teachers = $teachers->orderBy(['t.name'=>SORT_ASC])->limit($limit)->offset($offset)->all();            
+        $teachers = $teachers->orderBy(['t.name'=>SORT_ASC])->limit($limit)->offset($offset)->all();
         $teachersall = $countQuery->orderBy(['t.name'=>SORT_ASC])->all();
 
         // зададим пустое значение, оно будет использоваться если фильтр по преподавателю не задан
@@ -1160,8 +1170,8 @@ class ReportController extends Controller
 
         if(!empty($teacher_names)) {
             // получаем данные по занятиям
-            $lessons = (new \yii\db\Query())
-            ->select('jg.id as lid, jg.calc_groupteacher as gid, jg.data as date, jg.done as done, jg.calc_teacher as tid, t.name as tname, jg.description as desc, jg.visible as visible')
+            $lessons = (new Query())
+            ->select('jg.id as lid, jg.type as type, jg.calc_groupteacher as gid, jg.data as date, jg.done as done, jg.calc_teacher as tid, t.name as tname, jg.description as desc, jg.visible as visible')
             ->from('calc_journalgroup jg')
             ->leftJoin('calc_teacher t', 't.id=jg.calc_teacher')
             ->leftJoin('calc_groupteacher gt', 'gt.id=jg.calc_groupteacher')
@@ -1178,7 +1188,7 @@ class ReportController extends Controller
             ->all();
 
             // выбираем группы преподавателей
-            $groups = (new \yii\db\Query())
+            $groups = (new Query())
             ->select('tg.calc_groupteacher as gid, tg.calc_teacher as tid, s.id as sid, s.name as service, el.name as ename, tn.value as hours')
             ->from('calc_teachergroup tg')
             ->leftJoin('calc_groupteacher gt', 'gt.id=tg.calc_groupteacher')
@@ -1208,7 +1218,6 @@ class ReportController extends Controller
             $lessons = [];
             $groups = [];
         }
-        $teachers = $teachersall;
 
         return $this->render('journals', [
             'corp'          => $corp,
@@ -1226,15 +1235,25 @@ class ReportController extends Controller
         ]);
     }
 
-    // Отчет по оплатам
+    /**
+     * Отчет по почасовке преподавателей
+     * @param null $start
+     * @param null $end
+     * @param null $tid
+     * @param int $limit
+     * @param int $offset
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     */
     public function actionTeacherHours($start = null, $end = null, $tid = null, $limit = 10, $offset = 0)
     {
-        if ((int)Yii::$app->session->get('user.ustatus') !== 3 &&
-            (int)Yii::$app->session->get('user.ustatus') !== 4 &&
-            (int)Yii::$app->session->get('user.ustatus') !== 6 &&
-            (int)Yii::$app->session->get('user.uid') !== 296) {
-                throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        $userId = (int)Yii::$app->session->get('user.uid');
+        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        if (!(in_array($roleId, [3, 4, 6]) || in_array($userId, [296]))) {
+            throw new ForbiddenHttpException('Доступ ограничен.');
         }
+
 
         if (!($start && $end)) {
             $start = date("Y-m-d", strtotime('monday last week'));
@@ -1265,7 +1284,7 @@ class ReportController extends Controller
     protected function reportAccruals($tid)
     {
         //получаем список преподавателей у которых есть занятия к начислению
-        $tmpteachers = (new \yii\db\Query()) 
+        $tmpteachers = (new Query())
         ->select('jg.calc_teacher as id, t.name as name')
         ->from('calc_journalgroup jg')
         ->leftJoin('calc_groupteacher gt', 'gt.id=jg.calc_groupteacher')
@@ -1309,7 +1328,7 @@ class ReportController extends Controller
             $list[0] = $tid;
         }
         // получаем список преподавателей
-        $teachers = (new \yii\db\Query()) 
+        $teachers = (new Query())
         ->select('t.id as id, t.name as name, t.calc_statusjob as stjob, t.value_corp as vcorp, en.value as norm')
         ->from('calc_teacher t')
         ->leftJoin('calc_edunormteacher as ent', 'ent.calc_teacher=t.id')
@@ -1324,13 +1343,13 @@ class ReportController extends Controller
         $teachers = $teachers->orderby(['t.name'=>SORT_ASC])->all();
 
         // формируем подзапрос для выборки количество учеников на занятии
-        $SubQuery = (new \yii\db\Query())
+        $SubQuery = (new Query())
         ->select('count(sjg.id) as pupil')
         ->from('calc_studjournalgroup sjg')
         ->where('sjg.calc_journalgroup=jg.id and sjg.calc_statusjournal!=2');
         
         // получаем данные по занятиям ожидающим начисление
-        $lessons = (new \yii\db\Query()) 
+        $lessons = (new Query())
         ->select('jg.id as jid, jg.data as jdate, jg.calc_groupteacher as gid, s.id as sid, s.name as service, tn.value as time, jg.calc_teacher as tid, el.name as level, o.name as office, jg.description as desc, jg.calc_edutime as edutime, jg.view as view, gt.corp as corp')
         ->addSelect(['pcount'=>$SubQuery])
         ->from('calc_journalgroup jg')
@@ -1553,7 +1572,7 @@ class ReportController extends Controller
     
     private function getMonths()
     {
-        return ArrayHelper::map((new \yii\db\Query())
+        return ArrayHelper::map((new Query())
         ->select('id as id, name as name')
         ->from('calc_month')
         ->where(['visible' => 1])

@@ -2,12 +2,14 @@
 
 namespace app\controllers;
 
+use app\models\File;
 use Yii;
 use app\models\Message;
 use app\models\Student;
 use app\models\Teacher;
 use app\models\UploadForm;
 use app\models\User;
+use yii\base\Exception;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\helpers\ArrayHelper;
@@ -21,6 +23,7 @@ use yii\web\UploadedFile;
  */
 class MessageController extends Controller
 {
+    /** @inheritDoc */
     public function behaviors()
     {
         $rules = ['index','view','create','update','delete','response','upload','send','ajaxgroup'];
@@ -113,12 +116,13 @@ class MessageController extends Controller
     }
 
     /**
-     * Displays a single Message model.
-     * @param integer $id
-     * 
+     * @param int $id
+     *
      * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
      */
-    public function actionView($id)
+    public function actionView(int $id)
     {
         $message = Message::getMessageById($id);
         if (!$message) {
@@ -163,7 +167,16 @@ class MessageController extends Controller
             if ($target_id && ((int)$target_id !== (int)$model->refinement_id)) {
                 $model->calc_messwhomtype = $target_id;
             }
+            $files = [];
+            if (is_array($model->files) && !empty($model->files)) {
+                $files = $model->files;
+                $model->files = null;
+            }
             if ($model->save()) {
+                foreach ($files ?? [] as $fileId) {
+                    $file = File::find()->andWhere(['id' => $fileId])->one();
+                    $file->setEntity(File::TYPE_ATTACHMENTS, $model->id);
+                }
                 Yii::$app->session->setFlash('success', Yii::t('app', 'Message successfully created!'));
                 if (Yii::$app->request->post('send', null)) {
                     return $this->redirect(['message/send', 'id' => $model->id]);
@@ -184,8 +197,10 @@ class MessageController extends Controller
 
     /**
      * @param int $id
-     * 
+     *
      * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
      */
     public function actionUpdate(int $id)
     {
@@ -200,8 +215,20 @@ class MessageController extends Controller
                     ? User::find()->where(['visible' => 1])->all()
                     : Student::find()->where(['visible' => 1])->all();
             }
+            $files = [];
+            $fileString = $model->files;
             if ($model->load(Yii::$app->request->post())) {
+                if (is_array($model->files) && !empty($model->files)) {
+                    $files = $model->files;
+                    $model->files = $fileString;
+                }
                 if ($model->save(true, ['name', 'description'])) {
+                    foreach ($files ?? [] as $fileId) {
+                        $file = File::find()->andWhere(['id' => $fileId, 'entity_type' => File::TYPE_TEMP, 'entity_id' => null])->one();
+                        if ($file) {
+                            $file->setEntity(File::TYPE_ATTACHMENTS, $model->id);
+                        }
+                    }
                     Yii::$app->session->setFlash('success', Yii::t('app', 'Message successfully updated!'));
                     if (Yii::$app->request->post('send', null)) {
                         return $this->redirect(['message/send', 'id' => $model->id]);
@@ -224,11 +251,11 @@ class MessageController extends Controller
     }
 
     /**
-     * Deletes an existing Message model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param int $id
-     * 
+     *
      * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
      */
     public function actionDelete(int $id)
     {
@@ -237,23 +264,29 @@ class MessageController extends Controller
             (int)$model->user === (int)Yii::$app->user->identity->id
             || (int)Yii::$app->session->get('user.ustatus') === 3
         ) {
-            if ($model->delete()) {
-                Yii::$app->session->setFlash('success', 'Сообщение успешно удалено!');
-            } else {
+            try {
+                if ($model->delete()) {
+                    Yii::$app->session->setFlash('success', 'Сообщение успешно удалено!');
+                } else {
+                    Yii::$app->session->setFlash('error', 'Не удалось удалить сообщение!');
+                }
+            } catch (\Exception $e) {
+                Yii::$app->session->setFlash('error', 'Не удалось удалить сообщение!');
+            } catch (\Throwable $e) {
                 Yii::$app->session->setFlash('error', 'Не удалось удалить сообщение!');
             }
-            return $this->redirect(['index']);
+
+            return $this->redirect(['message/index']);
         } else {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }        
     }
 
     /**
-     * Метод ищет непрочитанное сообщение по report id и user id,
-     * и помечает его прочитанным.
      * @param int $id
-     * 
+     *
      * @return mixed
+     * @throws NotFoundHttpException
      */
     public function actionResponse(int $id)
     {
@@ -296,30 +329,33 @@ class MessageController extends Controller
         }
         return $this->redirect(Yii::$app->request->referrer);
     }
-    
-    public function actionUpload(string $id)
+
+    /**
+     * @param int $id
+     *
+     * @return mixed
+     * @throws NotFoundHttpException
+     * @throws Exception
+     */
+    public function actionUpload(int $id)
     {
         $message = $this->findModel($id);
-        if ($message !== NULL) {
-            $model = new UploadForm();
-            if (Yii::$app->request->isPost) {
-                $model->file = UploadedFile::getInstance($model, 'file');
-                if ($model->file && $model->validate()) {
-                    $spath = Yii::getAlias('@uploads/calc_message');
-                    $filename = $model->resizeAndSave($spath, $id, 'fls');
-                    $message->files = $filename;
-                    $message->save(true, ['files']);
-                    return $this->redirect(['message/upload', 'id' => $id]);
-                }
+        $model = new UploadForm();
+        if (Yii::$app->request->isPost) {
+            $model->file = UploadedFile::getInstance($model, 'file');
+            if ($model->file && $model->validate()) {
+                $spath = Yii::getAlias('@uploads/calc_message');
+                $filename = $model->resizeAndSave($spath, $id, 'fls');
+                $message->files = $filename;
+                $message->save(true, ['files']);
+                return $this->redirect(['message/upload', 'id' => $id]);
             }
-            return $this->render('upload', [
-                'model' => $model,
-                'message' => $message,
-                'userInfoBlock' => User::getUserInfoBlock()
-            ]);
-        } else {
-            throw new NotFoundHttpException(Yii::t('yii', 'The requested page does not exist.'));
         }
+        return $this->render('upload', [
+            'model' => $model,
+            'message' => $message,
+            'userInfoBlock' => User::getUserInfoBlock()
+        ]);
     }
     
     public function actionSend(int $id)

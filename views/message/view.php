@@ -1,5 +1,6 @@
 <?php
 
+use app\models\File;
 use app\widgets\Alert;
 use yii\helpers\Html;
 use yii\web\View;
@@ -40,8 +41,8 @@ $this->params['breadcrumbs'][] = $message['title'];
             ?>
             <?=
             Html::a('<i class="fa fa-thrash" aria-hidden="true"></i> ' . Yii::t('app', 'Delete'),
-            ['message/disable', 'id' => $message['id']],
-            ['class' => 'btn btn-sm btn-danger btn-block'])
+            ['message/delete', 'id' => $message['id']],
+            ['class' => 'btn btn-sm btn-danger btn-block', 'data-method' => 'POST', 'data-confirm' => 'Вы действительно хотите удалить это сообщение?'])
             ?>
         <?php } ?>
         <div style="margin-top: 1rem">
@@ -69,31 +70,49 @@ $this->params['breadcrumbs'][] = $message['title'];
         <?php } ?>
 
         <div>
-            <strong>Дата:</strong> <?= date('d.m.Y', strtotime($message['date'])) ?>
+            <b>Дата:</b> <?= date('d.m.Y', strtotime($message['date'])) ?>
         </div>
         <div>
-            <strong>От кого:</strong>
+            <b>От кого:</b>
             <span class="text-primary">
                 <?= $message['sender'] ?>
             </span>
         </div>
         <div>
-            <strong>Кому:</strong>
+            <b>Кому:</b>
             <span class="text-primary">
                 <?= $message['receiver'] ?>
             </span>
         </div>
         <div>
-            <strong>Текст:</strong>
+            <b>Текст:</b>
             <?= $message['text'] ?>
         </div>
+        <?php
+            /** @var File[] $files */
+            $files = File::find()->andWhere([
+                'entity_type' => File::TYPE_ATTACHMENTS, 'entity_id' => $message['id']
+            ])->all();
+            if (!empty($files)) {
+                echo Html::beginTag('div');
+                echo Html::tag('b', 'Файлы:');
+                echo Html::beginTag('ul');
+                foreach ($files as $file) {
+                    echo Html::tag(
+                        'li',
+                        Html::a($file->original_name, ['files/download', 'id' => $file->id], ['target' => '_blank'])
+                    );
+                }
+                echo Html::endTag('ul');
+                echo Html::endTag('div');
+            }
+        ?>
         <?php if (!in_array($message['files'], [NULL, '', '0'])) { ?>
             <?php $link = explode('|', $message['files']) ?>
             <div>
-                <strong>Файл:</strong><br />
-                <?=
-                  Html::img('@web/uploads/calc_message/' . $message['id'] . '/fls/' . $link[0],
-                  ['width' => '200px', 'alt' => 'Image', 'class' => 'img-thumbnail'])
+                <b>Обложка (для объявлений):</b><br />
+                <?= Html::img('@web/uploads/calc_message/' . $message['id'] . '/fls/' . $link[0],
+                    ['width' => '200px', 'alt' => 'Image', 'class' => 'img-thumbnail'])
                 ?>
             </div>
         <?php } ?>

@@ -4,6 +4,7 @@ namespace app\models;
 
 use app\traits\StudentMergeTrait;
 use Yii;
+use yii\db\ActiveRecord;
 
 /**
  * This is the model class for table "calc_studjournalgroup".
@@ -13,14 +14,18 @@ use Yii;
  * @property integer $calc_journalgroup
  * @property integer $calc_studname
  * @property integer $calc_statusjournal
+ * @property integer $successes
  * @property string  $comments
  * @property string  $data
  * @property integer $user
  */
-class Studjournalgroup extends \yii\db\ActiveRecord
+class Studjournalgroup extends ActiveRecord
 {
     use StudentMergeTrait;
-    
+
+    const SUCCESSES_MIN_COUNT = 0;
+    const SUCCESSES_MAX_COUNT = 3;
+
     /**
      * @inheritdoc
      */
@@ -35,10 +40,13 @@ class Studjournalgroup extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['calc_groupteacher', 'calc_journalgroup', 'calc_studname', 'calc_statusjournal', 'comments', 'data', 'user'], 'required'],
+            [['data'], 'default', 'value' => date('Y-m-d')],
+            [['user'], 'default', 'value' => Yii::$app->user->identity->id ?? 0],
+            [['successes'], 'default', 'value' => 0],
             [['calc_groupteacher', 'calc_journalgroup', 'calc_studname', 'calc_statusjournal', 'user'], 'integer'],
-            [['comments'], 'string'],
-            [['data'], 'safe'],
+            [['successes'], 'number', 'min' => self::SUCCESSES_MIN_COUNT, 'max' => self::SUCCESSES_MAX_COUNT],
+            [['data', 'comments'], 'string'],
+            [['calc_groupteacher', 'calc_journalgroup', 'calc_studname', 'calc_statusjournal', 'data', 'user'], 'required'],
         ];
     }
 

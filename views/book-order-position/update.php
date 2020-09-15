@@ -1,26 +1,36 @@
 <?php
 
+/**
+ * @var View                  $this
+ * @var Book                  $book
+ * @var BookOrder             $bookOrder
+ * @var BookOrderPosition     $model
+ * @var BookOrderPositionItem $itemModel
+ * @var array                 $offices
+ */
+
 use app\models\Book;
 use app\models\BookOrder;
 use app\models\BookOrderPosition;
+use app\models\BookOrderPositionItem;
 use app\widgets\Alert;
+use app\widgets\autocomplete\AutoCompleteWidget;
 use yii\helpers\Html;
+use yii\helpers\Url;
 use yii\web\View;
+use yii\widgets\ActiveForm;
 use yii\widgets\Breadcrumbs;
-
-/**
- * @var View              $this
- * @var Book              $book
- * @var BookOrder         $bookOrder
- * @var BookOrderPosition $model
- * @var array             $offices
- */
 
 $title = Yii::t('app','Edit position');
 $this->title = Yii::$app->params['appTitle'] . $title;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Books'), 'url' => ['book/index']];
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Book order') . ' №' . $bookOrder->id, 'url' => ['book-order-position/index', 'id' => $bookOrder->id]];
 $this->params['breadcrumbs'][] = $title;
+
+$paymentTypes = [null => '-выберите тип-'];
+foreach ($itemModel->getPaymentTypes() ?? [] as $key => $value) {
+    $paymentTypes[$key] = $value;
+}
 ?>
 <div class="row row-offcanvas row-offcanvas-left book-order">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
@@ -35,6 +45,47 @@ $this->params['breadcrumbs'][] = $title;
                     $bookOrder->positionsCount ?? 0,
                     ['book-order-position/index', 'id' => $bookOrder->id]
                 ) ?></p>
+
+        <h4 style="margin-top:20px">Распределить на студента:</h4>
+        <?php $form = ActiveForm::begin([
+                'action' => Url::to(['book-order-position/change-items', 'id' => $model->id, 'action' => 'create']),
+                'options' => ['class' => 'js--add-or-edit-student-row'],
+        ]) ?>
+            <?= AutoCompleteWidget::widget([
+                    'hiddenField' => [
+                        'name' => Html::getInputName($itemModel, 'student_id'),
+                    ],
+                    'searchField' => [
+                        'error' => null,
+                        'label' => Yii::t('app', 'Student'),
+                        'name' => Html::getInputName($itemModel, 'student_name'),
+                        'url'   => Url::to(['book-order-position/autocomplete', 'id' => $model->id]),
+                        'minLength' => 3,
+                    ]
+            ]) ?>
+            <?= $form->field($itemModel, 'count')->input('number') ?>
+            <?= $form->field($itemModel, 'payment_type')->dropDownList($paymentTypes) ?>
+            <?= $form->field($itemModel, 'payment_comment')->textarea(['rows' => 3]) ?>
+            <?= Html::submitButton(
+                    Html::tag(
+                    'i',
+                    null,
+                        ['class' => 'fa fa-save', 'aria-hidden' => 'true']
+                    ) . ' ' .Yii::t('app', 'Save'),
+                    ['class' => 'btn btn-sm btn-success']
+            ) ?>
+            <?= Html::button(
+                    Html::tag(
+                            'i',
+                            null,
+                            ['class' => 'fa fa-eraser', 'aria-hidden' => 'true']
+                    ) . ' ' . Yii::t('app', 'Clear'),
+                    [
+                        'class' => 'btn btn-sm btn-warning js--clear-student-form',
+                        'data-url' => Url::to(['book-order-position/change-items', 'id' => $model->id, 'action' => 'create']),
+                    ]
+            ) ?>
+        <?php ActiveForm::end() ?>
     </div>
     <div class="col-sm-6">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
@@ -54,5 +105,97 @@ $this->params['breadcrumbs'][] = $title;
                 'model'   => $model,
                 'offices' => $offices,
         ]) ?>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th><?= Yii::t('app', 'Student') ?></th>
+                    <th><?= Yii::t('app', 'Count') ?></th>
+                    <th><?= Yii::t('app', 'Paid') ?></th>
+                    <th><?= Yii::t('app', 'Payment type') ?></th>
+                    <th><?= Yii::t('app', 'Payment comment') ?></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                    /** @var BookOrderPositionItem $item */
+                    foreach($model->getBookOrderPositionItems()->andWhere(['visible' => 1])->all() ?? [] as $item) { ?>
+                    <tr>
+                        <td><?= $item->student_name ?></td>
+                        <td><?= $item->count ?></td>
+                        <td><?= $item->paid ?></td>
+                        <td>
+                            <?= $paymentTypes[$item->payment_type] ?? $item->payment_type ?>
+                        </td>
+                        <td><?= Html::encode($item->payment_comment) ?></td>
+                        <td>
+                            <?= Html::a(
+                                    Html::tag('i', null, ['class' => 'fa fa-edit', 'aria-hidden' => 'true']),
+                                    'javascript:void(0)',
+                                    [
+                                        'class' => 'js--edit-student-row',
+                                        'data-item' => [
+                                            'id' => $item->id,
+                                            'student_id' => $item->student_id,
+                                            'student_name' => $item->student_name,
+                                            'count' => $item->count,
+                                            'payment_type' => $item->payment_type,
+                                            'payment_comment' => $item->payment_comment,
+                                        ],
+                                        'data-url' => Url::to(['book-order-position/change-items', 'id' => $model->id, 'itemId' => $item->id, 'action' => 'update']),
+                                    ]
+                            ) ?>
+                            <?= Html::a(
+                                    Html::tag('i', null, ['class' => 'fa fa-trash', 'aria-hidden' => 'true']),
+                                    ['book-order-position/change-items', 'id' => $model->id, 'itemId' => $item->id, 'action' => 'delete'],
+                                    [
+                                        'data' => [
+                                            'confirm' => 'Вы действительно хотите удалить запись?',
+                                            'method' => 'post',
+                                        ],
+                                    ]
+                            ) ?>
+                        </td>
+                    </tr>
+                <?php } ?>
+            </tbody>
+        </table>
     </div>
 </div>
+<?php
+$js = <<< 'SCRIPT'
+$(document).ready(function() {
+    $('.js--edit-student-row').on('click', function () {
+        var _this = $(this);
+        var studentData = _this.data('item');
+        var _form = $('.js--add-or-edit-student-row:eq(0)');
+        _form.attr('action', _this.data('url'));
+        _form.find('input,select,textarea').each(function() {
+            var _this = $(this);
+            var dataKey = getPropertyNameFromInputName(_this.prop('name'));
+            _this.val(studentData[dataKey]);
+            if (studentData.hasOwnProperty('student_id') && studentData['student_id']) {
+                if (dataKey === 'student_id' && dataKey === 'student_name') {
+                    _this.prop('disabled', true);
+                }
+            }
+        });
+    });
+    $('.js--clear-student-form').on('click', function() {
+        var _this = $(this);
+        var _form = _this.closest('form');
+        _form.attr('action', _this.data('url'));
+        _form.find('input,select,textarea').each(function() {
+            $(this).val(null).prop('disabled', false);
+        });
+    });
+    
+    function getPropertyNameFromInputName($inputName) {
+        var name = $inputName.slice($inputName.indexOf('['));
+        name = name.replace('[', '');
+        name = name.replace(']', '');
+        return name;
+    }
+});
+SCRIPT;
+$this->registerJs($js);

@@ -36,13 +36,13 @@ $roleId = Yii::$app->session->get('user.ustatus');
                 <b><?= Yii::t('app', 'Total books count') ?>:</b> <?= $bookOrderCounters['total_count'] ?? 0 ?> шт.
             </div>
             <?php if (in_array((int) Yii::$app->session->get('user.ustatus'), [3, 7])) { ?>
-                <div><b>Итого (закупочная цена):</b> <?= $bookOrderCounters['total_purchase_cost'] ?? 0 ?> р.</div>
+                <div><b>Итого (закупочная цена):</b> <?= number_format($bookOrderCounters['total_purchase_cost'] ?? 0, 2, '.', ' ') ?> р.</div>
             <?php } ?>
             <div>
-                <b><?= Yii::t('app', 'Total') ?>:</b> <?= $bookOrderCounters['total_selling_cost'] ?? 0 ?> р.
+                <b><?= Yii::t('app', 'Total') ?>:</b> <?= number_format($bookOrderCounters['total_selling_cost'] ?? 0, 2, '.', ' ') ?> р.
             </div>
         </div>
-        <?php if (!empty($bookOrderCounters['positions'] ?? [])) { ?>
+        <?php if (!empty($bookOrderCounters['positions'] ?? []) && in_array($roleId, [4])) { ?>
             <h4>Позиции заказа:</h4>
             <div>
                 <?php foreach ($bookOrderCounters['positions'] ?? [] as $position) { ?>

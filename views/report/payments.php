@@ -2,18 +2,19 @@
 
 /**
  * @var yii\web\View $this
- * @var string       $end
+ * @var string|null  $end
  * @var array        $offices
- * @var string       $oid
+ * @var string|null  $oid
  * @var array        $payments
  * @var array        $reportList
- * @var string       $start
+ * @var string|null  $start
  * @var string       $userInfoBlock
  */
 
 use app\models\Moneystud;
 use app\models\Notification;
 use app\widgets\Alert;
+use app\widgets\filters\FiltersWidget;
 use yii\helpers\Html;
 use yii\widgets\Breadcrumbs;
 
@@ -30,24 +31,53 @@ $total = [
 ?>
 <div class="row row-offcanvas row-offcanvas-left report-payments">
     <?= $this->render('_sidebar', [
-        'actionUrl'     => ['report/payments'],
-        'end'           => $end,
-        'offices'       => $offices,
-        'oid'           => $oid,
-        'reportList'    => $reportList,
-        'start'         => $start,
-        'userInfoBlock' => $userInfoBlock,
+            'actionUrl'     => ['report/payments'],
+            'hints'         => [],
+            'items'         => [
+                [
+                    'name'  => 'start',
+                    'title' => 'Начало периода',
+                    'type'  => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+                    'value' => $start ?? '',
+                ],
+                [
+                    'name'  => 'end',
+                    'title' => 'Конец периода',
+                    'type'  => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+                    'value' => $end ?? '',
+                ],
+                [
+                    'name'    => 'oid',
+                    'options' => $offices ?? [],
+                    'prompt'  => Yii::t('app', '-all offices-'),
+                    'title'   => 'Офисы',
+                    'type'    => FiltersWidget::FIELD_TYPE_DROPDOWN,
+                    'value'   => $oid ?? '',
+                ],
+            ],
+            'reportList'    => $reportList,
+            'userInfoBlock' => $userInfoBlock,
     ]) ?>  
     <div class="col-xs-12 col-sm-10">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
-        <?= Breadcrumbs::widget([
-            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
-        ]); ?>
-        <?php } ?>
+        <?php if (Yii::$app->params['appMode'] === 'bitrix') {
+            try {
+                echo Breadcrumbs::widget([
+                    'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+                ]);
+            } catch (Exception $e) {
+                echo Html::tag('div', 'Не удалось отобразить виджет. ' . $e->getMessage(), ['class' => 'alert alert-danger']);
+            }
+        } ?>
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
-        <?= Alert::widget() ?>
+        <?php
+            try {
+                echo Alert::widget();
+            } catch (Exception $e) {
+                echo Html::tag('div', 'Не удалось отобразить виджет. ' . $e->getMessage(), ['class' => 'alert alert-danger']);
+            }
+        ?>
         <?php foreach ($payments ?? [] as $officeId => $office) { ?>
             <div>
                 <h3>

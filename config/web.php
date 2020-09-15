@@ -55,7 +55,7 @@ $config = [
             'targets' => [
                 'file' => [
                         'class' => 'yii\log\FileTarget',
-                        'levels' => ['error', 'warning','profile'],
+                        'levels' => ['error', 'warning'],
                     ],
                 ],
             ],
@@ -76,14 +76,15 @@ $config = [
             'showScriptName' => false,
             'enablePrettyUrl' => true,
             'rules' => [
-                '/schedule'                                  => '/schedule/index',
-                '/schedule/<action>'                         => '/schedule/index',
-                '/api/schedule/<tag>'                        => '/schedule/api-<tag>',
-                '/api/user/<tag>'                            => '/user/api-<tag>',
-                '/api/references/<tag>'                      => '/references/api-<tag>',
-                '/api/references/list/<name:\w+>'            => '/references/api-list',
-                '/api/references/create/<name:\w+>'          => '/references/api-create',
-                '/api/references/delete/<name:\w+>/<id:\d+>' => '/references/api-delete',
+                'schedule'                                     => 'schedule/index',
+                'schedule/<action:[\w-]+>'                     => 'schedule/index',
+                'api/schedule/<tag>'                           => 'schedule/api-<tag>',
+                'api/user/<tag>'                               => 'user/api-<tag>',
+                'api/references/<tag>'                         => 'references/api-<tag>',
+                'api/references/list/<name:\w+>'               => 'references/api-list',
+                'api/references/create/<name:\w+>'             => 'references/api-create',
+                'api/references/delete/<name:\w+>/<id:\d+>'    => 'references/api-delete',
+                '<controller:[\w-]+>/<action:[\w-]+>/<id:\d+>' => '<controller>/<action>',
             ]
         ],
     ],
@@ -91,10 +92,13 @@ $config = [
     'params' => $params,
 ];
 
-if (YII_ENV === 'dev') {
+if (YII_DEBUG === true) {
     $config['bootstrap'][] = 'debug';
     $config['modules']['debug']['class'] = 'yii\debug\Module';
     $config['modules']['debug']['allowedIPs'] = ['*'];
+}
+
+if (YII_ENV === 'dev') {
     $config['components']['assetManager']['forceCopy'] = true;
 }
 

@@ -9,6 +9,7 @@ use app\models\Service;
 use app\models\Studjournalgroup;
 use app\models\Teacher;
 use yii\data\ActiveDataProvider;
+use yii\db\Query;
 
 class LessonSearch extends Journalgroup
 {
@@ -20,6 +21,11 @@ class LessonSearch extends Journalgroup
     public $teacherName;
     /* @var string */
     public $groupName;
+    /* @var int */
+    public $officeId;
+
+    /** @var Query */
+    private $query;
 
     /**
      * @inheritdoc
@@ -27,9 +33,8 @@ class LessonSearch extends Journalgroup
     public function rules()
     {
         return [
-            [['id'], 'integer'],
-            [['teacherName', 'groupName'], 'string'],
-            [['date'], 'safe'],
+            [['id', 'officeId'], 'integer'],
+            [['teacherName', 'groupName', 'date'], 'string'],
         ];
     }
 
@@ -43,6 +48,7 @@ class LessonSearch extends Journalgroup
             'date'        => Yii::t('app', 'Date'),
             'groupName'   => Yii::t('app', 'Group'),
             'teacherName' => Yii::t('app', 'Teacher'),
+            'officeId'    => Yii::t('app', 'Office'),
         ];
     }
 
@@ -59,6 +65,12 @@ class LessonSearch extends Journalgroup
 
         $this->load($params);
 
+        if ((int)Yii::$app->session->get('user.ustatus') === 4) {
+            if (!isset($params['LessonSearch']['officeId'])) {
+                $this->officeId = (int)Yii::$app->session->get('user.uoffice_id');
+            }
+        }
+
         $groupId = NULL;
         $groupName = NUll;
         if ((int)$this->groupName > 0) {
@@ -67,16 +79,18 @@ class LessonSearch extends Journalgroup
             $groupName = $this->groupName;
         }
 
-        $query = (new \yii\db\Query())
+        $query = (new Query())
             ->select([
                 'id'          => "{$lt}.id",
+                'type'        => "{$lt}.type",
                 'date'        => "{$lt}.data",
                 'teacherId'   => "{$lt}.calc_teacher",
-                'teacherName' => "t.name",
+                'teacherName' => "{$tt}.name",
                 'subject'     => "{$lt}.description",
                 'hometask'    => "{$lt}.homework",
                 'groupId'     => "{$lt}.calc_groupteacher",
-                'groupName'   => "s.name",
+                'groupName'   => "{$st}.name",
+                'officeId'    => "{$gt}.calc_office"
             ])
             ->from([$lt => static::tableName()])
             ->innerJoin([$tt => Teacher::tableName()], "{$tt}.id = {$lt}.calc_teacher")
@@ -84,8 +98,9 @@ class LessonSearch extends Journalgroup
             ->innerJoin([$st => Service::tableName()], "{$st}.id = {$gt}.calc_service");
             if ($options['clientId'] ?? false) {
                 $query->addSelect([
-                        'comments' => "{$sjt}.comments",
-                        'status'   => "{$sjt}.calc_statusjournal",
+                        'comments'  => "{$sjt}.comments",
+                        'successes' => "{$sjt}.successes",
+                        'status'    => "{$sjt}.calc_statusjournal",
                     ])
                     ->innerJoin(
                         [$sjt => Studjournalgroup::tableName()],
@@ -98,20 +113,22 @@ class LessonSearch extends Journalgroup
         $query->where(["{$lt}.visible" => 1]);
 
         if ($this->validate()) {
-            $query->andFilterWhere(["{$lt}.id" => $this->id])
-                ->andFilterWhere(['like', "{$tt}.name", $this->teacherName])
-                ->andFilterWhere(["{$gt}.id" => $groupId])
-                ->andFilterWhere(['like', "{$st}.name", $groupName]);
-            if ($this->date) {
-                $query->andFilterWhere(['like', "DATE_FORMAT({$lt}.data, \"%d.%m.%Y\")", $this->date]);
-            } else if (($params['end'] ?? null) && ($params['start'] ?? null)) {
+            $query->andFilterWhere(["{$lt}.id" => $this->id]);
+            $query->andFilterWhere(['like', "{$tt}.name", $this->teacherName]);
+            $query->andFilterWhere(["{$gt}.id" => $groupId]);
+            $query->andFilterWhere(['like', "{$st}.name", $groupName]);
+            $query->andFilterWhere(['like', "DATE_FORMAT({$lt}.data, \"%d.%m.%Y\")", $this->date]);
+            if (($params['end'] ?? false) && ($params['start'] ?? false)) {
                 $query->andFilterWhere(['>=', "{$lt}.data", $params['start']]);
                 $query->andFilterWhere(['<=', "{$lt}.data", $params['end']]);
             }
+            $query->andFilterWhere(["{$gt}.calc_office" => $this->officeId]);
         } else {
             $query->andWhere('0 = 1');
         }
-        
+
+        $this->query = $query;
+
         return new ActiveDataProvider([
             'query' => $query,
             'pagination' => [
@@ -129,5 +146,31 @@ class LessonSearch extends Journalgroup
                 ],
             ],
         ]);
+    }
+
+    /**
+     * @return array
+     */
+    public function getAttendanceStatistics()
+    {
+        $lt  = 'l';
+        $sjt = 'sj';
+
+        $query = clone $this->query;
+        $query->innerJoin([$sjt => Studjournalgroup::tableName()], "{$lt}.id = {$sjt}.calc_journalgroup");
+        $query->andWhere(["{$sjt}.calc_statusjournal" => Journalgroup::STUDENT_STATUS_PRESENT]);
+
+        $presentQuery = clone $query;
+        $presentQuery->select("COUNT({$sjt}.calc_studname) as present");
+        $present = $presentQuery->one() ?? 0;
+
+        $presentRealQuery = clone $query;
+        $presentRealQuery->select("COUNT(DISTINCT {$sjt}.calc_studname) as present");
+        $presentReal = $presentRealQuery->one() ?? 0;
+
+        return [
+            'present'     => $present['present'] ?? 0,
+            'presentReal' => $presentReal['present'] ?? 0,
+        ];
     }
 }

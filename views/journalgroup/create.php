@@ -1,23 +1,24 @@
 <?php
 
+/**
+ * @var View         $this
+ * @var Journalgroup $model
+ * @var array        $teachers
+ * @var array        $groupInfo
+ * @var array        $items
+ * @var array        $params
+ * @var int          $roleId
+ * @var array        $students
+ * @var array        $timeHints
+ * @var int          $userId
+ * @var string       $userInfoBlock
+ */
+
 use app\widgets\Alert;
 use app\models\Journalgroup;
 use yii\helpers\Html;
+use yii\web\View;
 use yii\widgets\Breadcrumbs;
-
-/**
- * @var yii\web\View $this
- * @var Journalgroup $model
- * @var array  $teachers
- * @var array  $groupInfo
- * @var array  $items
- * @var array  $params
- * @var int    $roleId
- * @var array  $students
- * @var array  $timeHints
- * @var int    $userId
- * @var string $userInfoBlock
- */
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Add lesson');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Group') . ' №' . $params['gid'], 'url' => ['groupteacher/view', 'id' => $params['gid']]];
@@ -62,12 +63,12 @@ foreach($groupInfo as $key => $value) {
 
         <h4><?= Yii::t('app', 'Add lesson to journal of group') . ' #'. $params['gid'] ?></h4>
         <?= $this->render('_form', [
-            'model'     => $model,
-            'roleId'    => $roleId,
-            'students'  => $students,
-            'teachers'  => $teachers,
-            'timeHints' => $timeHints,
-            'userId'    => $userId,
+                'model'     => $model,
+                'roleId'    => $roleId,
+                'students'  => $students,
+                'teachers'  => $teachers,
+                'timeHints' => $timeHints,
+                'userId'    => $userId,
         ]) ?>
     </div>
 </div>
