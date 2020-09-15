@@ -293,7 +293,8 @@ class GroupteacherController extends Controller
 		$tmp_levels = (new \yii\db\Query())
 		->select('id, name')
 		->from('calc_edulevel')
-        ->where('visible=:one', [':one' => 1])
+                ->where('visible=:one', [':one' => 1])
+                ->orderBy(['name' => SORT_ASC])
 		->all();
 
         $tmp = [];
@@ -311,6 +312,7 @@ class GroupteacherController extends Controller
 		->select('id, name')
 		->from('calc_office')
 		->where('visible=:one', [':one' => 1])
+                ->orderBy(['name' => SORT_ASC])
 		->all();
 
         $tmp = [];

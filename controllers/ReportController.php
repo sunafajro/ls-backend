@@ -635,6 +635,7 @@ class ReportController extends Controller
         ->from('calc_office')
         ->where('visible=1')
         ->andWhere(['not in','id',['20','17','15','14','13']])
+        ->orderBy(['name' => SORT_ASC])
         ->all();
         #endregion
             
