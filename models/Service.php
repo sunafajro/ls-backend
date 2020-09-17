@@ -196,7 +196,7 @@ class Service extends \yii\db\ActiveRecord
                'id'        => 's.id',
                'name'      => 's.name',
                'studentId' => 'is.calc_studname',
-               'num'       => 'SUM(is.num)',
+               'num'       => new \yii\db\Expression('SUM(CASE WHEN is.visible = 1 THEN is.num ELSE 0 END)'),
             ])
             ->distinct()
             ->from(['s' => Service::tableName()])
@@ -206,7 +206,6 @@ class Service extends \yii\db\ActiveRecord
                     Invoicestud::TYPE_NORMAL,
                     Invoicestud::TYPE_NETTING
                 ],
-                'is.visible' => 1,
                 'is.calc_studname' => $studentIds,
             ])
             ->andFilterWhere(['s.id' => $serviceId])

@@ -379,9 +379,8 @@ class Student extends ActiveRecord
     {
         $services = Service::getStudentServicesByInvoices([$this->id], $serviceId);
         if (!empty($services)) {
-            $i = 0;
             // распечатываем массив
-            foreach($services as $service){
+            foreach($services as $i => $service){
                 // запрашиваем из базы колич пройденных уроков
                 $lessons = (new \yii\db\Query())
                 ->select('COUNT(sjg.id) AS cnt')
@@ -408,7 +407,6 @@ class Student extends ActiveRecord
                 } else {
                     $services[$i]['npd'] = 'none';
                 }
-                $i++;
             }
         }
 
