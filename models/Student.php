@@ -6,8 +6,10 @@ use Yii;
 use app\traits\StudentMergeTrait;
 use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
+use yii\db\Expression;
 use yii\db\Query;
 use yii\helpers\ArrayHelper;
+use yii\helpers\Html;
 
 /**
  * This is the model class for table "calc_studname".
@@ -35,13 +37,22 @@ use yii\helpers\ArrayHelper;
  * @property string  $description
  * @property string  $settings
  * 
- * @property Contract[]   $contracts
- * @property ClientAccess $studentLogin
+ * @property Contract[]    $contracts
+ * @property ClientAccess  $studentLogin
+ * @property Invoicestud[] $invoices
+ * @property Moneystud[]   $payments
  */
 class Student extends ActiveRecord
 {
-
     use StudentMergeTrait;
+
+    const DETAIL_TYPE_INVOICES                  = 1;
+    const DETAIL_TYPE_PAYMENTS                  = 2;
+    const DETAIL_TYPE_INVOICES_PAYMENTS         = 3; // по умолчанию
+    const DETAIL_TYPE_LESSONS                   = 4;
+    const DETAIL_TYPE_INVOICES_LESSONS          = 5;
+    const DETAIL_TYPE_PAYMENTS_LESSONS          = 6;
+    const DETAIL_TYPE_INVOICES_PAYMENTS_LESSONS = 7;
 
     /**
      * @inheritdoc
@@ -95,20 +106,59 @@ class Student extends ActiveRecord
         ];
     }
 
+    /**
+     * Список типов отчета детализации
+     *
+     * @return array
+     */
+    public static function getDetailTypes()
+    {
+        return [
+            self::DETAIL_TYPE_INVOICES                  => Yii::t('app', 'Invoices'),
+            self::DETAIL_TYPE_PAYMENTS                  => Yii::t('app', 'Payments'),
+            self::DETAIL_TYPE_INVOICES_PAYMENTS         => Yii::t('app', 'Invoices/Payments'),
+            self::DETAIL_TYPE_LESSONS                   => Yii::t('app', 'Lessons'),
+            self::DETAIL_TYPE_INVOICES_LESSONS          => Yii::t('app', 'Invoices/Lessons'),
+            self::DETAIL_TYPE_PAYMENTS_LESSONS          => Yii::t('app', 'Payments/Lessons'),
+            self::DETAIL_TYPE_INVOICES_PAYMENTS_LESSONS => Yii::t('app', 'Invoices/Payments/Lessons'),
+        ];
+    }
+
+    /**
+     * @return ActiveQuery
+     */
     public function getContracts() : ActiveQuery
     {
         return $this->hasMany(Contract::class, ['student_id' => 'id'])->andWhere(['visible' => 1]);
     }
 
+    /**
+     * @return ActiveQuery
+     */
     public function getStudentLogin(): ActiveQuery
     {
         return $this->hasOne(ClientAccess::class, ['calc_studname' => 'id']);
     }
 
     /**
+     * @return ActiveQuery
+     */
+    public function getInvoices()
+    {
+        return $this->hasMany(Invoicestud::class, ['calc_studname' => 'id']);
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getPayments()
+    {
+        return $this->hasMany(Moneystud::class, ['calc_studname' => 'id']);
+    }
+
+    /**
      *  метод возвращает сумму по счетам выставленным клиенту
      */
-
     public function getStudentTotalInvoicesSum()
     {
         $invoices_sum = (new Query())
@@ -178,80 +228,214 @@ class Student extends ActiveRecord
     }
 
     /**
-     *  метод отдает список студентов в виде одномерного массива
+     * Подсчет результата для итоговой колонки таблицы детализации
+     * @param array  $detailData
+     * @param string $column
+     * @param bool   $moneyFormat
+     *
+     * @return string
      */
-    public static function getStudetnsListSimple()
+    public static function calculateDetailTotal(array $detailData, string $column, bool $moneyFormat = false)
     {
-        $students = [];
-        $students_obj = Student::find()->select(['id' => 'id', 'name' => 'name'])->where('visible=:one', [':one' => 1])->orderby(['id'=>SORT_ASC])->all();
-        foreach($students_obj as $s) {
-            $students[$s->id] = '#' . $s->id . ' ' . $s->name;
-        }
-
-        return $students;
-    }
-
-    public static function getStudentDetailsColumns()
-    {
-        return [
-            [
-                'id' => 'id',
-                'name' => '№',
-                'show' => false                            
-            ],
-            [
-                'id' => 'date',
-                'name' => Yii::t('app', 'Date'),
-                'show' => true
-            ],
-            [
-                'id' => 'type',
-                'name' => Yii::t('app', 'Type'),
-                'show' => true
-            ],
-            [
-                'id' => 'name',
-                'name' => Yii::t('app', 'Name'),
-                'show' => true
-            ],
-            [
-                'id' => 'num',
-                'name' => Yii::t('app', 'Count'),
-                'show' => true
-            ],
-            [
-                'id' => 'sum',
-                'name' => Yii::t('app', 'Sum'),
-                'show' => true
-            ],
-            [
-                'id' => 'receipt',
-                'name' => Yii::t('app', 'Receipt'),
-                "show" => true
-            ]
+        $result = [
+            'invoice' => 0,
+            'payment' => 0,
+            'lesson'  => 0,
         ];
-    }
-
-    public static function getStudentDetailsRows($id = null)
-    {
-        $result = [];
-        if ($id) {
-            $invoises = Invoicestud::getStudentInvoiceByIdBrief($id);
-            $payments = Moneystud::getStudentPaymentByIdBrief($id);
-            $result = array_merge($payments, $invoises);
-            // сортируем по двум колонкам
-            $date = [];
-            $name = [];
-            foreach($result as $key => $row) {
-                $date[$key] = isset($row['date']) ? $row['date'] : '';
-                $name[$key] = isset($row['name']) ? $row['name'] : '';
-                $result[$key]['type'] = isset($row['name']) && isset($row['num']) ? 'счёт' : 'оплата';
+        foreach ($detailData as $row) {
+            if (in_array($row['type'], ['invoice', 'payment', 'lesson']) && $row[$column] !== '') {
+                $result[$row['type']] += $row[$column] ?? 0;
             }
-            array_multisort($date, SORT_DESC, $name, SORT_ASC, $result);
         }
-        return $result;
+
+        $str = [];
+        if ($column === 'num') {
+            $str[] = Html::tag('b', 'по счетам:') . ' +' . $result['invoice'];
+            $str[] = Html::tag('b', 'по журналам:') . ' -' . $result['lesson'];
+            $str[] = Html::tag('b', 'итог:') . ' ' . ($result['invoice'] - $result['lesson']);
+        } else if ($column === 'sum') {
+            $str[] = Html::tag('b', 'по счетам:') . ' -' . ($moneyFormat
+                    ? number_format($result['invoice'], 2, ',', ' ')
+                    : $result['invoice']
+                );
+            $str[] = Html::tag('b', 'по оплатам:') . ' +' . ($moneyFormat
+                    ? number_format($result['payment'], 2, ',', ' ')
+                    : $result['payment']
+                );
+            $str[] = Html::tag('b', 'итог:') . ' ' . ($moneyFormat
+                    ? number_format(($result['payment'] - $result['invoice']), 2, ',', ' ')
+                    : ($result['payment'] - $result['invoice'])
+                );
+        }
+        return join('<br />', $str);
     }
 
+    /**
+     * Возвращает данные для построения таблицы детализации
+     * Тип:
+     *     2 - Счета + оплаты,
+     *     5 - Счета + занятия,
+     *     7 - Счета + оплаты + занятия
+     * Фильтры:
+     *     start   string - дата начала (по умолчанию null)
+     *     end     string - дата окончания (по умолчанию null)
+     *     service int - услуга (по умолчанию null)
+     * @param int   $type
+     * @param array $filters
+     * @param bool  $withTotal
+     *
+     * @return array
+     */
+    public function getDetails(int $type, array $filters = [], bool $withTotal = false)
+    {
+        $startOfYear = null;
+        $endOfYear   = null;
+        $service     = null;
+        if (isset($filters['start']) && $filters['start']) {
+            $startOfYear = $filters['start'];
+        }
+        if (isset($filters['end']) && $filters['end']) {
+            $endOfYear = $filters['end'];
+        }
+        if (isset($filters['service']) && $filters['service']) {
+            $service = $filters['service'];
+        }
+
+        $query = null;
+        switch ($type) {
+            case self::DETAIL_TYPE_INVOICES:
+                $query = $this->getDetailInvoicesQuery($startOfYear, $endOfYear, $service);
+                break;
+            case self::DETAIL_TYPE_PAYMENTS:
+                $query = $this->getDetailPaymentsQuery($startOfYear, $endOfYear);
+                break;
+            case self::DETAIL_TYPE_LESSONS:
+                $query = $this->getDetailLessonsQuery($startOfYear, $endOfYear, $service);
+                break;
+            case self::DETAIL_TYPE_INVOICES_LESSONS:
+                $invoices = $this->getDetailInvoicesQuery($startOfYear, $endOfYear, $service);
+                $lessons = $this->getDetailLessonsQuery($startOfYear, $endOfYear, $service);
+                $query = $invoices->union($lessons);
+                break;
+            case self::DETAIL_TYPE_PAYMENTS_LESSONS:
+                $payments = $this->getDetailPaymentsQuery($startOfYear, $endOfYear);
+                $lessons = $this->getDetailLessonsQuery($startOfYear, $endOfYear, $service);
+                $query = $payments->union($lessons);
+                break;
+            case self::DETAIL_TYPE_INVOICES_PAYMENTS_LESSONS:
+                $invoices = $this->getDetailInvoicesQuery($startOfYear, $endOfYear, $service);
+                $payments = $this->getDetailPaymentsQuery($startOfYear, $endOfYear);
+                $lessons = $this->getDetailLessonsQuery($startOfYear, $endOfYear, $service);
+                $query = $invoices->union($payments)->union($lessons);
+                break;
+            default:
+                $invoices = $this->getDetailInvoicesQuery($startOfYear, $endOfYear, $service);
+                $payments = $this->getDetailPaymentsQuery($startOfYear, $endOfYear);
+                $query = $invoices->union($payments);
+        }
+
+        return (new Query())->from($query)->orderBy(['date' => SORT_DESC])->all();
+    }
+
+    /**
+     * @param string|null $startOfYear
+     * @param string|null $endOfYear
+     * @param int|null    $service
+     *
+     * @return Query
+     */
+    public function getDetailInvoicesQuery(string $startOfYear = null, string $endOfYear = null, int $service = null) : Query
+    {
+        return (new Query())
+            ->select([
+                'id' => 'i.id',
+                'date' => 'i.data',
+                'type' => new Expression("('invoice')"),
+                'name' => new Expression("CONCAT('#', s.id, ' ', s.name)"),
+                'num' => 'i.num',
+                'sum' => 'i.value',
+                'comment' => new Expression("('')"),
+            ])
+            ->from(['i' => Invoicestud::tableName()])
+            ->innerJoin(['s' => Service::tableName()],'i.calc_service = s.id')
+            ->where([
+                'i.remain' => [
+                    Invoicestud::TYPE_NORMAL,
+                    Invoicestud::TYPE_NETTING
+                ],
+                'i.calc_studname' => $this->id,
+                'i.visible' => 1
+            ])
+            ->andFilterWhere(['>=', 'i.data', $startOfYear])
+            ->andFilterWhere(['<=', 'i.data', $endOfYear])
+            ->andFilterWhere(['s.id' => $service]);
+    }
+
+    /**
+     * @param string|null $startOfYear
+     * @param string|null $endOfYear
+     * @return Query
+     */
+    public function getDetailPaymentsQuery(string $startOfYear = null, string $endOfYear = null) : Query
+    {
+        return (new Query())
+            ->select([
+                'id'      => 'm.id',
+                'date'    => 'm.data',
+                'type'    => new Expression("('payment')"),
+                'name'    => new Expression("('')"),
+                'num'     => new Expression("('')"),
+                'sum'     => 'm.value',
+                'comment' => 'm.receipt'
+            ])
+            ->from(['m' => Moneystud::tableName()])
+            ->where([
+                'm.calc_studname' => $this->id,
+                'm.visible' => 1
+            ])
+            ->andFilterWhere(['>=', 'm.data', $startOfYear])
+            ->andFilterWhere(['<=', 'm.data', $endOfYear]);
+    }
+
+    /**
+     * @param string|null $startOfYear
+     * @param string|null $endOfYear
+     * @param int |null   $service
+     * @return Query
+     */
+    public function getDetailLessonsQuery(string $startOfYear = null, string $endOfYear = null, int $service = null) : Query
+    {
+        return (new Query())
+            ->select([
+                'id' => 'l.id',
+                'date' => "l.data",
+                'type' => new Expression("('lesson')"),
+                'name' => new Expression("CONCAT('#', s.id, ' ', s.name)"),
+                'num' => new Expression("('1')"),
+                'sum' => new Expression("('')"),
+                'comment' => new Expression("('')"),
+            ])
+            ->from(['l' => Journalgroup::tableName()])
+            ->innerJoin(['sl' => Studjournalgroup::tableName()], 'sl.calc_journalgroup = l.id')
+            ->innerJoin(['g' => Groupteacher::tableName()], 'l.calc_groupteacher = g.id')
+            ->innerJoin(['s' => Service::tableName()], 'g.calc_service = s.id')
+            ->andWhere([
+                'l.visible' => 1,
+                'l.view'    => 1,
+                'sl.calc_statusjournal' => [
+                    Journalgroup::STUDENT_STATUS_PRESENT,
+                    Journalgroup::STUDENT_STATUS_ABSENT_UNWARNED,
+                ],
+                'sl.calc_studname' => $this->id,
+            ])
+            ->andFilterWhere(['>=', 'l.data', $startOfYear])
+            ->andFilterWhere(['<=', 'l.data', $endOfYear])
+            ->andFilterWhere(['s.id' => $service]);
+    }
+
+    /**
+     * @return array
+     */
     public function getStudentOffices()
     {
         return (new Query())
@@ -263,6 +447,9 @@ class Student extends ActiveRecord
         ->all();
     }
 
+    /**
+     * @return array
+     */
     public function getStudentSales() : array
     {
         return (new Query())
@@ -289,6 +476,10 @@ class Student extends ActiveRecord
             ->all();
     }
 
+    /**
+     * @param array $params
+     * @return array
+     */
     public function getStudentAvailabelSales(array $params) : array
     {
         $search = $params['term'] ?? NULL;
@@ -330,9 +521,13 @@ class Student extends ActiveRecord
         return $sales;
     }
 
+    /**
+     * @param string|null $office
+     * @return float
+     */
     public static function getDebtsTotalSum(string $office = null) : float
     {
-        $debt = (new \yii\db\Query())
+        $debt = (new Query())
         ->select(['debt' => 's.debt'])
         ->from(['s' => Student::tableName()]);
         if ($office) {
@@ -351,6 +546,10 @@ class Student extends ActiveRecord
         return $result ?? 0;
     }
 
+    /**
+     * @param string|null $term
+     * @return array
+     */
     public static function getStudentsAutocomplete(string $term = NULL) : array
     {
         $whereClause = ['like', 'name', $term];
@@ -382,7 +581,7 @@ class Student extends ActiveRecord
             // распечатываем массив
             foreach($services as $i => $service){
                 // запрашиваем из базы колич пройденных уроков
-                $lessons = (new \yii\db\Query())
+                $lessons = (new Query())
                 ->select('COUNT(sjg.id) AS cnt')
                 ->from(['sjg' => Studjournalgroup::tableName()])
                 ->leftjoin(['gt' => Groupteacher::tableName()], 'sjg.calc_groupteacher = gt.id')
@@ -428,7 +627,7 @@ class Student extends ActiveRecord
      */
     public function getReceivedSuccessesCount() : int
     {
-        $count = (new \yii\db\Query())
+        $count = (new Query())
             ->select(['successes' => 'SUM(sjg.successes)'])
             ->from(['sjg' => Studjournalgroup::tableName()])
             ->innerJoin(['jg' => Journalgroup::tableName()], 'jg.id = sjg.calc_journalgroup')
@@ -448,7 +647,7 @@ class Student extends ActiveRecord
      */
     public function getSpendSuccessesCount() : int
     {
-        $count = (new \yii\db\Query())
+        $count = (new Query())
             ->select(['successes' => 'SUM(ss.count)'])
             ->from(['ss' => SpendSuccesses::tableName()])
             ->andWhere([
@@ -462,7 +661,7 @@ class Student extends ActiveRecord
 
     public function getSpendSuccessesHistory()
     {
-        return (new \yii\db\Query())
+        return (new Query())
             ->select([
                 'count' => 'ss.count',
                 'cause' => 'ss.cause',

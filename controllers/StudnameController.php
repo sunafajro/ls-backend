@@ -19,6 +19,7 @@ use app\models\StudentCommission;
 use app\models\StudentMergeForm;
 use app\models\Studjournalgroup;
 use app\models\User;
+use yii\base\Action;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
@@ -46,7 +47,7 @@ class StudnameController extends Controller
         ];
         return [
             'access' => [
-                'class' => AccessControl::className(),
+                'class' => AccessControl::class,
                 'only' => $rules,
                 'rules' => [
                     [
@@ -62,7 +63,7 @@ class StudnameController extends Controller
                 ],
             ],
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'change-office'   => ['post'],
                     'update-debt'     => ['post'],
@@ -73,7 +74,7 @@ class StudnameController extends Controller
     }
 
     /**
-     * @param \yii\base\Action $action
+     * @param Action $action
      * @return bool
      * @throws BadRequestHttpException
      * @throws ForbiddenHttpException
@@ -81,7 +82,7 @@ class StudnameController extends Controller
     public function beforeAction($action)
 	{
 		if(parent::beforeAction($action)) {
-			if (User::checkAccess($action->controller->id, $action->id) == false) {
+			if (User::checkAccess($action->controller->id, $action->id) === false) {
 				throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
 			}
 			return true;
@@ -606,23 +607,57 @@ class StudnameController extends Controller
         return $this->redirect(['index']);
     }
 
-
-    public function actionDetail($id = null)
+    /**
+     * @param int             $id
+     * @param int|null        $type
+     * @param string|null     $start
+     * @param string|null     $end
+     * @param int|string|null $service
+     *
+     * @return mixed
+     * @throws NotFoundHttpException
+     */
+    public function actionDetail(int $id, int $type = null, string $start = null, string $end = null, $service = null)
     {
-        if (Yii::$app->request->isPost) {
-            Yii::$app->response->format = Response::FORMAT_JSON;
-            return [
-                "status" => true,
-                "detailsData" => [
-                    "columns" => Student::getStudentDetailsColumns(),
-                    "rows" => Student::getStudentDetailsRows($id)
-                ]
-            ];
-        } else {
-            return $this->render('detail', [
-              'model' => $this->findModel($id)
-            ]);
+        $student = $this->findModel($id);
+
+        $params = [];
+        if (!$type) {
+            $type = Student::DETAIL_TYPE_INVOICES_PAYMENTS;
         }
+
+        $start = \DateTime::createFromFormat('Y-m-d', $start);
+        $end = \DateTime::createFromFormat('Y-m-d', $end);
+
+        if ($start && $end) {
+            $params['start'] = $start->format('Y-m-d');
+            $params['end'] = $end->format('Y-m-d');
+        } else if (!$start && $end) {
+            $params['start'] = null;
+            $params['end'] = $end->format('Y-m-d');
+        } else if ($start && !$end) {
+            $params['start'] = $start->format('Y-m-d');
+            $params['end'] = null;
+        } else {
+            $params['start'] = \DateTime::createFromFormat('Y-m-d', date('Y') . '-01-01')->format('Y-m-d');
+            $params['end'] = \DateTime::createFromFormat('Y-m-d', date('Y') . '-12-31')->format('Y-m-d');
+        }
+
+        $params['service'] = $service;
+
+        $detailData = new ArrayDataProvider([
+            'allModels'  => $student->getDetails($type, $params, true),
+            'pagination' => false,
+            'sort'       => false,
+        ]);
+
+        return $this->render('detail', [
+            'student'       => $student,
+            'detailData'    => $detailData,
+            'params'        => $params,
+            'type'          => $type,
+            'userInfoBlock' => User::getUserInfoBlock(),
+        ]);
     }
 
     public function actionMerge($id)
@@ -854,10 +889,10 @@ class StudnameController extends Controller
     }
   
     /**
-     * Finds the CalcStudname model based on its primary key value.
+     * Finds the Student model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return CalcStudname the loaded model
+     * @return Student the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
@@ -873,94 +908,94 @@ class StudnameController extends Controller
 	* Метод высчитывает долг клиента и возвращает значение
  	*/
 	
-	protected function studentDebt($id) {
-		
-		// задаем переменную в которую будет подсчитан долг по занятиям
-		$debt_lessons = 0;
-		// задаем переменную в которую будет подсчитан долг по разнице между счетами и оплатами
-		$debt_common = 0;
-		// полный долг
-		$debt = 0;
-		
-		// получаем информацию по счетам
-		$invoices_sum = (new \yii\db\Query())
-        ->select('sum(value) as money')
-        ->from('calc_invoicestud')
-		->where('visible=:vis and calc_studname=:sid', [':vis'=>1, ':sid'=>$id])
-        ->one();
-		
-		// получаем информацию по оплатам
-		$payments_sum = (new \yii\db\Query())
-        ->select('sum(value) as money')
-        ->from('calc_moneystud')
-		->where('visible=:vis and calc_studname=:sid', [':vis'=>1, ':sid'=>$id])
-        ->one();
-		
-        $model = Student::findOne($id);
-        $model->invoice = round($invoices_sum['money']);
-        $model->money = round($payments_sum['money']);
-        $model->save();
-		// считаем разницу как базовый долг
-		$debt_common = $payments_sum['money'] - $invoices_sum['money'];
-		
-		// запрашиваем услуги назначенные студенту
-		$services = (new \yii\db\Query())
-		->select('s.id as sid, s.name as sname, SUM(is.num) as num')
-		->distinct()
-		->from('calc_service s')
-		->leftjoin('calc_invoicestud is', 'is.calc_service=s.id')
-		->where('is.remain=:rem and is.visible=:vis', [':rem'=>0, ':vis'=>1])
-		->andWhere(['is.calc_studname'=>$id])
-		->groupby(['is.calc_studname','s.id'])
-		->orderby(['s.id'=>SORT_ASC])
-		->all();
-		
-		// проверяем что у студента есть назначенные услуги
-		if(!empty($services)){
-			$i = 0;
-			// распечатываем массив
-			foreach($services as $service){
-				// запрашиваем из базы колич пройденных уроков
-				$lessons = (new \yii\db\Query())
-				->select('COUNT(sjg.id) AS cnt')
-				->from('calc_studjournalgroup sjg')
-				->leftjoin('calc_groupteacher gt', 'sjg.calc_groupteacher=gt.id')
-				->leftjoin('calc_journalgroup jg', 'sjg.calc_journalgroup=jg.id')
-				->where('jg.view=:vis and jg.visible=:vis and (sjg.calc_statusjournal=:vis or sjg.calc_statusjournal=:stat) and gt.calc_service=:sid and sjg.calc_studname=:stid', [':vis'=>1, 'stat'=>3, ':sid'=>$service['sid'], ':stid'=>$id])
-				->one();
-
-				// считаем остаток уроков
-				$services[$i]['num'] = $services[$i]['num'] - $lessons['cnt'];
-				$i++;
-			}
-			// уничтожаем переменные
-			unset($service);
-			unset($lessons);
-			$arr = [];
-			foreach($services as $s) {
-                            if($s['num'] < 0){
-                                $lesson_cost = (new \yii\db\Query())
-                                ->select('(value/num) as money')
-                                ->from('calc_invoicestud')
-                                ->where('visible=:vis and calc_studname=:stid and calc_service=:sid', [':vis'=>1, ':stid'=>$id, ':sid'=>$s['sid']])
-                                ->orderby(['id'=>SORT_DESC])
-                                ->one();
-						
-                                $debt_lessons = $debt_lessons + $s['num'] * $lesson_cost['money'];
-			    }				
-			}
-		}
-		unset($services);
-		$debt = $debt_common + $debt_lessons;
-		/*if($debt < 0) {
-			$debt = ceil($debt);
-			if($debt == -0) {
-				$debt = 0;
-			}
-		} elseif($debt > 0) {
-			$debt = floor($debt);
-		}*/
-		//$debt = number_format($debt, 1, '.', ' ');
-		return round($debt);
-	}
+//	protected function studentDebt($id) {
+//
+//		// задаем переменную в которую будет подсчитан долг по занятиям
+//		$debt_lessons = 0;
+//		// задаем переменную в которую будет подсчитан долг по разнице между счетами и оплатами
+//		$debt_common = 0;
+//		// полный долг
+//		$debt = 0;
+//
+//		// получаем информацию по счетам
+//		$invoices_sum = (new \yii\db\Query())
+//        ->select('sum(value) as money')
+//        ->from('calc_invoicestud')
+//		->where('visible=:vis and calc_studname=:sid', [':vis'=>1, ':sid'=>$id])
+//        ->one();
+//
+//		// получаем информацию по оплатам
+//		$payments_sum = (new \yii\db\Query())
+//        ->select('sum(value) as money')
+//        ->from('calc_moneystud')
+//		->where('visible=:vis and calc_studname=:sid', [':vis'=>1, ':sid'=>$id])
+//        ->one();
+//
+//        $model = Student::findOne($id);
+//        $model->invoice = round($invoices_sum['money']);
+//        $model->money = round($payments_sum['money']);
+//        $model->save();
+//		// считаем разницу как базовый долг
+//		$debt_common = $payments_sum['money'] - $invoices_sum['money'];
+//
+//		// запрашиваем услуги назначенные студенту
+//		$services = (new \yii\db\Query())
+//		->select('s.id as sid, s.name as sname, SUM(is.num) as num')
+//		->distinct()
+//		->from('calc_service s')
+//		->leftjoin('calc_invoicestud is', 'is.calc_service=s.id')
+//		->where('is.remain=:rem and is.visible=:vis', [':rem'=>0, ':vis'=>1])
+//		->andWhere(['is.calc_studname'=>$id])
+//		->groupby(['is.calc_studname','s.id'])
+//		->orderby(['s.id'=>SORT_ASC])
+//		->all();
+//
+//		// проверяем что у студента есть назначенные услуги
+//		if(!empty($services)){
+//			$i = 0;
+//			// распечатываем массив
+//			foreach($services as $service){
+//				// запрашиваем из базы колич пройденных уроков
+//				$lessons = (new \yii\db\Query())
+//				->select('COUNT(sjg.id) AS cnt')
+//				->from('calc_studjournalgroup sjg')
+//				->leftjoin('calc_groupteacher gt', 'sjg.calc_groupteacher=gt.id')
+//				->leftjoin('calc_journalgroup jg', 'sjg.calc_journalgroup=jg.id')
+//				->where('jg.view=:vis and jg.visible=:vis and (sjg.calc_statusjournal=:vis or sjg.calc_statusjournal=:stat) and gt.calc_service=:sid and sjg.calc_studname=:stid', [':vis'=>1, 'stat'=>3, ':sid'=>$service['sid'], ':stid'=>$id])
+//				->one();
+//
+//				// считаем остаток уроков
+//				$services[$i]['num'] = $services[$i]['num'] - $lessons['cnt'];
+//				$i++;
+//			}
+//			// уничтожаем переменные
+//			unset($service);
+//			unset($lessons);
+//			$arr = [];
+//			foreach($services as $s) {
+//                            if($s['num'] < 0){
+//                                $lesson_cost = (new \yii\db\Query())
+//                                ->select('(value/num) as money')
+//                                ->from('calc_invoicestud')
+//                                ->where('visible=:vis and calc_studname=:stid and calc_service=:sid', [':vis'=>1, ':stid'=>$id, ':sid'=>$s['sid']])
+//                                ->orderby(['id'=>SORT_DESC])
+//                                ->one();
+//
+//                                $debt_lessons = $debt_lessons + $s['num'] * $lesson_cost['money'];
+//			    }
+//			}
+//		}
+//		unset($services);
+//		$debt = $debt_common + $debt_lessons;
+//		/*if($debt < 0) {
+//			$debt = ceil($debt);
+//			if($debt == -0) {
+//				$debt = 0;
+//			}
+//		} elseif($debt > 0) {
+//			$debt = floor($debt);
+//		}*/
+//		//$debt = number_format($debt, 1, '.', ' ');
+//		return round($debt);
+//	}
 }

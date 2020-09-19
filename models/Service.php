@@ -189,7 +189,7 @@ class Service extends \yii\db\ActiveRecord
      * 
      * @return array
      */
-    public static function getStudentServicesByInvoices(array $studentIds, array $serviceId) : array
+    public static function getStudentServicesByInvoices(array $studentIds, array $serviceId = []) : array
     {
         return (new \yii\db\Query())
             ->select([

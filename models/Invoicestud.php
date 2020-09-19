@@ -120,18 +120,6 @@ class Invoicestud extends \yii\db\ActiveRecord
         return $invoices;
     }
 
-    public static function getStudentInvoiceByIdBrief($sid)
-    {
-        $invoices = (new \yii\db\Query())
-        ->select(['id' => 'i.id', 'name' => 's.name', 'date' => 'i.data', 'num' => 'i.num', 'sum' => 'i.value'])
-        ->from('calc_invoicestud i')
-        ->leftJoin('calc_service s','i.calc_service=s.id')
-        ->where('i.calc_studname=:id AND i.visible=:one', [ 'id' => $sid, ':one' => 1])
-        ->orderBy(['i.data' => SORT_DESC])
-        ->all();
-        return $invoices;
-    }
-
     public function getInvoices(array $params = []) : array
     {
         $invoices = (new \yii\db\Query())

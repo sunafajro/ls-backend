@@ -13,7 +13,7 @@ use yii\web\View;
         <option value><?= $item['prompt'] ?? Yii::t('app', '-select-') ?></option>
         <?php foreach ($item['options'] as $key => $value) { ?>
             <option value="<?= $key ?>" <?= (int)$item['value'] === (int)$key ? 'selected' : ''?>>
-                <?= mb_substr($value, 0, 16) ?>
+                <?= $value ?>
             </option>
         <?php } ?>
     </select>
