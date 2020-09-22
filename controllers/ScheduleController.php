@@ -16,66 +16,33 @@ use yii\web\NotFoundHttpException;
 use yii\web\Response;
 use yii\filters\AccessControl;
 /**
- * ScheduleController implements the CRUD actions for CalcSchedule model.
+ * ScheduleController implements the CRUD actions for Schedule model.
  */
 class ScheduleController extends Controller
 {
-    public function behaviors()
+    /**
+     * @inheritDoc
+     */
+    public function behaviors() : array
     {
+        $rules = [
+            'api-actions', 'api-create', 'api-update',
+            'api-delete', 'api-filters', 'api-groups',
+            'api-hours', 'api-lessons', 'api-offices',
+            'api-rooms', 'api-teachers', 'index'
+        ];
         return [
             'access' => [
-                'class' => AccessControl::className(),
-                'only' => [
-                    'api-actions',
-                    'api-create',
-                    'api-update',
-                    'api-delete',
-                    'api-filters',
-                    'api-groups',
-                    'api-hours',
-                    'api-lessons',
-                    'api-offices',
-                    'api-rooms',
-                    'api-teachers',
-                    'api-update',
-                    'index'
-                ],
+                'class' => AccessControl::class,
+                'only' => $rules,
                 'rules' => [
                     [
-                        'actions' => [
-                            'api-actions',
-                            'api-create',
-                            'api-update',
-                            'api-delete',
-                            'api-filters',
-                            'api-groups',
-                            'api-hours',
-                            'api-lessons',
-                            'api-offices',
-                            'api-rooms',
-                            'api-teachers',
-                            'api-update',
-                            'index'
-                        ],
+                        'actions' => $rules,
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => [
-                            'api-actions',
-                            'api-create',
-                            'api-update',
-                            'api-delete',
-                            'api-filters',
-                            'api-groups',
-                            'api-hours',
-                            'api-lessons',
-                            'api-offices',
-                            'api-rooms',
-                            'api-teachers',
-                            'api-update',
-                            'index'
-                        ],
+                        'actions' => $rules,
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -83,7 +50,11 @@ class ScheduleController extends Controller
             ],
         ];
     }
-    public function beforeAction($action)
+
+    /**
+     * @inheritDoc
+     */
+    public function beforeAction($action) : bool
     {
         if(parent::beforeAction($action)) {
             if (User::checkAccess($action->controller->id, $action->id) == false) {
@@ -94,8 +65,10 @@ class ScheduleController extends Controller
             return false;
         }
     }
+
     /**
      * Главная страница раздела Расписание
+     *
      * @return mixed
      */
     public function actionIndex()
@@ -103,6 +76,11 @@ class ScheduleController extends Controller
         return $this->render('index');
     }
 
+    /**
+     * Действия доступные пользователю
+     *
+     * @return mixed
+     */
     public function actionApiActions()
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
@@ -110,15 +88,17 @@ class ScheduleController extends Controller
             "actions" => [
                 "create" => User::checkAccess('schedule', 'create'),
                 "delete" => User::checkAccess('schedule', 'delete'),
-                "hours" => User::checkAccess('schedule', 'hours'),
+                "hours"  => User::checkAccess('schedule', 'hours'),
                 "update" => User::checkAccess('schedule', 'update'),
-                "view" => User::checkAccess('schedule', 'index')
+                "view"   => User::checkAccess('schedule', 'index')
             ]
         ];
     }
 
     /**
      * Создание записи в расписании
+     *
+     * @return mixed
      */
     public function actionApiCreate()
     {
@@ -144,6 +124,8 @@ class ScheduleController extends Controller
     /**
      * Обновление записи в расписании
      * @param int $id
+     *
+     * @return mixed
      */
     public function actionApiUpdate($id)
     {
@@ -171,6 +153,8 @@ class ScheduleController extends Controller
     /**
      * Удаление записи из расписания
      * @param int $id
+     *
+     * @return mixed
      */
     public function actionApiDelete($id)
     {
@@ -201,6 +185,11 @@ class ScheduleController extends Controller
         }
     }
 
+    /**
+     * Фильтры доступные пользователю
+     *
+     * @return mixed
+     */
     public function actionApiFilters()
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
@@ -224,6 +213,12 @@ class ScheduleController extends Controller
         ];
     }
 
+    /**
+     * @param int|null $oid
+     * @param int|null $tid
+     *
+     * @return mixed
+     */
     public function actionApiHours($oid = NULL, $tid = NULL)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
@@ -238,6 +233,15 @@ class ScheduleController extends Controller
         ];
     }
 
+    /**
+     * @param int|null $aid
+     * @param int|null $did
+     * @param int|null $fid
+     * @param int|null $lid
+     * @param int|null $oid
+     * @param int|null $tid
+     * @return mixed
+     */
     public function actionApiLessons($aid = NULL, $did = NULL, $fid = NULL, $lid = NULL, $oid = NULL, $tid = NULL)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
@@ -256,6 +260,11 @@ class ScheduleController extends Controller
         ];
     }
 
+    /**
+     * @param int $tid
+     *
+     * @return mixed
+     */
     public function actionApiGroups($tid)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
@@ -265,8 +274,11 @@ class ScheduleController extends Controller
         return [
             'groups' => $tool->prepareDataForSelectElement($groups)
         ];
-    }    
+    }
 
+    /**
+     * @return mixed
+     */
     public function actionApiOffices()
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
@@ -275,6 +287,11 @@ class ScheduleController extends Controller
         ];
     }
 
+    /**
+     * @param int $oid
+     *
+     * @return mixed
+     */
     public function actionApiRooms($oid)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
@@ -286,6 +303,11 @@ class ScheduleController extends Controller
         ];
     }
 
+    /**
+     * @param int|null $tid
+     * 
+     * @return mixed
+     */
     public function actionApiTeachers($tid = NULL)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;

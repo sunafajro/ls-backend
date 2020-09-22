@@ -125,6 +125,12 @@ class Schedule extends \yii\db\ActiveRecord
                     'show' => true
                 ],
                 [
+                    'id' => 'roomId',
+                    'style' => '',
+                    'title' => Yii::t('app', 'Room Id'),
+                    'show' => false
+                ],
+                [
                     'id' => 'room',
                     'style' => 'width: 10%',
                     'title' => Yii::t('app', 'Room'),
@@ -320,6 +326,7 @@ class Schedule extends \yii\db\ActiveRecord
             'officeId'  => 'sd.calc_office',
             'office'    => 'o.name',
             'day'       => 'sd.calc_denned',
+            'roomId'    => 'r.id',
             'room'      => 'r.name',
             'time'      => 'CONCAT(SUBSTR(sd.time_begin, 1, 5)," - ",SUBSTR(sd.time_end, 1, 5))',
             'teacherId' => 't.id',
