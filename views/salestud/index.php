@@ -1,4 +1,13 @@
 <?php
+/**
+ * @var View                  $this
+ * @var ActiveDataProvider    $dataProvider
+ * @var Salestud              $model
+ * @var Student               $student
+ * @var StudentDiscountSearch $searchModel
+ * @var array                 $sales
+ * @var string                $userInfoBlock
+ */
 
 use app\models\Sale;
 use app\models\Salestud;
@@ -10,16 +19,6 @@ use yii\grid\GridView;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\Breadcrumbs;
-
-/**
- * @var ActiveDataProvider    $dataProvider
- * @var Salestud              $model
- * @var Student               $student
- * @var StudentDiscountSearch $searchModel
- * @var View                  $this
- * @var array                 $sales
- * @var string                $userInfoBlock
- */
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Approve discounts');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Discounts'), 'url' => ['sale/index']];
@@ -64,7 +63,33 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Approve discounts');
                     'attribute' => 'student',
                     'format'    => 'raw',
                     'value'     => function (array $discount) {
-                        return Html::a($discount['student'], ['studname/view', 'id' => $discount['studentId']]);
+                        /** @var Student|null $student */
+                        $student = Student::find()->andWhere(['id' => $discount['studentId']])->one();
+                        $sales = [];
+                        foreach ($student->getStudentSales() as $sale) {
+                            if ((int)$discount['id'] !== (int)$sale['id']) {
+                                $sales[] = "{$sale['name']}";
+                            }
+                        }
+                        $elementId = "js--student-sales-collapse-{$discount['studentId']}-{$discount['id']}";
+                        $result = [
+                            Html::tag(
+                                    'div',
+                                Html::a(Html::tag('i', '', ['class' => 'fa fa-user']), ['studname/view', 'id' => $discount['studentId']], ['title' => 'Перейти в профиль'])
+                                . ' '
+                                . (!empty($sales)
+                                    ? Html::a($discount['student'], "#{$elementId}", ['role' => 'button', 'data-toggle' => 'collapse', 'expanded' => 'false', 'aria-controls' => $elementId])
+                                    : $discount['student'])
+                            ),
+                            !empty($sales)
+                                ? Html::tag(
+                                        'div',
+                                        Html::tag('div', join(Html::tag('br'), $sales), ['class' => 'well small', 'style' => 'margin-bottom:0;padding:5px']),
+                                        ['class' => 'collapse', 'id' => $elementId]
+                                  )
+                                : '',
+                        ];
+                        return join('', $result);
                     }
                 ],
                 'discount' => [
