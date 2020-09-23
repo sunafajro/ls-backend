@@ -28,6 +28,9 @@ $config = [
     'bootstrap' => ['log'],
     'language' => 'ru-RU',
     'components' => [
+        'assetManager' => [
+            'appendTimestamp' => true,
+        ],
         'request' => [
             'enableCsrfValidation' => $options['enableCsrfValidation'],
             'cookieValidationKey'  => $options['cookieValidationKey'],
