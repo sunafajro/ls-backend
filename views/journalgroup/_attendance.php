@@ -10,14 +10,6 @@ use yii\web\View;
  * @var array $students
  $ @var bool  $isNew
  */
-
-$script = <<< JS
-$(".js--student-status").on('change', function() {
-    var _this = $(this);
-    _this.closest('.row').find('.js--comment-for-student').prop('required', _this.val() === '1');
-});
-JS;
-$this->registerJs($script, View::POS_READY);
 ?>
 <?php foreach ($students ?? [] as $student) { ?>
     <div class="form-group field-calcstudjournalgroup-student_<?= $student['id'] ?>">

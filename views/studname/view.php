@@ -1,14 +1,5 @@
 <?php
 
-use app\models\search\LessonSearch;
-use app\models\Student;
-use app\widgets\Alert;
-use yii\data\ActiveDataProvider;
-use yii\helpers\Html;
-use yii\web\View;
-use yii\widgets\ActiveForm;
-use yii\widgets\Breadcrumbs;
-
 /**
  * @var View               $this
  * @var ActiveDataProvider $dataProvider
@@ -32,9 +23,21 @@ use yii\widgets\Breadcrumbs;
  * @var array              $loginStatus
  */
 
+use app\assets\StudentViewAsset;
+use app\models\search\LessonSearch;
+use app\models\Student;
+use app\widgets\Alert;
+use yii\data\ActiveDataProvider;
+use yii\helpers\Html;
+use yii\web\View;
+use yii\widgets\ActiveForm;
+use yii\widgets\Breadcrumbs;
+
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Students') . ' :: ' . $model->name;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Clients'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $model->name;
+
+StudentViewAsset::register($this);
 
 $roleId = (int)Yii::$app->session->get('user.ustatus');
 
@@ -338,22 +341,3 @@ if (Yii::$app->request->get('tab')) {
         ?>
     </div>
 </div>
-
-<?php
-$balance = <<< 'SCRIPT'
-$(function () { 
-        $('#balance').click(
-            function () {
-                if($('#fullbalance').is(':visible')) {
-                   $("#fullbalance").hide();
-                } else {
-                   $("#fullbalance").show();
-                } 
-            }
-        );
-	$('[data-toggle="popover"]').popover(); 
-	$('[data-toggle="tooltip"]').tooltip();
-});
-SCRIPT;
-$this->registerJs($balance);
-?>

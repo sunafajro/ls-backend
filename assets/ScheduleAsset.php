@@ -6,15 +6,13 @@ use yii\web\AssetBundle;
 
 class ScheduleAsset extends AssetBundle
 {
-    public $basePath = '@webroot';
-    
-    public $baseUrl = '@web';
-    
+    public $sourcePath = '@app/views/schedule/assets';
+
     public $css = [];
     
     public $js = [
-        'js/schedule/chunk-vendors.js',
-        'js/schedule/app.js',
+        'js/chunk-vendors.js',
+        'js/app.js',
     ];
 
     public $depends = [];

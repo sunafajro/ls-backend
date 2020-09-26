@@ -7,14 +7,12 @@ use yii\web\JqueryAsset;
 
 class StudentGradeFormAsset extends AssetBundle
 {
-    public $basePath = '@webroot';
-    
-    public $baseUrl = '@web';
+    public $sourcePath = '@app/views/student-grade/assets';
     
     public $css = [];
     
     public $js = [
-        'js/students/attestationForm.js'
+        'js/form.js'
     ];
 
     public $depends = [

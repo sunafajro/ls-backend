@@ -1,12 +1,12 @@
 <?php
-  $this->title = 'Система учета :: '.Yii::t('app','Reports');
-?>
+/**
+ * @var View $this
+ */
 
+use app\assets\ReportSalariesAsset;
+use yii\web\View;
+
+$this->title = Yii::$app->params['appTitle'] . Yii::t('app','Reports');
+ReportSalariesAsset::register($this);
+?>
 <div id="app" data-nullyear="2011"></div>
-
-<?php
-    $this->registerJsFile('/js/reports/salaries/vendors-' . (Yii::$app->params['appMode'] === 'bitrix' ? 'bitrix.js' : 'standalone.js'),
-    ['position' => yii\web\View::POS_END]);
-    $this->registerJsFile('/js/reports/salaries/app-' . (Yii::$app->params['appMode'] === 'bitrix' ? 'bitrix.js' : 'standalone.js'),
-    ['position' => yii\web\View::POS_END]);
-?>

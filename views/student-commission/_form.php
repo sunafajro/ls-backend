@@ -1,12 +1,5 @@
 <?php
 
-use app\models\Student;
-use app\models\StudentCommission;
-use kartik\datetime\DateTimePicker;
-use yii\helpers\Html;
-use yii\web\View;
-use yii\widgets\ActiveForm;
-
 /**
  * @var View              $this
  * @var StudentCommission $model
@@ -14,6 +7,16 @@ use yii\widgets\ActiveForm;
  * @var Student           $student
  * @var array             $offices
  */
+
+use app\assets\StudentCommissionFormAsset;
+use app\models\Student;
+use app\models\StudentCommission;
+use kartik\datetime\DateTimePicker;
+use yii\helpers\Html;
+use yii\web\View;
+use yii\widgets\ActiveForm;
+
+StudentCommissionFormAsset::register($this);
 ?>
 <div class="payment-form">
     <?php $form = ActiveForm::begin(); ?>
@@ -41,18 +44,3 @@ use yii\widgets\ActiveForm;
     </div>
     <?php ActiveForm::end(); ?>
 </div>
-<?php
-$js = <<< 'SCRIPT'
-$(document).ready(function() {
-  $('#studentcommission-percent').on('change', function () {
-      var _this = $(this);
-      var percent = parseFloat(_this.val());
-      var debt = parseFloat($('#studentcommission-debt').val());
-      if (!isNaN(debt) && !isNaN(percent)) {
-          var value = Math.round(debt * percent / 100);
-          $('#studentcommission-value').val(Math.abs(value));
-      }
-  });
-});
-SCRIPT;
-$this->registerJs($js);

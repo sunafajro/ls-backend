@@ -1,4 +1,4 @@
-<?php
+    <?php
 
 use app\models\Sale;
 use app\models\search\DiscountSearch;

@@ -1,7 +1,8 @@
 <?php
 
 /**
- * @var yii\web\View $this
+ * @var View  $this
+ * @var Call  $model
  * @var array $age
  * @var array $eduform
  * @var array $language
@@ -11,13 +12,17 @@
  * @var array $way
  */
 
+use app\assets\CallFormAsset;
+use app\models\Call;
 use yii\helpers\Html;
 use yii\helpers\Url;
+use yii\web\View;
 use yii\widgets\ActiveForm;
 use app\widgets\autocomplete\AutoCompleteWidget;
 
-$sex = [1=>Yii::t('app','Male'), 2=>Yii::t('app','Female')];
+CallFormAsset::register($this);
 
+$sex = [1=>Yii::t('app','Male'), 2=>Yii::t('app','Female')];
 ?>
 
 <div class="calc-call-form" style="padding-bottom: 140px">
@@ -30,31 +35,31 @@ $sex = [1=>Yii::t('app','Male'), 2=>Yii::t('app','Female')];
 
     <?= $form->field($model, 'email')->textInput() ?>
 
-    <?= $form->field($model, 'calc_sex')->dropDownList($items=$sex,['prompt'=>Yii::t('app', '-select-')]) ?>
+    <?= $form->field($model, 'calc_sex')->dropDownList($sex,['prompt'=>Yii::t('app', '-select-')]) ?>
 
-    <?= $form->field($model, 'calc_way')->dropDownList($items=$way,['prompt'=>Yii::t('app', '-select-')]) ?>
+    <?= $form->field($model, 'calc_way')->dropDownList($way,['prompt'=>Yii::t('app', '-select-')]) ?>
 
-    <?= $form->field($model, 'calc_servicetype')->dropDownList($items=$servicetype,['prompt'=>Yii::t('app', '-select-')]) ?>
+    <?= $form->field($model, 'calc_servicetype')->dropDownList($servicetype,['prompt'=>Yii::t('app', '-select-')]) ?>
 
-    <?= $form->field($model, 'calc_lang')->dropDownList($items=$language,['prompt'=>Yii::t('app', '-select-')]) ?>
+    <?= $form->field($model, 'calc_lang')->dropDownList($language,['prompt'=>Yii::t('app', '-select-')]) ?>
 
-    <?= $form->field($model, 'calc_edulevel')->dropDownList($items=$level,['prompt'=>Yii::t('app', '-select-')]) ?>
+    <?= $form->field($model, 'calc_edulevel')->dropDownList($level,['prompt'=>Yii::t('app', '-select-')]) ?>
 
-    <?= $form->field($model, 'calc_eduage')->dropDownList($items=$age,['prompt'=>Yii::t('app', '-select-')]) ?>
+    <?= $form->field($model, 'calc_eduage')->dropDownList($age,['prompt'=>Yii::t('app', '-select-')]) ?>
 
     <?php
         // при редактировании запроса на обучение выводим список типов обучения и офисов
         if(!$model->isNewRecord && $model->calc_servicetype == 1) {
 			echo "<div id='hidden-field'>";
-            echo $form->field($model, 'calc_eduform')->dropDownList($items=$eduform,['prompt'=>Yii::t('app', '-select-')]);
-			echo $form->field($model, 'calc_office')->dropDownList($items=$office,['prompt'=>Yii::t('app', '-select-')]);
+            echo $form->field($model, 'calc_eduform')->dropDownList($eduform,['prompt'=>Yii::t('app', '-select-')]);
+			echo $form->field($model, 'calc_office')->dropDownList($office,['prompt'=>Yii::t('app', '-select-')]);
 			echo "</div>";
         }
 		// для остальных случаях списки выводим в скрытом виде
         else {
 			echo "<div id='hidden-field' style='display: none'>";
-            echo $form->field($model, 'calc_eduform')->dropDownList($items=$eduform,['prompt'=>Yii::t('app', '-select-')]);
-			echo $form->field($model, 'calc_office')->dropDownList($items=$office,['prompt'=>Yii::t('app', '-select-')]);
+            echo $form->field($model, 'calc_eduform')->dropDownList($eduform,['prompt'=>Yii::t('app', '-select-')]);
+			echo $form->field($model, 'calc_office')->dropDownList($office,['prompt'=>Yii::t('app', '-select-')]);
 			echo "</div>";
         }
     ?>    
@@ -80,17 +85,3 @@ $sex = [1=>Yii::t('app','Male'), 2=>Yii::t('app','Female')];
     <?php ActiveForm::end(); ?>
 
 </div>
-<?php 
-$js = <<< 'SCRIPT'
-$(document).ready(function() {
-  $("#call-calc_servicetype").change(function() {
-    var key = $("#call-calc_servicetype option:selected").val();
-    if(key === "1") {
-      $("#hidden-field").show();
-    } else {
-      $("#hidden-field").hide();
-    }
-  });
-});
-SCRIPT;
-$this->registerJs($js);

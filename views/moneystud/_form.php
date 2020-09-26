@@ -1,17 +1,23 @@
 <?php
 
 /**
- * @var yii\web\View          $this
- * @var app\models\Moneystud  $model
- * @var ActiveForm            $form
- * @var app\models\Student    $student
- * @var array                 $offices
+ * @var View       $this
+ * @var Moneystud  $model
+ * @var ActiveForm $form
+ * @var Student    $student
+ * @var array      $offices
  */
 
+use app\assets\PaymentFormAsset;
+use app\models\Moneystud;
+use app\models\Student;
 use yii\helpers\Html;
 use yii\helpers\Url;
+use yii\web\View;
 use yii\widgets\ActiveForm;
 use app\widgets\autocomplete\AutoCompleteWidget;
+
+PaymentFormAsset::register($this);
 ?>
 <div class="payment-form">
     <?php $form = ActiveForm::begin(); ?>
@@ -65,68 +71,3 @@ use app\widgets\autocomplete\AutoCompleteWidget;
     </div>
     <?php ActiveForm::end(); ?>
 </div>
-<?php
-$js = <<< 'SCRIPT'
-$(document).ready(function() {
-  function calculateTotalPayment() {
-    var cache = prepareValues($("#moneystud-value_cash").val());
-    var card = prepareValues($("#moneystud-value_card").val());
-    var bank = prepareValues($("#moneystud-value_bank").val());
-    $("#total_payment").text((cache + card + bank).toFixed(2));
-  }
-  function prepareValues(value) {
-    value = value.replace(/,/gi, ".");
-    value = parseFloat(value);
-    value = Number.isNaN(value) ? 0 : value;
-    return value;
-  }
-  $("#moneystud-value_cash").on("input", calculateTotalPayment);
-  $("#moneystud-value_card").on("input", calculateTotalPayment);
-  $("#moneystud-value_bank").on("input", calculateTotalPayment);
-});
-SCRIPT;
-$this->registerJs($js);
-
-if ((int)Yii::$app->session->get('user.ustatus') === 11) {
-$js = <<< 'SCRIPT'
-$(document).ready(function() {
-  var $officeListTemplate = $('#moneystud-calc_office').clone();
-  $('#js--autocomplete-hidden').on('change', function () {
-      var $this = $(this);
-      $.ajax({
-        method: "GET",
-        url: "/studname/offices?id=" + $this.val(),
-      }).done(function(result) {
-        $('#moneystud-calc_office').html('');
-        $('#moneystud-calc_office').append($officeListTemplate.find('option').clone());
-        $('#moneystud-calc_office').val(null);
-        if (Array.isArray(result) && result.length) {
-          $selectOfficeElement = $('#moneystud-calc_office');
-          var mainOfficeId = null;
-          result.forEach(function (item) {
-            var $option = $('#moneystud-calc_office').find('option[value="' + item.id + '"]');
-            if ($option.length === 1) {
-                $option.html((item.isMain === '1' ? '&#xf005;' : '&#xf006') + ' ' + $option.text());
-            }
-            if (item.isMain === '1') {
-                mainOfficeId = item.id;
-            }
-          });
-          if (mainOfficeId) {
-            var $option = $('#moneystud-calc_office').find('option[value="' + mainOfficeId + '"]');
-            if ($option.length === 1) {
-              $selectOfficeElement.val(mainOfficeId);
-            }
-          } else {
-            var $option = $('#moneystud-calc_office').find('option[value="' + result[0].id + '"]');
-            if ($option.length === 1) {
-              $selectOfficeElement.val(result[0].id);
-            }  
-          }
-        }
-      });
-  });
-});
-SCRIPT;
-$this->registerJs($js);
-}

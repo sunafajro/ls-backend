@@ -1,12 +1,5 @@
 <?php
 
-use app\widgets\Alert;
-use yii\data\Pagination;
-use yii\helpers\Html;
-use yii\web\View;
-use yii\widgets\ActiveForm;
-use yii\widgets\Breadcrumbs;
-
 /**
  * @var View       $this
  * @var Pagination $pages
@@ -19,8 +12,19 @@ use yii\widgets\Breadcrumbs;
  * @var string     $userInfoBlock
  */
 
+use app\assets\StudentListAsset;
+use app\widgets\Alert;
+use yii\data\Pagination;
+use yii\helpers\Html;
+use yii\web\View;
+use yii\widgets\ActiveForm;
+use yii\widgets\Breadcrumbs;
+
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app','Clients');
 $this->params['breadcrumbs'][] = Yii::t('app','Clients');
+
+StudentListAsset::register($this);
+
 $roleId = Yii::$app->session->get('user.ustatus');
 ?>
 <div class="row row-offcanvas row-offcanvas-left student-index">
@@ -221,10 +225,3 @@ $roleId = Yii::$app->session->get('user.ustatus');
     <?php endif; ?>
     </div>
 </div>
-<?php
-$js = <<< 'SCRIPT'
-$(function () {
-    $("[data-toggle='tooltip']").tooltip();
-});
-SCRIPT;
-$this->registerJs($js);

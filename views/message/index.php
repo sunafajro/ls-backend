@@ -1,5 +1,6 @@
 <?php
 
+use app\assets\MessageListAsset;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use app\widgets\Alert;
@@ -21,12 +22,7 @@ use yii\widgets\Breadcrumbs;
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app','Messages');
 $this->params['breadcrumbs'][] = Yii::t('app','Messages');
 
-$js = <<< 'SCRIPT'
-$(function () {
-    $("[data-toggle='popover']").popover();
-});
-SCRIPT;
-$this->registerJs($js);
+MessageListAsset::register($this);
 
 for ($i = 1; $i <= 12; $i++) {
     $month_num = date('n', strtotime("$i month"));

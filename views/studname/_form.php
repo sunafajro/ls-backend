@@ -1,21 +1,26 @@
 <?php
 /**
- * @var yii\web\View       $this
- * @var app\models\Student $model
- * @var array              $sex
- * @var array              $way
+ * @var View    $this
+ * @var Student $model
+ * @var array   $sex
+ * @var array   $way
  */
+
+use app\assets\AddressAutocompleteAsset;
+use app\models\Student;
 use yii\helpers\Html;
+use yii\web\View;
 use yii\widgets\ActiveForm;
 use kartik\datetime\DateTimePicker;
-?>
 
+AddressAutocompleteAsset::register($this);
+?>
 <div class="calc-studname-form">
     <?php $form = ActiveForm::begin(); ?>
     <?= $form->field($model, 'lname')->textInput() ?>
     <?= $form->field($model, 'fname')->textInput() ?>
     <?= $form->field($model, 'mname')->textInput() ?>
-    <?= $form->field($model, 'birthdate')->widget(DateTimePicker::className(), [
+    <?= $form->field($model, 'birthdate')->widget(DateTimePicker::class, [
           'pluginOptions' => [
               'language' => 'ru',
                   'format' => 'yyyy-mm-dd',
@@ -29,27 +34,12 @@ use kartik\datetime\DateTimePicker;
     ?>
     <?= $form->field($model, 'email')->textInput() ?>
     <?= $form->field($model, 'phone')->textInput() ?>
-    <?= $form->field($model, 'address')->textInput(['maxlength' => true]) ?>
-    <?= $form->field($model, 'calc_sex')->dropDownList($items=$sex, ['prompt'=>Yii::t('app', '-select-')]) ?>
-    <?= $form->field($model, 'calc_way')->dropDownList($items=$way, ['prompt'=>Yii::t('app', '-select-')]) ?>
+    <?= $form->field($model, 'address')->textInput(['maxlength' => true, 'class' => 'form-control js--address-field']) ?>
+    <?= $form->field($model, 'calc_sex')->dropDownList($sex, ['prompt'=>Yii::t('app', '-select-')]) ?>
+    <?= $form->field($model, 'calc_way')->dropDownList($way, ['prompt'=>Yii::t('app', '-select-')]) ?>
     <?= $form->field($model, 'description')->textarea(['rows' => 6]) ?>
     <div class="form-group">
         <?= Html::submitButton($model->isNewRecord ? Yii::t('app','Create') : Yii::t('app','Update'), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
     </div>
     <?php ActiveForm::end(); ?>
 </div>
-
-<?php $this->registerJs('
-$(document).ready(
-  function(){
-    $("#student-address").suggestions({
-        token: "9ac43b0c02b76d2f8be18c637ce94133d7c66e7f",
-        type: "ADDRESS",
-        count: 5,
-        onSelect: function(suggestion) {
-          console.log(suggestion);
-        }
-      });
-  });
-');
-?>

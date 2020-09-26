@@ -1,19 +1,24 @@
 <?php
 
+/**
+ * @var View       $this
+ * @var Teacher    $model
+ * @var ActiveForm $form
+ */
+
+use app\assets\AddressAutocompleteAsset;
+use app\models\Teacher;
 use yii\helpers\Html;
+use yii\web\View;
 use yii\widgets\ActiveForm;
 use kartik\datetime\DateTimePicker;
-/* @var $this yii\web\View */
-/* @var $model app\models\CalcTeacher */
-/* @var $form yii\widgets\ActiveForm */
+
+AddressAutocompleteAsset::register($this);
 ?>
-
 <div class="calc-teacher-form">
-
     <?php $form = ActiveForm::begin(); ?>
-    <?php if((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.uid') === 296) { ?>
+    <?php if ((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.uid') === 296) { ?>
         <?= $form->field($model, 'name')->textInput() ?>
-
         <?php
             echo $form->field($model, 'birthdate')->widget(DateTimePicker::className(), [
                         'pluginOptions' => [
@@ -27,16 +32,10 @@ use kartik\datetime\DateTimePicker;
                         ]
                  ]);
         ?>
-
-
         <?= $form->field($model, 'phone')->textInput() ?>
-
         <?= $form->field($model, 'email')->textInput() ?>
-
         <?= $form->field($model, 'social_link')->textInput(['maxlength' => true]) ?>
-
-        <?= $form->field($model, 'address')->textInput(['maxlength' => true]) ?>
-
+        <?= $form->field($model, 'address')->textInput(['maxlength' => true, 'class' => 'form-control js--address-field']) ?>
         <?php
             // корпоративная надбавка при создании нового преподавателя 0
             if($model->isNewRecord){ 
@@ -44,14 +43,9 @@ use kartik\datetime\DateTimePicker;
             } else {
                 echo $form->field($model, 'value_corp')->textInput();
             } ?>
-
-    
-    <?= $form->field($model, 'calc_statusjob')->dropDownList($items=$statusjobs,['prompt'=>Yii::t('app', '-select-')]) ?>
-
+        <?= $form->field($model, 'calc_statusjob')->dropDownList($items=$statusjobs,['prompt'=>Yii::t('app', '-select-')]) ?>
     <?php } ?>
-
     <?= $form->field($model, 'description')->textarea(['rows' => 3]) ?>
-
     <?php
         // параметр с нами/не с нами, при создании новго преподавателя по умолчанию 0 
         if($model->isNewRecord){
@@ -59,13 +53,11 @@ use kartik\datetime\DateTimePicker;
         } else {
             echo $form->field($model, 'old')->dropDownList($items=['0'=>Yii::t('app','With us'),'1'=>Yii::t('app','Not with us'), '2'=>'В отпуске', '3'=>'В декрете']);
         } ?>
-
     <?php
 	    if($model->isNewRecord){ 
           echo $form->field($model, 'visible')->hiddenInput(['value'=>'1'])->label(false);
 	    } 
     ?>
-
     <div class="form-group">
         <?php
         if ($model->isNewRecord) {
@@ -79,22 +71,5 @@ use kartik\datetime\DateTimePicker;
         } 
         ?>
     </div>
-
     <?php ActiveForm::end(); ?>
-
 </div>
-
-<?php $this->registerJs('
-$(document).ready(
-  function(){
-    $("#teacher-address").suggestions({
-        token: "9ac43b0c02b76d2f8be18c637ce94133d7c66e7f",
-        type: "ADDRESS",
-        count: 5,
-        onSelect: function(suggestion) {
-          console.log(suggestion);
-        }
-      });
-  });
-');
-?>

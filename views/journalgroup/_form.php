@@ -10,6 +10,7 @@
  * @var int          $userId
  */
 
+use app\assets\JournalGroupFormAsset;
 use app\models\Journalgroup;
 use kartik\datetime\DateTimePicker;
 use kartik\time\TimePicker;
@@ -17,13 +18,7 @@ use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
 
-$script = <<< JS
-$(".js--previous-times").on('click', function () {
-    $("#journalgroup-time_begin").val($(this).data('begin'));
-    $("#journalgroup-time_end").val($(this).data('end'));
-});
-JS;
-$this->registerJs($script, View::POS_READY);
+JournalGroupFormAsset::register($this);
 ?>
 <?php $form = ActiveForm::begin(); ?>
     <div class="row">

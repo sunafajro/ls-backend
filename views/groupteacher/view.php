@@ -1,15 +1,5 @@
 <?php
 
-use app\models\Groupteacher;
-use app\models\Journalgroup;
-use app\widgets\Alert;
-use yii\data\Pagination;
-use yii\helpers\Html;
-use yii\helpers\Url;
-use yii\widgets\ActiveForm;
-use yii\widgets\Breadcrumbs;
-use yii\web\View;
-
 /**
  * @var View         $this
  * @var Groupteacher $model
@@ -26,9 +16,22 @@ use yii\web\View;
  * @var string       $userInfoBlock
  */
 
+use app\assets\GroupViewAsset;
+use app\models\Groupteacher;
+use app\models\Journalgroup;
+use app\widgets\Alert;
+use yii\data\Pagination;
+use yii\helpers\Html;
+use yii\helpers\Url;
+use yii\widgets\ActiveForm;
+use yii\widgets\Breadcrumbs;
+use yii\web\View;
+
 $this->title = Yii::$app->params['appTitle'] . ' Группа №' . $model->id;
 $this->params['breadcrumbs'][] = Yii::t('app','Group') . ' №' . $model->id;
 $this->params['breadcrumbs'][] = Yii::t('app', 'Journal');
+
+GroupViewAsset::register($this);
 
 $groupParams = [];
 foreach($groupInfo as $key => $value) {
@@ -354,11 +357,3 @@ function getStudentOptions($lesson, $lessonBalance) {
         ]) ?>
     </div>
 </div>
-<?php
-$js = <<< 'SCRIPT'
-$(function () {
-  $('[data-toggle="tooltip"]').tooltip()
-})
-SCRIPT;
-$this->registerJs($js);
-?>

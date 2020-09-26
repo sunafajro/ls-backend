@@ -1,14 +1,18 @@
 <?php
 
+/**
+ * @var View $this
+ */
+
+use app\assets\ReferencesAsset;
 use yii\helpers\Html;
 use yii\helpers\Json;
 use yii\web\View;
 
-/**
- * @var View $this
- */
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'References');
 $this->params['breadcrumbs'][] = Yii::t('app', 'References');
+
+ReferencesAsset::register($this);
 
 $apiBaseUrl = '/api/references';
 $urls = [
@@ -26,6 +30,3 @@ echo Html::tag('div', '', [
     'data-mode' => Yii::$app->params['appMode'],
     'data-urls' => Json::encode($urls)
 ]);
-
-$this->registerJsFile('/js/references/vendors.js', ['position' => yii\web\View::POS_END]);
-$this->registerJsFile('/js/references/app.js', ['position' => yii\web\View::POS_END]);

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * @var View               $this
+ * @var GroupSearch        $searchModel
+ * @var ActiveDataProvider $dataProvider
+ * @var array              $ages
+ * @var array              $languages
+ * @var array              $levels
+ * @var array              $offices
+ * @var string             $userInfoBlock
+ */
+
+use app\assets\GroupListAsset;
 use app\models\Groupteacher;
 use app\models\Schedule;
 use app\models\search\GroupSearch;
@@ -12,19 +24,11 @@ use yii\helpers\Url;
 use yii\web\View;
 use yii\widgets\Breadcrumbs;
 
-/**
- * @var View               $this
- * @var GroupSearch        $searchModel
- * @var ActiveDataProvider $dataProvider
- * @var array              $ages
- * @var array              $languages
- * @var array              $levels
- * @var array              $offices
- * @var string             $userInfoBlock
- */
-
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app','Groups');
 $this->params['breadcrumbs'][] = Yii::t('app','Groups');
+
+GroupListAsset::register($this);
+
 $roleId = (int)Yii::$app->session->get('user.ustatus');
 ?>
 <div class="row row-offcanvas row-offcanvas-left group-index">
@@ -235,30 +239,3 @@ $roleId = (int)Yii::$app->session->get('user.ustatus');
         ]) ?>
     </div>
 </div>
-<?php 
-$js = <<< 'SCRIPT'
-$(document).ready(function() {
-  $('.js--change-group-param').on('click', function() {
-    var _this = $(this);
-    var _itemList = _this.closest('td').find('.js--item-list');
-    var _itemName = _this.closest('td').find('.js--item-name');
-    _itemList.show();
-    _itemName.hide();
-  });
-  $('.js--save-group-param').on('click', function() {
-    var _this = $(this);
-    var _itemList = _this.closest('td').find('.js--item-list');
-    var _itemName = _this.closest('td').find('.js--item-name');
-    var baseUrl = _this.data('url');
-    var search = 'name=' + _this.data('name') + '&value=' + _itemList.find('select').val();
-    var url = baseUrl + (baseUrl.indexOf('?') !== -1 ? '&' : '?') + search;
-    $.ajax({
-        method: 'POST',
-        url: url,
-    }).always(function () {
-        window.location.reload();
-    });
-  });
-});
-SCRIPT;
-$this->registerJs($js);

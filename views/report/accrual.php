@@ -1,12 +1,5 @@
 <?php
 
-use app\widgets\Alert;
-use yii\helpers\Html;
-use yii\helpers\Url;
-use yii\web\View;
-use yii\widgets\ActiveForm;
-use yii\widgets\Breadcrumbs;
-
 /**
  * @var View       $this
  * @var ActiveForm $form
@@ -23,9 +16,18 @@ use yii\widgets\Breadcrumbs;
  * @var string     $userInfoBlock
  */
 
+use app\assets\ReportAccrualsAsset;
+use app\widgets\Alert;
+use yii\helpers\Html;
+use yii\web\View;
+use yii\widgets\ActiveForm;
+use yii\widgets\Breadcrumbs;
+
 $this->title = Yii::$app->params['appTitle'] . 'Отчет по начислениям';
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
 $this->params['breadcrumbs'][] = 'Отчет по начислениям';
+
+ReportAccrualsAsset::register($this);
 ?>
 <div class="row row-offcanvas row-offcanvas-left schedule-index">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
@@ -253,25 +255,3 @@ $this->params['breadcrumbs'][] = 'Отчет по начислениям';
         <?= join('', $pager) ?>
 	</div>
 </div>
-<?php
-$js = <<< 'SCRIPT'
-$(document).ready(function() {
-    $('div.panel').each(function () {
-        var _this = $(this);
-        var $submitAll = _this.find('.js--accrual-all-link').eq(0);
-        var data = {groups: []};
-        _this.find('.panel-body .js--accrual-link').each(function () {
-            var _this = $(this);
-            var params = _this.data('params');
-            if (params && params.hasOwnProperty('groups')) {
-                data.groups.push(params.groups[0]);
-            }
-        });
-        if (data.groups.length) {
-            $submitAll.attr('data-params', JSON.stringify(data));
-            $submitAll.show('disabled', false);
-        }
-    });
-});
-SCRIPT;
-$this->registerJs($js);

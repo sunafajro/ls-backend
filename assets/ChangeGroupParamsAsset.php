@@ -7,12 +7,14 @@ use yii\web\JqueryAsset;
 
 class ChangeGroupParamsAsset extends AssetBundle
 {
-    public $basePath = '@webroot';
-    public $baseUrl = '@web';
+    public $sourcePath = '@app/views/groupteacher/assets';
+
     public $css = [];
+
     public $js = [
         'js/change-group-params.js',
     ];
+
     public $depends = [
         JqueryAsset::class,
     ];

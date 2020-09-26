@@ -1,15 +1,18 @@
 <?php
 
-use app\model\Sale;
-use yii\helpers\Html;
-use yii\widgets\ActiveForm;
-use yii\web\View;
-
 /**
  * @var View  $this
  * @var Sale  $model
  * @var array $types
  */
+
+use app\assets\SaleFormAsset;
+use app\models\Sale;
+use yii\helpers\Html;
+use yii\widgets\ActiveForm;
+use yii\web\View;
+
+SaleFormAsset::register($this);
 ?>
 <div class="discount-form">
     <?php $form = ActiveForm::begin(); ?>
@@ -26,17 +29,3 @@ use yii\web\View;
     </div>
     <?php ActiveForm::end(); ?>
 </div>
-<?php 
-$js = <<< 'SCRIPT'
-$(document).ready(function() {
-  $("#sale-procent").change(function(e) {
-    if(e.target.value === "2") {
-      $("#sale-base-block").show();
-    } else {
-      $("#sale-base-block").hide();
-      $("#sale-base").val('');
-    }
-  });
-});
-SCRIPT;
-$this->registerJs($js);

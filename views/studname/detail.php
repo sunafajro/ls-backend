@@ -8,7 +8,6 @@
  * @var string            $userInfoBlock
  */
 
-// use app\models\Service;
 use app\models\Student;
 use app\widgets\Alert;
 use yii\bootstrap\Tabs;
