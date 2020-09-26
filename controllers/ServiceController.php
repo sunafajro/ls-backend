@@ -2,7 +2,13 @@
 
 namespace app\controllers;
 
+use app\models\City;
+use app\models\Eduage;
+use app\models\Eduform;
+use app\models\Language;
 use app\models\Service;
+use app\models\Studnorm;
+use app\models\Timenorm;
 use app\models\User;
 use Yii;
 use yii\web\Controller;
@@ -11,6 +17,7 @@ use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\data\Pagination;
 use yii\web\ForbiddenHttpException;
+use yii\web\ServerErrorHttpException;
 
 /**
  * ServiceController implements the CRUD actions for Service model.
@@ -75,24 +82,30 @@ class ServiceController extends Controller
         }
         // пишем запрос
         $services = (new \yii\db\Query()) 
-        ->select([
-            'sid'       => 's.id',
-            'sname'     => 's.name',
-            'sdate'     => 's.data',
-            'cid'       => 'c.id',
-            'cname'     => 'c.name',
-            'cstid'     => 'st.id',
-            'cstname'   => 'st.name',
-            'cstnid'    => 'sn.id',
-            'cstnvalue' => 'sn.value',
-            'ctnid'     => 'tn.id',
-            'ctnname'   => 'tn.name'
-        ])
-        ->from(['s' => 'calc_service'])
-        ->leftjoin(['c' => 'calc_city'], 'c.id = s.calc_city')
-        ->leftjoin(['st' => 'calc_servicetype'], 'st.id = s.calc_servicetype')
-        ->leftjoin(['sn' => 'calc_studnorm'], 'sn.id = s.calc_studnorm')
-        ->leftjoin(['tn' => 'calc_timenorm'], 'tn.id = s.calc_timenorm')
+            ->select([
+                'sid'           => 's.id',
+                'sname'         => 's.name',
+                'sdate'         => 's.data',
+                'cid'           => 'c.id',
+                'cname'         => 'c.name',
+                'cstid'         => 'st.id',
+                'cstname'       => 'st.name',
+                'cstnid'        => 'sn.id',
+                'cstnvalue'     => 'sn.value',
+                'ctnid'         => 'tn.id',
+                'ctnname'       => 'tn.name',
+                'language'      => 'l.name',
+                'studentAge'    => 'ea.name',
+                'educationForm' => 'ef.name',
+            ])
+            ->from(['s' => Service::tableName()])
+            ->leftjoin(['c'  => City::tableName()], 'c.id = s.calc_city')
+            ->leftjoin(['st' => 'calc_servicetype'], 'st.id = s.calc_servicetype')
+            ->leftjoin(['sn' => Studnorm::tableName()], 'sn.id = s.calc_studnorm')
+            ->leftjoin(['tn' => Timenorm::tableName()], 'tn.id = s.calc_timenorm')
+            ->leftjoin(['l'  => Language::tableName()], 'l.id = s.calc_lang')
+            ->leftjoin(['ea' => Eduage::tableName()],   'ea.id = s.calc_eduage')
+            ->leftjoin(['ef' => Eduform::tableName()],  'ef.id = s.calc_eduform')
         ->where(['s.visible' => 1])
         ->andWhere(['not', ['sn.id' => null]])
         ->andFilterWhere($tss_condition)
@@ -180,7 +193,7 @@ class ServiceController extends Controller
             $transaction = Yii::$app->db->beginTransaction();
             try {
                 if (!$model->save(true, ['data', 'name', 'calc_city', 'calc_studnorm'])) {
-
+                    throw new ServerErrorHttpException();
                 }
                 if ($current_state['snid'] != $model->calc_studnorm) {
                     $db = (new \yii\db\Query())
@@ -206,9 +219,14 @@ class ServiceController extends Controller
         
         return $this->render('update', [
             'cities'         => Service::getServiceDataForSelectSimple('calc_city'),
+            'eduages'        => Service::getServiceDataForSelectSimple('calc_eduage'),
+            'eduforms'       => Service::getServiceDataForSelectSimple('calc_eduform'),
+            'languages'      => Service::getServiceDataForSelectSimple('calc_lang'),
             'model'          => $model,
             'servicechanges' => Service::getServiceHistory($id),
+            'servicetypes'   => Service::getServiceDataForSelectSimple('calc_servicetype'),
             'studnorms'      => Service::getServiceDataForSelectSimple('calc_studnorm'),
+            'timenorms'      => Service::getServiceDataForSelectSimple('calc_timenorm'),
             'userInfoBlock'  => User::getUserInfoBlock()
         ]);
     }

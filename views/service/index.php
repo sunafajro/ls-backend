@@ -1,12 +1,5 @@
 <?php
 
-use app\widgets\Alert;
-use yii\data\Pagination;
-use yii\helpers\Html;
-use yii\widgets\ActiveForm;
-use yii\widgets\Breadcrumbs;
-use yii\web\View;
-
 /**
  * @var View       $this
  * @var Pagination $pages
@@ -20,6 +13,13 @@ use yii\web\View;
  * @var array      $url_params
  * @var string     $userInfoBlock
  */
+
+use app\widgets\Alert;
+use yii\data\Pagination;
+use yii\helpers\Html;
+use yii\widgets\ActiveForm;
+use yii\widgets\Breadcrumbs;
+use yii\web\View;
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app','Services');
 $this->params['breadcrumbs'][] = Yii::t('app','Services');
@@ -179,15 +179,21 @@ if (Yii::$app->request->get('type')) {
                     $city = $service['cid'];
                   }
                 echo "<tr>";
-                echo "<td>".$service['sid']."</td>";
-                echo "<td>".$service['sname']."</td>";
-                echo "<td>".$service['cstname']."</td>";
-                echo "<td>".$service['cstnvalue']."</td>";
-                echo "<td>".round($service['cstnvalue']*5)."</td>";
-                echo "<td>".round($service['cstnvalue']*8)."</td>";
-                echo "<td>".$service['ctnname']."</td>";
-                echo "<td>".$service['sdate']."</td>";
-                if(Yii::$app->session->get('user.ustatus')==3){
+                echo Html::tag('td', $service['sid']);
+                echo Html::tag(
+                        'td',
+                        $service['sname']
+                        . Html::tag('i', '', ['class' => 'fa fa-users pull-right', 'aria-hidden' => 'true', 'title' => $service['educationForm']])
+                        . Html::tag('i', '', ['class' => 'fa fa-child pull-right', 'aria-hidden' => 'true', 'title' => $service['studentAge']])
+                        . Html::tag('i', '', ['class' => 'fa fa-language pull-right', 'aria-hidden' => 'true', 'title' => $service['language']])
+                );
+                echo Html::tag('td', $service['cstname']);
+                echo Html::tag('td', $service['cstnvalue']);
+                echo Html::tag('td', round($service['cstnvalue'] * 5));
+                echo Html::tag('td', round($service['cstnvalue'] * 8));
+                echo Html::tag('td', $service['ctnname']);
+                echo Html::tag('td', date('d.m.Y', strtotime($service['sdate'])));
+                if (Yii::$app->session->get('user.ustatus')==3) {
                     echo Html::beginTag('td');
                     echo Html::a(Html::tag('span', null, ['class'=>'fa fa-edit']), ['service/update', 'id' => $service['sid']]);
                     echo ' ';
