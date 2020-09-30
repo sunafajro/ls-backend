@@ -7,7 +7,7 @@ use yii\web\JqueryAsset;
 
 class AddressAutocompleteAsset extends AssetBundle
 {
-    public $sourcePath = '@app/views/teacher/assets';
+    public $sourcePath = '@app/modules/school/views/teacher/assets';
 
     public $css = [];
 

@@ -7,7 +7,7 @@ use yii\web\JqueryAsset;
 
 class CallFormAsset extends AssetBundle
 {
-    public $sourcePath = '@app/views/call/assets';
+    public $sourcePath = '@app/modules/school/views/call/assets';
 
     public $css = [];
 

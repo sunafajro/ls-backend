@@ -3,9 +3,9 @@
 
 namespace app\modules\school;
 
-use app\modules\BaseModule;
+use yii\base\Module;
 
-class School extends BaseModule
+class School extends Module
 {
 
 }

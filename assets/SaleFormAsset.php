@@ -7,7 +7,7 @@ use yii\web\JqueryAsset;
 
 class SaleFormAsset extends AssetBundle
 {
-    public $sourcePath = '@app/views/sale/assets';
+    public $sourcePath = '@app/modules/school/views/sale/assets';
 
     public $css = [];
 

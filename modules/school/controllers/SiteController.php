@@ -2,29 +2,25 @@
 
 namespace app\modules\school\controllers;
 
+use Yii;
+use yii\filters\AccessControl;
+use yii\filters\VerbFilter;
+use yii\web\Controller;
+use yii\web\Response;
 use app\models\LoginForm;
 use app\models\LoginLog;
 use app\models\Navigation;
 use app\models\News;
 use app\models\Tool;
 use app\models\User;
-use Yii;
-use yii\web\ErrorAction;
-use yii\filters\AccessControl;
-use yii\filters\VerbFilter;
-use yii\web\Controller;
-use yii\web\Response;
 
 class SiteController extends Controller
 {
-    /**
-     * @inheritDoc
-     */
     public function behaviors()
     {
         return [
             'access' => [
-                'class' => AccessControl::class,
+                'class' => AccessControl::className(),
                 'only' => ['login', 'logout', 'index', 'sidebar', 'nav', 'csrf'],
                 'rules' => [
                     [
@@ -40,7 +36,7 @@ class SiteController extends Controller
                 ],
             ],
             'verbs' => [
-                'class' => VerbFilter::class,
+                'class' => VerbFilter::className(),
                 'actions' => [
                     'logout' => ['POST'],
                     'nav' => ['POST'],
@@ -49,21 +45,19 @@ class SiteController extends Controller
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function actions()
     {
         return [
             'error' => [
-                'class' => ErrorAction::class,
+                'class' => 'yii\web\ErrorAction',
+            ],
+            'captcha' => [
+                'class' => 'yii\captcha\CaptchaAction',
+                'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
             ],
         ];
     }
 
-    /**
-     * @return mixed
-     */
     public function actionIndex()
     {
         $userInfoBlock = User::getUserInfoBlock();
@@ -79,9 +73,6 @@ class SiteController extends Controller
 	    ]);
     }
 
-    /**
-     * @return mixed
-     */
     public function actionLogin()
     {
         if (!\Yii::$app->user->isGuest) {
@@ -124,19 +115,19 @@ class SiteController extends Controller
             // переподим пользователя на нужную страничку
             switch(Yii::$app->session->get('user.ustatus')){
                 case 3:
-                    return $this->redirect(['school/report/common']);
+                    return $this->redirect(['report/common']);
                 case 4:
-                    return $this->redirect(['school/call/index']);
+                    return $this->redirect(['call/index']);
                 case 5:
-                    return $this->redirect(['school/teacher/view', 'id' => Yii::$app->session->get('user.uteacher')]);
+                    return $this->redirect(['teacher/view', 'id' => Yii::$app->session->get('user.uteacher')]);
                 case 6:
-                    return $this->redirect(['school/teacher/index']);
+                    return $this->redirect(['teacher/index']);
                 case 9:
-                    return $this->redirect(['school/translate/translations']);
+                    return $this->redirect(['translate/translations']);
                 case 11:
-                    return $this->redirect(['school/moneystud/create']);
+                    return $this->redirect(['moneystud/create']);
                 default:
-                    return $this->redirect(['school/site/index']);
+                    return $this->redirect(['site/index']);
             }            
         } else {
             return $this->render('login', [
@@ -145,9 +136,6 @@ class SiteController extends Controller
         }
     }
 
-    /**
-     * @return mixed
-     */
     public function actionLogout()
     {
         $login = new LoginLog();
@@ -162,19 +150,23 @@ class SiteController extends Controller
         return $this->goHome();
     }
 
-    /**
-     * метод возвращает массив со списком элементов навигации
-     * @return mixed
-     */
+    public function actionSidebar()
+    {
+        switch(Yii::$app->session->get('user.sidebar')) {
+            case 1: Yii::$app->session->set('user.sidebar', 2); break;
+            case 2: Yii::$app->session->set('user.sidebar', 1); break;
+            default: Yii::$app->session->set('user.sidebar', 1); break;
+        }
+        return $this->redirect(Yii::$app->request->referrer);
+    }
+
+    /* метод возвращает массив со списком элементов навигации */
     public function actionNav()
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         return Navigation::getItems();
     }
 
-    /**
-     * @return array
-     */
     public function actionCsrf()
     {
         /* включаем формат ответа JSON */
@@ -184,10 +176,6 @@ class SiteController extends Controller
         ];
     }
 
-    /**
-     * @param array $params
-     * @return array
-     */
     protected static function getUrlParams(array $params)
     {
         if(!empty(Yii::$app->request->get())) {

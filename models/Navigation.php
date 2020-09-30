@@ -20,7 +20,7 @@ class Navigation extends Model
         if ((int)Yii::$app->session->get('user.ustatus') === 3){
         $menu[] = [
             'id' => 'admin',
-            'url' => '/admin/index',
+            'url' => '/school/admin/index',
             'classes' => 'fa fa-wrench',
             'title' => Yii::t('app', 'Administration'),
             'hasBadge' => false
@@ -29,7 +29,7 @@ class Navigation extends Model
         /* ссылка на главную страничку со списком новостей */
         $menu[] = [
             'id' => 'news',
-            'url' => '/site/index',
+            'url' => '/school/site/index',
             'classes' => 'fa fa-newspaper-o',
             'title' => Yii::t('app', 'News'),
             'hasBadge' => false
@@ -42,7 +42,7 @@ class Navigation extends Model
             /* ссылка на раздел Отчеты */
             $menu[] = [
                 'id' => 'reports',
-                'url' => '/report/index', 
+                'url' => '/school/report/index',
                 'classes' => 'fa fa-list-alt',
                 'title' => Yii::t('app', 'Reports'),
                 'hasBadge' => false
@@ -53,7 +53,7 @@ class Navigation extends Model
             /* ссылка на раздел Оплаты */
             $menu[] = [
                 'id'       => 'payments',
-                'url'      => '/moneystud/create',
+                'url'      => '/school/moneystud/create',
                 'classes'  => 'fa fa-rub',
                 'title'    => Yii::t('app', 'Payments'),
                 'hasBadge' => false
@@ -67,7 +67,7 @@ class Navigation extends Model
             /* ссылка на раздел Расписание */
             $menu[] = [
                 'id' => 'schedule',
-                'url' => '/schedule/index',
+                'url' => '/school/schedule/index',
                 'classes' => 'fa fa-calendar',
                 'title' => Yii::t('app', 'Schedule'),
                 'hasBadge' => false
@@ -78,7 +78,7 @@ class Navigation extends Model
             /* ссылка на раздел Сообщения */
             $menu[] = [
                 'id' => 'messages',
-                'url' => '/message/index',
+                'url' => '/school/message/index',
                 'classes' => 'fa fa-envelope',
                 'title' => Yii::t('app', 'Messages'),
                 'hasBadge' => true,
@@ -89,7 +89,7 @@ class Navigation extends Model
         /* ссылка на раздел Задачи */
         $menu[] = [
             'id' => 'tasks',
-            'url' => '/ticket/index',
+            'url' => '/school/ticket/index',
             'classes' => 'fa fa-tasks',
             'title' => Yii::t('app', 'Tickets'),
             'hasBadge' => true,
@@ -102,7 +102,7 @@ class Navigation extends Model
             /* ссылка на раздел Группы */
             $menu[] = [
                 'id' => 'groups',
-                'url' => '/groupteacher/index',
+                'url' => '/school/groupteacher/index',
                 'classes' => 'fa fa-users',
                 'title' => Yii::t('app', 'Groups'),
                 'hasBadge' => false
@@ -116,7 +116,7 @@ class Navigation extends Model
             /* ссылка на раздел Звонки */
             $menu[] = [
                 'id' => 'calls',
-                'url' => '/call/index',
+                'url' => '/school/call/index',
                 'classes' => 'fa fa-phone',
                 'title' => Yii::t('app', 'Calls'),
                 'hasBadge' => false
@@ -124,7 +124,7 @@ class Navigation extends Model
             /* ссылка на раздел Клиенты */
             $menu[] = [
                 'id' => 'clients',
-                'url' => '/studname/index',
+                'url' => '/school/studname/index',
                 'classes' => 'fa fa-graduation-cap',
                 'title' => Yii::t('app', 'Clients'),
                 'hasBadge' => false
@@ -139,7 +139,7 @@ class Navigation extends Model
             /* ссылка на раздел Преподаватели */   
             $menu[] = [
                 'id' => 'teachers',
-                'url' => '/teacher/index',
+                'url' => '/school/teacher/index',
                 'classes' => 'fa fa-suitcase',
                 'title' => Yii::t('app', 'Teachers'),
                 'hasBadge' => false
@@ -150,7 +150,7 @@ class Navigation extends Model
             /* ссылка на раздел Услуги */
             $menu[] = [
                 'id' => 'services',
-                'url' => '/service/index',
+                'url' => '/school/service/index',
                 'classes' => 'fa fa-shopping-cart',
                 'title' => Yii::t('app', 'Services'),
                 'hasBadge' => false
@@ -162,7 +162,7 @@ class Navigation extends Model
             /* ссылка на раздел Скидки */
             $menu[] = [
                 'id' => 'sales',
-                'url' => '/sale/index',
+                'url' => '/school/sale/index',
                 'classes' => 'fa fa-gift',
                 'title' => Yii::t('app', 'Sales'),
                 'hasBadge' => true,
@@ -175,7 +175,7 @@ class Navigation extends Model
             /* ссылка на раздел Учебники */
             $menu[] = [
                 'id' => 'books',
-                'url' => '/book/index',
+                'url' => '/school/book/index',
                 'classes' => 'fa fa-book',
                 'title' => Yii::t('app', 'Books'),
                 'hasBadge' => false,
@@ -187,7 +187,7 @@ class Navigation extends Model
             /* ссылка на раздел Скидки */
             $menu[] = [
                 'id' => 'documents',
-                'url' => '/document/index',
+                'url' => '/school/document/index',
                 'classes' => 'fa fa-files-o',
                 'title' => Yii::t('app', 'Documents'),
                 'hasBadge' => false,
@@ -199,7 +199,7 @@ class Navigation extends Model
             /* ссылка на раздел Переводы */
             $menu[] = [
                 'id' => 'translations',
-                'url' => '/translate/translations',
+                'url' => '/school/translate/translations',
                 'classes' => 'fa fa-retweet',
                 'title' => Yii::t('app', 'Translations'),
                 'hasBadge' => false
@@ -210,7 +210,7 @@ class Navigation extends Model
             /* ссылка на раздел Пользователи */
             $menu[] = [
                 'id' => 'users',
-                'url' => '/user/index', 
+                'url' => '/school/user/index',
                 'classes' => 'fa fa-user',
                 'title' => Yii::t('app', 'Users'),
                 'hasBadge' => false
@@ -223,7 +223,7 @@ class Navigation extends Model
             /* ссылка на раздел Справочники */
             $menu[] = [
                 'id' => 'references',
-                'url' => '/references/index',
+                'url' => '/school/references/index',
                 'classes' => 'fa fa-cog',
                 'title' => Yii::t('app', 'References'),
                 'hasBadge' => false
@@ -233,7 +233,7 @@ class Navigation extends Model
         /* ссылка на метод выхода */
         $menu[] = [
             'id' => 'logout',
-            'url' => '/site/logout',
+            'url' => '/school/site/logout',
             'classes' => 'fa fa-sign-out',
             'title' => Yii::t('app', 'Logout'),
             'post' => true,

@@ -7,7 +7,7 @@ use yii\web\JqueryAsset;
 
 class ReferencesAsset extends AssetBundle
 {
-    public $sourcePath = '@app/views/references/assets';
+    public $sourcePath = '@app/modules/school/views/references/assets';
 
     public $css = [];
 

@@ -7,7 +7,7 @@ use yii\web\JqueryAsset;
 
 class JournalGroupFormAsset extends AssetBundle
 {
-    public $sourcePath = '@app/views/journalgroup/assets';
+    public $sourcePath = '@app/modules/school/views/journalgroup/assets';
 
     public $css = [];
 

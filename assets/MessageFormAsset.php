@@ -7,7 +7,7 @@ use yii\web\JqueryAsset;
 
 class MessageFormAsset extends AssetBundle
 {
-    public $sourcePath = '@app/views/message/assets';
+    public $sourcePath = '@app/modules/school/views/message/assets';
 
     public $css = [];
 

@@ -7,7 +7,7 @@ use yii\web\JqueryAsset;
 
 class BookOrderPositionStudentFormAsset extends AssetBundle
 {
-    public $sourcePath = '@app/views/book-order-position/assets';
+    public $sourcePath = '@app/modules/school/views/book-order-position/assets';
 
     public $css = [];
 

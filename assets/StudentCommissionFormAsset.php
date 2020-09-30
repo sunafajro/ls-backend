@@ -7,7 +7,7 @@ use yii\web\JqueryAsset;
 
 class StudentCommissionFormAsset extends AssetBundle
 {
-    public $sourcePath = '@app/views/student-commission/assets';
+    public $sourcePath = '@app/modules/school/views/student-commission/assets';
 
     public $css = [];
 

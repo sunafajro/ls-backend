@@ -6,7 +6,7 @@ use yii\web\AssetBundle;
 
 class InvoiceFormAsset extends AssetBundle
 {
-    public $sourcePath = '@app/views/invoice/assets';
+    public $sourcePath = '@app/modules/school/views/invoice/assets';
 
     public $css = [];
 

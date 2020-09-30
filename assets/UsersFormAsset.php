@@ -7,7 +7,7 @@ use yii\web\JqueryAsset;
 
 class UsersFormAsset extends AssetBundle
 {
-    public $sourcePath = '@app/views/user/assets';
+    public $sourcePath = '@app/modules/school/views/user/assets';
 
     public $css = [];
 

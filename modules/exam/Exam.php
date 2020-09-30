@@ -3,9 +3,9 @@
 
 namespace app\modules\exam;
 
-use app\modules\BaseModule;
+use yii\base\Module;
 
-class Exam extends BaseModule
+class Exam extends Module
 {
 
 }

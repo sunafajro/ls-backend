@@ -7,7 +7,7 @@ use yii\web\JqueryAsset;
 
 class MessageListAsset extends AssetBundle
 {
-    public $sourcePath = '@app/views/message/assets';
+    public $sourcePath = '@app/modules/school/views/message/assets';
 
     public $css = [];
 

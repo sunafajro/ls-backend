@@ -7,7 +7,7 @@ use yii\web\JqueryAsset;
 
 class ReportAccrualsAsset extends AssetBundle
 {
-    public $sourcePath = '@app/views/report/assets';
+    public $sourcePath = '@app/modules/school/views/report/assets';
 
     public $css = [];
 

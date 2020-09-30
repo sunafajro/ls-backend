@@ -8,7 +8,7 @@ use yii\web\JqueryAsset;
 
 class PaymentFormAsset extends AssetBundle
 {
-    public $sourcePath = '@app/views/moneystud/assets';
+    public $sourcePath = '@app/modules/school/views/moneystud/assets';
 
     public $css = [];
 

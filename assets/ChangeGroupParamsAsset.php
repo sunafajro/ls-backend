@@ -7,7 +7,7 @@ use yii\web\JqueryAsset;
 
 class ChangeGroupParamsAsset extends AssetBundle
 {
-    public $sourcePath = '@app/views/groupteacher/assets';
+    public $sourcePath = '@app/modules/school/views/groupteacher/assets';
 
     public $css = [];
 

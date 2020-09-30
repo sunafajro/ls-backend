@@ -7,7 +7,7 @@ use yii\web\JqueryAsset;
 
 class StudentGradeFormAsset extends AssetBundle
 {
-    public $sourcePath = '@app/views/student-grade/assets';
+    public $sourcePath = '@app/modules/school/views/student-grade/assets';
     
     public $css = [];
     

@@ -7,7 +7,7 @@ use yii\web\JqueryAsset;
 
 class StudentViewAsset extends AssetBundle
 {
-    public $sourcePath = '@app/views/studname/assets';
+    public $sourcePath = '@app/modules/school/views/studname/assets';
 
     public $css = [];
 

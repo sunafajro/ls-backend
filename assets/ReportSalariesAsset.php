@@ -6,7 +6,7 @@ use yii\web\AssetBundle;
 
 class ReportSalariesAsset extends AssetBundle
 {
-    public $sourcePath = '@app/views/report/assets';
+    public $sourcePath = '@app/modules/school/views/report/assets';
 
     public $css = [];
 

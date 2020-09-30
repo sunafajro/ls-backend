@@ -6,7 +6,7 @@ use yii\web\AssetBundle;
 
 class ScheduleAsset extends AssetBundle
 {
-    public $sourcePath = '@app/views/schedule/assets';
+    public $sourcePath = '@app/modules/school/views/schedule/assets';
 
     public $css = [];
     

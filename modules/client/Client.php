@@ -3,9 +3,9 @@
 
 namespace app\modules\client;
 
-use app\modules\BaseModule;
+use yii\base\Module;
 
-class Client extends BaseModule
+class Client extends Module
 {
 
 }

@@ -11,7 +11,7 @@ if (file_exists("{$localPath}/options.school.php")) {
 return [
     'defaultRoute' => 'school/site/index',
     'modules' => [
-        'company' => [
+        'school' => [
             'class' => 'app\modules\school\School',
             'layout' => 'main',
         ],
