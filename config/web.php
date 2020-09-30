@@ -23,7 +23,7 @@ if (file_exists("{$localPath}/options.php")) {
 }
 
 $config = [
-    'id' => 'basic',
+    'id' => 'language-school',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
     'language' => 'ru-RU',
@@ -79,15 +79,17 @@ $config = [
             'showScriptName' => false,
             'enablePrettyUrl' => true,
             'rules' => [
-                'schedule'                                     => 'schedule/index',
-                'schedule/<action:[\w-]+>'                     => 'schedule/index',
-                'api/schedule/<tag>'                           => 'schedule/api-<tag>',
-                'api/user/<tag>'                               => 'user/api-<tag>',
-                'api/references/<tag>'                         => 'references/api-<tag>',
-                'api/references/list/<name:\w+>'               => 'references/api-list',
-                'api/references/create/<name:\w+>'             => 'references/api-create',
-                'api/references/delete/<name:\w+>/<id:\d+>'    => 'references/api-delete',
-                '<controller:[\w-]+>/<action:[\w-]+>/<id:\d+>' => '<controller>/<action>',
+//                'schedule'                                     => 'schedule/index',
+//                'schedule/<action:[\w-]+>'                     => 'schedule/index',
+//                'api/schedule/<tag>'                           => 'schedule/api-<tag>',
+//                'api/user/<tag>'                               => 'user/api-<tag>',
+//                'api/references/<tag>'                         => 'references/api-<tag>',
+//                'api/references/list/<name:\w+>'               => 'references/api-list',
+//                'api/references/create/<name:\w+>'             => 'references/api-create',
+//                'api/references/delete/<name:\w+>/<id:\d+>'    => 'references/api-delete',
+                '<module:[\w-]+>/<controller:[\w-]+>/<action:[\w-]+>/<id:\d+>' => '<module>/<controller>/<action>',
+                '<module:[\w-]+>/<controller:[\w-]+>/<action:[\w-]+>'          => '<module>/<controller>/<action>',
+                '<controller:[\w-]+>/<action:[\w-]+>'                          => '/',
             ]
         ],
     ],
