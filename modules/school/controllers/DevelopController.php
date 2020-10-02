@@ -55,7 +55,6 @@ class DevelopController extends Controller
      */
     public function actionIndex()
     {
-        $this->layout = 'column2';
         $model = (new \yii\db\Query())
         ->select('dev.id as id, dev.creation_date as creation_date, u1.name as creation_user, dev.description as description, dev.type as type, dev.status as status, dev.severity as severity, dev.close_date as close_date, u2.name as close_user')
         ->from('calc_develop dev')
@@ -89,7 +88,6 @@ class DevelopController extends Controller
      */
     public function actionCreate()
     {
-        $this->layout = 'column2';
         $model = new Develop();
 
         if ($model->load(Yii::$app->request->post())) {
@@ -114,7 +112,6 @@ class DevelopController extends Controller
      */
     public function actionUpdate($id)
     {
-        $this->layout = 'column2';
         $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {

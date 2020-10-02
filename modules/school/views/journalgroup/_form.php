@@ -10,7 +10,7 @@
  * @var int          $userId
  */
 
-use app\assets\JournalGroupFormAsset;
+use app\modules\school\assets\JournalGroupFormAsset;
 use app\models\Journalgroup;
 use kartik\datetime\DateTimePicker;
 use kartik\time\TimePicker;

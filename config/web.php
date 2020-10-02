@@ -76,25 +76,13 @@ $config = [
         ],
         'urlManager' => [
             'class' => 'yii\web\UrlManager',
-            'showScriptName' => false,
-            'enablePrettyUrl' => true,
-            'rules' => [
-                'schedule'                                     => 'school/schedule/index',
-                'schedule/<action:[\w-]+>'                     => 'school/schedule/index',
-                'api/schedule/<tag>'                           => 'school/schedule/api-<tag>',
-                'api/user/<tag>'                               => 'school/user/api-<tag>',
-                'api/references/<tag>'                         => 'school/references/api-<tag>',
-                'api/references/list/<name:\w+>'               => 'school/references/api-list',
-                'api/references/create/<name:\w+>'             => 'school/references/api-create',
-                'api/references/delete/<name:\w+>/<id:\d+>'    => 'school/references/api-delete',
-                '<module:[\w-]+>/<controller:[\w-]+>/<action:[\w-]+>/<id:\d+>' => '<module>/<controller>/<action>',
-                '<module:[\w-]+>/<controller:[\w-]+>/<action:[\w-]+>'          => '<module>/<controller>/<action>',
-                '<controller:[\w-]+>/<action:[\w-]+>'                          => '/',
-            ]
+            'showScriptName'  => false,
+            'enablePrettyUrl' => false,
+            'rules' => []
         ],
     ],
     'aliases' => $aliases,
-    'params' => $params,
+    'params'  => $params,
 ];
 
 if (YII_DEBUG === true) {

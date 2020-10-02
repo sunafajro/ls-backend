@@ -23,7 +23,7 @@
  * @var array              $loginStatus
  */
 
-use app\assets\StudentViewAsset;
+use app\modules\school\assets\StudentViewAsset;
 use app\models\search\LessonSearch;
 use app\models\Student;
 use app\widgets\Alert;

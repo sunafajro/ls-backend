@@ -39,25 +39,28 @@ use kartik\datetime\DateTimePicker;
     </div>
   </div>
   <div class="col-xs-12 col-sm-3">
-    <?= $form->field($model, 'date')->widget(DateTimePicker::className(), [
-      'options' => [
-        'placeholder' => 'Дата аттестации',
-        'autocomplete' => 'off',
-      ],
-      'size' => 'sm',
-      'pluginOptions' => [
-        'language' => 'ru',
-        'format' => 'yyyy-mm-dd',
-        'todayHighlight' => true,
-        'minView' => 2,
-        'maxView' => 4,
-        'weekStart' => 1,
-        'autoclose' => true,
-      ]
-    ])->label(false) ?>
+      <?= $form->field($model, 'date')
+            ->widget(DateTimePicker::class, [
+                  'options' => [
+                    'placeholder' => 'Дата аттестации',
+                    'autocomplete' => 'off',
+                  ],
+                  'size' => 'sm',
+                  'pluginOptions' => [
+                    'language' => 'ru',
+                    'format' => 'yyyy-mm-dd',
+                    'todayHighlight' => true,
+                    'minView' => 2,
+                    'maxView' => 4,
+                    'weekStart' => 1,
+                    'autoclose' => true,
+                  ]
+            ])->label(false) ?>
   </div>          
   <div class="col-xs-12 col-sm-6">
-    <?= $form->field($model, 'description')->dropDownList($items = $exams, ['class' => 'form-control input-sm js--exam-select'])->label(false) ?>
+    <?= $form->field($model, 'description')
+            ->dropDownList($exams, ['class' => 'form-control input-sm js--exam-select', 'data-url' => Url::to(['student-grade/exam-contents'])])
+            ->label(false) ?>
   </div>
   <div class="col-xs-12 col-sm-2">
     <?= $form->field($model, 'score')->textInput(['class' => 'form-control input-sm', 'placeholder' => Yii::t('app', 'Score')])->label(false) ?>

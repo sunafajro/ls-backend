@@ -3,7 +3,7 @@
  * @var View $this
  */
 
-use app\assets\ReportSalariesAsset;
+use app\modules\school\assets\ReportSalariesAsset;
 use yii\web\View;
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app','Reports');

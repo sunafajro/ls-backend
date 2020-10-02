@@ -49,7 +49,6 @@ class TicketController extends Controller
      */
     public function actionIndex()
     {
-	    $this->layout = 'column2';
 		if(!Yii::$app->request->get('type') || Yii::$app->request->get('type') == 1) {
 			$type = 1;
 		} else {
@@ -123,7 +122,6 @@ class TicketController extends Controller
      */
     public function actionCreate()
     {
-		$this->layout = 'column2';
         $model = new Ticket();
 
         if ($model->load(Yii::$app->request->post())) {
@@ -147,7 +145,6 @@ class TicketController extends Controller
 
     public function actionUpdate($id)
     {
-        $this->layout = 'column2';
         $model = $this->findModel($id);
 
         $employee = (new \yii\db\Query())
@@ -232,7 +229,6 @@ class TicketController extends Controller
 
 	public function actionClose($id)
 	{
-		$this->layout = 'column2';
 		$ticket = $this->findModel($id);
 		$model = Ticketreport::find()->where('calc_ticket=:t and user=:u', [':t' => $id, ':u' => \Yii::$app->session->get('user.uid')])->one();
 		
@@ -320,7 +316,6 @@ class TicketController extends Controller
 
 	public function actionAdjourn($id)
 	{
-		$this->layout = 'column2';
 		$ticket = $this->findModel($id);
 		$model = Ticketreport::find()->where('calc_ticket=:t and user=:u', [':t' => $id, ':u' => \Yii::$app->session->get('user.uid')])->one();
 		
@@ -352,7 +347,6 @@ class TicketController extends Controller
 	
     public function actionAddexecutor($id)
     {
-		$this->layout = 'column2';
 		$ids = NULL;
 		$ticket = $this->findModel($id);
 		$current_users = (new \yii\db\Query())

@@ -6,7 +6,7 @@ $(function () {
           var _this = $(this);
           $.ajax({
               method: 'POST',
-              url: _this.data('url'),
+              url: _this.data('url')
           }).always(function () {
               window.location.reload();
           });

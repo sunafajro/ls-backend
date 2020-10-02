@@ -16,7 +16,7 @@
  * @var string     $userInfoBlock
  */
 
-use app\assets\ReportAccrualsAsset;
+use app\modules\school\assets\ReportAccrualsAsset;
 use app\widgets\Alert;
 use yii\helpers\Html;
 use yii\web\View;

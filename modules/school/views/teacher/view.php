@@ -1,16 +1,18 @@
 <?php
 
-use app\assets\ChangeGroupParamsAsset;
+/**
+ * @var View    $this
+ * @var Teacher $model
+ * @var array   $teacherschedule
+ * @var string  $userInfoBlock
+ */
+
+use app\modules\school\assets\ChangeGroupParamsAsset;
 use app\models\Teacher;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\web\View;
 use yii\widgets\Breadcrumbs;
-
-/**
- * @var View    $this
- * @var Teacher $model
- */
 
 ChangeGroupParamsAsset::register($this);
 

@@ -69,10 +69,6 @@ class KaslibroController extends Controller
             $year = date('Y');
         }
         // определяем год для выборки
-
-        // подключаем боковое меню
-        $this->layout = 'column2';
-        // подключаем боковое меню
         
         // выбираем сумму на начало месяца
         //$sum = (new \yii\db\Query())
@@ -177,9 +173,6 @@ class KaslibroController extends Controller
             ->one();
         }
         // для менеджеров определяем код офиса
-        
-        // подключаем боковое меню
-        $this->layout = 'column2';
         
         $model = new Kaslibro();
 
@@ -404,8 +397,6 @@ class KaslibroController extends Controller
             ->one();
         }
         // для менеджеров определяем код офиса
-        // подключаем боковое меню
-        $this->layout = 'column2';
         
         $model = $this->findModel($id);
         

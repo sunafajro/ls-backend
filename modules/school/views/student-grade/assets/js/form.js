@@ -19,10 +19,11 @@ $(function() {
   }
 
   $(".js--exam-select").on("change", function(e) {
+    var _this = $(this);
     contentsBlock.html("");
     if (e.target.value) {
       loading = true;
-      $.get("/student-grade/exam-contents?exam=" + e.target.value, {}, function(
+      $.get(_this.data('url') + '?exam=' + e.target.value, {}, function(
         data
       ) {
         if (
@@ -46,8 +47,8 @@ $(function() {
           }
         } else {
           var alertBlock = $("<div>", {
-            class: "alert alert-danger",
-            text: "Не удалось получить содержание экзамена"
+            "class": "alert alert-danger",
+            "text": "Не удалось получить содержание экзамена"
           });
           contentsBlock.append(alertBlock);
         }

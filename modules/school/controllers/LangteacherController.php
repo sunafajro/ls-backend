@@ -53,8 +53,6 @@ class LangteacherController extends Controller
         if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4 && (int)Yii::$app->session->get('user.uid') !== 296){
             return $this->redirect(Yii::$app->request->referrer);
         }
-		//указываем двухколоночный дизайн
-		$this->layout = 'column2';
 		//проверяем что такой преподаватель есть
 		$teacher = (new \yii\db\Query())
 		->select('id as tid, name as tname')

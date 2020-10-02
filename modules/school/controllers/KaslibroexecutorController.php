@@ -63,10 +63,6 @@ class KaslibroexecutorController extends Controller
         }
         // всех кроме руководителей и бухгалтера редиректим обратно
         
-        // подключаем боковое меню
-        $this->layout = 'column2';
-        // подключаем боковое меню
-        
         $model =  (new \yii\db\Query())
         ->select('id as id, name as name')
         ->from('calc_kaslibro_executor')
@@ -90,10 +86,6 @@ class KaslibroexecutorController extends Controller
             return $this->redirect(\Yii::$app->request->referrer);
         }
         // всех кроме руководителей и бухгалтера редиректим обратно
-        
-        // подключаем боковое меню
-        $this->layout = 'column2';
-        // подключаем боковое меню
         
         $model = new KaslibroExecutor();
 
@@ -123,10 +115,7 @@ class KaslibroexecutorController extends Controller
             return $this->redirect(\Yii::$app->request->referrer);
         }
         // всех кроме руководителей и бухгалтера редиректим обратно
-        
-        // подключаем боковое меню
-        $this->layout = 'column2';
-        // подключаем боковое меню
+
         $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {

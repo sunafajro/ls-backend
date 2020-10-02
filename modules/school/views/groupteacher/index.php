@@ -11,7 +11,7 @@
  * @var string             $userInfoBlock
  */
 
-use app\assets\GroupListAsset;
+use app\modules\school\assets\GroupListAsset;
 use app\models\Groupteacher;
 use app\models\Schedule;
 use app\models\search\GroupSearch;

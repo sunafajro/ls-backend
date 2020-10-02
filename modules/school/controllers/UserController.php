@@ -264,7 +264,6 @@ class UserController extends Controller
             return $this->redirect(Yii::$app->request->referrer);
         }
 
-        $this->layout = 'column2';
         $model = $this->findModel($id);
         $model->pass = '';
         if(Yii::$app->request->post()){

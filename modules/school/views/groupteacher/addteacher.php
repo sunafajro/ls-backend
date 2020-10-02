@@ -1,6 +1,6 @@
 <?php
 
-use app\assets\ChangeGroupParamsAsset;
+use app\modules\school\assets\ChangeGroupParamsAsset;
 use app\models\Groupteacher;
 use app\widgets\Alert;
 use yii\helpers\Html;
@@ -12,6 +12,10 @@ use yii\web\View;
  * @var View         $this
  * @var ActiveForm   $form
  * @var Groupteacher $group
+ * @var array        $check_teachers
+ * @var array        $groupinfo
+ * @var array        $items
+ * @var array        $params
  * @var array        $teachers
  * @var string       $userInfoBlock
  */

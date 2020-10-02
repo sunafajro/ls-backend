@@ -4,7 +4,7 @@
  * @var View $this
  */
 
-use app\assets\ReferencesAsset;
+use app\modules\school\assets\ReferencesAsset;
 use yii\helpers\Html;
 use yii\helpers\Json;
 use yii\web\View;

@@ -1,18 +1,18 @@
 <?php
 
-namespace app\assets;
+namespace app\modules\school\assets;
 
 use yii\web\AssetBundle;
 use yii\web\JqueryAsset;
 
-class GroupViewAsset extends AssetBundle
+class GroupListAsset extends AssetBundle
 {
     public $sourcePath = '@app/modules/school/views/groupteacher/assets';
 
     public $css = [];
 
     public $js = [
-        'js/view.js'
+        'js/index.js'
     ];
 
     public $depends = [

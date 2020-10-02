@@ -4,9 +4,10 @@
  * @var View       $this
  * @var Teacher    $model
  * @var ActiveForm $form
+ * @var array      $statusjobs
  */
 
-use app\assets\AddressAutocompleteAsset;
+use app\modules\school\assets\AddressAutocompleteAsset;
 use app\models\Teacher;
 use yii\helpers\Html;
 use yii\web\View;
@@ -43,7 +44,7 @@ AddressAutocompleteAsset::register($this);
             } else {
                 echo $form->field($model, 'value_corp')->textInput();
             } ?>
-        <?= $form->field($model, 'calc_statusjob')->dropDownList($items=$statusjobs,['prompt'=>Yii::t('app', '-select-')]) ?>
+        <?= $form->field($model, 'calc_statusjob')->dropDownList($statusjobs,['prompt'=>Yii::t('app', '-select-')]) ?>
     <?php } ?>
     <?= $form->field($model, 'description')->textarea(['rows' => 3]) ?>
     <?php

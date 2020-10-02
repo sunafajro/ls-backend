@@ -1,6 +1,6 @@
 <?php
 
-use app\assets\StudentGradeFormAsset;
+use app\modules\school\assets\StudentGradeFormAsset;
 use app\models\Student;
 use app\models\StudentGrade;
 use app\widgets\Alert;

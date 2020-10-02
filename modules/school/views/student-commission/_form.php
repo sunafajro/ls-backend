@@ -8,7 +8,7 @@
  * @var array             $offices
  */
 
-use app\assets\StudentCommissionFormAsset;
+use app\modules\school\assets\StudentCommissionFormAsset;
 use app\models\Student;
 use app\models\StudentCommission;
 use kartik\datetime\DateTimePicker;

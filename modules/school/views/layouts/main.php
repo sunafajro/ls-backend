@@ -1,6 +1,13 @@
 <?php
 
+/**
+ * @var View   $this
+ * @var string $content
+ */
+
+use app\modules\school\models\Navigation;
 use yii\helpers\Html;
+use yii\web\View;
 use yii\widgets\Breadcrumbs;
 use app\assets\AppAsset;
 use app\widgets\navigation\NavigationWidget;
@@ -20,8 +27,9 @@ $hideModal = $this->context->id === 'message' && in_array($this->context->action
     </head>
     <body>
 <?php $this->beginBody() ?>
-    <?php if(Yii::$app->params['appMode'] !== 'bitrix' && !Yii::$app->user->isGuest): ?>
+    <?php if (Yii::$app->params['appMode'] !== 'bitrix' && !Yii::$app->user->isGuest): ?>
         <?= NavigationWidget::widget([
+                'model' => new Navigation(),
                 'hideModal' => $hideModal,
         ]) ?>
     <?php endif; ?>

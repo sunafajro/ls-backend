@@ -1,13 +1,13 @@
 <?php
 
-namespace app\assets;
+namespace app\modules\school\assets;
 
 use yii\web\AssetBundle;
 use yii\web\JqueryAsset;
 
-class CallFormAsset extends AssetBundle
+class StudentCommissionFormAsset extends AssetBundle
 {
-    public $sourcePath = '@app/modules/school/views/call/assets';
+    public $sourcePath = '@app/modules/school/views/student-commission/assets';
 
     public $css = [];
 

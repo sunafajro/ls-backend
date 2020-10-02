@@ -12,7 +12,7 @@
  * @var array $way
  */
 
-use app\assets\CallFormAsset;
+use app\modules\school\assets\CallFormAsset;
 use app\models\Call;
 use yii\helpers\Html;
 use yii\helpers\Url;

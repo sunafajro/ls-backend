@@ -9,7 +9,7 @@
  * @var array                 $offices
  */
 
-use app\assets\BookOrderPositionStudentFormAsset;
+use app\modules\school\assets\BookOrderPositionStudentFormAsset;
 use app\models\Book;
 use app\models\BookOrder;
 use app\models\BookOrderPosition;

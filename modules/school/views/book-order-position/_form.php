@@ -8,7 +8,7 @@
  * @var array             $offices
  */
 
-use app\assets\BookOrderPositionFormAsset;
+use app\modules\school\assets\BookOrderPositionFormAsset;
 use app\models\Book;
 use app\models\BookOrderPosition;
 use yii\helpers\Html;

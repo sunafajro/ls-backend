@@ -1,18 +1,18 @@
 <?php
 
-namespace app\assets;
+namespace app\modules\school\assets;
 
 use yii\web\AssetBundle;
 use yii\web\JqueryAsset;
 
-class ChangeGroupParamsAsset extends AssetBundle
+class GroupViewAsset extends AssetBundle
 {
     public $sourcePath = '@app/modules/school/views/groupteacher/assets';
 
     public $css = [];
 
     public $js = [
-        'js/change-group-params.js',
+        'js/view.js'
     ];
 
     public $depends = [

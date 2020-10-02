@@ -8,7 +8,7 @@
  * @var array      $offices
  */
 
-use app\assets\PaymentFormAsset;
+use app\modules\school\assets\PaymentFormAsset;
 use app\models\Moneystud;
 use app\models\Student;
 use yii\helpers\Html;

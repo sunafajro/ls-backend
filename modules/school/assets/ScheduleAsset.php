@@ -1,7 +1,8 @@
 <?php
 
-namespace app\assets;
+namespace app\modules\school\assets;
 
+use app\assets\NotyAsset;
 use yii\web\AssetBundle;
 
 class ScheduleAsset extends AssetBundle
@@ -15,5 +16,7 @@ class ScheduleAsset extends AssetBundle
         'js/app.js',
     ];
 
-    public $depends = [];
+    public $depends = [
+        NotyAsset::class,
+    ];
 }

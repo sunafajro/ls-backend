@@ -1,13 +1,13 @@
 <?php
 
-namespace app\assets;
+namespace app\modules\school\assets;
 
 use yii\web\AssetBundle;
 use yii\web\JqueryAsset;
 
-class StudentListAsset extends AssetBundle
+class MessageListAsset extends AssetBundle
 {
-    public $sourcePath = '@app/modules/school/views/studname/assets';
+    public $sourcePath = '@app/modules/school/views/message/assets';
 
     public $css = [];
 

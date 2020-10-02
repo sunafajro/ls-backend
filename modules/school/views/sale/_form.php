@@ -6,7 +6,7 @@
  * @var array $types
  */
 
-use app\assets\SaleFormAsset;
+use app\modules\school\assets\SaleFormAsset;
 use app\models\Sale;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;

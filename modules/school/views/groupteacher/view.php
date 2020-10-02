@@ -7,6 +7,7 @@
  * @var array        $checkTeachers
  * @var array        $groupInfo
  * @var array        $groupStudents
+ * @var array        $items
  * @var array        $lesattend
  * @var array        $lessons
  * @var int|null     $lid
@@ -16,7 +17,7 @@
  * @var string       $userInfoBlock
  */
 
-use app\assets\GroupViewAsset;
+use app\modules\school\assets\GroupViewAsset;
 use app\models\Groupteacher;
 use app\models\Journalgroup;
 use app\widgets\Alert;

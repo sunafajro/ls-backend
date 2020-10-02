@@ -1,6 +1,6 @@
 <?php
 
-use app\assets\MessageListAsset;
+use app\modules\school\assets\MessageListAsset;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use app\widgets\Alert;

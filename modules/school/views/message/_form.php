@@ -7,7 +7,7 @@
  * @var array   $receivers
  */
 
-use app\assets\MessageFormAsset;
+use app\modules\school\assets\MessageFormAsset;
 use app\models\File;
 use app\models\Message;
 use moonland\tinymce\TinyMCE;

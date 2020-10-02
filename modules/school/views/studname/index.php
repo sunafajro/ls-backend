@@ -12,7 +12,7 @@
  * @var string     $userInfoBlock
  */
 
-use app\assets\StudentListAsset;
+use app\modules\school\assets\StudentListAsset;
 use app\widgets\Alert;
 use yii\data\Pagination;
 use yii\helpers\Html;

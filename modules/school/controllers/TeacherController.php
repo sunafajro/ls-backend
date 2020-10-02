@@ -543,7 +543,6 @@ class TeacherController extends Controller
         if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.uid') !== 296) {
             return $this->redirect(['teacher/index']);
         } else {
-            $this->layout = 'column2';
             $model = new Teacher();
 
 			//выбираем формы трудоустройства для селекта
@@ -599,7 +598,6 @@ class TeacherController extends Controller
         if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4 && (int)Yii::$app->session->get('user.uid') !== 296) {
             return $this->redirect(['teacher/view', 'id'=>$id]);
         } else {
-	    $this->layout = 'column2';
 
 	    //выбираем формы трудоустройства для селекта
 	    $statusjob = (new \yii\db\Query())

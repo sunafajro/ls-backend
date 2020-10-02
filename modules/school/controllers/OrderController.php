@@ -54,7 +54,6 @@ class OrderController extends Controller
      */
     public function actionIndex()
     {
-        $this->layout = 'column2';
         $model = (new \yii\db\Query())
         ->select(['oid'=>'o.id','onumber'=>'o.number','otitle'=>'o.title','ocontent'=>'o.content','reciever'=>'mht.name', 'sender'=>'u.name'])
         ->from('calc_orders o')

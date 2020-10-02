@@ -6,7 +6,7 @@
  * @var array   $way
  */
 
-use app\assets\AddressAutocompleteAsset;
+use app\modules\school\assets\AddressAutocompleteAsset;
 use app\models\Student;
 use yii\helpers\Html;
 use yii\web\View;

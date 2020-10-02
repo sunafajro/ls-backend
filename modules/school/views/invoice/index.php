@@ -5,7 +5,7 @@
  * @var array $student
  */
 
-use app\assets\InvoiceFormAsset;
+use app\modules\school\assets\InvoiceFormAsset;
 use yii\web\View;
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Create invoice');
