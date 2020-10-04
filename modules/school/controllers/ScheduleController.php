@@ -26,10 +26,10 @@ class ScheduleController extends Controller
     public function behaviors() : array
     {
         $rules = [
-            'api-actions', 'api-create', 'api-update',
-            'api-delete', 'api-filters', 'api-groups',
-            'api-hours', 'api-lessons', 'api-offices',
-            'api-rooms', 'api-teachers', 'index'
+            'app-actions', 'app-create', 'app-update',
+            'app-delete', 'app-filters', 'app-groups',
+            'app-hours', 'app-lessons', 'app-offices',
+            'app-rooms', 'app-teachers', 'index'
         ];
         return [
             'access' => [
@@ -81,7 +81,7 @@ class ScheduleController extends Controller
      *
      * @return mixed
      */
-    public function actionApiActions()
+    public function actionAppActions()
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         return [
@@ -100,7 +100,7 @@ class ScheduleController extends Controller
      *
      * @return mixed
      */
-    public function actionApiCreate()
+    public function actionAppCreate()
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         $model = new Schedule();
@@ -127,7 +127,7 @@ class ScheduleController extends Controller
      *
      * @return mixed
      */
-    public function actionApiUpdate($id)
+    public function actionAppUpdate($id)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         /** @var Schedule $model */
@@ -156,7 +156,7 @@ class ScheduleController extends Controller
      *
      * @return mixed
      */
-    public function actionApiDelete($id)
+    public function actionAppDelete($id)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         $model = $this->findModel($id);
@@ -190,7 +190,7 @@ class ScheduleController extends Controller
      *
      * @return mixed
      */
-    public function actionApiFilters()
+    public function actionAppFilters()
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         $eduform = new Eduform();
@@ -219,7 +219,7 @@ class ScheduleController extends Controller
      *
      * @return mixed
      */
-    public function actionApiHours($oid = NULL, $tid = NULL)
+    public function actionAppHours($oid = NULL, $tid = NULL)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         $schedule = new Schedule();
@@ -242,7 +242,7 @@ class ScheduleController extends Controller
      * @param int|null $tid
      * @return mixed
      */
-    public function actionApiLessons($aid = NULL, $did = NULL, $fid = NULL, $lid = NULL, $oid = NULL, $tid = NULL)
+    public function actionAppLessons($aid = NULL, $did = NULL, $fid = NULL, $lid = NULL, $oid = NULL, $tid = NULL)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         $schedule = new Schedule();
@@ -265,7 +265,7 @@ class ScheduleController extends Controller
      *
      * @return mixed
      */
-    public function actionApiGroups($tid)
+    public function actionAppGroups($tid)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         $tool = new Tool();
@@ -279,7 +279,7 @@ class ScheduleController extends Controller
     /**
      * @return mixed
      */
-    public function actionApiOffices()
+    public function actionAppOffices()
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         return [
@@ -292,7 +292,7 @@ class ScheduleController extends Controller
      *
      * @return mixed
      */
-    public function actionApiRooms($oid)
+    public function actionAppRooms($oid)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         $tool = new Tool();
@@ -308,7 +308,7 @@ class ScheduleController extends Controller
      * 
      * @return mixed
      */
-    public function actionApiTeachers($tid = NULL)
+    public function actionAppTeachers($tid = NULL)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         if ((int)Yii::$app->session->get('user.ustatus') === 5) {

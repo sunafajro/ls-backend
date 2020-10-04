@@ -107,7 +107,7 @@ class InvoiceController extends Controller
     {
         /* включаем формат ответа JSON */
         Yii::$app->response->format = Response::FORMAT_JSON;
-        if(Yii::$app->request->post('sid')) {
+        if (Yii::$app->request->post('sid')) {
             $sid = Yii::$app->request->post('sid');
 
             $hints = [
@@ -119,28 +119,28 @@ class InvoiceController extends Controller
             $sales = Salestud::getClientSalesSplited($sid);
 
             $labels = [
-                'select' => Yii::t('app', '-select-'),
-                'service' => Yii::t('app', 'Service'),
-                'rubsale' => Yii::t('app', 'Ruble sale'),
-                'rubsaleid' => Yii::t('app', 'Ruble sale (assigned)'),
-                'rubsaleval' => Yii::t('app', 'Ruble sale (manual)'),
-                'procsale' => Yii::t('app', 'Percent sale'),
-                'permsale' => Yii::t('app', 'Permament sale'),
-                'num' => Yii::t('app', 'Lesson count'),
-                'remain' => Yii::t('app', 'Remain'),
-                'corp' => Yii::t('app', 'Corporative'),
-                'office' => Yii::t('app', 'Office'),
-                'calculate' => Yii::t('app', 'Calculate'),
-                'addsale' => Yii::t('app', 'Add'),
-                'total' => Yii::t('app', 'Invoice cost'),
-                'sendingMessage' => Yii::t('app', 'Sending invoice data to server...'),
-                'saveErrorMessage' => Yii::t('app', 'Failed to save the invoice on server!'),
+                'select'             => Yii::t('app', '-select-'),
+                'service'            => Yii::t('app', 'Service'),
+                'rubsale'            => Yii::t('app', 'Ruble sale'),
+                'rubsaleid'          => Yii::t('app', 'Ruble sale (assigned)'),
+                'rubsaleval'         => Yii::t('app', 'Ruble sale (manual)'),
+                'procsale'           => Yii::t('app', 'Percent sale'),
+                'permsale'           => Yii::t('app', 'Permament sale'),
+                'num'                => Yii::t('app', 'Lesson count'),
+                'remain'             => Yii::t('app', 'Remain'),
+                'corp'               => Yii::t('app', 'Corporative'),
+                'office'             => Yii::t('app', 'Office'),
+                'calculate'          => Yii::t('app', 'Calculate'),
+                'addsale'            => Yii::t('app', 'Add'),
+                'total'              => Yii::t('app', 'Invoice cost'),
+                'sendingMessage'     => Yii::t('app', 'Sending invoice data to server...'),
+                'saveErrorMessage'   => Yii::t('app', 'Failed to save the invoice on server!'),
                 'saveSuccessMessage' => Yii::t('app', 'The invoice successfully saved on server!'),
-                'salepurpose' => Yii::t('app', 'Reason'),
+                'salepurpose'        => Yii::t('app', 'Reason'),
             ];
-            $user = new User();
+
             return [
-                'userData'  => $user->getUserInfo(),
+                'userData'  => User::getUserInfo(),
                 'hints'     => $hints,
                 'services'  => Service::getInvoiceServicesList(),
                 'rubsales'  => $sales['rub'],

@@ -29,10 +29,10 @@ class ReferencesController extends Controller
     {
         $actions = [
             'index',
-            'api-menu-links',
-            'api-list',
-            'api-create',
-            'api-delete',
+            'app-menu-links',
+            'app-list',
+            'app-create',
+            'app-delete',
         ];
         return [
             'access' => [
@@ -54,8 +54,8 @@ class ReferencesController extends Controller
             'verbs' => [
                 'class' => VerbFilter::class,
                 'actions' => [
-                    'create' => ['post'],
-                    'delete' => ['post'],
+                    'app-create' => ['post'],
+                    'app-delete' => ['post'],
                 ],
             ],
         ];
@@ -66,7 +66,7 @@ class ReferencesController extends Controller
         if(parent::beforeAction($action)) {
             $name = Yii::$app->request->get('name', null);
             $controllerId = $action->controller->id;
-            $actionId = str_replace('api-', '', $action->id);
+            $actionId = str_replace('app-', '', $action->id);
             if ($name !== NULL && in_array($actionId, ['create', 'delete', 'list'])) {
                 $controllerId = "{$controllerId}/{$name}";
             }
@@ -85,10 +85,6 @@ class ReferencesController extends Controller
             'error' => [
                 'class' => 'yii\web\ErrorAction',
             ],
-            'captcha' => [
-                'class' => 'yii\captcha\CaptchaAction',
-                'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
-            ],
         ];
     }
 
@@ -97,7 +93,7 @@ class ReferencesController extends Controller
         return $this->render('index');
     }
 
-    public function actionApiMenuLinks()
+    public function actionAppMenuLinks()
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         return [
@@ -106,7 +102,7 @@ class ReferencesController extends Controller
         ];
     }
 
-    public function actionApiList($name = 'phonebook')
+    public function actionAppList($name = 'phonebook')
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         ['columns' => $columns, 'data' => $data] = $this->getEntities($name, 'list');
@@ -119,7 +115,7 @@ class ReferencesController extends Controller
         ];
     }
 
-    public function actionApiCreate($name)
+    public function actionAppCreate($name)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         ['entityName' => $entityName, 'model' => $model] = $this->getEntities($name, 'entity');
@@ -134,7 +130,7 @@ class ReferencesController extends Controller
         }
     }
 
-    public function actionApiDelete($name, $id)
+    public function actionAppDelete($name, $id)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         ['entityName' => $entityName, 'model' => $model] = $this->getEntities($name, 'entity', $id);

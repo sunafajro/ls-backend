@@ -31,12 +31,12 @@ return [
             'enablePrettyUrl' => true,
             'rules' => [
                 'school/schedule/<action:[\w-]+>'                              => 'school/schedule/index',
-                'school/api/schedule/<tag>'                                    => 'school/schedule/api-<tag>',
-                'school/api/user/<tag>'                                        => 'school/user/api-<tag>',
-                'school/api/references/<tag>'                                  => 'school/references/api-<tag>',
-                'school/api/references/list/<name:\w+>'                        => 'school/references/api-list',
-                'school/api/references/create/<name:\w+>'                      => 'school/references/api-create',
-                'school/api/references/delete/<name:\w+>/<id:\d+>'             => 'school/references/api-delete',
+                'school/app/references/<tag>'                                  => 'school/references/app-<tag>',
+                'school/app/references/list/<name:\w+>'                        => 'school/references/app-list',
+                'school/app/references/create/<name:\w+>'                      => 'school/references/app-create',
+                'school/app/references/delete/<name:\w+>/<id:\d+>'             => 'school/references/app-delete',
+                'school/app/schedule/<tag>'                                    => 'school/schedule/app-<tag>',
+                'school/app/user/<tag>'                                        => 'school/user/app-<tag>',
 
                 '<module:[\w-]+>/<controller:[\w-]+>/<action:[\w-]+>/<id:\d+>' => '<module>/<controller>/<action>',
                 '<module:[\w-]+>/<controller:[\w-]+>/<action:[\w-]+>'          => '<module>/<controller>/<action>',

@@ -8,6 +8,7 @@ use yii\base\Model;
 use yii\data\Pagination;
 use yii\db\Expression;
 use yii\helpers\ArrayHelper;
+use yii\helpers\Url;
 
 /**
  * 
@@ -24,93 +25,93 @@ class Report extends Model
         $items = [];
         if (in_array($roleId, [3, 8])) {
             $items[] = [
-                'id' => 'common',
+                'id'    => 'common',
                 'label' => Yii::t('app','Common'),
-                'url' => '/report/common'
+                'url'   => Url::to(['report/common']),
             ];
         }
         if (in_array($roleId, [3])) {
             $items[] = [
                 'id' => 'margin',
                 'label' => Yii::t('app','Margin'),
-                'url' => '/report/margin'
+                'url' => Url::to(['report/margin']),
             ];
         }
         if (in_array($roleId, [3, 4, 8])) {
             $items[] = [
                 'id' => 'payments',
                 'label' => Yii::t('app','Payments'),
-                'url' => '/report/payments'
+                'url' => Url::to(['report/payments']),
             ];
         }
         if (in_array($roleId, [3, 4])) {
             $items[] = [
                 'id' => 'invoices',
                 'label' => Yii::t('app','Invoices'),
-                'url' => '/report/invoices'
+                'url' => Url::to(['report/invoices']),
             ];
         }
         if (in_array($roleId, [3])) {
             $items[] = [
                 'id' => 'sales',
                 'label' => Yii::t('app','Sales'),
-                'url' => '/report/sale'
+                'url' => Url::to(['report/sale']),
             ];
         }
         if (in_array($roleId, [3, 4])) {
             $items[] = [
                 'id' => 'debts',
                 'label' => Yii::t('app','Debts'),
-                'url' => '/report/debt'
+                'url' => Url::to(['report/debt']),
             ];
         }
         if (in_array($roleId, [3, 4])) {
             $items[] = [
                 'id' => 'journals',
                 'label' => Yii::t('app','Journals'),
-                'url' => '/report/journals'
+                'url' => Url::to(['report/journals']),
             ];
         }
         if (in_array($roleId, [3, 8])) {
             $items[] = [
                 'id' => 'accruals',
                 'label' => Yii::t('app','Accruals'),
-                'url' => '/report/accrual'
+                'url' => Url::to(['report/accrual']),
             ];
         }
         if (in_array($roleId, [3, 8])) {
             $items[] = [
                 'id' => 'salaries',
                 'label' => Yii::t('app','Salaries'),
-                'url' => '/report/salaries'
+                'url' => Url::to(['report/salaries']),
             ];
         }
         if (in_array($roleId, [3])) {
             $items[] = [
                 'id' => 'plan',
                 'label' => Yii::t('app','Office plan'),
-                'url' => '/report/plan'
+                'url' => Url::to(['report/plan']),
             ];
         }
         if (in_array($roleId, [3, 4, 6])) {
             $items[] = [
                 'id' => 'lessons',
                 'label' => Yii::t('app','Lessons'),
-                'url' => '/report/lessons'
+                'url' => Url::to(['report/lessons']),
             ];
         }
         if (in_array($roleId, [3, 4, 6])) {
             $items[] = [
                 'id' => 'teacher-hours',
                 'label' => Yii::t('app','Teacher hours'),
-                'url' => '/report/teacher-hours'
+                'url' => Url::to(['report/teacher-hours']),
             ];
         }
         if (in_array($roleId, [3, 4, 8])) {
             $items[] = [
                 'id' => 'commissions',
                 'label' => Yii::t('app','Commissions'),
-                'url' => '/report/commissions'
+                'url' => Url::to(['report/commissions']),
             ];
         }
 

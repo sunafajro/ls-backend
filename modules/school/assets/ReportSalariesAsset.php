@@ -12,7 +12,7 @@ class ReportSalariesAsset extends AssetBundle
     public $css = [];
 
     public $js = [
-        'js/vendors.js',
+        'js/chunk-vendors.js',
         'js/app.js',
     ];
 

@@ -12,6 +12,7 @@ use app\models\User;
 use app\models\UploadForm;
 use yii\filters\AccessControl;
 use yii\web\Controller;
+use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 use yii\filters\VerbFilter;
@@ -25,24 +26,20 @@ class UserController extends Controller
 {
     public function behaviors()
     {
+        $rules = ['index','create','update','delete','enable','disable','upload','changepass', 'app-info'];
         return [
             'access' => [
-                'class' => AccessControl::className(),
-                'only' => ['index','create','update','delete','enable','disable','upload','changepass', 'get-info'],
+                'class' => AccessControl::class,
+                'only' => $rules,
                 'rules' => [
                     [
-                        'actions' => ['index','create','update','delete','enable','disable','upload','changepass', 'get-info'],
+                        'actions' => $rules,
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index','create','update','enable','disable','upload','changepass', 'get-info'],
+                        'actions' => $rules,
                         'allow' => true,
-                        'roles' => ['@'],
-                    ],
-                     [
-                        'actions' => ['delete'],
-                        'allow' => false,
                         'roles' => ['@'],
                     ],
                 ],
@@ -52,44 +49,41 @@ class UserController extends Controller
 
     /**
      * Выводит табличный список пользователей с информацией по ним.
-     * Метод доступен только руководителям (Роль 3).
+     * Метод доступен только руководителям (Роль 3) и пользователю 296.
+     * @param string $active
+     * @param string|null $role
+     *
      * @return mixed
+     * @throws ForbiddenHttpException
      */
-    public function actionIndex()
+    public function actionIndex(string $active = '1', string $role = null)
     {
-      if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.uid') !== 296){
-        return $this->redirect(Yii::$app->request->referrer);
-      }
-      $url_params = [
-        'active' => 1,
-        'role' => NULL,
-      ];
+        if ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.uid') !== 296) {
+            throw new ForbiddenHttpException();
+        }
+        $urlParams = [];
 
-      if(isset($_GET['active'])) {
-        $url_params['active'] = $_GET['active'] !== 'all' ? $_GET['active'] : NULL;
-      }
-      if(isset($_GET['role'])) {
-        $url_params['role'] =  $_GET['role'] !== 'all' ? $_GET['role'] : NULL;;
-      }
+        $urlParams['active'] = $active !== 'all' ? $active : NULL;
+        $urlParams['role']   =  $role && $role !== 'all' ? $role : NULL;;
 
-      return $this->render('index', [
-        'userInfoBlock' => User::getUserInfoBlock(),
-        'users' => User::getUserListFiltered($url_params),
-        'statuses' => Role::getRolesList(),
-        'url_params' => $url_params,
-      ]);
+        return $this->render('index', [
+            'statuses'      => Role::getRolesList(),
+            'urlParams'     => $urlParams,
+            'userInfoBlock' => User::getUserInfoBlock(),
+            'users'         => User::getUserListFiltered($urlParams),
+        ]);
     }
 
     /**
-     * Метод создает новго пользователя.
+     * Метод создает нового пользователя.
      * В случае успешности переходим на страничку со списком пользователей.
-     * Метод доступен только руководителям (Роль 3).
+     * Метод доступен только руководителям (Роль 3) и пользователю 296.
      * @return mixed
      */
     public function actionCreate()
     {
         if(Yii::$app->session->get('user.ustatus') != 3 && (int)Yii::$app->session->get('user.uid') !== 296){
-            return $this->redirect(Yii::$app->request->referrer);
+            throw new ForbiddenHttpException();
         }
 
         $model = new User();
@@ -137,8 +131,8 @@ class UserController extends Controller
      */
     public function actionUpdate($id)
     {
-        if((int)Yii::$app->session->get('user.ustatus')!==3 && (int)Yii::$app->session->get('user.uid') !== 296){
-            return $this->redirect(Yii::$app->request->referrer);
+        if ((int)Yii::$app->session->get('user.ustatus')!==3 && (int)Yii::$app->session->get('user.uid') !== 296) {
+            throw new ForbiddenHttpException();
         }
 
         $model = $this->findModel($id);
@@ -174,7 +168,7 @@ class UserController extends Controller
     public function actionDelete($id)
     {
         if(Yii::$app->session->get('user.ustatus')!=3){
-            return $this->redirect(Yii::$app->request->referrer);
+            throw new ForbiddenHttpException();
         }
 
         $this->findModel($id)->delete();
@@ -182,21 +176,6 @@ class UserController extends Controller
         return $this->redirect(['index']);
     }
 
-    /**
-     * Finds the User model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
-     * @param integer $id
-     * @return User the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    protected function findModel($id)
-    {
-        if (($model = User::findOne($id)) !== null) {
-            return $model;
-        } else {
-            throw new NotFoundHttpException('The requested page does not exist.');
-        }
-    }
     public function actionEnable($id)
     {
         if((int)Yii::$app->session->get('user.ustatus')!==3 && (int)Yii::$app->session->get('user.uid') !== 296){
@@ -213,6 +192,7 @@ class UserController extends Controller
 
         return $this->redirect(['index']);
     }
+
     public function actionDisable($id)
     {
         if((int)Yii::$app->session->get('user.ustatus')!==3 && (int)Yii::$app->session->get('user.uid') !== 296){
@@ -289,21 +269,31 @@ class UserController extends Controller
         ]);
     }
 
-    public function actionGetInfo()
+    /**
+     * Запрос данных текущего пользователя (для js приложений)
+     * @return array
+     */
+    public function actionAppInfo()
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        $user = new User();
         return [
-            'userData' => $user->getUserInfo()
-        ];
-    }
-    public function actionApiInfo()
-    {
-        $user = new User();
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        return [
-            'userData' => $user->getUserInfo()
+            'userData' => User::getUserInfo()
         ];
     }
 
+    /**
+     * Finds the User model based on its primary key value.
+     * If the model is not found, a 404 HTTP exception will be thrown.
+     * @param integer $id
+     * @return User the loaded model
+     * @throws NotFoundHttpException if the model cannot be found
+     */
+    protected function findModel($id)
+    {
+        if (($model = User::findOne($id)) !== null) {
+            return $model;
+        } else {
+            throw new NotFoundHttpException('The requested page does not exist.');
+        }
+    }
 }

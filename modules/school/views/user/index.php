@@ -1,11 +1,19 @@
 <?php
-    use yii\helpers\Html;
-    use yii\widgets\ActiveForm;
-    use yii\widgets\Breadcrumbs;
-    $this->title = 'Система учета :: ' . Yii::t('app','Users');
-    $this->params['breadcrumbs'][] = Yii::t('app','Users');
-?>
 
+/**
+ * @var array  $statuses
+ * @var array  $urlParams
+ * @var string $userInfoBlock
+ * $var array  $users
+ */
+
+use yii\helpers\Html;
+use yii\widgets\ActiveForm;
+use yii\widgets\Breadcrumbs;
+
+$this->title = Yii::$app->params['appTitle'] . Yii::t('app','Users');
+$this->params['breadcrumbs'][] = Yii::t('app','Users');
+?>
 <div class="row row-offcanvas row-offcanvas-left user-index">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
@@ -26,15 +34,15 @@
         <div class="form-group">
             <select name="active" class="form-control input-sm">
                 <option value="all"><?= Yii::t('app', '-all states-') ?></option>
-                <option value="1"<?= ($url_params['active'] == '1') ? ' selected' : '' ?>><?= Yii::t('app', 'Enabled') ?></option>
-                <option value="0"<?= ($url_params['active'] == '0') ? ' selected' : '' ?>><?= Yii::t('app', 'Disabled') ?></option>
+                <option value="1"<?= ($urlParams['active'] == '1') ? ' selected' : '' ?>><?= Yii::t('app', 'Enabled') ?></option>
+                <option value="0"<?= ($urlParams['active'] == '0') ? ' selected' : '' ?>><?= Yii::t('app', 'Disabled') ?></option>
             </select>
         </div>
         <div class="form-group">
             <select name="role" class="form-control input-sm">
                 <option value="all"><?= Yii::t('app', '-all roles-') ?></option>
                 <?php foreach($statuses as $s) : ?>
-                <option value="<?= $s['id'] ?>"<?= ($url_params['role'] == $s['id']) ? ' selected' : '' ?>><?= $s['name'] ?></option>
+                <option value="<?= $s['id'] ?>"<?= ($urlParams['role'] == $s['id']) ? ' selected' : '' ?>><?= $s['name'] ?></option>
                 <?php endforeach; ?>
             </select>
         </div>

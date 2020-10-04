@@ -87,6 +87,13 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
         ];
     }
 
+    /** @inheritDoc */
+    public function delete()
+    {
+        $this->visible = 0;
+        return $this->save(true, ['visible']);
+    }
+
     public static function findUserById($id)
     {
        return (new \yii\db\Query())
@@ -188,12 +195,11 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     }
 
     /**
-     * @deprecated
      * возвращает данные пользователя, для информационного блока
      * 
      * @return array
      */
-    public function getUserInfo()
+    public static function getUserInfo()
     {
         $userData = [];
 
@@ -374,17 +380,17 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 
             /* раздел Расписание */
             case 'schedule':
-            if ($action === 'api-actions' ||
-                $action === 'api-create' ||
-                $action === 'api-delete' ||
-                $action === 'api-filters' ||
-                $action === 'api-groups' ||
-                $action === 'api-hours' ||
-                $action === 'api-lessons' ||
-                $action === 'api-offices' ||
-                $action === 'api-rooms' ||
-                $action === 'api-teachers' ||
-                $action === 'api-update' ||
+            if ($action === 'app-actions' ||
+                $action === 'app-create' ||
+                $action === 'app-delete' ||
+                $action === 'app-filters' ||
+                $action === 'app-groups' ||
+                $action === 'app-hours' ||
+                $action === 'app-lessons' ||
+                $action === 'app-offices' ||
+                $action === 'app-rooms' ||
+                $action === 'app-teachers' ||
+                $action === 'app-update' ||
                 $action === 'index') {
                 switch(Yii::$app->session->get('user.ustatus')) {
                     case 3: $result = true; break;
