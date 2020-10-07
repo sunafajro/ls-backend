@@ -2,12 +2,14 @@ $(function () {
     'use strict';
 
     $(document).ready(function() {
+        var $form = $('.payment-form > form').eq(0);
+        var officeSearchUrl = $form.data('office-search-url');
         var $officeListTemplate = $('#moneystud-calc_office').clone();
         $('#js--autocomplete-hidden').on('change', function () {
             var $this = $(this);
             $.ajax({
                 method: "GET",
-                url: "/studname/offices?id=" + $this.val(),
+                url: officeSearchUrl + "?id=" + $this.val(),
             }).done(function(result) {
                 $('#moneystud-calc_office').html('');
                 $('#moneystud-calc_office').append($officeListTemplate.find('option').clone());

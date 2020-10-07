@@ -13,6 +13,7 @@
 
 use app\widgets\Alert;
 use yii\helpers\Html;
+use yii\helpers\Url;
 use yii\widgets\ActiveForm;
 use yii\widgets\Breadcrumbs;
 use yii\grid\GridView;
@@ -138,7 +139,7 @@ if (((int)Yii::$app->session->get('user.ustatus') === 3 ||
         <?php
             $form = ActiveForm::begin([
                 'method' => 'post',
-                'action' => '/receipt/create?sid=' . $student->id
+                'action' => Url::to(['receipt/create', 'sid' => $student->id]),
             ]); ?>
             <div class="row">
                 <div class="col-sm-1">

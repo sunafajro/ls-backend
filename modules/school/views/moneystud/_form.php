@@ -20,7 +20,11 @@ use app\widgets\autocomplete\AutoCompleteWidget;
 PaymentFormAsset::register($this);
 ?>
 <div class="payment-form">
-    <?php $form = ActiveForm::begin(); ?>
+    <?php $form = ActiveForm::begin([
+        'options' => [
+            'data-office-search-url' => Url::to(['studname/offices']),
+        ]
+    ]); ?>
     <?php if (!$student) {
         echo AutoCompleteWidget::widget([
             'hiddenField' => [
