@@ -3,9 +3,6 @@
 namespace app\models;
 
 use Yii;
-use app\models\Coefficient;
-use app\models\Edunormteacher;
-use app\models\TeacherLanguagePremium;
 use yii\helpers\ArrayHelper;
 
 /**
@@ -16,21 +13,39 @@ use yii\helpers\ArrayHelper;
  * @property integer $calc_edunormteacher
  * @property integer $calc_teacher
  * @property integer $user
- * @property string $data
+ * @property string  $data
  * @property integer $visible
- * @property string $data_visible
+ * @property string  $data_visible
  * @property integer $user_visible
  * @property integer $done
  * @property integer $user_done
- * @property string $data_done
- * @property double $value
- * @property double $value_corp
- * @property double $value_prem
- * @property double $value_transport
- * @property string $value_transport_desc
+ * @property string  $data_done
+ * @property double  $value
+ * @property double  $value_corp
+ * @property double  $value_prem
+ * @property double  $value_transport
+ * @property string  $value_transport_desc
+ * @property string  $outlay
  */
 class AccrualTeacher extends \yii\db\ActiveRecord
 {
+    // Введены начиная с 01.10.2020
+    const EDU_LEVEL_COEFFICIENTS = [
+        'A1'    => 1,
+        'A2'    => 1,
+        'B1'    => 1.1,
+        'B2'    => 1.2,
+        'C1'    => 1.3,
+        'HSK1'  => 1,
+        'HSK2'  => 1,
+        'HSK3'  => 1.1,
+        'HSK4'  => 1.2,
+        'HSK5'  => 1.3,
+        'ОГЭ'   => 1.1,
+        'ЕГЭ'   => 1.2,
+        'IELTS' => 1.3,
+    ];
+
     /**
      * @inheritdoc
      */
@@ -45,9 +60,12 @@ class AccrualTeacher extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
+            [['visible'], 'default', 'value' => 1],
+            [['data'],    'default', 'value' => date('Y-m-d')],
+            [['user'],    'default', 'value' => Yii::$app->session->get('user.uid')],
             [['calc_groupteacher', 'calc_edunormteacher', 'calc_teacher', 'user', 'data', 'visible', 'value', 'value_corp', 'value_prem'], 'required'],
             [['calc_groupteacher', 'calc_edunormteacher', 'calc_teacher', 'user', 'visible', 'user_visible', 'done', 'user_done'], 'integer'],
-            [['data', 'data_visible', 'data_done'], 'safe'],
+            [['data', 'data_visible', 'data_done', 'outlay'], 'safe'],
             [['value', 'value_corp', 'value_prem', 'value_transport'], 'number'],
             [['value_transport_desc'], 'string']
         ];
@@ -80,42 +98,42 @@ class AccrualTeacher extends \yii\db\ActiveRecord
     }
 
 	/**
-	 * возвращает коэффициент для расчета начисления (коэффициент зависит от количества учеников посетивших занятие)
+	 * Возвращает коэффициент для расчета начисления (коэффициент зависит от количества учеников посетивших занятие) или 1
 	 * @param integer $cnt
+     *
 	 * @return float
 	 */
-	protected static function calculateMultiplier($cnt)
+	private static function calculateMultiplier(int $cnt) : float
 	{
-        $coefficients = Coefficient::getCoefficientsList();
-        $coefs        = $coefficients['data'] ? $coefficients['data'] : [];
+        $coefficients = Coefficient::getCoefficientsList()['data'] ?? [];
         $result       = null;        
         $min          = null;
         $max          = null;
-        if ($coefs) {
-            foreach($coefs as $coef) {
-                if ((int)$coef['studcount'] === (int)$cnt) {
-                    $result = $coef['value'];
+        if ($coefficients) {
+            foreach ($coefficients as $coefficient) {
+                if ((int)$coefficient['studcount'] === (int)$cnt) {
+                    $result = $coefficient['value'];
                 }
                 if (!$min) {
                     $min = [
-                        'cnt'   => $coef['studcount'],
-                        'value' => $coef['value']
+                        'cnt'   => $coefficient['studcount'],
+                        'value' => $coefficient['value']
                     ];
                 } else {
-                    if ($coef['studcount'] < $min['cnt']) {
-                        $min['cnt']   = $coef['studcount'];
-                        $min['value'] = $coef['value'];
+                    if ($coefficient['studcount'] < $min['cnt']) {
+                        $min['cnt']   = $coefficient['studcount'];
+                        $min['value'] = $coefficient['value'];
                     }
                 }
                 if (!$max) {
                     $max = [
-                        'cnt'   => $coef['studcount'],
-                        'value' => $coef['value']
+                        'cnt'   => $coefficient['studcount'],
+                        'value' => $coefficient['value']
                     ];
                 } else {
-                    if ($coef['studcount'] > $max['cnt']) {
-                        $max['cnt']   = $coef['studcount'];
-                        $max['value'] = $coef['value'];
+                    if ($coefficient['studcount'] > $max['cnt']) {
+                        $max['cnt']   = $coefficient['studcount'];
+                        $max['value'] = $coefficient['value'];
                     }
                 }
             }
@@ -132,41 +150,78 @@ class AccrualTeacher extends \yii\db\ActiveRecord
 		return $result ? $result : 1;
 	}
 
-	/**
-	 * считает и возвращает стоимость начисления
-	 * @param float $accrual
-	 * @param array $lesson
-	 * @param float $norm
-	 * @param float $corp
-	 * @return float
-	 */
-	protected static function calculateLessonAccrual($lesson, $norm, $corp, $langprem = 0) {
+    /**
+     * Возвращает коэфициент согласно наименованию уровня или 1
+     * @param string      $levelName
+     * @param string|null $date
+     *
+     * @return float
+     */
+    private static function getMultiplierByEduLevel(string $levelName, string $date = null) : float
+    {
+        $value = self::EDU_LEVEL_COEFFICIENTS[$levelName] ?? 1;
+        if ($date) {
+            if ($date >= '2020-10-01') {
+                return $value;
+            } else {
+                return 1;
+            }
+        }
+        return $value;
+    }
+
+    /**
+     * считает и возвращает стоимость начисления
+     * @param array $lesson
+     * @param float $wageRate
+     * @param float $corpPremium
+     * @param float $languagePremium
+     *
+     * @return array
+     */
+    private static function calculateLessonAccrual(array $lesson, float $wageRate, float $corpPremium = 0, float $languagePremium = 0) : array
+    {
 		$accrual = 0;
 		/* считаем коэффициент в зависимости от количества учеников */
-		$koef = self::calculateMultiplier($lesson['pcount']);
-		$fullnorm = $norm;
+		$studentCountRate = self::calculateMultiplier($lesson['studentCount']);
+		// Коэффициент вводится начиная с 01.10.2020
+		$groupLevelRate = $lesson['date'] >= '2020-10-01' ? self::getMultiplierByEduLevel($lesson['level']) : 1;
+		$fullNorm = $wageRate;
 		/* 
 		 * задаем полную ставку (ставка + надбавка)
 		 * если надбавка больше 0
 		 */
-		if($lesson['corp'] > 0) {
-			/* суммируем со ставкой */
-			$fullnorm += $corp;
+		if ($lesson['corp'] > 0) {
+			/* если корпоративная группа, суммируем надбавку со ставкой */
+            $fullNorm += $corpPremium;
         }
         /* проверяем что есть надбавка за язык */
-        if($langprem) {
+        if ($languagePremium) {
             /* суммируем со ставкой */
-            $fullnorm += $langprem;
+            $fullNorm += $languagePremium;
         }
+
+        $dayTimeMarkup = 0;
+        $totalValue    = 0;
 		/* считаем сумму начисления в зависимости от типа учебного времени */
-		switch($lesson['edutime']){
+		switch ($lesson['eduTimeId']) {
 			/* дневное время у всех из ставки вычитается 50 рублей */
-			case 1: $accrual = ($fullnorm - 50) * $lesson['time'] * $koef; break;
+			case 1:
+                $dayTimeMarkup = -50;
+			    $totalValue = ($fullNorm + $dayTimeMarkup) * $lesson['time'] * $studentCountRate * $groupLevelRate;
+			    break;
 			/* вечернее время используем полную ставку */
-			case 2: $accrual = $fullnorm * $lesson['time'] * $koef; break;
+			case 2:
+			    $totalValue = $fullNorm * $lesson['time'] * $studentCountRate * $groupLevelRate;
+			    break;
 		}
 
-		return ['accrual' => $accrual, 'koef' => $koef, 'tax' => $fullnorm, 'prem' => $langprem];
+		return [
+            'dayTimeMarkup'    => $dayTimeMarkup,
+            'groupLevelRate'   => $groupLevelRate,
+            'studentCountRate' => $studentCountRate,
+            'totalValue'       => $totalValue,
+        ];
 	}
 
     /**
@@ -177,100 +232,90 @@ class AccrualTeacher extends \yii\db\ActiveRecord
      * 
 	 * @return array
      */
-	public static function calculateFullTeacherAccrual(int $id, int $gid = NULL, int $month = null) : array
+	public static function calculateFullTeacherAccrual(int $id, int $gid = null, int $month = NULL) : array
 	{
-		/* получаем нормы оплаты преподавателя и ставку */
-        if (!empty($edunorm = Edunormteacher::getTeacherTaxesForAccrual($id))) {
-            /* получаем надбавки за языки */
-            $teacherLanguagePremium = new TeacherLanguagePremium();
-            $langprem = $teacherLanguagePremium->getTeacherLanguagePremiumsForAccrual($id);
-			/* получаем данные по занятиям */
+        // получаем нормы оплаты преподавателя и корпоративную надбавку
+        /** @var Teacher $teacher */
+        $teacher     = Teacher::find()->andWhere(['id' => $id])->one();
+        $corpPremium = $teacher->value_corp;
+        $eduNorms    = Edunormteacher::getTeacherTaxesForAccrual($id);
+
+        $result = [
+            'corpPremium'     => 0,
+            'languagePremium' => 0,
+            'lessons'         => [],
+            'totalValue'      => 0,
+            'wageRateId'      => 0,
+        ];
+
+        if (!empty($eduNorms)) {
+            // получаем надбавки за языки
+            $languagePremiums = TeacherLanguagePremium::getTeacherLanguagePremiumsForAccrual($id);
+			// получаем данные по занятиям
 			$list = [$id];
             $order = ['jg.data' => SORT_DESC];
             $lessons = self::getViewedLessonList($list, $order, $gid, Report::getDateRangeByMonth($month));
 			if (!empty($lessons)) {
-                /* задаем переменную для подсчета суммы начисления */
-                $accrual = 0;
-                $lids = [];
-                $i = 0;
-                $lp = 0;
-                foreach ($lessons as $lesson) {
-                    $norm = $edunorm['norm'][$lesson['tjplace']] ?? 0;
-                    /* 
-                     * вызываем функцию расчета стоимости начисления за урок 
-                     * и считаем суммарное начисление по всем урокам
-                     */
-                    $result = self::calculateLessonAccrual(
-                        $lesson, 
-                        $norm, 
-                        $edunorm['corp'],
-                        $langprem['prem'][$lesson['lang_id']][$lesson['tjplace']] ?? 0
+                $totalValue         = 0;
+                $languagePremiumSum = 0;
+                $corpPremiumSum     = 0;
+                $wageRateId         = null;
+                foreach ($lessons as $key => $lesson) {
+                    if ($gid !== null) {
+                        $wageRateId = $eduNorms[$lesson['company']]['id'] ?? 0;
+                    }
+                    $wageRate = (float)($eduNorms[$lesson['company']]['value'] ?? 0);
+                    $languagePremium = $languagePremiums[$lesson['languageId']][$lesson['company']]['value'] ?? 0;
+                    $resultByLesson = self::calculateLessonAccrual(
+                        $lesson,
+                        $wageRate,
+                        $corpPremium,
+                        $languagePremium
                     );
-                    $accrual += $result['accrual'];
-                    $lids[] = $lesson['jid'];
-                    $lp = $result['prem'];
+                    $totalValue         += $resultByLesson['totalValue'];
+                    $languagePremiumSum += $languagePremium;
+                    $corpPremiumSum     += $lesson['corp'] > 0 ? $corpPremium : 0;
                     /* формируем доп данные для возврата в список уроков ожидающих проверки */
-                    $lessons[$i]['koef'] = $result['koef'];
-                    $lessons[$i]['tax'] = $norm;
-                    $lessons[$i]['accrual'] = $result['accrual'];
-                    $lessons[$i]['value_corp'] = $lesson['corp'] > 0 ? $edunorm['corp'] : 0;
-                    $i++;
+                    $lessons[$key]['corpPremium']      = $lesson['corp'] > 0 ? $corpPremium : 0;
+                    $lessons[$key]['dayTimeMarkup']    = $resultByLesson['dayTimeMarkup'];
+                    $lessons[$key]['groupLevelRate']   = $resultByLesson['groupLevelRate'];
+                    $lessons[$key]['languagePremium']  = $languagePremium;
+                    $lessons[$key]['studentCountRate'] = $resultByLesson['studentCountRate'];
+                    $lessons[$key]['totalValue']       = round($resultByLesson['totalValue'], 2);
+                    $lessons[$key]['wageRate']         = $wageRate;
                 }
-                /* возвращаем результат */
-                return [
-                    'lessons' => $lessons,
-                    'accrual' => round($accrual, 2),
-                    'norm' => $edunorm['normid'][$lesson['tjplace']] ?? 0,
-                    'corp' => $edunorm['corp'],
-                    'prem' => $lp,
-                    'lids' => $lids
-                ];
-            } else {
-                /* если нет проверенных занятий */
-                return [
-                    'lessons' => [],
-                    'accrual' => 0,
-                    'norm' => 0,
-                    'corp' => 0,
-                    'prem' => 0,
-                    'lids' => []
-                ];
+
+                $result['corpPremium']     = $corpPremiumSum;
+                $result['languagePremium'] = $languagePremiumSum;
+                $result['lessons']         = $lessons;
+                $result['totalValue']      = round($totalValue, 2);
+                $result['wageRateId']      = $wageRateId;
             }
-		} else {
-            /* если нет ставок */
-			return [
-                'lessons' => [],
-                'accrual' => 0,
-                'norm' => 0,
-                'corp' => 0,
-                'prem' => 0,
-                'lids' => []
-            ];
 		}
+
+        return $result;
     }
 
 	/**
-     * вызывается из отчета по начислениям Report/Accrual 
-	 * считает и возвращает начисление для преподавателя за одно занятие
+	 * Считает и возвращает начисление для преподавателя за одно занятие
 	 * @param array $teachers
 	 * @param array $lesson
      * 
-	 * @return float
+	 * @return float|int
 	 */
-    public static function getLessonFinalCost($teachers, $lesson)
+    public static function getLessonFinalCost(array $teachers, array $lesson) : float
     {
 		$accrual = 0;
-		foreach($teachers as $t) {
-			if((int)$t['id'] === (int)$lesson['tid']) {
+		foreach ($teachers as $t) {
+			if ((int)$t['id'] === (int)$lesson['teacherId']) {
                 /* получаем надбавки за языки */
-                $teacherLanguagePremium = new TeacherLanguagePremium();
-                $langprem = $teacherLanguagePremium->getTeacherLanguagePremiumsForAccrual((int)$t['id']);
+                $langPremiums = TeacherLanguagePremium::getTeacherLanguagePremiumsForAccrual((int)$t['id']);
 				$accrual = self::calculateLessonAccrual(
                     $lesson, 
-                    $t['value'][$lesson['tjplace']] ?? 0, 
-                    $t['vcorp'],
-                    $langprem['prem'][$lesson['lang_id']][$lesson['tjplace']] ?? 0
-                )['accrual'];
+                    $t['value'][$lesson['company']] ?? 0,
+                    $t['corp'],
+                    $langPremiums[$lesson['languageId']][$lesson['company']]['value'] ?? 0
+                )['totalValue'];
                 break;
 			}
 		}
@@ -338,38 +383,35 @@ class AccrualTeacher extends \yii\db\ActiveRecord
      */
 	public static function getTeachersWithViewedLessonsInfo(array $list) : array
 	{
-        $tmp_teachers = (new \yii\db\Query()) 
-        ->select('t.id as id, t.name as name, t.calc_statusjob as stjob, t.value_corp as vcorp, en.value as norm, ent.company as tjplace')
-        ->from('calc_teacher t')
-        ->leftJoin('calc_edunormteacher as ent', 'ent.calc_teacher=t.id')
-        ->leftJoin('calc_edunorm en', 'en.id=ent.calc_edunorm')
-        ->where('ent.active=:one AND ent.visible=:one', [':one' => 1])
+        $rawTeachers = (new \yii\db\Query())
+        ->select([
+            'id'        => 't.id',
+            'name'      => 't.name',
+            'jobStatus' => 't.calc_statusjob',
+            'corp'      => 't.value_corp',
+            'wageRate'  => 'en.value',
+            'company'   => 'ent.company',
+        ])
+        ->from(['t' => Teacher::tableName()])
+        ->leftJoin('calc_edunormteacher as ent', 'ent.calc_teacher = t.id')
+        ->leftJoin(['en' => Edunorm::tableName()], 'en.id = ent.calc_edunorm')
+        ->where([
+            'ent.active'  => 1,
+            'ent.visible' => 1
+        ])
         ->andWhere(['in', 't.id', $list])
-        ->orderby(['t.name'=>SORT_ASC])->all();
+        ->orderby(['t.name' => SORT_ASC])->all();
         
         $teachers = [];
-
-        /* делаем хитрый финт ушами, чтобы получить массив ставок в поле value и избавится от дублирующихся записей */
-        foreach($tmp_teachers as $t) {
+        foreach($rawTeachers as $teacher) {
             $tmp = [];
-            /* если в массиве нет ключа преподавателя */
-            if (!array_key_exists($t['id'], $teachers)) {
-                /* создаем временный массив и туда кладем значение направления и ставки */
-                $tmp[$t['tjplace']] = $t['norm'];
-                /* копируем инфу по преподавателю в новый массив преподавателей */
-                $teachers[$t['id']] = $t;
-                /* перезаписываем значение value на массив ставок */
-                $teachers[$t['id']]['value'] = $tmp;
+            if (!isset($teachers[$teacher['id']])) {
+                $teachers[$teacher['id']] = $teacher;
             } else {
-                /* если преподаватель в массиве есть */
-                /* копируем имеющийся массив ставок во временную переменную */
-                $tmp = $teachers[$t['id']]['value'];
-                /* добавляем в него новую ставку */
-                $tmp[$t['tjplace']] = $t['norm'];
-                /* записываем результирующий массив в value столбец преподавателя */
-                $teachers[$t['id']]['value'] = $tmp;
+                $tmp = $teachers[$teacher['id']]['value'];
             }
-            unset($tmp);
+            $tmp[$teacher['company']] = $teacher['wageRate'];
+            $teachers[$teacher['id']]['value'] = $tmp;
         }
         return $teachers;
 	}
@@ -394,22 +436,40 @@ class AccrualTeacher extends \yii\db\ActiveRecord
         $SubQuery = (new \yii\db\Query())
         ->select('count(sjg.id)')
         ->from('calc_studjournalgroup sjg')
-        ->where('sjg.calc_statusjournal=:one and sjg.calc_journalgroup=jg.id');
+        ->where('sjg.calc_statusjournal = 1 and sjg.calc_journalgroup = jg.id');
         
         /* получаем данные по занятиям ожидающим начисление */
         $lessons = (new \yii\db\Query()) 
-		->select('jg.id as jid, jg.data as jdate, jg.calc_groupteacher as gid, s.id as sid, s.name as service, 
-		tn.value as time, jg.calc_teacher as tid, el.name as level, o.name as office, jg.description as desc, 
-		jg.calc_edutime as edutime, jg.view as view, gt.corp as corp, s.calc_lang as lang_id, gt.company as tjplace')
-        ->addSelect(['pcount'=>$SubQuery])
-        ->from('calc_journalgroup jg')
-        ->leftJoin('calc_groupteacher gt', 'gt.id=jg.calc_groupteacher')
-        ->leftJoin('calc_service s', 's.id=gt.calc_service')
-        ->leftJoin('calc_timenorm tn', 'tn.id=s.calc_timenorm')
-        ->leftJoin('calc_edulevel el', 'el.id=gt.calc_edulevel')
-        ->leftJoin('calc_office o', 'o.id=gt.calc_office')
-        ->where('jg.done=:zero AND jg.view=:one AND jg.visible=:one', [':one' => 1, ':zero' => 0])
-        ->andWhere(['in','jg.calc_teacher',$list])
+		->select([
+		    'id'          => 'jg.id',
+            'date'        => 'jg.data',
+            'groupId'     => 'jg.calc_groupteacher',
+            'serviceId'   => 's.id',
+            'service'     => 's.name',
+		    'time'        => 'tn.value',
+            'teacherId'   => 'jg.calc_teacher',
+            'level'       => 'el.name',
+            'office'      => 'o.name',
+            'description' => 'jg.description',
+            'eduTimeId'   => 'jg.calc_edutime',
+            'viewed'      => 'jg.view',
+            'corp'        => 'gt.corp',
+            'languageId'  => 's.calc_lang',
+            'company'     => 'gt.company',
+        ])
+        ->addSelect(['studentCount' => $SubQuery])
+        ->from(['jg' => Journalgroup::tableName()])
+        ->leftJoin(['gt' => Groupteacher::tableName()], 'gt.id = jg.calc_groupteacher')
+        ->leftJoin(['s' => Service::tableName()], 's.id = gt.calc_service')
+        ->leftJoin(['tn' => Timenorm::tableName()], 'tn.id = s.calc_timenorm')
+        ->leftJoin(['el' => Edulevel::tableName()], 'el.id = gt.calc_edulevel')
+        ->leftJoin(['o' => Office::tableName()], 'o.id = gt.calc_office')
+        ->where([
+            'jg.done'    => 0,
+            'jg.view'    => 1,
+            'jg.visible' => 1
+        ])
+        ->andWhere(['in', 'jg.calc_teacher', $list])
         ->andFilterWhere(['jg.calc_groupteacher' => $gid])
         ->andFilterWhere($dateRangeExpression)
         ->orderby($order)
@@ -427,22 +487,22 @@ class AccrualTeacher extends \yii\db\ActiveRecord
     public static function getAccrualsByTeacherList(array $list) : array
     {
         $SubQuery = (new \yii\db\Query())
-        ->select('SUM(tn.value)')
-        ->from('calc_timenorm tn')
-        ->leftJoin('calc_service s','s.calc_timenorm=tn.id')
-        ->leftJoin('calc_groupteacher gt', 's.id=gt.calc_service')
-        ->leftJoin('calc_journalgroup jg', 'jg.calc_groupteacher=gt.id')
-        ->where('gt.id=at.calc_groupteacher and jg.calc_accrual=at.id');
+            ->select('SUM(tn.value)')
+            ->from('calc_timenorm tn')
+            ->leftJoin('calc_service s','s.calc_timenorm=tn.id')
+            ->leftJoin('calc_groupteacher gt', 's.id=gt.calc_service')
+            ->leftJoin('calc_journalgroup jg', 'jg.calc_groupteacher=gt.id')
+            ->where('gt.id=at.calc_groupteacher and jg.calc_accrual=at.id');
 
         $accruals = (new \yii\db\Query())
-        ->select('at.id as aid, t.id as tid, t.name as tname, at.value as value, at.calc_groupteacher as gid')
-        ->addSelect(['hours' => $SubQuery])
-        ->from('calc_accrualteacher at')
-        ->leftJoin('calc_teacher t', 't.id=at.calc_teacher')
-        ->where('at.visible=:one and at.done!=:one and t.visible=:one', [':one'=>1])
-        ->andFilterWhere(['in', 'at.calc_teacher', $list])
-        ->orderby(['at.calc_teacher' => SORT_ASC, 'at.id' => SORT_ASC])
-        ->all();
+            ->select('at.id as aid, at.data as date, t.id as tid, t.name as tname, at.value as value, at.calc_groupteacher as gid')
+            ->addSelect(['hours' => $SubQuery])
+            ->from('calc_accrualteacher at')
+            ->leftJoin('calc_teacher t', 't.id=at.calc_teacher')
+            ->where('at.visible=:one and at.done!=:one and t.visible=:one', [':one'=>1])
+            ->andFilterWhere(['in', 'at.calc_teacher', $list])
+            ->orderby(['at.calc_teacher' => SORT_ASC, 'at.id' => SORT_ASC])
+            ->all();
         
         return $accruals;
     }

@@ -32,9 +32,12 @@ class TeacherLanguagePremium extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['teacher_id', 'language_premium_id', 'user_id', 'created_at', 'visible', 'company'], 'required'],
+            [['visible'],    'default', 'value' => 1],
+            [['created_at'], 'default', 'value' => date('Y-m-d')],
+            [['user_id'],    'default', 'value' => Yii::$app->session->get('user.uid')],
             [['teacher_id', 'language_premium_id', 'user_id', 'visible', 'company'], 'integer'],
             [['created_at'], 'safe'],
+            [['teacher_id', 'language_premium_id', 'user_id', 'created_at', 'visible', 'company'], 'required'],
         ];
     }
 
@@ -54,10 +57,15 @@ class TeacherLanguagePremium extends \yii\db\ActiveRecord
         ];
     }
 
-    /* отдает список активных языковых надбавок преподавателя */
-    public function getTeacherLanguagePremiums(int $tid)
+    /**
+     * Список активных языковых надбавок преподавателя
+     * @param int $tid
+     *
+     * @return array
+     */
+    public static function getTeacherLanguagePremiums(int $tid) : array
     {
-        $premiums = (new yii\db\Query())
+        return (new yii\db\Query())
         ->select([
             'tlpid'      => 'tlp.id',
             'lpid'       => 'lp.id',
@@ -79,78 +87,76 @@ class TeacherLanguagePremium extends \yii\db\ActiveRecord
         ])
         ->orderby(['l.name' => SORT_ASC, 'lp.value' => SORT_ASC])
         ->all();
-
-        return $premiums;
     }
 
-    public function getTeacherLanguagePremiumsForAccrual(int $tid)
+    /**
+     * Массив активных языковых надбавок преподавателя
+     * @param int $tid
+     *
+     * @return array|array[]
+     */
+    public static function getTeacherLanguagePremiumsForAccrual(int $tid) : array
     {
         $result = [];
-        if (!empty($premiums = $this->getTeacherLanguagePremiums($tid))){
-            /* готовим ставки преподавателей */
-            $premid = [];
-            $prem = [];
-            foreach($premiums as $p) {
-                if (!isset($premid[$p['lang_id']])) {
-                    $premid[$p['lang_id']] = [
-                        $p['company'] => $p['tlpid']
-                    ];
-                } else {
-                    $premid[$p['lang_id']][$p['company']] = $p['tlpid'];
+
+        if (!empty($premiums = self::getTeacherLanguagePremiums($tid))){
+            foreach($premiums as $premium) {
+                if (!isset($result[$premium['lang_id']])) {
+                    $result[$premium['lang_id']] = [];
                 }
-                if (!isset($prem[$p['lang_id']])) {
-                    $prem[$p['lang_id']] = [
-                        $p['company'] => $p['value']
-                    ];
-                } else {
-                    $prem[$p['lang_id']][$p['company']] = $p['value'];
-                }
+                $result[$premium['lang_id']][$premium['company']] = [
+                    'id'    => $premium['tlpid'],
+                    'value' => $premium['value'],
+                ];
             }
-            return [
-                'premid' => $premid,
-                'prem' => $prem
-            ];
-        } else {
-            return $result;
         }
-        
+
+        return $result;
     }
 
-    /* ищет у преподавателя другие активные надбавки по тому же языку и помечает их удаленными */
-    public function removeDuplicateLanguagePremium($lpid, $company, $tid)
+    /**
+     * Поиск и удаление у преподавателя предыдущих активных надбавок с таким же языком как и у новой надбавки
+     * @param integer $lpId
+     * @param integer $company
+     * @param integer $tid
+     *
+     * @return bool
+     */
+    public static function removeDuplicateLanguagePremium(int $lpId, int $company, int $tid) : bool
     {
         /* ищем язык по новой ставке */
         $lang = (new yii\db\Query())
         ->select(['id' => 'language_id'])
         ->from(LanguagePremium::tableName())
         ->where([
-            'id'      => $lpid,
+            'id'      => $lpId,
             'visible' => 1
         ])
         ->one();
 
         if (!empty($lang) && isset($lang['id'])) {
             /* ищем старую ставку */
-            $old_premium = (new yii\db\Query())
-            ->select([ 'id' => 'tlp.id'])
-            ->from(['tlp' => static::tableName()])
-            ->innerJoin(['lp' => LanguagePremium::tableName()], 'lp.id = tlp.language_premium_id')
-            ->where([
-                'lp.language_id' => $lang['id'],
-                'tlp.visible'    => 1,
-                'tlp.teacher_id' => $tid,
-                'tlp.company'    => $company,
-            ])
-            ->one();
+            $oldPremium = (new yii\db\Query())
+                ->select([ 'id' => 'tlp.id'])
+                ->from(['tlp' => self::tableName()])
+                ->innerJoin(['lp' => LanguagePremium::tableName()], 'lp.id = tlp.language_premium_id')
+                ->where([
+                    'lp.language_id' => $lang['id'],
+                    'tlp.visible'    => 1,
+                    'tlp.teacher_id' => $tid,
+                    'tlp.company'    => $company,
+                ])
+                ->one();
 
-            if (!empty($old_premium) && isset($old_premium['id'])) {
-                $premium = static::findOne($old_premium['id']);
+            if (!empty($oldPremium) && isset($oldPremium['id'])) {
+                $premium = self::findOne($oldPremium['id']);
                 $premium->visible = 0;
-                $premium->save();
+                return $premium->save();
             }
+
             return true;
-        } else {
-            return false;
         }
+
+        return false;
     }
 }

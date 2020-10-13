@@ -450,7 +450,7 @@ class Report extends Model
     public static function getDateRangeByMonth(int $month = null)
     {
         if (!$month) {
-            return $month;
+            return null;
         }
 
         $date = new \DateTime();

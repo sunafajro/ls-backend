@@ -14,6 +14,7 @@ use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
 use yii\data\Pagination;
+use yii\web\ServerErrorHttpException;
 
 /**
  * TeacherController implements the CRUD actions for CalcTeacher model.
@@ -513,27 +514,27 @@ class TeacherController extends Controller
 		->where('calc_teacher=:tid and done!=:one and visible=:one', [':tid'=>$id, ':one'=>1])
 		->one();
 
-		$acc = AccrualTeacher::calculateFullTeacherAccrual((int)$id);
-		
+		$accrual = AccrualTeacher::calculateFullTeacherAccrual((int)$id);
+
 		return $this->render('view', [
-			'model' => $model,
-			'teachertax'=> $teachertax,
-			'teacherschedule'=> $teacherschedule,
-			'viewedlessons' => $acc['lessons'],
-			'teacherdata'=> $teacherdata,
-			'lestocheck'=> $lestocheck,
-			'hourstoaccrual'=> $hourstoaccrual,
-			'unviewedlessons'=> $unviewedlessons,
-			'efm'=> $efm,
-			'sumaccrual' => $acc['accrual'],
-			'sum2pay'=> $sum2pay,
-			'userInfoBlock' => User::getUserInfoBlock(),
+			'model'           => $model,
+			'teachertax'      => $teachertax,
+			'teacherschedule' => $teacherschedule,
+			'viewedLessons'   => $accrual['lessons'] ?? [],
+			'teacherdata'     => $teacherdata,
+			'lestocheck'      => $lestocheck,
+			'hourstoaccrual'  => $hourstoaccrual,
+			'unviewedlessons' => $unviewedlessons,
+			'efm'             => $efm,
+			'accrualSum'      => $accrual['totalValue'],
+			'sum2pay'         => $sum2pay,
+			'userInfoBlock'   => User::getUserInfoBlock(),
 			'jobPlace' => [ 1 => 'ШИЯ', 2 => 'СРР' ]
 		]);
     }
 
     /**
-     * Creates a new CalcTeacher model.
+     * Creates a new Teacher model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
@@ -595,15 +596,14 @@ class TeacherController extends Controller
     public function actionUpdate($id)
     {
         // всех кроме руководителей перенаправляем обратно
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4 && (int)Yii::$app->session->get('user.uid') !== 296) {
+        if ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4 && (int)Yii::$app->session->get('user.uid') !== 296) {
             return $this->redirect(['teacher/view', 'id'=>$id]);
         } else {
-
-	    //выбираем формы трудоустройства для селекта
-	    $statusjob = (new \yii\db\Query())
-	    ->select('id, name')
-	    ->from('calc_statusjob')
-	    ->all();
+            //выбираем формы трудоустройства для селекта
+            $statusjob = (new \yii\db\Query())
+            ->select('id, name')
+            ->from('calc_statusjob')
+            ->all();
 
             $model = $this->findModel($id);
 
@@ -649,50 +649,50 @@ class TeacherController extends Controller
         }
 	}
 
+    /**
+     * @param $tid
+     *
+     * @return mixed
+     */
 	public function actionLanguagePremiums($tid)
 	{
-		/* получаем текущие надбавки преподавателя */
-		$teacherLanguagePremium = new TeacherLanguagePremium();
-        $teacherPremiums = $teacherLanguagePremium->getTeacherLanguagePremiums($tid);
-        // $params = NULL;
-        // if(!empty($teacherPremiums)) {
-        //     foreach($teacherPremiums as $tlp) {
-        //         $params[] = $tlp['lpid'];
-        //     }
-        // }
-        /* запрашиваем список надбавок из справочника за исключением уже назначенных */
-        $premium = new LanguagePremium();
-        $premiums = LanguagePremium::getLanguagePremiumsSimple();
-        
         $model = new TeacherLanguagePremium();
-        if ($model->load(Yii::$app->request->post())) {
-            if ((int)$model->language_premium_id !== 0 && (int)$model->company !== 0) {
-                $teacherLanguagePremium->removeDuplicateLanguagePremium($model->language_premium_id, $model->company, $tid);
-                $model->teacher_id = $tid;
-                $model->user_id = Yii::$app->session->get('user.uid');
-                $model->created_at = date('Y-m-d');
-                $model->visible = 1;
-                if ($model->save()) {
-                    Yii::$app->session->setFlash('success', Yii::t('app','Language premium successfully added to the teacher!'));
-                } else {
-                    Yii::$app->session->setFlash('success', Yii::t('app','Failed to add language premium to the teacher!'));
+        if (Yii::$app->request->isPost) {
+            if ($model->load(Yii::$app->request->post())) {
+                $t = Yii::$app->db->beginTransaction();
+                try {
+                    if (!TeacherLanguagePremium::removeDuplicateLanguagePremium($model->language_premium_id, $model->company, $tid)) {
+                        throw new ServerErrorHttpException(Yii::t('app','Failed to add language premium to the teacher!'));
+                    }
+                    $model->teacher_id = $tid;
+                    if (!$model->save()) {
+                        throw new ServerErrorHttpException(Yii::t('app','Failed to add language premium to the teacher!'));
+                    } else {
+                        $t->commit();
+                        Yii::$app->session->setFlash('success', Yii::t('app','Language premium successfully added to the teacher!'));
+                        $this->redirect(['language-premiums', 'tid' => $tid]);
+                    }
+                } catch (\Exception $e) {
+                    $t->rollBack();
+                    Yii::$app->session->setFlash('error', Yii::t('app', $e->getMessage()));
                 }
-            } else {
-                Yii::$app->session->setFlash('success', Yii::t('app','Failed to add language premium to the teacher!'));
             }
-
-            $this->redirect(['language-premiums', 'tid' => $tid]);
         }
 
         return $this->render('language-premiums', [
             'model'            => $model,
             'teacher'          => Teacher::findOne($tid),
-            'premiums'         => $premiums,
-            'teacherPremiums'  => $teacherPremiums,
+            'premiums'         => LanguagePremium::getLanguagePremiumsSimple(),
+            'teacherPremiums'  => TeacherLanguagePremium::getTeacherLanguagePremiums($tid),
             'userInfoBlock'    => User::getUserInfoBlock(),
         ]);
 	}
 
+    /**
+     * @param $id
+     * @param $tid
+     * @return mixed
+     */
 	public function actionDeleteLanguagePremium($id, $tid)
     {
         if (($model = TeacherLanguagePremium::findOne($id)) !== NULL) {
@@ -708,10 +708,10 @@ class TeacherController extends Controller
     }
 
     /**
-     * Finds the CalcTeacher model based on its primary key value.
+     * Finds the Teacher model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return CalcTeacher the loaded model
+     * @return Teacher the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)

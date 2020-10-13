@@ -1,19 +1,23 @@
 <?php
 /**
- * @var app\models\TeacherLanguagePremiums $model
- * @var array                              $premiums
- * @var app\models\Teacher                 $teacher
- * @var array                              $teacherPremiums
- * @var string                             $userInfoBlock
+ * @var TeacherLanguagePremium $model
+ * @var array                  $premiums
+ * @var Teacher                $teacher
+ * @var array                  $teacherPremiums
+ * @var string                 $userInfoBlock
  */
+
+use app\models\Teacher;
+use app\models\TeacherLanguagePremium;
+use app\widgets\Alert;
 use yii\helpers\Html;
 use yii\widgets\Breadcrumbs;
-$this->title = 'Система учета :: ' . Yii::t('app', 'Add language premium');
+
+$this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Add language premium');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Teachers'), 'url' => ['teacher/index']];
 $this->params['breadcrumbs'][] = ['label' => $teacher->name, 'url' => ['teacher/view', 'id'=>$teacher->id]];
 $this->params['breadcrumbs'][] = Yii::t('app', 'Add language premium');
 ?>
-
 <div class="row row-offcanvas row-offcanvas-left teacher-language-premium-create">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
 		<?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
@@ -34,16 +38,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Add language premium');
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
 		</p>
-		<?php if (Yii::$app->session->hasFlash('error')) : ?>
-        <div class="alert alert-danger" role="alert">
-            <?= Yii::$app->session->getFlash('error') ?>
-        </div>
-		<?php endif; ?>
-		<?php if (Yii::$app->session->hasFlash('success')) : ?>
-			<div class="alert alert-success" role="alert">
-				<?= Yii::$app->session->getFlash('success') ?>
-			</div>
-		<?php endif; ?>
+        <?= Alert::widget() ?>
 	    <?= $this->render('_form-language-premiums', [
 	        'model' => $model,
 	        'premiums' => $premiums

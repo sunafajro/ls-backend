@@ -10,9 +10,9 @@
  * @var array      $months
  * @var int        $pages
  * @var array      $params
- * @var array      $reportlist
+ * @var array      $reportList
  * @var array      $teachers
- * @var array      $teachers_list
+ * @var array      $teachersList
  * @var string     $userInfoBlock
  */
 
@@ -35,7 +35,7 @@ ReportAccrualsAsset::register($this);
             <div id="main-menu"></div>
         <?php } ?>
         <?= $userInfoBlock ?>
-        <?php if (!empty($reportlist)) { ?>
+        <?php if (!empty($reportList)) { ?>
         <div class="dropdown">
             <?= Html::button(
                     Html::tag('span', '', ['class' => 'fa fa-list-alt', 'aria-hidden' => 'true']) 
@@ -53,7 +53,7 @@ ReportAccrualsAsset::register($this);
                     ]
                 ) ?>
             <ul class="dropdown-menu" aria-labelledby="dropdownMenu">
-                <?php foreach ($reportlist as $key => $value) { ?>
+                <?php foreach ($reportList as $key => $value) { ?>
                 <li><?= Html::a($key, $value, ['class'=>'dropdown-item']) ?></li>
                 <?php } ?>
             </ul>
@@ -77,8 +77,8 @@ ReportAccrualsAsset::register($this);
             <div class="form-group">
                 <select class="form-control input-sm" name="tid">
                     <option value="all"><?= Yii::t('app', '-all teachers-') ?></option>
-                    <?php if (!empty($teachers_list)) {
-                        foreach ($teachers_list as $key => $value) { ?>
+                    <?php if (!empty($teachersList)) {
+                        foreach ($teachersList as $key => $value) { ?>
                             <option value="<?= $key ?>"<?= ($key == $params['tid']) ? ' selected' : ''?>>
                                 <?= $value ?>
                             </option>
@@ -109,15 +109,15 @@ ReportAccrualsAsset::register($this);
                 $end = 10;
                 $prevpage = 0;
                 $nextpage = 2;
-                if (Yii::$app->request->get('page')) {
-                    $current = (int)Yii::$app->request->get('page');
-                    $start = 10 * (int)Yii::$app->request->get('page') - 9;
-                    $end = 10 * (int)Yii::$app->request->get('page');
+                if ($params['page']) {
+                    $current = (int)$params['page'];
+                    $start   = 10 * (int)$params['page'] - 9;
+                    $end     = 10 * (int)$params['page'];
                     if ($end > $pages) {
                         $end = $pages;
                     }
-                    $prevpage = (int)Yii::$app->request->get('page') - 1;
-                    $nextpage = (int)Yii::$app->request->get('page') + 1;
+                    $prevpage = (int)$params['page'] - 1;
+                    $nextpage = (int)$params['page'] + 1;
                 }
                 $pager[] = Html::beginTag('nav');
                 $pager[] = Html::beginTag('ul', ['class' => 'pager']);
@@ -139,7 +139,7 @@ ReportAccrualsAsset::register($this);
         }
 
         // задаем общую сумму по начислениям
-        $totalAccural = 0;
+        $totalAccrual = 0;
         $totalPayment = 0;
 
         echo join('', $pager);
@@ -158,7 +158,7 @@ ReportAccrualsAsset::register($this);
                 <span>ставка: <?= implode(' р. / ', $teacher['value']) ?> р.</span>
                 <?= Html::a(
                         'Начислить все',
-                        ['accrual/add-accrual', 'tid' => $teacher['id'], 'month' => $params['month'] ?? null],
+                        ['accrual/create', 'tid' => $teacher['id'], 'month' => $params['month'] ?? null],
                         [
                             'class' => 'btn btn-xs btn-success pull-right js--accrual-all-link',
                             'data' => [
@@ -174,46 +174,46 @@ ReportAccrualsAsset::register($this);
                     $time = 0;
                     $money = 0;
                 ?>
-                <?php foreach ($groups as $groupteacher) { ?>
-                    <?php foreach ($groupteacher as $group) { ?>
-                        <?php if ((int)$teacher['id'] === (int)$group['tid']) { ?>
+                <?php foreach ($groups as $groupId => $groupTeacher) { ?>
+                    <?php foreach ($groupTeacher as $group) { ?>
+                        <?php if ((int)$teacher['id'] === (int)$group['teacherId']) { ?>
                             <div>
                                 <div class="clearfix" style="margin-bottom: 5px">
-                                    <a class="pull-left" role="button" data-toggle="collapse" href="#collapse-<?= $group['gid']?>-<?= $teacher['id']?>" aria-expanded="false" aria-controls="collapse-<?= $group['gid']?>-<?= $teacher['id']?>">
-                                        <span style="margin-top: 2px" class="label <?= ((int)$group['tjplace'] === 1 ? 'label-success' : 'label-info') ?> pull-left"><?= $jobPlaces[$group['tjplace']] ?></span>&nbsp;
-                                        #<?= $group['gid'] ?> <?= $group['course'] ?>, ур. <?= $group['level'] ?> (усл.#<?= $group['service'] ?>), <?= $group['office'] ?>
+                                    <a class="pull-left" role="button" data-toggle="collapse" href="#collapse-<?= $groupId ?>-<?= $teacher['id']?>" aria-expanded="false" aria-controls="collapse-<?= $groupId ?>-<?= $teacher['id']?>">
+                                        <span style="margin-top: 2px" class="label <?= ((int)$group['company'] === 1 ? 'label-success' : 'label-info') ?> pull-left"><?= $jobPlaces[$group['company']] ?></span>&nbsp;
+                                        #<?= $groupId ?> <?= $group['service'] ?>, ур. <?= $group['level'] ?> (усл.#<?= $group['serviceId'] ?>), <?= $group['office'] ?>
                                     </a>
                                     <?= Html::a(
                                             "Начислить {$group['time']} ч.",
-                                            ['accrual/add-accrual', 'tid' => $teacher['id'], 'month' => $params['month'] ?? null],
+                                            ['accrual/create', 'tid' => $teacher['id'], 'month' => $params['month'] ?? null],
                                             [
                                                 'class' => 'btn btn-xs btn-success pull-right js--accrual-link',
                                                 'data' => [
                                                     'method' => 'post',
                                                     'params' => [
-                                                        'groups' => [$group['gid']],
+                                                        'groups' => [$groupId],
                                                     ],
-                                                    'group-id' => $group['gid'],
+                                                    'group-id' => $groupId,
                                                 ],
                                             ]
                                         ) ?>
                                 </div>
-                                <table class="table table-condensed collapse" id="collapse-<?= $group['gid']?>-<?= $teacher['id']?>">
+                                <table class="table table-condensed collapse" id="collapse-<?= $groupId ?>-<?= $teacher['id']?>">
                                 <?php foreach ($lessons as $lesson) { ?>
-                                    <?php if ($lesson['tid']==$group['tid'] && $lesson['gid']==$group['gid']) { ?>
+                                    <?php if ($lesson['teacherId'] == $group['teacherId'] && $lesson['groupId'] == $groupId) { ?>
                                         <tr>
                                             <td width="tbl-cell-5">
-                                            <?php switch ($lesson['edutime']) {
+                                            <?php switch ($lesson['eduTimeId']) {
                                                 case 1: echo Html::img('@web/images/day.png'); break;
                                                 case 2: echo Html::img('@web/images/night.png'); break;
                                                 case 3: echo Html::img('@web/images/halfday.png'); break;
                                             } ?>
                                             </td>
-                                            <td width="tbl-cell-10">#<?= $lesson['jid'] ?></td>
-                                            <td class="tbl-cell-5"><?= ($lesson['view'] ? '<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>' : '') ?></td>
-                                            <td class="tbl-cell-10"><?= Html::a($lesson['jdate'],['groupteacher/view','id'=>$group['gid']]) ?></td>
-                                            <td class="tbl-cell-5"><?= $lesson['pcount'] ?> чел.</td>
-                                            <td><?= $lesson['desc'] ?></td>
+                                            <td width="tbl-cell-10">#<?= $lesson['id'] ?></td>
+                                            <td class="tbl-cell-5"><?= ($lesson['viewed'] ? '<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>' : '') ?></td>
+                                            <td class="tbl-cell-10"><?= Html::a(date('d.m.Y', strtotime($lesson['date'])), ['groupteacher/view','id' => $groupId]) ?></td>
+                                            <td class="tbl-cell-5"><?= $lesson['studentCount'] ?> чел.</td>
+                                            <td><?= $lesson['description'] ?></td>
                                             <td class="text-right tbl-cell-5"><?= $lesson['time'] ?> ч.</td>
                                             <td class="text-right tbl-cell-5"><?= $lesson['money'] ?> р.</td>
                                         </tr>
@@ -232,7 +232,7 @@ ReportAccrualsAsset::register($this);
 		    <?php if (!empty($accruals)) { ?>
                 <?php foreach ($accruals as $a) { ?>
                     <?php if ($a['tid']==$teacher['id']) { ?>
-                        <p>начисление зарплаты #<?= $a['aid'] ?> (за <?= $a['hours'] ?> ч. в группе #<?= Html::a($a['gid'], ['groupteacher/view', 'id'=>$a['gid']]) ?>) на сумму <span class="text-danger"><?= number_format($a['value'], 2, ',', ' ') ?></span> р. <?= Html::a('Выплатить', ['accrual/doneaccrual', 'id' => $a['aid'], 'type' => 'report', 'TID'=>$teacher['id'], 'page' => $page], ['class' => 'btn btn-warning btn-xs pull-right']) ?></p>
+                        <p>начисление зарплаты #<?= $a['aid'] ?> (за <?= $a['hours'] ?> ч. в группе #<?= Html::a($a['gid'], ['groupteacher/view', 'id'=>$a['gid']]) ?>) от <?= date('d.m.Y', strtotime($a['date'])) ?> на сумму <span class="text-danger"><?= number_format($a['value'], 2, ',', ' ') ?></span> р. <?= Html::a('Выплатить', ['accrual/done', 'id' => $a['aid'], 'type' => 'report', 'TID'=>$teacher['id'], 'page' => $page], ['class' => 'btn btn-warning btn-xs pull-right', 'data-method' => 'post']) ?></p>
                         <?php $sum = $sum + $a['value']; ?>
                     <?php } ?>
                 <?php } ?>
@@ -244,13 +244,13 @@ ReportAccrualsAsset::register($this);
 			</div><!-- panel-body-->
 	    </div><!-- panel -->
 	    <?php 
-            $totalAccural += $money;
+            $totalAccrual += $money;
             $totalPayment += $sum; 
         ?>
     <?php endforeach ?>
-    <?php if ($totalAccural != 0 && $totalPayment != 0) { ?>
-        <p class="text-right">всего к начислению (без надбавок): <strong><?= number_format($totalAccural, 2, ',', ' ') ?> р.</strong>
-        <br/>всего к выплате: <strong><?= number_format($totalPayment, 2, ',', ' ') ?></strong> р.</p>
+    <?php if ($totalAccrual != 0 && $totalPayment != 0) { ?>
+        <p class="text-right">всего к начислению (без надбавок): <b><?= number_format($totalAccrual, 2, ',', ' ') ?> р.</b>
+        <br/>всего к выплате: <b><?= number_format($totalPayment, 2, ',', ' ') ?></b> р.</p>
         <?php } ?>
         <?= join('', $pager) ?>
 	</div>

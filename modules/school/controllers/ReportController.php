@@ -76,13 +76,14 @@ class ReportController extends Controller
 
     /**
      * отчет по Начислениям
-     * @param null $tid
-     * @param null $month
+     * @param string|null $tid
+     * @param string|null $month
+     * @param string|null $page
      *
      * @return mixed
      * @throws ForbiddenHttpException
      */
-    public function actionAccrual($tid = null, $month = null)
+    public function actionAccrual(string $tid = null, string $month = null, string $page = null)
     {
         $roleId = (int)Yii::$app->session->get('user.ustatus');
         if (!in_array($roleId, [3])) {
@@ -105,23 +106,23 @@ class ReportController extends Controller
         $tid      = $tid !== 'all' ? $tid : null; 
 
         /** @var array */
-        $listteachers = AccrualTeacher::getTeachersWithViewedLessonsIds();
+        $listTeachers = AccrualTeacher::getTeachersWithViewedLessonsIds();
 
         /** @var int */
-        $pages = count($listteachers);
+        $pages = count($listTeachers);
 
         /** @var array */
-        $teachers_list = AccrualTeacher::getTeachersWithViewedLessonsList();
+        $teachersList = AccrualTeacher::getTeachersWithViewedLessonsList();
 
         /* высчитываем смещение относительно начала массива */
-        if (Yii::$app->request->get('page') && (int)Yii::$app->request->get('page') <= ceil($pages/$limit)) {
-            $offset = 10 * ((int)Yii::$app->request->get('page') - 1);
+        if ($page && (int)$page <= ceil($pages/$limit)) {
+            $offset = 10 * ((int)$page - 1);
         }
         
         /* если преподаватель не задан */
         if (!$tid || $tid == 'all') {
             /* вырезаем из массива 10 преподавателей с соответствующим смещением */
-            $list = array_slice($listteachers, $offset, $limit);
+            $list = array_slice($listTeachers, $offset, $limit);
         } else {
             $list[0] = $tid;
         }
@@ -134,29 +135,26 @@ class ReportController extends Controller
         /** @var array */
         $lessons = AccrualTeacher::getViewedLessonList($list, $order, null, Report::getDateRangeByMonth($month));
         
-        /** @var array $accruals */
-        $accruals = AccrualTeacher::getAccrualsByTeacherList($list);
-        
         // создаем массив с данными по группам и суммарному колич часов
         foreach ($lessons as $lesson) {
-            $groups[$lesson['gid']][$lesson['tid']]['tid']     = $lesson['tid'];
-            $groups[$lesson['gid']][$lesson['tid']]['gid']     = $lesson['gid'];
-            $groups[$lesson['gid']][$lesson['tid']]['tjplace'] = $lesson['tjplace'];
-            $groups[$lesson['gid']][$lesson['tid']]['course']  = $lesson['service'];
-            $groups[$lesson['gid']][$lesson['tid']]['level']   = $lesson['level'];
-            $groups[$lesson['gid']][$lesson['tid']]['service'] = $lesson['sid'];
-            $groups[$lesson['gid']][$lesson['tid']]['office']  = $lesson['office'];
-            if (isset($groups[$lesson['gid']][$lesson['tid']]['time'])) {
-                $groups[$lesson['gid']][$lesson['tid']]['time'] += $lesson['time'];
+            $groups[$lesson['groupId']][$lesson['teacherId']]['teacherId'] = $lesson['teacherId'];
+            $groups[$lesson['groupId']][$lesson['teacherId']]['groupId']   = $lesson['groupId'];
+            $groups[$lesson['groupId']][$lesson['teacherId']]['company']   = $lesson['company'];
+            $groups[$lesson['groupId']][$lesson['teacherId']]['service']   = $lesson['service'];
+            $groups[$lesson['groupId']][$lesson['teacherId']]['level']     = $lesson['level'];
+            $groups[$lesson['groupId']][$lesson['teacherId']]['serviceId'] = $lesson['serviceId'];
+            $groups[$lesson['groupId']][$lesson['teacherId']]['office']    = $lesson['office'];
+            if (isset($groups[$lesson['groupId']][$lesson['teacherId']]['time'])) {
+                $groups[$lesson['groupId']][$lesson['teacherId']]['time'] += $lesson['time'];
             } else {
-                $groups[$lesson['gid']][$lesson['tid']]['time'] = $lesson['time'];
+                $groups[$lesson['groupId']][$lesson['teacherId']]['time'] = $lesson['time'];
             }
             $lessons[$i]['money'] = round(AccrualTeacher::getLessonFinalCost($teachers, $lesson), 2);
             $i++;
         }
         
         return $this->render('accrual', [
-            'accruals'      => $accruals,
+            'accruals'      => AccrualTeacher::getAccrualsByTeacherList($list),
 			'groups'        => $groups,
             'jobPlaces'     => Yii::$app->params['jobPlaces'],
             'lessons'       => $lessons,
@@ -165,10 +163,11 @@ class ReportController extends Controller
             'params'        => [
                 'month' => $month,
                 'tid'   => $tid,
+                'page'  => $page,
             ],
-            'reportlist'    => Report::getReportTypeList(),
+            'reportList'    => Report::getReportTypeList(),
             'teachers'      => $teachers,
-            'teachers_list' => $teachers_list,
+            'teachersList'  => $teachersList,
             'userInfoBlock' => User::getUserInfoBlock(),
         ]);
     }

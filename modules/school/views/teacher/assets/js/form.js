@@ -7,9 +7,7 @@ $(function () {
                 token: "9ac43b0c02b76d2f8be18c637ce94133d7c66e7f",
                 type: "ADDRESS",
                 count: 5,
-                onSelect: function (suggestion) {
-                    console.log(suggestion);
-                }
+                onSelect: function () {}
             });
         }
     );
