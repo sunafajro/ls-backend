@@ -27,6 +27,8 @@ TeacherViewAsset::register($this);
 $this->title = Yii::$app->params['appTitle'] . $model->name;
 $roleId = (int)Yii::$app->session->get('user.ustatus');
 $userId = (int)Yii::$app->session->get('user.uid');
+$teacherId = (int)Yii::$app->session->get('user.uteacher');
+
 if ($roleId !== 5) {
     $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Teachers'), 'url' => ['index']];
 } else {
@@ -121,7 +123,7 @@ if ($tab == 3){
             <?= isset($model->birthdate) && $model->birthdate != '' ? ' :: ' . date('d.m.y', strtotime($model->birthdate)) : '' ?>
             <?= isset($model->phone) && $model->phone != '' ? ' :: ' . $model->phone : '' ?>
             <?= isset($model->email) && $model->email != '' ? ' :: ' . $model->email : '' ?>
-            <?= isset($model->social_link) && $model->social_link != '' ? ' :: ' . Html::a('', 'http://'.$model->social_link, ['class'=>'glyphicon glyphicon-new-window', 'target'=>'_blank', 'title'=>Yii::t('app', 'Link to social profile')]) : '' ?>
+            <?= isset($model->social_link) && $model->social_link != '' ? ' :: ' . Html::a('', 'https://'.$model->social_link, ['class'=>'glyphicon glyphicon-new-window', 'target'=>'_blank', 'title'=>Yii::t('app', 'Link to social profile')]) : '' ?>
             <?php
                 if (!empty($teachertax)) {
                   $places = []; 
@@ -136,44 +138,49 @@ if ($tab == 3){
             ?>
         </h4>
         <?= $model->address ? '<p><b>' . Yii::t('app', 'Address') . ':</b> <i>' . $model->address . '</i></p>' : '' ?>
-        <?php
-        if($roleId === 3 || (int)Yii::$app->session->get('user.uteacher') === (int)$model->id || $userId === 296) : ?>
-		  <?php $ttax = []; ?>
-          <?php
-          if (!empty($teachertax)) : ?>
-            <?php
-            foreach($teachertax as $tax) : ?>
-                <strong>Ставка преподавателя:</strong> <?= $tax['taxname'] ?> <small><em><span class='inblocktext'>(назначена  <?= date('d.m.y', strtotime($tax['taxdate'])) ?></span></em>
-                <span class="label <?= ((int)$tax['tjplace'] === 1 ? 'label-success' : 'label-info') ?>"><?= $jobPlace[$tax['tjplace']] ?></span>
-		        <?php $ttax[(int)$tax['tjplace']] = $tax['taxvalue']; ?>
-                )</small><br />
-            <?php endforeach; ?>
-          <?php endif; ?>
-        <?php endif; ?>
-        <p></p>
-        <a href='#collapse-schedule' role='button' data-toggle='collapse' aria-expanded='false' aria-controls='collapse-schedule' class='text-warning'>показать/скрыть расписание занятий</a>
-        <div class="collapse" id="collapse-schedule">
-          <?php
-              foreach($days as $key=>$value){
-                if(in_array($key, $scheddays)){
-                  echo "<p><strong>" . Yii::t('app', $value) . "</strong></br>";
-                  foreach($teacherschedule as $schedule){
-                    if($schedule['day']==$key){
-                      echo "<span class='inblocktext'><small>".date('H:i', strtotime($schedule['time_begin']))." - ".date('H:i', strtotime($schedule['time_end']))."</span>&nbsp;";
-                      $link = "#".$schedule['gid']." ".$schedule['service'].", ".$schedule['level'];
-                      echo Html::a($link, ['groupteacher/view','id'=>$schedule['gid']]);
-                      echo "&nbsp;<span class='inblocktext'>(".$schedule['cnt'].")&nbsp;".$schedule['office']."&nbsp;".$schedule['room']."</small><br />";
+        <?php $ttax = []; ?>
+        <?php if (!empty($teachertax)) { ?>
+            <div style="margin-bottom:0.5rem">
+                <?php if ($roleId === 3 || $teacherId === (int)$model->id || $userId === 296) { ?>
+                    <?php foreach($teachertax as $tax) { ?>
+                        <div style="margin-bottom:0.2rem">
+                            <strong>Ставка преподавателя:</strong> <?= $tax['taxname'] ?> <small>
+                                (<i>
+                                    <span class='inblocktext'>назначена  <?= date('d.m.y', strtotime($tax['taxdate'])) ?></span>
+                                </i>
+                                <span class="label <?= ((int)$tax['tjplace'] === 1 ? 'label-success' : 'label-info') ?>"><?= $jobPlace[$tax['tjplace']] ?></span>
+                                <?php $ttax[(int)$tax['tjplace']] = $tax['taxvalue']; ?>)
+                            </small>
+                        </div>
+                    <?php } ?>
+                <?php } ?>
+            </div>
+        <?php } ?>
+        <div>
+            <a href='#collapse-schedule' role='button' data-toggle='collapse' aria-expanded='false' aria-controls='collapse-schedule' class='text-warning'>показать/скрыть расписание занятий</a>
+            <div class="collapse" id="collapse-schedule">
+                <?php
+                foreach ($days as $key => $value) {
+                    if (in_array($key, $scheddays)) {
+                        echo "<p><strong>" . Yii::t('app', $value) . "</strong></br>";
+                        foreach($teacherschedule as $schedule){
+                            if($schedule['day']==$key){
+                                echo "<span class='inblocktext'><small>".date('H:i', strtotime($schedule['time_begin']))." - ".date('H:i', strtotime($schedule['time_end']))."</span>&nbsp;";
+                                $link = "#".$schedule['gid']." ".$schedule['service'].", ".$schedule['level'];
+                                echo Html::a($link, ['groupteacher/view','id'=>$schedule['gid']]);
+                                echo "&nbsp;<span class='inblocktext'>(".$schedule['cnt'].")&nbsp;".$schedule['office']."&nbsp;".$schedule['room']."</small><br />";
+                            }
+                        }
+                        echo "</p>";
                     }
-                  } 
-                  echo "</p>";
                 }
-              }
-           ?>
+                ?>
+            </div>
         </div>
         <div>
             <?php
                 // блок со списком проверенны занятий
-                if ($roleId === 3 || $userId === 296) {
+                if ($roleId === 3 || $userId === 296 || $teacherId === (int)$model->id) {
                     echo $this->render('_viewed_lessons', [
                         'viewedLessons' => $viewedLessons,
                     ]);
@@ -181,11 +188,11 @@ if ($tab == 3){
         </div>
         <!-- блок с табами -->
         <ul class="nav nav-tabs" style="margin-top: 1rem; margin-bottom: 1rem">
-            <?php if (in_array($roleId, [3, 4, 6]) || (int)Yii::$app->session->get('user.uteacher') === (int)$model->id) { ?>
+            <?php if (in_array($roleId, [3, 4, 6]) || $teacherId === (int)$model->id) { ?>
                 <li role="presentation" class="<?= ((int)$tab === 1 ? 'active' : '') ?>"><?= Html::a(Yii::t('app','Active groups'), ['teacher/view', 'id' => $model->id, 'tab' => 1]) ?></li>
                 <li role="presentation" class="<?= ((int)$tab === 2 ? 'active' : '') ?>"><?= Html::a(Yii::t('app','Finished groups'), ['teacher/view', 'id' => $model->id, 'tab' => 2]) ?></li>
             <?php } ?>
-            <?php if (in_array($roleId, [3, 8]) || (int)Yii::$app->session->get('user.uteacher') === (int)$model->id || (int)Yii::$app->session->get('user.uid') === 296) { ?>
+            <?php if (in_array($roleId, [3, 8]) || $teacherId === (int)$model->id || $userId === 296) { ?>
                 <li role="presentation" class="<?= ((int)$tab === 3 ? 'active' : '') ?>"><?= Html::a(Yii::t('app','Accruals'), ['teacher/view', 'id' => $model->id, 'tab' => 3]) ?></li>
             <?php } ?>
 	    </ul>
@@ -261,7 +268,7 @@ if ($tab == 3){
                                 echo " ";
                             }
                             echo "</small></p>";
-                            if ($roleId === 3 || Yii::$app->session->get('user.uteacher')==$model->id){
+                            if ($roleId === 3 || $teacherId === (int)$model->id){
                             // пятая строка
                             echo "<p><small>";
                             if($groupact['ltch']!=0){
@@ -309,44 +316,44 @@ if ($tab == 3){
                         <?php if (!empty($hourstoaccrual)) : ?>
                             <small><span class='inblocktext'>Часов к начислению:</span> <span class='text-danger'><?= ($hourstoaccrual['sm'] ? $hourstoaccrual['sm'] : 0) ?></span> <span class='inblocktext'>ч.</span></small><br />
                         <?php endif; ?>
-                        <?php if ($accrualSum > 0 && ($roleId === 3 || (int)Yii::$app->session->get('user.uteacher') === (int)$model->id || $userId === 296)) : ?>
+                        <?php if ($accrualSum > 0 && ($roleId === 3 || $teacherId === (int)$model->id || $userId === 296)) : ?>
                             <small><span class='inblocktext'>Cумма к начислению:</span> <span class='text-danger'><?= $accrualSum ?></span> <span class='inblocktext'>р.</span></small><br />
                         <?php endif; ?>
-                        <?php if ($sum2pay['money'] > 0 && ($roleId === 3 || (int)Yii::$app->session->get('user.uteacher') === (int)$model->id || $userId === 296)) : ?>
+                        <?php if ($sum2pay['money'] > 0 && ($roleId === 3 || $teacherId === (int)$model->id || $userId === 296)) : ?>
 		                    <small><span class='inblocktext'>Cумма к выплате:</span> <span class='text-danger'><?= $sum2pay['money'] ?></span> <span class='inblocktext'>р.</span></small>
                         <?php endif; ?>
                     <?php endif; ?>      
                 </div>
             </div>
-            <?php if (!empty($unviewedlessons)) : ?>
-                <?php foreach ($unviewedlessons as $uvl) : ?> 
+            <?php if (!empty($unviewedlessons)) { ?>
+                <?php foreach ($unviewedlessons as $uvl) { ?>
                     <div class="panel panel-warning">
                         <div class="panel-body">
-                        <?php 
-                            // формируем текст ссылки на занятие
-                            $link =  "<small>Занятие #".$uvl['jid']." в группе #".$uvl['gid']."</small>";
-                            // распечатываем ссылку на занятие
-                            echo Html::a($link, ['groupteacher/view','id'=>$uvl['gid'], '#'=>'lesson_'.$uvl['jid']]);
-                            // уничтожаем ненужную переменную
-                            unset($link);
-                            echo "<br />";
-                            // распечатываем дату и день занятие
-                            echo "<small><span class='inblocktext'>".date('d.m.y', strtotime($uvl['lesdate']))." (".Yii::t('app', date('l', strtotime($uvl['lesdate']))).")</span></small><br />";
-                            // офис
-                            echo "<small><span class='inblocktext'>".$uvl['office']."</span></small><br />";
-                            // количество активных студентво в группе и сколько из них присутствовало
-                            echo "<small><span class='inblocktext'>Присутствовало ".$uvl['present']." из ".$uvl['all']."</span></small>";
-                            // Для руководителей и менеджеров добавляем кнопку проверки занятия
-                            if ($roleId === 3 || $roleId === 4 || $userId === 296){
-                                echo "<br/ ><small>";
-                                echo Html::a('Так и есть :)', ['journalgroup/view','gid'=>$uvl['gid'],'id'=>$uvl['jid']]);
-                                echo "</small>";
-                            }
-                        ?> 
+                            <?php
+                                // формируем текст ссылки на занятие
+                                $link =  "<small>Занятие #".$uvl['jid']." в группе #".$uvl['gid']."</small>";
+                                // распечатываем ссылку на занятие
+                                echo Html::a($link, ['groupteacher/view','id'=>$uvl['gid'], '#'=>'lesson_'.$uvl['jid']]);
+                                // уничтожаем ненужную переменную
+                                unset($link);
+                                echo "<br />";
+                                // распечатываем дату и день занятие
+                                echo "<small><span class='inblocktext'>".date('d.m.y', strtotime($uvl['lesdate']))." (".Yii::t('app', date('l', strtotime($uvl['lesdate']))).")</span></small><br />";
+                                // офис
+                                echo "<small><span class='inblocktext'>".$uvl['office']."</span></small><br />";
+                                // количество активных студентво в группе и сколько из них присутствовало
+                                echo "<small><span class='inblocktext'>Присутствовало ".$uvl['present']." из ".$uvl['all']."</span></small>";
+                                // Для руководителей и менеджеров добавляем кнопку проверки занятия
+                                if ($roleId === 3 || $roleId === 4 || $userId === 296){
+                                    echo "<br/ ><small>";
+                                    echo Html::a('Так и есть :)', ['journalgroup/view','gid'=>$uvl['gid'],'id'=>$uvl['jid']]);
+                                    echo "</small>";
+                                }
+                            ?>
                         </div>
                     </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
+                <?php } ?>
+            <?php } ?>
         </div>
     </div>
     <!-- правая боковая панель -->
