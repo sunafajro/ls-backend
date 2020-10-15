@@ -11,7 +11,7 @@
  */
 
 use app\modules\school\assets\UsersFormAsset;
-use app\models\User;
+use app\modules\school\models\User;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;

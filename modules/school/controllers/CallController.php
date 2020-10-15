@@ -7,7 +7,7 @@ use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use app\models\Call;
 use app\models\Student;
-use app\models\User;
+use app\modules\school\models\User;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;

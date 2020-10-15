@@ -3,11 +3,11 @@
 namespace app\modules\school\controllers;
 
 use app\models\Lang;
-use app\models\User;
 use app\models\Book;
 use app\models\BookOrder;
 use app\models\forms\BookForm;
 use app\models\search\BookSearch;
+use app\modules\school\models\User;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;

@@ -7,7 +7,7 @@ use app\models\Groupteacher;
 use app\models\Journalgroup;
 use app\models\Student;
 use app\models\Studjournalgroup;
-use app\models\User;
+use app\modules\school\models\User;
 use yii\base\Exception;
 use yii\db\Query;
 use yii\filters\VerbFilter;

@@ -8,8 +8,7 @@ use app\models\Office;
 use app\models\Student;
 use app\models\Salestud;
 use app\models\Service;
-use app\models\Tool;
-use app\models\User;
+use app\modules\school\models\User;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
@@ -27,7 +26,7 @@ class InvoiceController extends Controller
     {
         return [
             'access' => [
-                'class' => AccessControl::className(),
+                'class' => AccessControl::class,
                 'only' => [
                     'index',
                     'create',
@@ -61,7 +60,7 @@ class InvoiceController extends Controller
                 ],
             ],
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'create' => ['post'],
                     'get-data' => ['post']

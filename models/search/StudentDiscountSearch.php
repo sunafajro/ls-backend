@@ -5,7 +5,6 @@ namespace app\models\search;
 use app\models\Sale;
 use app\models\Salestud;
 use app\models\Student;
-use app\models\User;
 use yii\data\ActiveDataProvider;
 
 class StudentDiscountSearch extends Salestud
@@ -35,7 +34,7 @@ class StudentDiscountSearch extends Salestud
         $sdt = Salestud::tableName();
         $st = Student::tableName();
         $dt = Sale::tableName();
-        $ut = User::tableName();
+        $ut = 'user';
 
         $query = (new \yii\db\Query());
         $query->select([

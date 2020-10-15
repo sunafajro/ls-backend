@@ -18,7 +18,7 @@ use app\models\Student;
 use app\models\StudentCommission;
 use app\models\StudentMergeForm;
 use app\models\Studjournalgroup;
-use app\models\User;
+use app\modules\school\models\User;
 use yii\base\Action;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;

@@ -2,6 +2,7 @@
 
 namespace app\modules\school\models;
 
+use app\models\BaseNavigation;
 use Yii;
 use app\models\Message;
 use app\models\Salestud;
@@ -11,7 +12,7 @@ use yii\helpers\Url;
  * Class Navigation
  * @package app\modules\school\models
  */
-class Navigation extends \app\models\Navigation
+class Navigation extends BaseNavigation
 {
     /**
      * @return array

@@ -9,7 +9,7 @@ use app\models\Room;
 use app\models\Schedule;
 use app\models\Teacher;
 use app\models\Tool;
-use app\models\User;
+use app\modules\school\models\User;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;

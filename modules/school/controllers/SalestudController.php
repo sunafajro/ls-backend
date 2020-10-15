@@ -5,7 +5,7 @@ namespace app\modules\school\controllers;
 use app\models\Salestud;
 use app\models\search\StudentDiscountSearch;
 use app\models\Student;
-use app\models\User;
+use app\modules\school\models\User;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -24,7 +24,7 @@ class SalestudController extends Controller
         $rules = ['approve', 'autocomplete', 'create', 'disable', 'disable-all', 'enable', 'index'];
         return [
             'access' => [
-                'class' => AccessControl::className(),
+                'class' => AccessControl::class,
                 'only' => $rules,
                 'rules' => [
                     [
@@ -40,7 +40,7 @@ class SalestudController extends Controller
                 ],
             ],
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'approve'      => ['post'],
                     'disable'      => ['post'],

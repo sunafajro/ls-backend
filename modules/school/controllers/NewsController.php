@@ -4,7 +4,7 @@ namespace app\modules\school\controllers;
 
 use Yii;
 use app\models\News;
-use app\models\User;
+use app\modules\school\models\User;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
@@ -22,7 +22,7 @@ class NewsController extends Controller
     {
         return [
 		    'access' => [
-                'class' => AccessControl::className(),
+                'class' => AccessControl::class,
                 'only' => ['create','delete','update'],
                 'rules' => [
                     [
@@ -38,7 +38,7 @@ class NewsController extends Controller
                 ],
             ],
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'delete' => ['POST'],
                 ],

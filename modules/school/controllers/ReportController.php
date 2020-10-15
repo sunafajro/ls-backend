@@ -16,7 +16,7 @@ use app\models\Student;
 use app\models\search\StudentCommissionSearch;
 use app\models\Teacher;
 use app\models\Tool;
-use app\models\User;
+use app\modules\school\models\User;
 use app\models\search\LessonSearch;
 use yii\db\Query;
 use yii\filters\AccessControl;

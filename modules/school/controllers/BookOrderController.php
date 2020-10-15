@@ -4,7 +4,7 @@ namespace app\modules\school\controllers;
 
 use app\models\BookOrder;
 use app\models\search\BookOrderSearch;
-use app\models\User;
+use app\modules\school\models\User;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;

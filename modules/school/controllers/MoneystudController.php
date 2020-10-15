@@ -7,7 +7,7 @@ use app\models\Moneystud;
 use app\models\Notification;
 use app\models\Office;
 use app\models\Student;
-use app\models\User;
+use app\modules\school\models\User;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\helpers\ArrayHelper;

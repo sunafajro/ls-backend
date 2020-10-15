@@ -6,7 +6,7 @@ use Yii;
 use app\models\AccessRule;
 use app\models\Receipt;
 use app\models\Student;
-use app\models\User;
+use app\modules\school\models\User;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;

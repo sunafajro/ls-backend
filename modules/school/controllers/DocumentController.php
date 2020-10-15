@@ -2,10 +2,10 @@
 
 namespace app\modules\school\controllers;
 
-use app\models\File;
-use Yii;
 use app\models\AccessRule;
-use app\models\User;
+use app\models\File;
+use app\modules\school\models\User;
+use Yii;
 use yii\base\Action;
 use yii\web\BadRequestHttpException;
 use yii\web\Controller;

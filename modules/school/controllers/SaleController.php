@@ -5,13 +5,12 @@ namespace app\modules\school\controllers;
 use Yii;
 use app\models\Sale;
 use app\models\search\DiscountSearch;
-use app\models\User;
+use app\modules\school\models\User;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\web\ForbiddenHttpException;
-use yii\web\Response;
 
 /**
  * SaleController implements the CRUD actions for CalcSale model.
@@ -22,7 +21,7 @@ class SaleController extends Controller
     {
         return [
 	    'access' => [
-                'class' => AccessControl::className(),
+                'class' => AccessControl::class,
                 'only' => ['index', 'create', 'update', 'delete'],
                 'rules' => [
                     [
@@ -39,7 +38,7 @@ class SaleController extends Controller
             ],
 
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'delete' => ['post'],
                 ],

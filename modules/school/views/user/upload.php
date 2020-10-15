@@ -1,20 +1,23 @@
 <?php
 
 /**
- * @var yii\web\View          $this
- * @var app\models\User       $user
- * @var app\models\UploadForm $model
- * @var string                $userInfoBlock
+ * @var View       $this
+ * @var User       $user
+ * @var UploadForm $model
+ * @var string     $userInfoBlock
  */
 
+use app\models\UploadForm;
+use app\modules\school\models\User;
 use yii\helpers\Html;
+use yii\web\View;
 use yii\widgets\ActiveForm;
 use yii\widgets\Breadcrumbs;
-$this->title = 'Система учета :: ' . Yii::t('app', 'Add image') . ': ' . $user->name;
+
+$this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Add image') . ': ' . $user->name;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Users'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = Yii::t('app','Upload image');
 ?>
-
 <div class="row row-offcanvas row-offcanvas-left user-upload">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>

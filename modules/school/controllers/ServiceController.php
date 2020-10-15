@@ -9,7 +9,7 @@ use app\models\Language;
 use app\models\Service;
 use app\models\Studnorm;
 use app\models\Timenorm;
-use app\models\User;
+use app\modules\school\models\User;
 use Yii;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;

@@ -7,10 +7,10 @@ use yii\base\Model;
 /**
  * Модель горизонтального меню навигации
  *
- * Class Navigation
+ * Class BaseNavigation
  * @package app\models
  */
-class Navigation extends Model
+class BaseNavigation extends Model
 {
     /**
      * Получение списка элементов меню

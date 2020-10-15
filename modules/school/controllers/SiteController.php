@@ -7,21 +7,23 @@ use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
 use yii\web\Response;
-use app\models\LoginForm;
-use app\models\LoginLog;
-use app\models\Navigation;
+use app\modules\school\models\LoginForm;
+use app\modules\school\models\LoginLog;
 use app\models\News;
 use app\models\Tool;
-use app\models\User;
+use app\modules\school\models\User;
 
 class SiteController extends Controller
 {
+    /**
+     * {@inheritDoc}
+     */
     public function behaviors()
     {
         return [
             'access' => [
-                'class' => AccessControl::className(),
-                'only' => ['login', 'logout', 'index', 'sidebar', 'nav', 'csrf'],
+                'class' => AccessControl::class,
+                'only' => ['login', 'logout', 'index', 'csrf'],
                 'rules' => [
                     [
                         'actions' => ['login', 'csrf'],
@@ -29,22 +31,24 @@ class SiteController extends Controller
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['logout', 'index', 'sidebar', 'nav', 'csrf'],
+                        'actions' => ['logout', 'index', 'csrf'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
                 ],
             ],
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'logout' => ['POST'],
-                    'nav' => ['POST'],
                 ],
             ],
         ];
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function actions()
     {
         return [
@@ -58,68 +62,60 @@ class SiteController extends Controller
         ];
     }
 
+    /**
+     * @return mixed
+     */
     public function actionIndex()
     {
-        $userInfoBlock = User::getUserInfoBlock();
-
         $params = ['month' => date('m'), 'year' => date('Y')];
         $url_params = self::getUrlParams($params);
 
         return $this->render('index',[
-            'url_params' => $url_params,
-			'news' => News::getNewsList($url_params['month'], $url_params['year']),
-            'months' => Tool::getMonthsSimple(),
-            'userInfoBlock' => $userInfoBlock
+            'url_params'    => $url_params,
+			'news'          => News::getNewsList($url_params['month'], $url_params['year']),
+            'months'        => Tool::getMonthsSimple(),
+            'userInfoBlock' => User::getUserInfoBlock()
 	    ]);
     }
 
+    /**
+     * @return mixed
+     */
     public function actionLogin()
     {
-        if (!\Yii::$app->user->isGuest) {
+        if (!Yii::$app->user->isGuest) {
             return $this->goHome();
         }
 
         $model = new LoginForm();
-        // если логин прошел успешно
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            // запрашиваем по юзеру данные из базы
-            $user = (new \yii\db\Query())
-            ->select('u.id as uid, u.login as ulogin, u.name as uname, u.status as ustatus, st.name as stname, o.id as uoffice_id, o.name as uoffice, u.calc_teacher as uteacher, u.calc_city as ucity, u.logo as ulogo')
-            ->from('user u')
-            ->leftJoin('status st','st.id=u.status')
-            ->leftJoin('calc_office o','o.id=u.calc_office')
-            ->where('u.id=:id',[':id'=>Yii::$app->user->identity->id])
-            ->one();
+            // TODO удалить после того как в коде не останется использования данных сессии
+            // @deprecated
+            Yii::$app->session->set('user.uid',        Yii::$app->user->identity->id);
+            Yii::$app->session->set('user.ulogin',     Yii::$app->user->identity->username);
+            Yii::$app->session->set('user.uname',      Yii::$app->user->identity->fullName);
+            Yii::$app->session->set('user.ustatus',    Yii::$app->user->identity->roleId);
+            Yii::$app->session->set('user.stname',     Yii::$app->user->identity->roleName);
+            Yii::$app->session->set('user.uoffice_id', Yii::$app->user->identity->officeId);
+            Yii::$app->session->set('user.uoffice',    Yii::$app->user->identity->officeName);
+            Yii::$app->session->set('user.uteacher',   Yii::$app->user->identity->teacherId);
+            Yii::$app->session->set('user.ucity',      Yii::$app->user->identity->cityId);
 
-            // заносим необходимые параметры пользователя в $_SESSION
-            Yii::$app->session->set('user.uid',$user['uid']);
-            Yii::$app->session->set('user.ulogin',$user['ulogin']);
-            Yii::$app->session->set('user.uname',$user['uname']);
-            Yii::$app->session->set('user.ustatus',$user['ustatus']);
-            Yii::$app->session->set('user.stname',$user['stname']);
-            Yii::$app->session->set('user.uoffice_id',$user['uoffice_id']);
-            Yii::$app->session->set('user.uoffice',$user['uoffice']);
-            Yii::$app->session->set('user.uteacher',$user['uteacher']);
-            Yii::$app->session->set('user.ucity',$user['ucity']);
-            Yii::$app->session->set('user.ulogo',$user['ulogo']);
-            Yii::$app->session->set('user.sidebar', 2);
+            // TODO перенести в события
+            $login               = new LoginLog();
+            $login->result       = LoginLog::ACTION_LOGIN;
+            $login->ipaddr       = Yii::$app->request->userIP;
+            if (!$login->save()) {
+                Yii::error("Не удалось сохранить информацию о входе пользователя #{$login->user_id} в систему.");
+            }
 
-            // пишем лог входа в систему
-            $login = new LoginLog();
-            $login->date = date('Y-m-d H:i:s');
-            $login->result = 1;
-            $login->user_id = Yii::$app->session->get('user.uid');
-            $login->ipaddr = Yii::$app->request->userIP;
-            $login->save();
-
-            // переподим пользователя на нужную страничку
-            switch(Yii::$app->session->get('user.ustatus')){
+            switch (Yii::$app->user->identity->roleId) {
                 case 3:
                     return $this->redirect(['report/common']);
                 case 4:
                     return $this->redirect(['call/index']);
                 case 5:
-                    return $this->redirect(['teacher/view', 'id' => Yii::$app->session->get('user.uteacher')]);
+                    return $this->redirect(['teacher/view', 'id' => Yii::$app->user->identity->teacherId]);
                 case 6:
                     return $this->redirect(['teacher/index']);
                 case 9:
@@ -129,53 +125,49 @@ class SiteController extends Controller
                 default:
                     return $this->redirect(['site/index']);
             }            
-        } else {
-            return $this->render('login', [
-                'model' => $model,
-            ]);
         }
+
+        $model->password = '';
+        return $this->render('login', [
+            'model' => $model,
+        ]);
     }
 
+    /**
+     * @return mixed
+     */
     public function actionLogout()
     {
+        // TODO перенести в события
         $login = new LoginLog();
-        $login->date = date('Y-m-d H:i:s');
-        $login->result = 2;
-        $login->user_id = Yii::$app->session->get('user.uid');
+        $login->result = LoginLog::ACTION_LOGOUT;
         $login->ipaddr = Yii::$app->request->userIP;
-        $login->save();
+        if (!$login->save()) {
+            Yii::error("Не удалось сохранить информацию о выходе пользователя #{$login->user_id} из системы.");
+        }
 
         Yii::$app->user->logout();
 
         return $this->goHome();
     }
 
-    public function actionSidebar()
-    {
-        switch(Yii::$app->session->get('user.sidebar')) {
-            case 1: Yii::$app->session->set('user.sidebar', 2); break;
-            case 2: Yii::$app->session->set('user.sidebar', 1); break;
-            default: Yii::$app->session->set('user.sidebar', 1); break;
-        }
-        return $this->redirect(Yii::$app->request->referrer);
-    }
-
-    /* метод возвращает массив со списком элементов навигации */
-    public function actionNav()
-    {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        return Navigation::getItems();
-    }
-
+    /**
+     * Для js приложений
+     * @return array
+     */
     public function actionCsrf()
     {
-        /* включаем формат ответа JSON */
         Yii::$app->response->format = Response::FORMAT_JSON;
         return [
             Yii::$app->request->csrfParam => Yii::$app->request->getCsrfToken()
         ];
     }
 
+    /**
+     * @param array $params
+     *
+     * @return array
+     */
     protected static function getUrlParams(array $params)
     {
         if(!empty(Yii::$app->request->get())) {

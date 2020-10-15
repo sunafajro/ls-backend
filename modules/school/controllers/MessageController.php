@@ -8,7 +8,7 @@ use app\models\Message;
 use app\models\Student;
 use app\models\Teacher;
 use app\models\UploadForm;
-use app\models\User;
+use app\modules\school\models\User;
 use yii\base\Exception;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;

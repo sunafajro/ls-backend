@@ -10,7 +10,7 @@ use app\models\BookOrderPositionItem;
 use app\models\Lang;
 use app\models\Office;
 use app\models\Student;
-use app\models\User;
+use app\modules\school\models\User;
 use app\models\search\BookOrderPositionSearch;
 use Yii;
 use yii\filters\AccessControl;

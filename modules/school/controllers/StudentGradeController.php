@@ -6,7 +6,7 @@ use Yii;
 use app\models\AccessRule;
 use app\models\Student;
 use app\models\StudentGrade;
-use app\models\User;
+use app\modules\school\models\User;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;

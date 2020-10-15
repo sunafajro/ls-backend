@@ -6,13 +6,11 @@ use Yii;
 use app\models\Langtranslator;
 use app\models\Translationlang;
 use app\models\Translator;
-use app\models\Tool;
-use app\models\User;
+use app\modules\school\models\User;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
-use yii\filters\VerbFilter;
 
 /**
  * LangtranslatorController implements the CRUD actions for Langtranslator model.
@@ -23,7 +21,7 @@ class LangtranslatorController extends Controller
     {
         return [
             'access' => [
-                'class' => AccessControl::className(),
+                'class' => AccessControl::class,
                 'only' => ['create','delete'],
                 'rules' => [
                     [

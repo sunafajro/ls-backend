@@ -7,17 +7,14 @@ use app\models\City;
 use app\models\Office;
 use app\models\Role;
 use app\models\Teacher;
-use app\models\Tool;
-use app\models\User;
+use app\modules\school\models\User;
 use app\models\UploadForm;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
-use yii\filters\VerbFilter;
 use yii\web\UploadedFile;
-use yii\helpers\FileHelper;
 
 /**
  * UserController implements the CRUD actions for User model.

@@ -5,7 +5,7 @@ namespace app\modules\school\controllers;
 use Yii;
 use app\models\ClientAccess;
 use app\models\Student;
-use app\models\User;
+use app\modules\school\models\User;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;

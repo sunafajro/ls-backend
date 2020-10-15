@@ -9,7 +9,7 @@ use app\models\LanguagePremium;
 use app\models\Service;
 use app\models\Teacher;
 use app\models\TeacherLanguagePremium;
-use app\models\User;
+use app\modules\school\models\User;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;

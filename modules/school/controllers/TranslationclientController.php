@@ -4,7 +4,7 @@ namespace app\modules\school\controllers;
 
 use Yii;
 use app\models\Translationclient;
-use app\models\User;
+use app\modules\school\models\User;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;

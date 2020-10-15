@@ -2,11 +2,11 @@
 
 namespace app\widgets\navigation;
 
-use app\models\Navigation;
+use app\models\BaseNavigation;
 use yii\base\Widget;
 
 class NavigationWidget extends Widget {
-    /** @var Navigation|null  */
+    /** @var BaseNavigation|null  */
     public $model = null;
     /** @var bool $hideModal */
     public $hideModal = false;

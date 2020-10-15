@@ -4,10 +4,9 @@ namespace app\modules\school\controllers;
 
 use Yii;
 use app\models\Role;
-use app\models\User;
+use app\modules\school\models\User;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 
 /**
@@ -19,7 +18,7 @@ class RolesController extends Controller
     {
         return [
             'access' => [
-                'class' => AccessControl::className(),
+                'class' => AccessControl::class,
                 'only' => ['create','update','delete'],
                 'rules' => [
                     [

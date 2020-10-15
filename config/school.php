@@ -45,7 +45,8 @@ return [
             ],
         ],
         'user' => [
-            'loginUrl' => '/school/site/login',
+            'identityClass' => 'app\modules\school\models\Auth',
+            'loginUrl'      => '/school/site/login',
         ],
     ],
 ];

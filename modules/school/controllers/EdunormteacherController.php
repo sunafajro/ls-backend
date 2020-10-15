@@ -3,16 +3,12 @@
 namespace app\modules\school\controllers;
 
 use Yii;
-use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
-use yii\filters\VerbFilter;
 use app\models\Edunormteacher;
 use app\models\Teacher;
-use app\models\Tool;
-use app\models\User;
+use app\modules\school\models\User;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
-use yii\web\NotFoundHttpException;
 
 /**
  * EdunormteacherController implements the CRUD actions for Edunormteacher model.
@@ -26,7 +22,7 @@ class EdunormteacherController extends Controller
     {
         return [
             'access' => [
-                'class' => AccessControl::className(),
+                'class' => AccessControl::class,
                 'only' => ['create', 'delete'],
                 'rules' => [
                     [

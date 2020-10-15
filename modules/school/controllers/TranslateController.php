@@ -10,7 +10,7 @@ use app\models\Translationlang;
 use app\models\Translationnorm;
 use app\models\Translator;
 use app\models\Tool;
-use app\models\User;
+use app\modules\school\models\User;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\filters\AccessControl;
