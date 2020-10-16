@@ -267,6 +267,7 @@ return array(
     'Inactive' => 'Неактивный',
     'Income (w/out discounts)' => 'Доход без учета скидок',
     'Incoming message' => 'Входящее сообщение',
+    'Incorrect username or password.' => 'Неправильный логин или пароль.',
     'invoice' => 'счет',
     'Invoice' => 'Счет',
     'Invoices' => 'Счета',
