@@ -396,7 +396,7 @@ class TeacherController extends Controller
 			->where('jg2.visible=:vis and jg2.calc_teacher=:tid and jg2.calc_groupteacher=cgt.id and jg2.view=:vis', [':vis'=>1, ':tid'=>$id]);
 
 			// выбираем данные по группам из базы
-			$teacherdata = (new \Yii\db\Query())
+			$teacherData = (new \Yii\db\Query())
 			->select(['gid'=>'cgt.id', 'visible'=>'cgt.visible', 'level'=>'cel.name', 'service'=>'cs.name', 'sid'=>'cs.id', 'eduform'=>'cs.calc_eduform', 'office'=>'co.name', 'start_date'=>'cgt.data', 'creator'=>'u.name', 'duration'=>'ctn.value', 'corp' => 'cgt.corp', 'direction' => 'cgt.company','ltch'=>$subQuery1, 'htacc'=>$subQuery2, 'vless'=>$subQuery3])
 			->from('calc_teachergroup ctg')
 			->leftJoin('calc_groupteacher cgt', 'ctg.calc_groupteacher=cgt.id')
@@ -406,22 +406,18 @@ class TeacherController extends Controller
 			->leftJoin('user u', 'u.id=cgt.user')
 			->leftJoin('calc_timenorm ctn', 'ctn.id=cs.calc_timenorm');
             if ((int)$active === 1) {
-			    $teacherdata = $teacherdata->where('ctg.calc_teacher=:id and cgt.visible=:one and ctg.visible=:one', [':id' => $id, ':one' => 1]);
+                $teacherData = $teacherData->where('ctg.calc_teacher=:id and cgt.visible=:one and ctg.visible=:one', [':id' => $id, ':one' => 1]);
 			} else {
-                $teacherdata = $teacherdata->where('ctg.calc_teacher=:id and (cgt.visible=:zero or (cgt.visible=:one and ctg.visible=:zero))', [':id'=>$id, ':zero'=>0, ':one'=>1]);
+                $teacherData = $teacherData->where('ctg.calc_teacher=:id and (cgt.visible=:zero or (cgt.visible=:one and ctg.visible=:zero))', [':id'=>$id, ':zero'=>0, ':one'=>1]);
             }
-            $teacherdata = $teacherdata->andFilterWhere(['year(cgt.data)'=>$year])
+            $teacherData = $teacherData->andFilterWhere(['year(cgt.data)'=>$year])
 			->orderby(['cgt.data'=>SORT_DESC])
 			->all();
-			unset($subQuery1);
-			unset($subQuery2);
-			unset($subQuery3);
-			
 
 			// если список групп не пустой
-			if(!empty($teacherdata)){
+			if(!empty($teacherData)){
 				$i = 0;
-				foreach($teacherdata as $gr){
+				foreach($teacherData as $gr){
 					// считаем типы групп
 					switch($gr['eduform']){
 						case 1: $efm['individual']+=1; break;
@@ -438,7 +434,7 @@ class TeacherController extends Controller
 					->where('sg.calc_groupteacher=:gid', [':gid'=>$gr['gid']])
 					->all();
 					// записываем число непрвоереренных занятий в исходный массив
-					$teacherdata[$i]['sarr'] = $sarr;
+                    $teacherData[$i]['sarr'] = $sarr;
 					$i++;
 				}           
 			}
@@ -454,7 +450,7 @@ class TeacherController extends Controller
 			->leftJoin('calc_timenorm ctn', 'ctn.id=cs.calc_timenorm')
 			->where('cjg.calc_accrual=cat.id');
 			// выбираем данные из базы
-			$teacherdata = (new \Yii\db\Query())
+            $teacherData = (new \Yii\db\Query())
 			->select([
 				'aid'          => 'cat.id',
 				'date'         => 'cat.data',
@@ -517,19 +513,19 @@ class TeacherController extends Controller
 		$accrual = AccrualTeacher::calculateFullTeacherAccrual((int)$id);
 
 		return $this->render('view', [
+            'accrualSum'      => $accrual['totalValue'],
+            'efm'             => $efm,
+            'hoursToAccrual'  => $hourstoaccrual,
+            'jobPlace' => [ 1 => 'ШИЯ', 2 => 'СРР' ],
+            'lessonsToCheck'  => $lestocheck,
 			'model'           => $model,
-			'teachertax'      => $teachertax,
-			'teacherschedule' => $teacherschedule,
-			'viewedLessons'   => $accrual['lessons'] ?? [],
-			'teacherdata'     => $teacherdata,
-			'lestocheck'      => $lestocheck,
-			'hourstoaccrual'  => $hourstoaccrual,
-			'unviewedlessons' => $unviewedlessons,
-			'efm'             => $efm,
-			'accrualSum'      => $accrual['totalValue'],
-			'sum2pay'         => $sum2pay,
+            'sum2pay'         => $sum2pay,
+            'teacherData'     => $teacherData ?? [],
+			'teacherSchedule' => $teacherschedule,
+            'teacherTax'      => $teachertax,
+			'unViewedLessons' => $unviewedlessons,
 			'userInfoBlock'   => User::getUserInfoBlock(),
-			'jobPlace' => [ 1 => 'ШИЯ', 2 => 'СРР' ]
+            'viewedLessons'   => $accrual['lessons'] ?? [],
 		]);
     }
 

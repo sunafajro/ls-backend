@@ -5,9 +5,13 @@
  * @var Teacher $model
  * @var float   $accrualSum
  * @var array   $efm
+ * @var array   $hoursToAccrual
  * @var array   $jobPlace
+ * @var array   $lessonsToCheck
  * @var float   $sum2pay
- * @var array   $teacherschedule
+ * @var array   $teacherData
+ * @var array   $teacherSchedule
+ * @var array   $unViewedLessons
  * @var string  $userInfoBlock
  * @var array   $viewedLessons
  */
@@ -16,6 +20,7 @@ use app\modules\school\assets\ChangeGroupParamsAsset;
 use app\models\Teacher;
 use app\modules\school\assets\TeacherViewAsset;
 use app\widgets\Alert;
+use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\web\View;
@@ -25,9 +30,10 @@ ChangeGroupParamsAsset::register($this);
 TeacherViewAsset::register($this);
 
 $this->title = Yii::$app->params['appTitle'] . $model->name;
-$roleId = (int)Yii::$app->session->get('user.ustatus');
-$userId = (int)Yii::$app->session->get('user.uid');
-$teacherId = (int)Yii::$app->session->get('user.uteacher');
+
+$roleId    = (int)Yii::$app->user->identity->roleId;
+$teacherId = (int)Yii::$app->user->identity->teacherId;
+$userId    = (int)Yii::$app->user->identity->id;
 
 if ($roleId !== 5) {
     $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Teachers'), 'url' => ['index']];
@@ -43,7 +49,7 @@ for ($i=0; $i<7; $i++) {
 ksort($days);
 // формируем список дней в которые есть занятия по расписанию
 $i = 0;
-foreach ($teacherschedule as $sched)    {
+foreach ($teacherSchedule as $sched)    {
     $sscheddays[$i] = $sched['day'];
     $i++;
 }
@@ -65,18 +71,13 @@ if (Yii::$app->request->get('tab')) {
         $tab = 1;
     }	
 }
+$accrualDates = [];
 // выбираем даты начислений
-if ($tab == 3){
-    if(!empty($teacherdata)){
-    $i = 0;
-    foreach ($teacherdata as $accrual) {
-            $saccrualdates[$i]=$accrual['date'];
-            $i++;
-    }
-    // оставляем только уникальные значения
-    $accrualdates = array_unique($saccrualdates);
-    // сортируем в обратном порядке
-    rsort($accrualdates);
+if ((int)$tab === 3) {
+    if (!empty($teacherData)) {
+        $accrualDates = ArrayHelper::getColumn($teacherData, 'date');
+        $accrualDates = array_unique($accrualDates);
+        rsort($accrualDates);
     }
 }
 ?>
@@ -125,9 +126,9 @@ if ($tab == 3){
             <?= isset($model->email) && $model->email != '' ? ' :: ' . $model->email : '' ?>
             <?= isset($model->social_link) && $model->social_link != '' ? ' :: ' . Html::a('', 'https://'.$model->social_link, ['class'=>'glyphicon glyphicon-new-window', 'target'=>'_blank', 'title'=>Yii::t('app', 'Link to social profile')]) : '' ?>
             <?php
-                if (!empty($teachertax)) {
+                if (!empty($teacherTax)) {
                   $places = []; 
-                  foreach($teachertax as $tax) {
+                  foreach($teacherTax as $tax) {
                     $str  = '<span class="label ' . ((int)$tax['tjplace'] === 1 ? 'label-success' : 'label-info') . '">';
                     $str .= $jobPlace[$tax['tjplace']] . '</span>';
                     $places[$tax['tjplace']] = $str;
@@ -139,10 +140,10 @@ if ($tab == 3){
         </h4>
         <?= $model->address ? '<p><b>' . Yii::t('app', 'Address') . ':</b> <i>' . $model->address . '</i></p>' : '' ?>
         <?php $ttax = []; ?>
-        <?php if (!empty($teachertax)) { ?>
+        <?php if (!empty($teacherTax)) { ?>
             <div style="margin-bottom:0.5rem">
                 <?php if ($roleId === 3 || $teacherId === (int)$model->id || $userId === 296) { ?>
-                    <?php foreach($teachertax as $tax) { ?>
+                    <?php foreach($teacherTax as $tax) { ?>
                         <div style="margin-bottom:0.2rem">
                             <strong>Ставка преподавателя:</strong> <?= $tax['taxname'] ?> <small>
                                 (<i>
@@ -163,7 +164,7 @@ if ($tab == 3){
                 foreach ($days as $key => $value) {
                     if (in_array($key, $scheddays)) {
                         echo "<p><strong>" . Yii::t('app', $value) . "</strong></br>";
-                        foreach($teacherschedule as $schedule){
+                        foreach($teacherSchedule as $schedule){
                             if($schedule['day']==$key){
                                 echo "<span class='inblocktext'><small>".date('H:i', strtotime($schedule['time_begin']))." - ".date('H:i', strtotime($schedule['time_end']))."</span>&nbsp;";
                                 $link = "#".$schedule['gid']." ".$schedule['service'].", ".$schedule['level'];
@@ -189,11 +190,17 @@ if ($tab == 3){
         <!-- блок с табами -->
         <ul class="nav nav-tabs" style="margin-top: 1rem; margin-bottom: 1rem">
             <?php if (in_array($roleId, [3, 4, 6]) || $teacherId === (int)$model->id) { ?>
-                <li role="presentation" class="<?= ((int)$tab === 1 ? 'active' : '') ?>"><?= Html::a(Yii::t('app','Active groups'), ['teacher/view', 'id' => $model->id, 'tab' => 1]) ?></li>
-                <li role="presentation" class="<?= ((int)$tab === 2 ? 'active' : '') ?>"><?= Html::a(Yii::t('app','Finished groups'), ['teacher/view', 'id' => $model->id, 'tab' => 2]) ?></li>
+                <li role="presentation" class="<?= ((int)$tab === 1 ? 'active' : '') ?>">
+                    <?= Html::a(Yii::t('app','Active groups'), ['teacher/view', 'id' => $model->id, 'tab' => 1]) ?>
+                </li>
+                <li role="presentation" class="<?= ((int)$tab === 2 ? 'active' : '') ?>">
+                    <?= Html::a(Yii::t('app','Finished groups'), ['teacher/view', 'id' => $model->id, 'tab' => 2]) ?>
+                </li>
             <?php } ?>
             <?php if (in_array($roleId, [3, 8]) || $teacherId === (int)$model->id || $userId === 296) { ?>
-                <li role="presentation" class="<?= ((int)$tab === 3 ? 'active' : '') ?>"><?= Html::a(Yii::t('app','Accruals'), ['teacher/view', 'id' => $model->id, 'tab' => 3]) ?></li>
+                <li role="presentation" class="<?= ((int)$tab === 3 ? 'active' : '') ?>">
+                    <?= Html::a(Yii::t('app','Accruals'), ['teacher/view', 'id' => $model->id, 'tab' => 3]) ?>
+                </li>
             <?php } ?>
 	    </ul>
         <!-- блок с табами -->
@@ -203,7 +210,7 @@ if ($tab == 3){
                 // задаем форму обучения. 1 - индивидуальные, 2 - группа, 3 - минигруппа, 4 - без привязки
                 $eduform = [0, 1, 3, 2, 4];
                 // делаем цикл в три шага для вывода групп по формам обучения
-                for($a=1;$a<=4;$a++) {
+                for($a=1; $a<=4; $a++) {
                     // Делаем разворачивающийся блок
                     echo "<a href='#collapse-groupact-".$a."' role='button' data-toggle='collapse' aria-expanded='false' aria-controls='collapse-groupact-".$a."' class='text-warning'>";
                     switch($eduform[$a]) {
@@ -215,7 +222,7 @@ if ($tab == 3){
                     echo "</a>";
                     echo "<div class='collapse' id='collapse-groupact-".$a."'>";
                     // распечатываем массив
-                    foreach($teacherdata as $groupact) {
+                    foreach($teacherData as $groupact) {
                         // если форма обучения совпадает - выводим
                         if($eduform[$a]==$groupact['eduform']) {
                             echo "<div class='panel panel-default'><div class='panel-body'>";
@@ -291,9 +298,9 @@ if ($tab == 3){
             // выводим информацию по начислениям
             if ((int)$tab === 3) {
                 echo $this->render('_accruals', [
-                    'accrualDates' => $accrualdates,
+                    'accrualDates' => $accrualDates,
                     'roleId'       => $roleId,
-                    'teacherData'  => $teacherdata,
+                    'teacherData'  => $teacherData,
                 ]);
             }
         ?>
@@ -309,13 +316,13 @@ if ($tab == 3){
                         Html::img('@web/images/dream.jpg',['width'=>'100%'])
                     ?>
                     </p>
-                    <?php if (!empty($lestocheck)) : ?>
-                        <small><span class='inblocktext'>Занятий на проверке:</span> <span class='text-danger'><?= $lestocheck['cnt'] ?></span></small><br />
-                    <?php endif; ?>
-                    <?php if ($roleId === 3 || (int)Yii::$app->session->get('user.uteacher') === (int)$model->id || $userId === 296) : ?>
-                        <?php if (!empty($hourstoaccrual)) : ?>
-                            <small><span class='inblocktext'>Часов к начислению:</span> <span class='text-danger'><?= ($hourstoaccrual['sm'] ? $hourstoaccrual['sm'] : 0) ?></span> <span class='inblocktext'>ч.</span></small><br />
-                        <?php endif; ?>
+                    <?php if (!empty($lessonsToCheck)) { ?>
+                        <small><span class='inblocktext'>Занятий на проверке:</span> <span class='text-danger'><?= $lessonsToCheck['cnt'] ?></span></small><br />
+                    <?php } ?>
+                    <?php if ($roleId === 3 || $teacherId === (int)$model->id || $userId === 296) : ?>
+                        <?php if (!empty($hoursToAccrual)) { ?>
+                            <small><span class='inblocktext'>Часов к начислению:</span> <span class='text-danger'><?= ($hoursToAccrual['sm'] ? $hoursToAccrual['sm'] : 0) ?></span> <span class='inblocktext'>ч.</span></small><br />
+                        <?php } ?>
                         <?php if ($accrualSum > 0 && ($roleId === 3 || $teacherId === (int)$model->id || $userId === 296)) : ?>
                             <small><span class='inblocktext'>Cумма к начислению:</span> <span class='text-danger'><?= $accrualSum ?></span> <span class='inblocktext'>р.</span></small><br />
                         <?php endif; ?>
@@ -325,8 +332,8 @@ if ($tab == 3){
                     <?php endif; ?>      
                 </div>
             </div>
-            <?php if (!empty($unviewedlessons)) { ?>
-                <?php foreach ($unviewedlessons as $uvl) { ?>
+            <?php if (!empty($unViewedLessons)) { ?>
+                <?php foreach ($unViewedLessons as $uvl) { ?>
                     <div class="panel panel-warning">
                         <div class="panel-body">
                             <?php
