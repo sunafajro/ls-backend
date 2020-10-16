@@ -134,9 +134,9 @@ class User extends BaseUser
     /**
      * @param int $id
      *
-     * @return array
+     * @return array|null
      */
-    public static function findUserById(int $id) : array
+    public static function findUserById(int $id)
     {
         return self::findUserByCondition([
             'user.id' => $id,
@@ -146,9 +146,9 @@ class User extends BaseUser
     /**
      * @param $username
      *
-     * @return array
+     * @return array|null
      */
-    public static function findUserByUsername(string $username) : array
+    public static function findUserByUsername(string $username)
     {
         return self::findUserByCondition([
             'user.login' => trim($username),
