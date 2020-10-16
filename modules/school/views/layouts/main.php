@@ -41,13 +41,19 @@ $hideModal = $this->context->id === 'message' && in_array($this->context->action
         <?php endif; ?>
         <?= $content ?>
     </div>
-    <?php if (Yii::$app->params['appMode'] !== 'bitrix'): ?>
+    <?php if (Yii::$app->params['appMode'] !== 'bitrix') { ?>
     <footer class="footer">
         <div class="container-fluid">
-            <span class="text-muted">&copy; Школа иностранных языков "Язык для Успеха" <?= date('Y') ?></span>
+            <span class="text-muted">
+            <?php if (\Yii::$app->user->isGuest) { ?>
+                &copy; Школа иностранных языков "Язык для Успеха" <?= date('Y') ?>
+            <?php } else { ?>
+                env: <?= YII_ENV ?>, debug: <?= YII_DEBUG ?>
+            <?php } ?>
+            </span>
         </div>
     </footer>
-    <?php endif; ?>
+    <?php } ?>
 <?php $this->endBody() ?>
 </body>
 </html>
