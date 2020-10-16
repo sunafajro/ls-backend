@@ -26,7 +26,7 @@ class Message extends \yii\db\ActiveRecord
     use StudentMergeTrait;
 
     const MESSAGE_ENABLED_TYPES = [1 => 1, 2 => 2, 3 => 3, 4 => 4, 5 => 5, 6 => 12, 7 => 13];
-    
+
     /**
      * @inheritdoc
      */
@@ -226,7 +226,7 @@ class Message extends \yii\db\ActiveRecord
             $end = $end . ' 23:59:59';
         }
         $student = Student::tableName();
-        $user    = User::tableName();
+        $user    = 'user';
 
         $messages = (new \yii\db\Query())
         ->select([
