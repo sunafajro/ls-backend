@@ -169,7 +169,7 @@ class Salestud extends \yii\db\ActiveRecord
             ->from(['ss'      => self::tableName()])
             ->innerJoin(['sn' => Student::tableName()], 'sn.id = ss.calc_studname')
             ->innerJoin(['s'  => Sale::tableName()],    's.id = ss.calc_sale')
-            ->innerJoin(['u'  => User::tableName()],    'u.id = ss.user')
+            ->innerJoin(['u'  => 'user'],    'u.id = ss.user')
             ->where([
                 'ss.approved' => 0,
                 'ss.visible'  => 1
@@ -199,9 +199,9 @@ class Salestud extends \yii\db\ActiveRecord
         ->select('ss.id as id, s.name as name, u.name as user, ss.data as date, uu.name as usedby, ss.data_used as usedate, uv.name as remover, ss.data_visible as deldate, ss.visible as visible, ss.approved as approved')
         ->from(['ss'      => self::tableName()])
         ->leftJoin(['s'   => Sale::tableName()], 's.id = ss.calc_sale')
-        ->leftJoin(['u'   => User::tableName()], 'u.id = ss.user')
-        ->leftJoin(['uu'  => User::tableName()], 'uu.id = ss.user_used')
-        ->leftJoin(['uv'  => User::tableName()], 'uv.id = ss.user_visible')
+        ->leftJoin(['u'   => 'user'], 'u.id = ss.user')
+        ->leftJoin(['uu'  => 'user'], 'uu.id = ss.user_used')
+        ->leftJoin(['uv'  => 'user'], 'uv.id = ss.user_visible')
         ->where([
             'ss.visible' => 1,
             'ss.calc_studname' => $sid,

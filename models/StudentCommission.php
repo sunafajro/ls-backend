@@ -106,7 +106,7 @@ class StudentCommission extends \yii\db\ActiveRecord
                 'comment' => 'c.comment',
             ])
             ->from(['c' => self::tableName()])
-            ->innerJoin(['u' => User::tableName()], 'u.id = c.user_id')
+            ->innerJoin(['u' =>'user'], 'u.id = c.user_id')
             ->innerJoin(['o' => Office::tableName()], 'o.id = c.office_id')
             ->where([
                 'c.student_id' => $sid,
