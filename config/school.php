@@ -25,7 +25,7 @@ return [
             'name' => 'SCHOOL_ID',
         ],
         'request' => [
-            'cookieValidationKey' => $options['cookieValidationKey'],
+            'cookieValidationKey' => $options['cookieValidationKey'] ?? '',
         ],
         'urlManager' => [
             'enablePrettyUrl' => true,
