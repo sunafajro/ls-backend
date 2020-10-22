@@ -148,10 +148,12 @@ class ReceiptController extends Controller
             $receipt['payer']   = $model->payer ?? '';
             $receipt['sum']     = str_replace(',', '.', $model->sum ?? '');
             $receipt['purpose'] = $model->purpose ?? '';
-            $receipt['qrdata']  = Receipt::receiptParamsStringified() . '|';
-            $receipt['qrdata']  .= Receipt::RECEIPT_LASTNAME . '=' . mb_strtoupper($receipt['payer'])   . '|';
-            $receipt['qrdata']  .= Receipt::RECEIPT_PURPOSE  . '=' . mb_strtoupper($receipt['purpose']) . '|';
-            $receipt['qrdata']  .= Receipt::RECEIPT_SUM      . '=' . $receipt['sum'];
+            $receipt['qrdata']  = join('|', [
+                Receipt::receiptParamsStringified(),
+                Receipt::RECEIPT_LASTNAME . '=' . mb_strtoupper($receipt['payer']),
+                Receipt::RECEIPT_PURPOSE . '=' . mb_strtoupper($receipt['purpose']),
+                Receipt::RECEIPT_SUM . '=' . $receipt['sum'] * 100
+            ]);
         }
            
         return $this->render('_viewPdf', [
