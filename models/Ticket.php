@@ -8,24 +8,24 @@ use Yii;
  * This is the model class for table "calc_ticket".
  *
  * @property integer $id
- * @property string $title
- * @property string $body 
+ * @property string  $title
+ * @property string  $body
  * @property integer $user
- * @property date $data 
+ * @property string  $data
  * @property integer $visible
  * @property integer $user_visible
- * @property date $data_visible
+ * @property string  $data_visible
  * @property integer $published
  * @property integer $executor
  * @property integer $edit
- * @property date $data_edit
+ * @property string  $data_edit
  * @property integer $user_edit
  * @property integer $calc_ticketstatus
- * @property string $comment
- * @property date $deadline 
+ * @property string  $comment
+ * @property string  $deadline
  * @property integer $closed
  * @property integer $user_closed
- * @property date $data_closed
+ * @property string  $data_closed
  */
 class Ticket extends \yii\db\ActiveRecord
 {
@@ -103,13 +103,13 @@ class Ticket extends \yii\db\ActiveRecord
     {
         $id = (int)Yii::$app->session->get('user.uid');
         $t = [];
-
+        $ut = BaseUser::tableName();
         $task = (new \yii\db\Query())
         ->select('t.id as tid, t.title as title, t.body as text, u1.name as creator, u2.name as executor, ts.name as status, ts.color as color')
         ->from('calc_ticket_report tr')
         ->innerJoin('calc_ticket t', 't.id=tr.calc_ticket')
-        ->innerJoin('user u1', 'u1.id=t.user')
-        ->innerJoin('user u2', 'u2.id=tr.user')
+        ->innerJoin(['u1' => $ut], 'u1.id = t.user')
+        ->innerJoin(['u2' => $ut], 'u2.id = tr.user')
         ->innerJoin('calc_ticketstatus ts', 'ts.id=tr.calc_ticketstatus')
         ->where('t.visible=:vis and tr.user=:user and tr.calc_ticketstatus=:status', [':vis'=>1, ':user' => (int)$id, ':status'=> 5])
         ->one();

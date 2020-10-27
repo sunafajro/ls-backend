@@ -130,7 +130,8 @@ class GroupteacherController extends Controller
                 case 4: $deleted = 0; break;
             }
         }
-		
+
+        $ut = User::tableName();
         // выбираем занятия
         $lessons = (new \yii\db\Query())
         ->select([
@@ -158,11 +159,11 @@ class GroupteacherController extends Controller
         ])
         ->from(['jg' => Journalgroup::tableName()])
         ->leftJoin(['t' => Teacher::tableName()], 't.id = jg.calc_teacher')
-        ->leftJoin(['u' => User::tableName()], 'u.id = jg.user')
-        ->leftJoin('user u2', 'u2.id=jg.user_visible')
-        ->leftJoin('user u3', 'u3.id=jg.user_edit')
-        ->leftJoin('user u4', 'u4.id=jg.user_done')
-        ->leftJoin('user u5', 'u5.id=jg.user_view')
+        ->leftJoin(['u'  => $ut], 'u.id = jg.user')
+        ->leftJoin(['u2' => $ut], 'u2.id=jg.user_visible')
+        ->leftJoin(['u3' => $ut], 'u3.id=jg.user_edit')
+        ->leftJoin(['u4' => $ut], 'u4.id=jg.user_done')
+        ->leftJoin(['u5' => $ut], 'u5.id=jg.user_view')
         ->where(['jg.calc_groupteacher' => $id])
         ->andWhere(['>', 'jg.user', 0])
         ->andFilterWhere(['jg.id'      => $lid])
@@ -407,7 +408,7 @@ class GroupteacherController extends Controller
 		->select('t.id as id, t.name as teacher, tg.date as date, u.name as user, tg.visible as visible')
 		->from('calc_teachergroup tg')
 		->leftJoin('calc_teacher t', 't.id=tg.calc_teacher')
-		->leftJoin('user u', 'u.id=tg.user')
+		->leftJoin(['u' => User::tableName()], 'u.id=tg.user')
 		->where('tg.calc_groupteacher=:gid', [':gid'=>$gid])
 		->orderby(['tg.date'=>SORT_DESC])
 		->all();
@@ -556,7 +557,7 @@ class GroupteacherController extends Controller
 		->select('s.id as id, s.name as name, sg.data as date, u.name as user, sg.visible as visible')
 		->from('calc_studgroup sg')
 		->leftJoin('calc_studname s', 's.id=sg.calc_studname')
-		->leftJoin('user u', 'u.id=sg.user')
+		->leftJoin(['u' => User::tableName()], 'u.id = sg.user')
 		->where('sg.calc_groupteacher=:gid', [':gid'=>$gid])
 		->orderby(['sg.data'=>SORT_DESC])
 		->all();

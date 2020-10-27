@@ -244,7 +244,7 @@ class StudentGrade extends \yii\db\ActiveRecord
             'studentName' => 's.name',
         ])
         ->from(['sg' => self::tableName()])
-        ->innerJoin(['u' => 'user'], 'sg.user = u.id')
+        ->innerJoin(['u' => BaseUser::tableName()], 'sg.user = u.id')
         ->innerJoin(['s' => 'calc_studname'], 'sg.calc_studname = s.id')
         ->where([
             'sg.calc_studname' => $sid,

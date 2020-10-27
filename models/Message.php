@@ -125,7 +125,7 @@ class Message extends \yii\db\ActiveRecord
                 $message['canResponse'] = (int)$message['sender_id'] !== Yii::$app->user->identity->id ? true : false;
                 $receiver = (new \yii\db\Query())
                 ->select(['id' => 'id', 'name' => 'name'])
-                ->from(['u' => 'user'])
+                ->from(['u' => BaseUser::tableName()])
                 ->where([
                     'id' => $message['reciever_id']
                 ])
@@ -160,7 +160,7 @@ class Message extends \yii\db\ActiveRecord
             } else {
                 $sender = (new \yii\db\Query())
                 ->select(['id' => 'id', 'name' => 'name'])
-                ->from(['u' => 'user'])
+                ->from(['u' => BaseUser::tableName()])
                 ->where([
                     'id' => $message['sender_id']
                 ])
@@ -226,7 +226,7 @@ class Message extends \yii\db\ActiveRecord
             $end = $end . ' 23:59:59';
         }
         $student = Student::tableName();
-        $user    = 'user';
+        $user    = BaseUser::tableName();
 
         $messages = (new \yii\db\Query())
         ->select([
@@ -329,7 +329,7 @@ class Message extends \yii\db\ActiveRecord
         ])
         ->from(['mr'      => 'calc_messreport'])
         ->leftjoin(['m'   => 'calc_message'], 'm.id = mr.calc_message')
-        ->leftjoin(['u'   => 'user'], 'u.id = m.user')
+        ->leftjoin(['u'   => BaseUser::tableName()], 'u.id = m.user')
         ->leftjoin(['s'   => 'calc_studname'], 's.id = m.user')
         ->leftjoin(['mwt' => 'calc_messwhomtype'], 'mwt.id = m.calc_messwhomtype')
         ->where([

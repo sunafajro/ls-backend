@@ -21,12 +21,12 @@ class m190409_215300_create_language_premiums_table extends Migration
             'visible' => $this->integer(4)->notNull()->defaultValue(1),
         ]);
         $this->createIndex(
-            'idx-language_premiums-language_id',
+            'language_premiums-language_id-idx',
             'language_premiums',
             'language_id'
         );
         $this->createIndex(
-            'idx-language_premiums-user_id',
+            'language_premiums-user_id-idx',
             'language_premiums',
             'user_id'
         );

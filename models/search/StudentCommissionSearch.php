@@ -2,6 +2,7 @@
 
 namespace app\models\search;
 
+use app\models\BaseUser;
 use app\models\Office;
 use app\models\Student;
 use app\models\StudentCommission;
@@ -46,7 +47,7 @@ class StudentCommissionSearch extends StudentCommission
         ])
         ->from(['sc' => StudentCommission::tableName()])
         ->innerJoin(['s' => Student::tableName()], 's.id = sc.student_id')
-        ->innerJoin(['u' => 'user'], 'u.id = sc.user_id')
+        ->innerJoin(['u' => BaseUser::tableName()], 'u.id = sc.user_id')
         ->innerJoin(['o' => Office::tableName()], 'o.id = sc.office_id')
         ->where([
             'sc.visible' => 1,

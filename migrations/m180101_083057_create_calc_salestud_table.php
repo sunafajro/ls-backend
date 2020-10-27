@@ -12,7 +12,7 @@ class m180101_083057_create_calc_salestud_table extends Migration
      */
     public function safeUp()
     {
-        $this->createTable('calc_salestud', [
+        $this->createTable('{{%calc_salestud}}', [
             'id'            => $this->primaryKey(),
             'calc_studname' => $this->integer(),
             'calc_sale'     => $this->integer(),
@@ -26,11 +26,10 @@ class m180101_083057_create_calc_salestud_table extends Migration
             'approved'      => $this->tinyInteger(),
         ]);
 
-        $this->createIndex('calc_salestud-calc_studname-idx', 'calc_salestud', 'calc_studname');
-        $this->createIndex('calc_salestud-calc_sale-idx', 'calc_salestud', 'calc_sale');
-        $this->createIndex('calc_salestud-user-idx', 'calc_salestud', 'user');
-        $this->createIndex('calc_salestud-user_visible-idx', 'calc_salestud', 'user_visible');
-        $this->createIndex('calc_salestud-user_used-idx', 'calc_salestud', 'user_used');
+        $this->createIndex('calc_salestud-calc_studname-idx', '{{%calc_salestud}}', 'calc_studname');
+        $this->createIndex('calc_salestud-calc_sale-idx', '{{%calc_salestud}}', 'calc_sale');
+        $this->createIndex('calc_salestud-user-idx', '{{%calc_salestud}}', 'user');
+        $this->createIndex('calc_salestud-user_used-idx', '{{%calc_salestud}}', 'user_used');
     }
 
     /**
@@ -38,6 +37,6 @@ class m180101_083057_create_calc_salestud_table extends Migration
      */
     public function safeDown()
     {
-        $this->dropTable('calc_salestud');
+        $this->dropTable('{{%calc_salestud}}');
     }
 }

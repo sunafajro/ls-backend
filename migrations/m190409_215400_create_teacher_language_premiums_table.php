@@ -22,17 +22,17 @@ class m190409_215400_create_teacher_language_premiums_table extends Migration
             'visible' => $this->integer(4)->notNull()->defaultValue(1),
         ]);
         $this->createIndex(
-            'idx-teacher_language_premiums-language_premium_id',
+            'teacher_language_premiums-language_premium_id-idx',
             'teacher_language_premiums',
             'language_premium_id'
         );
         $this->createIndex(
-            'idx-teacher_language_premiums-teacher_id',
+            'teacher_language_premiums-teacher_id-idx',
             'teacher_language_premiums',
             'teacher_id'
         );
         $this->createIndex(
-            'idx-teacher_language_premiums-user_id',
+            'teacher_language_premiums-user_id-idx',
             'teacher_language_premiums',
             'user_id'
         );

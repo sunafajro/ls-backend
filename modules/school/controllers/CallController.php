@@ -142,7 +142,7 @@ class CallController extends Controller
         ->leftjoin('calc_eduform cef', 'cef.id=cc.calc_eduform')
         ->leftjoin('calc_office co', 'co.id=cc.calc_office')
         ->leftjoin('calc_eduage ea', 'ea.id=cc.calc_eduage')
-        ->leftjoin('user u', 'u.id=cc.user')
+        ->leftjoin(['u' => User::tableName()], 'u.id=cc.user')
         //->where('cc.visible=:vis', [':vis'=>1])
         ->andFilterWhere(['like', 'cc.name', $tss])
         ->andFilterWhere(['cc.user' => $uid])

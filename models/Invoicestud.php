@@ -100,13 +100,14 @@ class Invoicestud extends \yii\db\ActiveRecord
      */
     public static function getStudentInvoiceById($sid = null)
     {
+        $ut = BaseUser::tableName();
         $invoices = (new \yii\db\Query())
         ->select('cis.id as iid, cis.visible as ivisible, uv.name as uvisible, cis.data_visible as dvisible, cis.done as idone, ud.name as udone, cis.data_done as ddone, cs.id as sid, cs.name as sname, cis.data as idate, cis.num as inum, cis.value as ivalue, u.name as uname, co.id as oid, co.name as oname, s3.name as perm_sale, s2.name as rub_sale, s1.name as proc_sale, cis.remain as remain')
         ->from('calc_invoicestud cis')
         ->leftJoin('calc_service cs','cis.calc_service=cs.id')
-        ->leftJoin('user u','u.id=cis.user')
-        ->leftJoin('user ud', 'ud.id=cis.user_done')
-        ->leftJoin('user uv', 'uv.id=cis.user_visible')
+        ->leftJoin(['u'  => $ut],'u.id=cis.user')
+        ->leftJoin(['ud' => $ut], 'ud.id=cis.user_done')
+        ->leftJoin(['uv' => $ut], 'uv.id=cis.user_visible')
         ->leftJoin('calc_salestud ss1', 'ss1.id=cis.calc_salestud')
         ->leftJoin('calc_sale s1', 's1.id=ss1.calc_sale')
         ->leftJoin('calc_salestud ss2', 'ss2.id=cis.calc_salestud_proc')
@@ -125,7 +126,7 @@ class Invoicestud extends \yii\db\ActiveRecord
         $invoices = (new \yii\db\Query())
         ->select('is.id as iid, sn.id as sid, sn.name as sname, u.name as uname, is.value as money, is.visible as visible, is.done as done, is.num as num, is.calc_service as id, is.data as date, is.remain as remain')
         ->from(['is' => 'calc_invoicestud'])
-        ->leftJoin(['u' => 'user'], 'u.id = is.user')
+        ->leftJoin(['u' => BaseUser::tableName()], 'u.id = is.user')
         ->leftJoin(['sn' => 'calc_studname'], 'sn.id = is.calc_studname')
         ->andFilterWhere(['is.calc_office' => $params['office'] ?? NULL ])
         ->andFilterWhere(['>=', 'is.data', $params['start'] ?? NULL])

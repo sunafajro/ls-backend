@@ -25,7 +25,7 @@ class TeacherController extends Controller
     {
         return [
 	    'access' => [
-                'class' => AccessControl::className(),
+                'class' => AccessControl::class,
                 'only' => [
 					'index',
 					'view',
@@ -285,8 +285,9 @@ class TeacherController extends Controller
      */
     public function actionView($id)
     {
+        $ut = User::tableName();
         // проверяем какие данные выводить в карочку преподавателя: 1 - активные группы, 2 - завершенные группы, 3 - начисления; 4 - выплаты фонда
-        if(Yii::$app->request->get('tab')) {
+        if (Yii::$app->request->get('tab')) {
             // если вкладка задана, присваиваем в переменную
             $tab = Yii::$app->request->get('tab');
         } else {
@@ -403,7 +404,7 @@ class TeacherController extends Controller
 		    ->leftJoin('calc_edulevel cel', 'cel.id=cgt.calc_edulevel')
 			->leftJoin('calc_service cs', 'cs.id=cgt.calc_service')
 			->leftJoin('calc_office co', 'co.id=cgt.calc_office')
-			->leftJoin('user u', 'u.id=cgt.user')
+			->leftJoin(['u' => $ut], 'u.id = cgt.user')
 			->leftJoin('calc_timenorm ctn', 'ctn.id=cs.calc_timenorm');
             if ((int)$active === 1) {
                 $teacherData = $teacherData->where('ctg.calc_teacher=:id and cgt.visible=:one and ctg.visible=:one', [':id' => $id, ':one' => 1]);
@@ -471,8 +472,8 @@ class TeacherController extends Controller
 			->leftJoin(['s' => Service::tableName()], 's.id = gt.calc_service')
 			->leftJoin('calc_edunormteacher cent', 'cat.calc_edunormteacher=cent.id')
 			->leftJoin('calc_edunorm cen', 'cen.id=cent.calc_edunorm')
-			->leftJoin('user u1', 'u1.id=cat.user')
-			->leftJoin('user u2', 'u2.id=cat.user_done')
+			->leftJoin(['u1' => $ut], 'u1.id=cat.user')
+			->leftJoin(['u2' => $ut], 'u2.id=cat.user_done')
 			->where('cat.visible=:vis and cat.calc_teacher=:id', [':vis'=>1, ':id'=>$id])
 			->andFilterWhere(['year(cat.data)'=>$year])
 			->orderby(['cat.data'=>SORT_DESC])

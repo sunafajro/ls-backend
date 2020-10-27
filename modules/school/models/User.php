@@ -7,13 +7,14 @@ use app\models\City;
 use app\models\Office;
 use app\models\Role;
 use app\models\Teacher;
+use app\modules\school\School;
 use Yii;
 use yii\db\ActiveQuery;
 use yii\db\Query;
 use yii\helpers\Html;
 
 /**
- * This is the model class for table "user".
+ * This is the model class for table "users".
  *
  * @property integer $id
  * @property integer $site        @deprecated использовалось для доступа к сайту
@@ -26,6 +27,7 @@ use yii\helpers\Html;
  * @property integer $calc_teacher
  * @property integer $calc_city
  * @property string  $logo
+ * @property string  $module_type
  *
  * @property City    $city
  * @property Office  $office
@@ -40,32 +42,25 @@ class User extends BaseUser
     /**
      * {@inheritdoc}
      */
-    public static function tableName() : string
-    {
-        return 'user';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function rules() : array
     {
         return [
             [['visible'], 'default', 'value' => 1],
             [['site'], 'default', 'value' => 0],
+            [['module_type'], 'default', 'value' => School::MODULE_NAME],
             [['site', 'visible', 'status', 'calc_office', 'calc_teacher', 'calc_city'], 'integer'],
-            [['login', 'pass', 'name', 'logo'], 'string'],
+            [['login', 'pass', 'name', 'logo', 'module_type'], 'string'],
             [['login'], 'unique', 'on' => 'create',
                 'when' => function ($model) {
-                    return static::findUserByUsername($model->login) !== NULL;
+                    return self::findUserByUsername($model->login) !== NULL;
                 }],
             [['login'], 'unique', 'on' => 'update', 
                 'when' => function ($model) {
-                    return static::getPrevUsername($model->id) !== $model->login;
+                    return self::getPrevUsername($model->id) !== $model->login;
                 }],
             [['login', 'name'], 'string', 'min' => 3],
             [['pass'], 'string', 'min' => 8],
-            [['login', 'pass', 'name', 'status'], 'required'],
+            [['visible', 'login', 'pass', 'name', 'status', 'module_type'], 'required'],
         ];
     }
 
@@ -86,6 +81,7 @@ class User extends BaseUser
             'calc_teacher' => Yii::t('app','Teacher'),
             'calc_city'    => Yii::t('app','City'),
             'logo'         => Yii::t('app','User logo'),
+            'module_type'  => Yii::t('app','Module name'),
         ];
     }
 
@@ -108,23 +104,24 @@ class User extends BaseUser
     {
         return self::find()
             ->select([
-                'id'         => 'user.id',
-                'username'   => 'user.login',
-                'password'   => 'user.pass',
-                'fullName'   => 'user.name',
+                'id'         => 'users.id',
+                'username'   => 'users.login',
+                'password'   => 'users.pass',
+                'fullName'   => 'users.name',
                 'roleId'     => 'roles.id',
                 'roleName'   => 'roles.name',
-                'teacherId'  => 'user.calc_teacher',
+                'teacherId'  => 'users.calc_teacher',
                 'officeId'   => 'offices.id',
                 'officeName' => 'offices.name',
                 'cityId'     => 'cities.id',
                 'cityName'   => 'cities.name',
             ])
-            ->innerJoin(['roles'  => Role::tableName()], "roles.id = user.status")
-            ->leftJoin(['offices' => Office::tableName()], "offices.id = user.calc_office")
+            ->innerJoin(['roles'  => Role::tableName()], "roles.id = users.status")
+            ->leftJoin(['offices' => Office::tableName()], "offices.id = users.calc_office")
             ->leftJoin(['cities'  => City::tableName()], "cities.id = offices.calc_city")
             ->where([
-                'user.visible' => 1,
+                'users.visible'     => 1,
+                'users.module_type' => School::MODULE_NAME,
             ])
             ->andWhere($condition)
             ->asArray()
@@ -139,7 +136,7 @@ class User extends BaseUser
     public static function findUserById(int $id)
     {
         return self::findUserByCondition([
-            'user.id' => $id,
+            self::tableName() . '.id' => $id,
         ]);
     }
 
@@ -151,7 +148,7 @@ class User extends BaseUser
     public static function findUserByUsername(string $username)
     {
         return self::findUserByCondition([
-            'user.login' => trim($username),
+            self::tableName() . '.login' => trim($username),
         ]);
     }
 
@@ -263,20 +260,20 @@ class User extends BaseUser
     {
         return (new Query())
 	        ->select([
-                'id' => 'u.id',
-                'name' => 'u.name',
-                'login' => 'u.login',
-                'roleId' => 'u.status',
-                'role' => 's.name',
-                'office' => 'o.name',
+                'id'      => 'u.id',
+                'name'    => 'u.name',
+                'login'   => 'u.login',
+                'roleId'  => 'u.status',
+                'role'    => 'r.name',
+                'office'  => 'o.name',
                 'visible' => 'u.visible'
             ])
-	    ->from(['u' => 'user'])
-        ->leftJoin('status s','u.status=s.id')
-        ->leftJoin('calc_office o', 'u.calc_office=o.id')
-	    ->andFilterWhere(['u.visible'=> $params['active']])
-        ->andFilterWhere(['u.status'=> $params['role']])
-	    ->orderBy(['s.id'=>SORT_ASC,'u.name'=>SORT_ASC])
+	    ->from(['u' => self::tableName()])
+        ->leftJoin(['r' => Role::tableName()],'u.status = r.id')
+        ->leftJoin(['o' => Office::tableName()], 'u.calc_office = o.id')
+	    ->andFilterWhere(['u.visible'=> $params['active'] ?? null])
+        ->andFilterWhere(['u.status'=> $params['role'] ?? null])
+	    ->orderBy(['r.id' => SORT_ASC, 'u.name' => SORT_ASC])
 	    ->all();
     }
 
@@ -288,11 +285,19 @@ class User extends BaseUser
     public static function getUserInfoById($id)
     {
         return (new Query())
-            ->select('u.id as uid, u.name as uname, u.login as ulogin, u.visible as vis, s.name as urole, o.name as uoffice, u.logo as ulogo')
-            ->from('user u')
-            ->leftjoin('status s', 's.id=u.status')
-            ->leftjoin('calc_office o', 'o.id=u.calc_office')
-            ->where('u.id=:id', [':id'=>$id])
+            ->select([
+                'uid'     => 'u.id',
+                'uname'   => 'u.name',
+                'ulogin'  => 'u.login',
+                'vis'     => 'u.visible',
+                'urole'   => 'r.name',
+                'uoffice' => 'o.name',
+                'ulogo'   => 'u.logo'
+            ])
+            ->from(['u' => User::tableName()])
+            ->leftjoin(['r' => Role::tableName()], 'r.id = u.status')
+            ->leftjoin(['o' => Office::tableName()], 'o.id = u.calc_office')
+            ->where(['u.id' => $id])
             ->one();
     }
 

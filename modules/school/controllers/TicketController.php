@@ -2,6 +2,7 @@
 
 namespace app\modules\school\controllers;
 
+use app\modules\school\models\User;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -49,16 +50,17 @@ class TicketController extends Controller
      */
     public function actionIndex()
     {
-		if(!Yii::$app->request->get('type') || Yii::$app->request->get('type') == 1) {
+		if (!Yii::$app->request->get('type') || Yii::$app->request->get('type') == 1) {
 			$type = 1;
 		} else {
 			$type = 2;
 		}
+		$ut = User::tableName();
 		if($type == 1) {
 			$model = (new \yii\db\Query())
 			->select('t.id as tid, t.user as creator_id, u1.name as creator, t.executor as executor, t.title as title, t.body as body, t.visible as visible, t.deadline as deadline, ts.id as status_id, ts.name as status, ts.color as color, t.closed as closed, t.comment as comment')
 			->from('calc_ticket t')
-			->leftJoin('user u1', 'u1.id=t.user')
+			->leftJoin(['u1' => $ut], 'u1.id=t.user')
 			->leftJoin('calc_ticketstatus ts', 'ts.id=t.calc_ticketstatus')
 			->where('t.visible=:vis and t.user=:id', [':vis'=>1,':id'=>Yii::$app->session->get('user.uid')])
 			->orderby(['t.data'=> SORT_DESC, 't.id'=>SORT_DESC])
@@ -68,7 +70,7 @@ class TicketController extends Controller
 			->select('t.id as tid, t.user as creator_id, u1.name as creator, t.executor as executor, t.title as title, t.body as body, t.visible as visible, tr.data as deadline, ts.id as status_id, ts.name as status, ts.color as color, t.closed as closed, tr.comment as comment')
 			->from('calc_ticket t')
 			->leftJoin('calc_ticket_report tr' , 'tr.calc_ticket=t.id')
-			->leftJoin('user u1', 'u1.id=t.user')
+			->leftJoin(['u1' => $ut], 'u1.id=t.user')
 			->leftJoin('calc_ticketstatus ts', 'ts.id=tr.calc_ticketstatus')
 			->where('t.visible=:vis and tr.user=:id and tr.calc_ticketstatus!=:st', [':vis'=>1,':id'=>Yii::$app->session->get('user.uid'), ':st'=>6])
 			->orderby(['t.data'=> SORT_DESC, 't.id'=>SORT_DESC])
@@ -89,7 +91,7 @@ class TicketController extends Controller
                 $executors = (new \yii\db\Query())
                 ->select('tr.calc_ticket as tid, u.id as uid, u.name as uname, tr.data as deadline, ts.color as color')
                 ->from('calc_ticket_report tr')
-                ->leftJoin('user u', 'u.id=tr.user')
+                ->leftJoin(['u' => $ut], 'u.id=tr.user')
                 ->leftJoin('calc_ticketstatus ts', 'ts.id=tr.calc_ticketstatus')
                 ->andFilterWhere(['in', 'tr.calc_ticket', $tids])
                 ->all(); 
@@ -149,7 +151,7 @@ class TicketController extends Controller
 
         $employee = (new \yii\db\Query())
         ->select('u.id as uid, u.name as uname')
-        ->from('user u')
+        ->from(['u' => User::tableName()])
         ->where('u.visible=:vis', [':vis'=>1])
         ->orderBy(['u.name'=>SORT_ASC])
         ->all();
@@ -352,7 +354,7 @@ class TicketController extends Controller
 		$current_users = (new \yii\db\Query())
 		->select('tr.id, u.name as name, ts.name as state, ts.color as color, tr.comment as comment')
 		->from('calc_ticket_report tr')
-		->leftJoin('user u', 'u.id=tr.user')
+		->leftJoin(['u' => User::tableName()], 'u.id=tr.user')
 		->leftJoin('calc_ticketstatus ts', 'ts.id=tr.calc_ticketstatus')
 		->where('tr.calc_ticket=:tid', [':tid'=>$id])
 		->all();
@@ -367,7 +369,7 @@ class TicketController extends Controller
 		// формируем список доступных исполнителей
 		$employee = (new \yii\db\Query())
         ->select('u.id as uid, u.name as uname')
-        ->from('user u')
+        ->from(['u' => User::tableName()])
         ->where('u.visible=:vis', [':vis'=>1])
 		->andFilterWhere(['not in', 'u.id', $ids])
         ->orderBy(['u.name'=>SORT_ASC])

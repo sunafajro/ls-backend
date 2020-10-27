@@ -466,7 +466,7 @@ class Student extends ActiveRecord
             ])
             ->from(['ss' => Salestud::tableName()])
             ->innerJoin(['s' => Sale::tableName()], 'ss.calc_sale = s.id')
-            ->innerJoin(['u' => 'user'], 'ss.user = u.id')
+            ->innerJoin(['u' => BaseUser::tableName()], 'ss.user = u.id')
             ->where([
                 'ss.visible' => 1,
                 'ss.calc_studname' => $this->id
@@ -670,7 +670,7 @@ class Student extends ActiveRecord
                 'created_at' => 'ss.created_at',
             ])
             ->from(['ss' => SpendSuccesses::tableName()])
-            ->innerJoin(['u' => 'user'], 'u.id = ss.user_id')
+            ->innerJoin(['u' => BaseUser::tableName()], 'u.id = ss.user_id')
             ->where([
                 'ss.student_id' => $this->id,
                 'ss.visible' => 1

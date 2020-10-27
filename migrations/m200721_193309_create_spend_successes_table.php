@@ -13,12 +13,12 @@ class m200721_193309_create_spend_successes_table extends Migration
     public function safeUp()
     {
         $this->createTable('{{%spend_successes}}', [
-            'id' => $this->primaryKey(),
-            'visible' => $this->tinyInteger(),
-            'count' => $this->smallInteger(),
-            'cause' => $this->string(),
+            'id'         => $this->primaryKey(),
+            'visible'    => $this->tinyInteger(),
+            'count'      => $this->smallInteger(),
+            'cause'      => $this->string(),
             'student_id' => $this->integer(),
-            'user_id' => $this->integer(),
+            'user_id'    => $this->integer(),
             'created_at' => $this->date(),
         ]);
 

@@ -12,7 +12,7 @@ class m180101_083055_create_calc_sale_table extends Migration
      */
     public function safeUp()
     {
-        $this->createTable('calc_sale', [
+        $this->createTable('{{%calc_sale}}', [
             'id'      => $this->primaryKey(),
             'name'    => $this->string(),
             'visible' => $this->tinyInteger(),
@@ -28,6 +28,6 @@ class m180101_083055_create_calc_sale_table extends Migration
      */
     public function safeDown()
     {
-        $this->dropTable('calc_sale');
+        $this->dropTable('{{%calc_sale}}');
     }
 }

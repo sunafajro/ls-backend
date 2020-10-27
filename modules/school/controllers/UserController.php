@@ -251,7 +251,7 @@ class UserController extends Controller
                 $password = md5($pass);
                 $db = (new \yii\db\Query())
                 ->createCommand()
-                ->update('user', ['pass' => $password], ['id'=>$id])
+                ->update(User::tableName(), ['pass' => $password], ['id'=>$id])
                 ->execute();
                 Yii::$app->session->setFlash('success', \Yii::t('app','Password succesfuly changed!'));
                 return $this->redirect(['changepass','id'=>$id]);

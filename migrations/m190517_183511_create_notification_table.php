@@ -24,12 +24,12 @@ class m190517_183511_create_notification_table extends Migration
         ]);
 
         $this->createIndex(
-            'idx-notifications-entity_id',
+            'notifications-entity_id-idx',
             'notifications',
             'entity_id'
         );
         $this->createIndex(
-            'idx-notifications-user_id',
+            'notifications-user_id-idx',
             'notifications',
             'user_id'
         );

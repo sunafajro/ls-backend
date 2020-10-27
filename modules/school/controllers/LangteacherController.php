@@ -78,7 +78,7 @@ class LangteacherController extends Controller
 			->from('calc_langteacher clt')
 			->leftJoin('calc_lang cl','cl.id=clt.calc_lang')
 			->leftJoin('calc_teacher ct','ct.id=clt.calc_teacher')
-			->leftJoin('user u','u.id=clt.user')
+			->leftJoin(['u' => User::tableName()],'u.id = clt.user')
 			->where('clt.visible=:vis and clt.calc_teacher=:tid',[':vis'=>1,':tid'=>Yii::$app->request->get('tid')])
 			->orderBy(['cl.name'=>SORT_ASC])
 			->all();

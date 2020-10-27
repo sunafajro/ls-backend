@@ -2,6 +2,7 @@
 
 namespace app\modules\school\controllers;
 
+use app\modules\school\models\User;
 use Yii;
 use app\models\Develop;
 use yii\data\ActiveDataProvider;
@@ -55,13 +56,14 @@ class DevelopController extends Controller
      */
     public function actionIndex()
     {
+        $ut = User::tableName();
         $model = (new \yii\db\Query())
         ->select('dev.id as id, dev.creation_date as creation_date, u1.name as creation_user, dev.description as description, dev.type as type, dev.status as status, dev.severity as severity, dev.close_date as close_date, u2.name as close_user')
         ->from('calc_develop dev')
-        ->leftjoin('user u1', 'u1.id=dev.creation_user')
-        ->leftjoin('user u2', 'u2.id=dev.close_user')
+        ->leftjoin(['u1' => $ut], 'u1.id = dev.creation_user')
+        ->leftjoin(['u2' => $ut], 'u2.id = dev.close_user')
         ->where(['dev.visible'=>1])
-        ->orderby(['dev.status'=>SORT_ASC, 'dev.severity'=>SORT_ASC, 'dev.creation_date'=>SORT_DESC])
+        ->orderby(['dev.status' => SORT_ASC, 'dev.severity' => SORT_ASC, 'dev.creation_date' => SORT_DESC])
         ->all();
 
         return $this->render('index', [

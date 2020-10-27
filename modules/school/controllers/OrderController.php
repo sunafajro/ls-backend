@@ -2,6 +2,7 @@
 
 namespace app\modules\school\controllers;
 
+use app\modules\school\models\User;
 use Yii;
 use app\models\Order;
 use yii\web\Controller;
@@ -58,7 +59,7 @@ class OrderController extends Controller
         ->select(['oid'=>'o.id','onumber'=>'o.number','otitle'=>'o.title','ocontent'=>'o.content','reciever'=>'mht.name', 'sender'=>'u.name'])
         ->from('calc_orders o')
         ->leftJoin('calc_messwhomtype mht' , 'mht.id=o.calc_messwhomtype')
-        ->leftJoin('user u', 'u.id=o.user')
+        ->leftJoin(['u' => User::tableName()], 'u.id=o.user')
         ->where('o.published=:pub and o.visible=:vis', [':vis'=>1, ':pub'=>2])
         ->all();
         

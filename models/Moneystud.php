@@ -152,7 +152,7 @@ class Moneystud extends \yii\db\ActiveRecord
         ])
         ->from(['ms' => static::tableName()])
         ->innerjoin(['sn' => 'calc_studname'], 'sn.id = ms.calc_studname')
-        ->innerJoin(['u' => 'user'], 'u.id = ms.user')
+        ->innerJoin(['u' => BaseUser::tableName()], 'u.id = ms.user')
         ->innerJoin(['o' => 'calc_office'], 'o.id = ms.calc_office')
         ->leftJoin(['n' => 'notifications'], 'n.entity_id = ms.id')
         ->andFilterWhere(['ms.calc_office' => $office])
@@ -169,6 +169,7 @@ class Moneystud extends \yii\db\ActiveRecord
      */
     public static function getStudentPaymentById($sid)
     {
+        $ut = BaseUser::tableName();
         $payments = (new \yii\db\Query())
         ->select([
             'pid'                => 'ms.id',
@@ -185,9 +186,9 @@ class Moneystud extends \yii\db\ActiveRecord
             'notificationStatus' => 'n.status'
         ])
         ->from(['ms' => self::tableName()])
-        ->innerJoin(['u' => 'user'], 'u.id = ms.user')
+        ->innerJoin(['u' => $ut], 'u.id = ms.user')
         ->innerJoin(['o' => 'calc_office'], 'o.id = ms.calc_office')
-        ->leftJoin(['u2' => 'user'], 'u2.id = ms.user_visible')
+        ->leftJoin(['u2' => $ut], 'u2.id = ms.user_visible')
         ->leftJoin(['n'  => 'notifications'], 'n.entity_id = ms.id')
         ->where([
             'ms.calc_studname' => $sid

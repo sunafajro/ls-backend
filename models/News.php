@@ -58,7 +58,7 @@ class News extends \yii\db\ActiveRecord
         $news = (new \yii\db\Query())
 		->select('n.id as id, n.date as date, u.name as author, n.subject as subject, n.body as description')
 		->from('calc_news n')
-		->leftJoin('user u', 'u.id=n.author')
+		->leftJoin(['u' => BaseUser::tableName()], 'u.id = n.author')
 		->where('n.visible=:vis', [':vis'=>1])
         ->andFilterWhere(['MONTH(date)' => $month])
         ->andFilterWhere(['YEAR(date)' => $year])

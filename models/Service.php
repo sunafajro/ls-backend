@@ -105,7 +105,7 @@ class Service extends \yii\db\ActiveRecord
         $servicechanges = (new \yii\db\Query())
         ->select('csh.date as date, csh.value as value, u.name as user')
         ->from('calc_servicehistory csh')
-        ->leftjoin('user u', 'u.id=csh.user')
+        ->leftjoin(['u' => BaseUser::tableName()], 'u.id = csh.user')
         ->where('csh.calc_service=:id', [':id'=>$id])
         ->orderby(['csh.id'=>SORT_ASC])
         ->all();

@@ -12,7 +12,7 @@ class m180101_083051_create_calc_journalgroup_table extends Migration
      */
     public function safeUp()
     {
-        $this->createTable('calc_journalgroup', [
+        $this->createTable('{{%calc_journalgroup}}', [
             'id'                => $this->primaryKey(),
             'calc_groupteacher' => $this->integer(),
             'calc_teacher'      => $this->integer(),
@@ -45,16 +45,16 @@ class m180101_083051_create_calc_journalgroup_table extends Migration
             'description_audit' => $this->text(),
         ]);
 
-        $this->createIndex('calc_journalgroup-calc_groupteacher-idx', 'calc_journalgroup', 'calc_groupteacher');
-        $this->createIndex('calc_journalgroup-calc_teacher-idx', 'calc_journalgroup', 'calc_teacher');
-        $this->createIndex('calc_journalgroup-calc_accrual-idx', 'calc_journalgroup', 'calc_accrual');
-        $this->createIndex('calc_journalgroup-calc_edutime-idx', 'calc_journalgroup', 'calc_edutime');
-        $this->createIndex('calc_journalgroup-user-idx', 'calc_journalgroup', 'user');
+        $this->createIndex('calc_journalgroup-calc_groupteacher-idx', '{{%calc_journalgroup}}', 'calc_groupteacher');
+        $this->createIndex('calc_journalgroup-calc_teacher-idx', '{{%calc_journalgroup}}', 'calc_teacher');
+        $this->createIndex('calc_journalgroup-calc_accrual-idx', '{{%calc_journalgroup}}', 'calc_accrual');
+        $this->createIndex('calc_journalgroup-calc_edutime-idx', '{{%calc_journalgroup}}', 'calc_edutime');
+        $this->createIndex('calc_journalgroup-user-idx', '{{%calc_journalgroup}}', 'user');
 
-        $this->addForeignKey('fk-calc_journalgroup-calc_groupteacher', 'calc_journalgroup', 'calc_groupteacher', 'calc_groupteacher', 'id');
-        $this->addForeignKey('fk-calc_journalgroup-calc_teacher', 'calc_journalgroup', 'calc_teacher', 'calc_teacher', 'id');
+        // $this->addForeignKey('fk-calc_journalgroup-calc_groupteacher', 'calc_journalgroup', 'calc_groupteacher', 'calc_groupteacher', 'id');
+        // $this->addForeignKey('fk-calc_journalgroup-calc_teacher', 'calc_journalgroup', 'calc_teacher', 'calc_teacher', 'id');
         // $this->addForeignKey('fk-calc_journalgroup-calc_accrual', 'calc_journalgroup', 'calc_accrual', 'calc_accrualteacher', 'id');
-        $this->addForeignKey('fk-calc_journalgroup-user', 'calc_journalgroup', 'user', 'user', 'id');
+        // $this->addForeignKey('fk-calc_journalgroup-user', 'calc_journalgroup', 'user', 'user', 'id');
     }
 
     /**
@@ -62,6 +62,6 @@ class m180101_083051_create_calc_journalgroup_table extends Migration
      */
     public function safeDown()
     {
-        $this->dropTable('calc_journalgroup');
+        $this->dropTable('{{%calc_journalgroup}}');
     }
 }

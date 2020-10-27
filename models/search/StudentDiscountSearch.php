@@ -2,6 +2,7 @@
 
 namespace app\models\search;
 
+use app\models\BaseUser;
 use app\models\Sale;
 use app\models\Salestud;
 use app\models\Student;
@@ -32,9 +33,9 @@ class StudentDiscountSearch extends Salestud
     public function search(array $params = [])
     {
         $sdt = Salestud::tableName();
-        $st = Student::tableName();
-        $dt = Sale::tableName();
-        $ut = 'user';
+        $st  = Student::tableName();
+        $dt  = Sale::tableName();
+        $ut  = BaseUser::tableName();
 
         $query = (new \yii\db\Query());
         $query->select([

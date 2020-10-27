@@ -30,32 +30,32 @@ class m200115_190520_create_office_books_table extends Migration
         $this->createIndex('office_books-user_id-idx', 'office_books', 'user_id');
         $this->createIndex('office_books-serial_number-idx', 'office_books', 'serial_number', true);
 
-        $this->addForeignKey(
-            'fk-office_books-book_id',
-            'office_books',
-            'book_id',
-            'books',
-            'id',
-            'CASCADE'
-        );
-
-        $this->addForeignKey(
-            'fk-office_books-office_id',
-            'office_books',
-            'office_id',
-            'calc_office',
-            'id',
-            'CASCADE'
-        );
-
-        $this->addForeignKey(
-            'fk-office_books-user_id',
-            'office_books',
-            'user_id',
-            'user',
-            'id',
-            'CASCADE'
-        );
+//        $this->addForeignKey(
+//            'fk-office_books-book_id',
+//            'office_books',
+//            'book_id',
+//            'books',
+//            'id',
+//            'CASCADE'
+//        );
+//
+//        $this->addForeignKey(
+//            'fk-office_books-office_id',
+//            'office_books',
+//            'office_id',
+//            'calc_office',
+//            'id',
+//            'CASCADE'
+//        );
+//
+//        $this->addForeignKey(
+//            'fk-office_books-user_id',
+//            'office_books',
+//            'user_id',
+//            'user',
+//            'id',
+//            'CASCADE'
+//        );
     }
 
     /**

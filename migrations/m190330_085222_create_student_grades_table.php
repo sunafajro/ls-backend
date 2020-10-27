@@ -25,13 +25,13 @@ class m190330_085222_create_student_grades_table extends Migration
         ]);
 
         $this->createIndex(
-            'idx-student_grades-user',
+            'student_grades-user-idx',
             'student_grades',
             'user'
         );
 
         $this->createIndex(
-            'idx-student_grades-calc_studname',
+            'student_grades-calc_studname-idx',
             'student_grades',
             'calc_studname'
         );

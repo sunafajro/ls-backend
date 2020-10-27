@@ -429,7 +429,7 @@ class MessageController extends Controller
                 if(Yii::$app->request->post('type')=='5'){
                     $susers = (new \yii\db\Query())
                     ->select('u.id as uid, u.name as uname')
-                    ->from('user u')
+                    ->from(['u' => User::tableName()])
                     ->where('u.visible=:vis and u.id!=:uid', [':vis'=>1, ':uid'=>Yii::$app->session->get('user.uid')])
                     ->orderBy(['u.name'=>SORT_ASC])
                     ->all();

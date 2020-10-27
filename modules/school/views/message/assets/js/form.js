@@ -42,7 +42,7 @@ $(function () {
                     var key = $("#message-calc_messwhomtype option:selected").val();
                     $.ajax({
                         type:"POST",
-                        url:"/message/ajaxgroup",
+                        url:"/school/message/ajaxgroup",
                         data: "type="+key,
                         success: function(users) {
                             $(".field-message-refinement_id").html(users);
