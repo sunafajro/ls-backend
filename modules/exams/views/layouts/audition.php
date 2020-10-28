@@ -5,12 +5,8 @@
  * @var string $content
  */
 
-use app\modules\exams\assets\AppAsset;
-use yii\bootstrap4\Breadcrumbs;
 use yii\helpers\Html;
 use yii\web\View;
-
-AppAsset::register($this);
 ?>
 <?php $this->beginPage() ?>
 <!DOCTYPE html>
@@ -24,14 +20,7 @@ AppAsset::register($this);
     </head>
     <body style="padding-bottom: 60px">
         <?php $this->beginBody() ?>
-            <div class="container-fluid">
-                <?php if (!Yii::$app->user->isGuest) {
-                    echo Breadcrumbs::widget([
-                        'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
-                    ]);
-                } ?>
-                <?= $content ?>
-            </div>
+            <?= $content ?>
         <?php $this->endBody() ?>
     </body>
 </html>
