@@ -52,7 +52,20 @@ class Auth extends BaseAuth
      */
     public static function findIdentity($id)
     {
-        $user = User::findUserById($id);
+        $user = User::findBy(User::tableName() . '.id', $id);
+
+        return !empty($user) ? new static($user) : null;
+    }
+
+    /**
+     * Finds user by username
+     * @param string $username
+
+     * @return static|null
+     */
+    public static function findByUsername($username)
+    {
+        $user = User::findBy(User::tableName() . '.login', $username);
 
         return !empty($user) ? new static($user) : null;
     }
@@ -60,39 +73,10 @@ class Auth extends BaseAuth
     /**
      * {@inheritdoc}
      */
-    public static function findByUsername($username)
-    {
-        $user = User::findUserByUsername($username);
-        if (strcasecmp($user['username'], $username) === 0) {
-            return new static($user);
-        }
-
-        return null;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public static function findIdentityByAccessToken($token, $type = null)
     {
-        // TODO написать механизм создания и хранения токена
-        return null;
-    }
+        $user = User::findBy(User::tableName() . '.access_token', $token);
 
-    /**
-     * {@inheritdoc}
-     */
-    public function validateAuthKey($authKey)
-    {
-        // TODO написать механизм создания и хранения ключа
-        return false;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function validatePassword($password)
-    {
-        return $this->password === md5($password);
+        return !empty($user) ? new static($user) : null;
     }
 }

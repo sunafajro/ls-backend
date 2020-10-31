@@ -31,7 +31,7 @@ class SiteController extends Controller
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['logout', 'index', 'csrf'],
+                        'actions' => ['login', 'logout', 'index', 'csrf'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -54,10 +54,6 @@ class SiteController extends Controller
         return [
             'error' => [
                 'class' => 'yii\web\ErrorAction',
-            ],
-            'captcha' => [
-                'class' => 'yii\captcha\CaptchaAction',
-                'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
             ],
         ];
     }
@@ -84,7 +80,7 @@ class SiteController extends Controller
     public function actionLogin()
     {
         if (!Yii::$app->user->isGuest) {
-            return $this->goHome();
+            return $this->redirect($this->getDefaultAction());
         }
 
         $model = new LoginForm();
@@ -109,22 +105,7 @@ class SiteController extends Controller
                 Yii::error("Не удалось сохранить информацию о входе пользователя #{$login->user_id} в систему.");
             }
 
-            switch (Yii::$app->user->identity->roleId) {
-                case 3:
-                    return $this->redirect(['report/common']);
-                case 4:
-                    return $this->redirect(['call/index']);
-                case 5:
-                    return $this->redirect(['teacher/view', 'id' => Yii::$app->user->identity->teacherId]);
-                case 6:
-                    return $this->redirect(['teacher/index']);
-                case 9:
-                    return $this->redirect(['translate/translations']);
-                case 11:
-                    return $this->redirect(['moneystud/create']);
-                default:
-                    return $this->redirect(['site/index']);
-            }            
+            return $this->redirect($this->getDefaultAction());
         }
 
         $model->password = '';
@@ -168,7 +149,7 @@ class SiteController extends Controller
      *
      * @return array
      */
-    protected static function getUrlParams(array $params)
+    private static function getUrlParams(array $params)
     {
         if(!empty(Yii::$app->request->get())) {
             foreach(Yii::$app->request->get() as $key => $value) {
@@ -178,5 +159,28 @@ class SiteController extends Controller
             }
         }
         return $params;
+    }
+
+    /**
+     * @return array|string[]
+     */
+    private function getDefaultAction() : array
+    {
+        switch (Yii::$app->user->identity->roleId) {
+            case 3:
+                return ['report/common'];
+            case 4:
+                return ['call/index'];
+            case 5:
+                return ['teacher/view', 'id' => Yii::$app->user->identity->teacherId];
+            case 6:
+                return ['teacher/index'];
+            case 9:
+                return ['translate/translations'];
+            case 11:
+                return ['moneystud/create'];
+            default:
+                return ['site/index'];
+        }
     }
 }

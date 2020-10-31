@@ -2,8 +2,8 @@
 
 namespace app\modules\school\controllers;
 
+use app\modules\school\models\Role;
 use Yii;
-use app\models\Role;
 use app\modules\school\models\User;
 use yii\filters\AccessControl;
 use yii\web\Controller;

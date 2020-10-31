@@ -2,9 +2,12 @@
 
 use yii\helpers\Html;
 use yii\grid\GridView;
+use yii\web\View;
 
-/* @var $this yii\web\View */
-/* @var $dataProvider yii\data\ActiveDataProvider */
+/**
+ * @var View  $this
+ * @var array $model
+ */
 
 $this->title = Yii::t('app','Bugtracker');
 $this->params['breadcrumbs'][] = $this->title;
@@ -83,6 +86,6 @@ $statuses = ['1'=>Yii::t('app','Published'), '2'=>Yii::t('app','Closed')];
             $i++;
             } 
         ?>
-        <tbody>
+        </tbody>
     </table>
 </div>

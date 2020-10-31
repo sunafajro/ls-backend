@@ -3,9 +3,10 @@
 namespace app\modules\school\controllers;
 
 use Yii;
-use app\models\Role;
+use app\modules\school\models\Role;
 use app\modules\school\models\User;
 use yii\web\Controller;
+use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
 
@@ -58,7 +59,6 @@ class RolesController extends Controller
         $model = new Role();
 
         if ($model->load(Yii::$app->request->post())) {
-            $model->visible = 1;
             $model->save();
             return $this->redirect(['admin/roles']);
         } else {
@@ -109,7 +109,7 @@ class RolesController extends Controller
      * Finds the Status model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return Status the loaded model
+     * @return Role the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)

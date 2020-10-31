@@ -65,9 +65,10 @@ class AccessRule extends ActiveRecord
             'controller' => 'r.controller',
             'role_id'    => 'r.role_id',
             'role'       => 's.name',
+            'moduleType' => 'r.module_type',
         ])
         ->from(['r' => self::tableName()])
-        ->innerJoin(['s' => Role::tableName()], 's.id = r.role_id')
+        ->innerJoin(['s' => BaseRole::tableName()], 's.id = r.role_id')
         ->where(['r.visible' => 1])
         ->orderby(['r.id' => SORT_ASC])
         ->all();
@@ -98,7 +99,12 @@ class AccessRule extends ActiveRecord
                     'id'   => 'role',
                     'name' => Yii::t('app', 'Role'),
                     'show' => true
-                ]
+                ],
+                [
+                    'id'   => 'moduleType',
+                    'name' => Yii::t('app', 'Module'),
+                    'show' => true
+                ],
             ],
             'data'    => $rules
         ];

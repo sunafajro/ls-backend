@@ -28,7 +28,7 @@ class SiteController extends Controller
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['logout', 'index', 'csrf'],
+                        'actions' => ['login', 'logout', 'index', 'csrf'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -70,7 +70,7 @@ class SiteController extends Controller
     public function actionLogin()
     {
         if (!Yii::$app->user->isGuest) {
-            return $this->goHome();
+            return $this->redirect($this->getDefaultAction());
         }
 
         $model = new LoginForm();
@@ -83,7 +83,7 @@ class SiteController extends Controller
                 Yii::error("Не удалось сохранить информацию о входе пользователя #{$login->user_id} в систему.");
             }
 
-            return $this->redirect(['site/index']);
+            return $this->redirect($this->getDefaultAction());
         }
 
         $model->password = '';
@@ -120,5 +120,13 @@ class SiteController extends Controller
         return [
             Yii::$app->request->csrfParam => Yii::$app->request->getCsrfToken()
         ];
+    }
+
+    /**
+     * @return array|string[]
+     */
+    private function getDefaultAction() : array
+    {
+        return ['site/index'];
     }
 }

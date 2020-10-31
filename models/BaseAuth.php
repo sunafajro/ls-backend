@@ -13,14 +13,27 @@ class BaseAuth extends BaseObject implements IdentityInterface
     public $authKey;
     public $accessToken;
 
-    private static $users = [];
-
     /**
      * {@inheritdoc}
      */
     public static function findIdentity($id)
     {
-        return isset(self::$users[$id]) ? new static(self::$users[$id]) : null;
+        $user = BaseUser::findBy('id', $id);
+
+        return !empty($user) ? new static($user) : null;
+    }
+
+    /**
+     * Finds user by username
+     * @param string $username
+
+     * @return static|null
+     */
+    public static function findByUsername($username)
+    {
+        $user = BaseUser::findBy('login', $username);
+
+        return !empty($user) ? new static($user) : null;
     }
 
     /**
@@ -28,30 +41,9 @@ class BaseAuth extends BaseObject implements IdentityInterface
      */
     public static function findIdentityByAccessToken($token, $type = null)
     {
-        foreach (self::$users as $user) {
-            if ($user['accessToken'] === $token) {
-                return new static($user);
-            }
-        }
+        $user = BaseUser::findBy('access_token', $token);
 
-        return null;
-    }
-
-    /**
-     * Finds user by username
-     *
-     * @param string $username
-     * @return static|null
-     */
-    public static function findByUsername($username)
-    {
-        foreach (self::$users as $user) {
-            if (strcasecmp($user['username'], $username) === 0) {
-                return new static($user);
-            }
-        }
-
-        return null;
+        return !empty($user) ? new static($user) : null;
     }
 
     /**
@@ -86,6 +78,6 @@ class BaseAuth extends BaseObject implements IdentityInterface
      */
     public function validatePassword($password)
     {
-        return $this->password === $password;
+        return $this->password === md5($password);
     }
 }

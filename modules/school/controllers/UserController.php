@@ -2,11 +2,12 @@
 
 namespace app\modules\school\controllers;
 
+use app\modules\school\School;
 use Yii;
 use app\models\City;
 use app\models\Office;
-use app\models\Role;
 use app\models\Teacher;
+use app\modules\school\models\Role;
 use app\modules\school\models\User;
 use app\models\UploadForm;
 use yii\filters\AccessControl;
@@ -75,7 +76,9 @@ class UserController extends Controller
      * Метод создает нового пользователя.
      * В случае успешности переходим на страничку со списком пользователей.
      * Метод доступен только руководителям (Роль 3) и пользователю 296.
+     *
      * @return mixed
+     * @throws ForbiddenHttpException
      */
     public function actionCreate()
     {
@@ -85,38 +88,27 @@ class UserController extends Controller
 
         $model = new User();
         $model->scenario = 'create';
-        if ($model->load(Yii::$app->request->post())) {
-			$model->pass = md5($model->pass);
-			$model->site = 1;
-			$model->visible = 1;
-			if($model->calc_teacher == NULL) {
-                $model->calc_teacher = 0;
-			}
-			if($model->calc_office == NULL) {
-			    $model->calc_office = 0;
-			}
-            if($model->calc_city == NULL) {
-                $model->calc_city = 0;
+        if (Yii::$app->request->isPost) {
+            if ($model->load(Yii::$app->request->post())) {
+                $model->pass        = md5($model->pass);
+                $model->module_type = School::MODULE_NAME;
+                if ($model->save()) {
+                    Yii::$app->session->setFlash('success', 'Пользователь успешно добавлен!');
+                } else {
+                    Yii::$app->session->setFlash('error', 'Не удалось добавить пользователя!');
+                }
+                return $this->redirect(['index']);
             }
-            if($model->logo == NULL) {
-                $model->logo = '';
-            }
-			if ($model->save()) {
-                Yii::$app->session->setFlash('success', 'Пользователь успешно добавлен!');
-            } else {
-                Yii::$app->session->setFlash('error', 'Не удалось добавить пользователя!');
-            }
-            return $this->redirect(['index']);
-        } else {
-            return $this->render('create', [
-                'model' => $model,
-                'teachers' => Teacher::getTeachersInUserListSimple(),
-                'statuses' => Role::getRolesListSimple(),
-                'offices' => Office::getOfficesListSimple(),
-                'cities' => City::getCitiesInUserListSimple(),
-                'userInfoBlock' => User::getUserInfoBlock(),
-            ]);
         }
+
+        return $this->render('create', [
+            'model'         => $model,
+            'teachers'      => Teacher::getTeachersInUserListSimple(),
+            'statuses'      => Role::getRolesListSimple(),
+            'offices'       => Office::getOfficesListSimple(),
+            'cities'        => City::getCitiesInUserListSimple(),
+            'userInfoBlock' => User::getUserInfoBlock(),
+        ]);
     }
 
     /**
@@ -124,7 +116,9 @@ class UserController extends Controller
      * В случае успешности переходим на страницу со списком пользователей.
      * Метод доступен только руководителям (Роль 3).
      * @param integer $id
+     *
      * @return mixed
+     * @throws NotFoundHttpException
      */
     public function actionUpdate($id)
     {
@@ -134,26 +128,38 @@ class UserController extends Controller
 
         $model = $this->findModel($id);
         $model->scenario = 'update';
-        if (Yii::$app->request->post() && $model->load(Yii::$app->request->post())) {
-            if ($model->calc_teacher == NULL) {
-                $model->calc_teacher = 0;
+        if (Yii::$app->request->isPost) {
+            $postData = Yii::$app->request->post($model->formName());
+            if ($model->load(Yii::$app->request->post())) {
+                if (!isset($postData['calc_teacher'])) {
+                    $model->calc_teacher = 0;
+                }
+                if (!isset($postData['calc_office'])) {
+                    $model->calc_office = 0;
+                }
+                if (!isset($postData['calc_city'])) {
+                    $model->calc_city = 0;
+                }
+                if (!isset($postData['$model->logo'])) {
+                    $model->logo = '';
+                }
+                if ($model->save()) {
+                    Yii::$app->session->setFlash('success', 'Пользователь успешно изменен!');
+                } else {
+                    Yii::$app->session->setFlash('error', 'Не удалось изменить пользователя!');
+                }
+                return $this->redirect(['index']);
             }
-            if ($model->save()) {
-                Yii::$app->session->setFlash('success', 'Пользователь успешно изменен!');
-            } else {
-                Yii::$app->session->setFlash('error', 'Не удалось изменить пользователя!');
-            }
-            return $this->redirect(['index']);
-        } else {
-            return $this->render('update', [
-                'model' => $model,
-                'teachers' => Teacher::getTeachersInUserListSimple(),
-                'statuses' => Role::getRolesListSimple(),
-                'offices' => Office::getOfficesListSimple(),
-                'cities' => City::getCitiesInUserListSimple(),
-                'userInfoBlock' => User::getUserInfoBlock(),
-            ]);
         }
+
+        return $this->render('update', [
+            'model'         => $model,
+            'teachers'      => Teacher::getTeachersInUserListSimple(),
+            'statuses'      => Role::getRolesListSimple(),
+            'offices'       => Office::getOfficesListSimple(),
+            'cities'        => City::getCitiesInUserListSimple(),
+            'userInfoBlock' => User::getUserInfoBlock(),
+        ]);
     }
 
     /**
@@ -161,10 +167,12 @@ class UserController extends Controller
      * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param integer $id
      * @return mixed
+     *
+     * @throws NotFoundHttpException
      */
     public function actionDelete($id)
     {
-        if(Yii::$app->session->get('user.ustatus')!=3){
+        if (Yii::$app->session->get('user.ustatus')!=3){
             throw new ForbiddenHttpException();
         }
 
@@ -287,7 +295,8 @@ class UserController extends Controller
      */
     protected function findModel($id)
     {
-        if (($model = User::findOne($id)) !== null) {
+        /** @var User|null $model */
+        if (($model = User::find()->andWhere(['id' => $id, 'module_type' => School::MODULE_NAME])->one()) !== null) {
             return $model;
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');

@@ -5,7 +5,6 @@ namespace app\modules\school\models;
 use app\models\BaseUser;
 use app\models\City;
 use app\models\Office;
-use app\models\Role;
 use app\models\Teacher;
 use app\modules\school\School;
 use Yii;
@@ -45,18 +44,18 @@ class User extends BaseUser
     public function rules() : array
     {
         return [
-            [['visible'], 'default', 'value' => 1],
-            [['site'], 'default', 'value' => 0],
-            [['module_type'], 'default', 'value' => School::MODULE_NAME],
+            [['visible'],      'default', 'value' => 1],
+            [['calc_city', 'calc_office', 'calc_teacher', 'site'], 'default', 'value' => 0],
+            [['module_type'],  'default', 'value' => School::MODULE_NAME],
             [['site', 'visible', 'status', 'calc_office', 'calc_teacher', 'calc_city'], 'integer'],
             [['login', 'pass', 'name', 'logo', 'module_type'], 'string'],
             [['login'], 'unique', 'on' => 'create',
                 'when' => function ($model) {
-                    return self::findUserByUsername($model->login) !== NULL;
+                    return self::findBy(self::tableName() . '.login', $model->login) !== NULL;
                 }],
             [['login'], 'unique', 'on' => 'update', 
                 'when' => function ($model) {
-                    return self::getPrevUsername($model->id) !== $model->login;
+                    return self::getUserName($model->id) !== $model->login;
                 }],
             [['login', 'name'], 'string', 'min' => 3],
             [['pass'], 'string', 'min' => 8],
@@ -130,35 +129,11 @@ class User extends BaseUser
 
     /**
      * @param int $id
-     *
-     * @return array|null
-     */
-    public static function findUserById(int $id)
-    {
-        return self::findUserByCondition([
-            self::tableName() . '.id' => $id,
-        ]);
-    }
-
-    /**
-     * @param $username
-     *
-     * @return array|null
-     */
-    public static function findUserByUsername(string $username)
-    {
-        return self::findUserByCondition([
-            self::tableName() . '.login' => trim($username),
-        ]);
-    }
-
-    /**
-     * @param int $id
      * @return string|null
      */
-    public static function getPrevUsername(int $id)
+    public static function getUserName(int $id)
     {
-        return self::findUserById($id)['username'] ?? null;
+        return self::findBy(self::tableName() . '.id', $id)['username'] ?? null;
     }
 
     /**
@@ -254,27 +229,29 @@ class User extends BaseUser
      * active: 1 - активные, 2 - неактивные, NULL - все.
      * role: роль пользователей.
      * @param array $params
-     * @return mixed
+     * @return array
      */
-    public static function getUserListFiltered($params)
+    public static function getUserListFiltered(array $params) : array
     {
-        return (new Query())
+        $tbl = self::tableName();
+        return self::find()
 	        ->select([
-                'id'      => 'u.id',
-                'name'    => 'u.name',
-                'login'   => 'u.login',
-                'roleId'  => 'u.status',
+                'id'      => "{$tbl}.id",
+                'name'    => "{$tbl}.name",
+                'login'   => "{$tbl}.login",
+                'roleId'  => "{$tbl}.status",
                 'role'    => 'r.name',
                 'office'  => 'o.name',
-                'visible' => 'u.visible'
+                'visible' => "{$tbl}.visible"
             ])
-	    ->from(['u' => self::tableName()])
-        ->leftJoin(['r' => Role::tableName()],'u.status = r.id')
-        ->leftJoin(['o' => Office::tableName()], 'u.calc_office = o.id')
-	    ->andFilterWhere(['u.visible'=> $params['active'] ?? null])
-        ->andFilterWhere(['u.status'=> $params['role'] ?? null])
-	    ->orderBy(['r.id' => SORT_ASC, 'u.name' => SORT_ASC])
-	    ->all();
+            ->leftJoin(['r' => Role::tableName()], "{$tbl}.status = r.id")
+            ->leftJoin(['o' => Office::tableName()], "{$tbl}.calc_office = o.id")
+            ->andWhere(["{$tbl}.module_type"   => School::MODULE_NAME])
+	        ->andFilterWhere(["{$tbl}.visible" => $params['active'] ?? null])
+            ->andFilterWhere(["{$tbl}.status"  => $params['role'] ?? null])
+	        ->orderBy(['r.id' => SORT_ASC, "{$tbl}.name" => SORT_ASC])
+            ->asArray()
+	        ->all();
     }
 
     /**

@@ -5,7 +5,7 @@ use yii\db\Migration;
 /**
  * Handles the creation of table `users`.
  */
-class m180101_083051_create_users_table extends Migration
+class m180101_081030_create_users_table extends Migration
 {
     /**
      * {@inheritdoc}
