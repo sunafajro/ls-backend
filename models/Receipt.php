@@ -190,7 +190,7 @@ class Receipt extends \yii\db\ActiveRecord
             'studentName' => 's.name',
         ])
         ->from(['r' => static::tableName()])
-        ->innerJoin(['u' => 'user'], 'r.user_id = u.id')
+        ->innerJoin(['u' => BaseUser::tableName()], 'r.user_id = u.id')
         ->innerJoin(['s' => Student::tableName()], 'r.student_id = s.id')
         ->where([
             'r.student_id' => $sid,
