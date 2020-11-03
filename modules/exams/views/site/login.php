@@ -13,9 +13,8 @@ use yii\web\View;
 $this->title = 'Пробные тесты ЕГЭ/ОГЭ по английскому языку';
 ?>
 <div class="site-login">
-    <div class="row">
-        <div class="col-2"></div>
-        <div class="col-8">
+    <div class="row justify-content-center">
+        <div class="col-4">
             <p class="text-center"><?php echo Yii::t('app','Please fill out the following fields to login:'); ?></p>
             <?php $form = ActiveForm::begin() ?>
             <?= $form->field($model, 'username')->textInput() ?>
@@ -27,6 +26,5 @@ $this->title = 'Пробные тесты ЕГЭ/ОГЭ по английско�
             </div>
             <?php ActiveForm::end(); ?>
         </div>
-        <div class="col-2"></div>
     </div>
 </div>

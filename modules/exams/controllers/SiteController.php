@@ -20,10 +20,10 @@ class SiteController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::class,
-                'only' => ['login', 'logout', 'csrf'],
+                'only' => ['index', 'login', 'logout', 'csrf'],
                 'rules' => [
                     [
-                        'actions' => ['index', 'login', 'csrf'],
+                        'actions' => ['login', 'csrf'],
                         'allow' => true,
                         'roles' => ['?'],
                     ],
@@ -60,7 +60,6 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        $this->layout = 'audition';
         return $this->render('index', []);
     }
 

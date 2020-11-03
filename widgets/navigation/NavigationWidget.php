@@ -10,11 +10,14 @@ class NavigationWidget extends Widget {
     public $model = null;
     /** @var bool $hideModal */
     public $hideModal = false;
+    /** @var string $viewFile */
+    public $viewFile = 'navigation';
 
     public function run() {
         NavigationWidgetAsset::register($this->view);
         $data = $this->model->getItems() ?? [];
-        return $this->render('navigation', [
+
+        return $this->render($this->viewFile, [
             'items'     => $data['navElements'] ?? [],
             'message'   => $data['message'] ?? [],
             'hideModal' => $this->hideModal,

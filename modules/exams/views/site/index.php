@@ -3,11 +3,11 @@
  * @var View $this
  */
 
-use app\modules\exams\assets\AuditionAsset;
 use yii\web\View;
 
-AuditionAsset::register($this);
-
-$this->title = 'Пробные тесты ЕГЭ/ОГЭ по английскому языку';
+$this->title = Yii::$app->params['appTitle'];
+$this->params['breadcrumbs'][] = 'Панель управления';
 ?>
-<div id="app"></div>
+<div>
+
+</div>

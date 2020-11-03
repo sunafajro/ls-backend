@@ -15,7 +15,7 @@ class UserController extends Controller
 {
     public function behaviors()
     {
-        $rules = ['view'];
+        $rules = [ 'index', 'view'];
         return [
             'access' => [
                 'class' => AccessControl::class,
@@ -34,6 +34,15 @@ class UserController extends Controller
                 ],
             ]
         ];
+    }
+
+    /**
+     * @return string
+     * @throws NotFoundHttpException
+     */
+    public function actionIndex()
+    {
+        return $this->render('index', []);
     }
 
     /**

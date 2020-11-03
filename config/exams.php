@@ -8,6 +8,12 @@ if (file_exists("{$localPath}/options.exams.php")) {
     $options = array_merge($options, $localOptions);
 }
 
+$params = [];
+if (file_exists("{$localPath}/params.exams.php")) {
+    $localParams = require("{$localPath}/params.exams.php");
+    $params = array_merge($options, $localParams);
+}
+
 return [
     'defaultRoute' => 'exams/site/index',
     'modules' => [
@@ -41,4 +47,5 @@ return [
             'loginUrl'      => '/exams/site/login',
         ],
     ],
+    'params' => $params,
 ];

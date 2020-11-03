@@ -6,6 +6,8 @@
  */
 
 use app\modules\exams\assets\AppAsset;
+use app\modules\exams\models\Navigation;
+use app\widgets\navigation\NavigationWidget;
 use yii\bootstrap4\Breadcrumbs;
 use yii\helpers\Html;
 use yii\web\View;
@@ -26,6 +28,11 @@ AppAsset::register($this);
         <?php $this->beginBody() ?>
             <div class="container-fluid">
                 <?php if (!Yii::$app->user->isGuest) {
+                    echo NavigationWidget::widget([
+                        'model'     => new Navigation(),
+                        'hideModal' => false,
+                        'viewFile'  => 'navigation-b4',
+                    ]);
                     echo Breadcrumbs::widget([
                         'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
                     ]);
