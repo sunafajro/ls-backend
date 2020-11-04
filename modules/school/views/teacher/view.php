@@ -19,7 +19,7 @@
 use app\modules\school\assets\ChangeGroupParamsAsset;
 use app\models\Teacher;
 use app\modules\school\assets\TeacherViewAsset;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\helpers\Url;
@@ -118,7 +118,7 @@ if ((int)$tab === 3) {
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
 		</p>
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
         <h4>
             <?= isset($model->name) && $model->name != '' ? $model->name : '' ?>
             <?= isset($model->birthdate) && $model->birthdate != '' ? ' :: ' . date('d.m.y', strtotime($model->birthdate)) : '' ?>

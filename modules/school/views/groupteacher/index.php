@@ -15,7 +15,7 @@ use app\modules\school\assets\GroupListAsset;
 use app\models\Groupteacher;
 use app\models\Schedule;
 use app\models\search\GroupSearch;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\data\ActiveDataProvider;
 use yii\grid\GridView;
 use yii\helpers\ArrayHelper;
@@ -53,7 +53,7 @@ $roleId = (int)Yii::$app->session->get('user.ustatus');
             <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
 
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
 
         <?= GridView::widget([
             'dataProvider' => $dataProvider,

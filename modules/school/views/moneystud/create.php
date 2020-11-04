@@ -9,7 +9,7 @@
  * @var string               $userInfoBlock
  */
 
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\widgets\Breadcrumbs;
 
 $this->title = 'Система учета :: ' . Yii::t('app', 'Create payment');
@@ -41,7 +41,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Create payment');
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
         <?= $this->render('_form', [
             'student' => $student ?? NULL,
             'model'   => $model,

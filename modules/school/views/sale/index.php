@@ -2,7 +2,7 @@
 
 use app\models\Sale;
 use app\models\search\DiscountSearch;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\helpers\Html;
 use yii\data\ActiveDataProvider;
 use yii\grid\GridView;
@@ -57,7 +57,7 @@ $dicountTypeLabels = Sale::getTypeLabels();
             <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
 
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
 
         <?= GridView::widget([
             'dataProvider' => $dataProvider,

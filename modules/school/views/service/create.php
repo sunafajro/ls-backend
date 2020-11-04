@@ -13,7 +13,7 @@
  */
 
 use app\models\Service;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\widgets\Breadcrumbs;
 use yii\web\View;
 
@@ -41,7 +41,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Add service');
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
         <?= $this->render('_form', [
                 'model'  => $model,
                 'ages'   => $eduages,

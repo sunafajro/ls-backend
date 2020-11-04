@@ -10,7 +10,7 @@
 
 use app\models\SpendSuccesses;
 use app\models\Student;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\grid\GridView;
 use yii\helpers\Html;
 use yii\web\View;
@@ -37,7 +37,7 @@ $this->params['breadcrumbs'][] = "Списать успешики";
                 ]) . $model->getSuccessesCount() ?></h4>
     </div>
     <div id="content" class="col-sm-10">
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
         <div>
             <h3>Списание "успешиков"</h3>
             <?php $form = ActiveForm::begin(); ?>

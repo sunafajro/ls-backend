@@ -11,7 +11,7 @@
  * @var string                      $userInfoBlock
  */
 
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\ActiveForm;
@@ -135,7 +135,7 @@ if (((int)Yii::$app->session->get('user.ustatus') === 3 ||
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle</button>
         </p>
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
         <?php
             $form = ActiveForm::begin([
                 'method' => 'post',

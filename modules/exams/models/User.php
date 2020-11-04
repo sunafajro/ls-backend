@@ -3,14 +3,24 @@
 namespace app\modules\exams\models;
 
 use app\models\BaseUser;
+use app\models\queries\BaseUserQuery;
 use app\modules\exams\Exams;
 use Yii;
+use yii\db\ActiveQuery;
 
+/**
+ * Class User
+ * @package app\modules\exams\models
+ *
+ * @property integer $id
+ * @property integer $visible
+ * @property string  $name
+ * @property string  $login
+ * @property string  $pass
+ * @property integer $status
+ */
 class User extends BaseUser
 {
-    /** @deprecated Убрать. Реализовать в форме UserForm */
-    public $pass_repeat;
-
     /**
      * {@inheritdoc}
      */
@@ -22,16 +32,6 @@ class User extends BaseUser
             [['module_type'], 'default', 'value' => Exams::MODULE_NAME],
             [['site', 'visible', 'status', 'calc_office', 'calc_teacher', 'calc_city'], 'integer'],
             [['login', 'pass', 'name', 'logo', 'module_type'], 'string'],
-            [['login'], 'unique', 'on' => 'create',
-                'when' => function ($model) {
-                    return self::findBy(self::tableName() . '.login', $model->login) !== NULL;
-                }],
-            [['login'], 'unique', 'on' => 'update',
-                'when' => function ($model) {
-                    return self::getUserName($model->id) !== $model->login;
-                }],
-            [['login', 'name'], 'string', 'min' => 3],
-            [['pass'], 'string', 'min' => 8],
             [['visible', 'login', 'pass', 'name', 'status', 'module_type'], 'required'],
         ];
     }
@@ -63,11 +63,9 @@ class User extends BaseUser
     }
 
     /**
-     * @param array $condition
-     *
-     * @return array
+     * {@inheritDoc}
      */
-    public static function findUserByCondition(array $condition)
+    public static function findUserByCondition(array $condition, bool $onlyActive = true)
     {
         return self::find()
             ->select([
@@ -89,11 +87,11 @@ class User extends BaseUser
     }
 
     /**
-     * @param int $id
-     * @return string|null
+     * @return BaseUserQuery | ActiveQuery
      */
-    public static function getUserName(int $id)
+    public static function find() : ActiveQuery
     {
-        return self::findBy(self::tableName() . '.id', $id)['username'] ?? null;
+        $query = parent::find();
+        return $query->andWhere(['module_type' => Exams::MODULE_NAME]);
     }
 }

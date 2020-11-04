@@ -1,6 +1,6 @@
 <?php
 
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use app\widgets\filters\FiltersWidget;
 use yii\helpers\Html;
 use yii\web\View;
@@ -63,7 +63,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Common report');
 		</p>
         <?php
             try {
-                echo Alert::widget();
+                echo AlertWidget::widget();
             } catch (Exception $e) {
                 echo Html::tag('div', 'Не удалось отобразить виджет. ' . $e->getMessage(), ['class' => 'alert alert-danger']);
             }

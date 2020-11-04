@@ -2,7 +2,7 @@
 
 use app\models\BookOrder;
 use app\models\search\BookOrderSearch;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\data\ActiveDataProvider;
 use yii\grid\GridView;
 use yii\helpers\Html;
@@ -46,7 +46,7 @@ $this->params['breadcrumbs'][] = $title;
             <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
 
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
 
         <?php
             $columns = [];

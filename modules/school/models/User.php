@@ -95,11 +95,9 @@ class User extends BaseUser
     }
 
     /**
-     * @param array $condition
-     *
-     * @return array
+     * {@inheritDoc}
      */
-    public static function findUserByCondition(array $condition)
+    public static function findUserByCondition(array $condition, bool $onlyActive = true)
     {
         return self::find()
             ->select([

@@ -2,7 +2,7 @@
 
 use app\models\Student;
 use app\models\StudentCommission;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\widgets\Breadcrumbs;
 use yii\web\View;
 
@@ -40,7 +40,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Create commission');
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
         <?= $this->render('_form', [
             'student' => $student ?? NULL,
             'model'   => $model,

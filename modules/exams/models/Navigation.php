@@ -20,24 +20,19 @@ class Navigation extends BaseNavigation
      */
     public function getItems()
     {
-        $roleId = (int)Yii::$app->user->identity->roleId;
-
         /* создаем пустые массивы */
         $menu = [];
 
-        //if (in_array($roleId, [1])) {
-            /* ссылка на раздел Пользователи */
-            $menu[] = [
-                'url'      => Url::to(['user/index']),
-                'label'    => Html::tag('i', '', ['class' => 'fa fa-user']) . Yii::t('app', 'Users'),
-                'encode'   => false,
-            ];
-        //}
+        $menu[] = [
+            'url'      => Url::to(['user/index']),
+            'label'    => Html::tag('i', '', ['class' => 'fas fa-users']) . ' ' . Yii::t('app', 'Users'),
+            'encode'   => false,
+        ];
 
         /* ссылка на метод выхода */
         $menu[] = [
             'url'         => Url::to(['site/logout']),
-            'label'       => Html::tag('i', '', ['class' => 'fa fa-sign-out']) . Yii::t('app', 'Logout'),
+            'label'       => Html::tag('i', '', ['class' => 'fas fa-sign-out-alt']) . ' ' . Yii::t('app', 'Logout'),
             'linkOptions' => ['data-method' => 'post'],
             'encode'      => false,
         ];

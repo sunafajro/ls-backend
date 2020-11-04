@@ -12,7 +12,7 @@ use app\models\UploadForm;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\widgets\Breadcrumbs;
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app','Documents');
@@ -51,7 +51,7 @@ $roleId = (int)Yii::$app->session->get('user.ustatus');
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
         <table class="table table-bordered table-stripped table-hover table-condensed">
             <thead>
                 <th style="width: 5%">№</th>

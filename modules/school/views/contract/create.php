@@ -2,7 +2,7 @@
 
 use app\models\Contract;
 use app\models\Student;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\Breadcrumbs;
@@ -41,7 +41,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Client contracts');
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
 		</p>
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
         <?= $this->render('_form', [
             'model' => $model
         ]) ?>

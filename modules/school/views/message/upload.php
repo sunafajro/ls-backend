@@ -2,7 +2,7 @@
 
 use app\models\Message;
 use app\models\UploadForm;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use yii\web\View;
@@ -43,7 +43,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Upload file');
         <p class="pull-left visible-xs">
             <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
         <div class="upload-form">
             <?php $form = ActiveForm::begin(['options' => ['enctype' => 'multipart/form-data']]); ?>
             <?= $form->field($model, 'file')->fileInput()->label(\Yii::t('app','File')) ?>

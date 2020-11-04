@@ -20,7 +20,7 @@
 use app\modules\school\assets\GroupViewAsset;
 use app\models\Groupteacher;
 use app\models\Journalgroup;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\data\Pagination;
 use yii\helpers\Html;
 use yii\helpers\Url;
@@ -112,7 +112,7 @@ function getStudentOptions($lesson, $lessonBalance) {
             <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
 
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
 
         <h4>Журнал группы №<?= $model->id ?></h4>
         <?php

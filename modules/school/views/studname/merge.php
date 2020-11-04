@@ -11,7 +11,7 @@
 
 use app\models\Student;
 use app\models\StudentMergeForm;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use yii\widgets\Breadcrumbs;
@@ -44,7 +44,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Merge account');
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
 		</p>        
         
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
 
 		<?php $form = ActiveForm::begin(); ?>
 

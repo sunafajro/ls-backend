@@ -1,7 +1,7 @@
 <?php
 
 use app\models\Student;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\grid\GridView;
 use yii\helpers\Html;
 use yii\web\View;
@@ -26,7 +26,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Settings');
         <?= $userInfoBlock ?>
     </div>
     <div id="content" class="col-sm-10">
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
         <h3>Видимость услуг в блоке "Количество оплаченных и учтенных занятий"</h3>
         <?= GridView::widget([
             'dataProvider' => $services,

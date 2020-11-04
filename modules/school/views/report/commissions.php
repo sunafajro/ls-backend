@@ -1,7 +1,7 @@
 <?php
 
 use app\models\StudentCommission;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use app\widgets\filters\FiltersWidget;
 use yii\data\ActiveDataProvider;
 use yii\grid\GridView;
@@ -63,7 +63,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Commissions');
         </p>
         <?php
             try {
-                echo Alert::widget();
+                echo AlertWidget::widget();
             } catch (Exception $e) {
                 echo Html::tag('div', 'Не удалось отобразить виджет. ' . $e->getMessage(), ['class' => 'alert alert-danger']);
             }

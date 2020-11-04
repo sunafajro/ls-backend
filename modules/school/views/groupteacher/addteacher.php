@@ -2,7 +2,7 @@
 
 use app\modules\school\assets\ChangeGroupParamsAsset;
 use app\models\Groupteacher;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\ActiveForm;
@@ -59,7 +59,7 @@ $roleId = Yii::$app->session->get('user.ustatus');
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
         
-        <?= Alert::widget() ?>     
+        <?= AlertWidget::widget() ?>
 
         <?php if (in_array($roleId, [3, 4])) { ?>
             <h4><?= Yii::t('app', 'Add teacher to group') . ' #' . $params['gid'] ?></h4>

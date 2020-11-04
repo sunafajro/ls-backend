@@ -1,8 +1,8 @@
 <?php
 
 use app\models\OfficeBook;
-use Yii;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
+use yii\web\View;
 use yii\widgets\Breadcrumbs;
 
 /**
@@ -44,7 +44,7 @@ $this->params['breadcrumbs'][] = 'Добавить учебник';
             <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
 
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
 
         <?= $this->render('_form', [
                 'model'    => $model,

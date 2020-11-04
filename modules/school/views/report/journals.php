@@ -1,7 +1,7 @@
 <?php
 
 use app\models\Journalgroup;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\data\Pagination;
 use yii\helpers\Html;
 use yii\web\View;
@@ -102,7 +102,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Journals report');
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
         <?php if ($teacher_names) { ?>
             <?php
             // первый элемент страницы 

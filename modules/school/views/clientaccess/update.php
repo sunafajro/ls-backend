@@ -2,7 +2,7 @@
 
 use app\models\ClientAccess;
 use app\models\Student;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\Breadcrumbs;
@@ -40,7 +40,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Update client login or password')
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
 		</p>
-		<?= Alert::widget() ?>
+		<?= AlertWidget::widget() ?>
 		<div style="margin-bottom: 1rem">
 			<b>Последний вход в ЛК:</b> <?= date('d.m.Y', strtotime($loginStatus['lastLoginDate'])) ?><br />
 			<b>Доступ в ЛК:</b> <span class="label label-<?= $loginStatus['loginActive'] ? 'success' : 'danger' ?>">

@@ -1,7 +1,7 @@
 <?php
 
 use app\models\File;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\Breadcrumbs;
@@ -63,7 +63,7 @@ $this->params['breadcrumbs'][] = $message['title'];
             <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
         
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
         
         <?php if ((int)$message['sended'] === 0) { ?>
           <div class="alert alert-warning">Сообщение ожидает отправки!</div>

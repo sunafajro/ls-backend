@@ -2,6 +2,7 @@
 
 namespace app\modules\exams\assets;
 
+use yidas\yii\fontawesome\FontawesomeAsset;
 use yii\bootstrap4\BootstrapAsset;
 use yii\bootstrap4\BootstrapPluginAsset;
 use yii\web\AssetBundle;
@@ -17,5 +18,6 @@ class AppAsset extends AssetBundle
         YiiAsset::class,
         BootstrapAsset::class,
         BootstrapPluginAsset::class,
+        FontawesomeAsset::class,
     ];
 }

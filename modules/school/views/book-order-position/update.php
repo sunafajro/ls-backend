@@ -14,7 +14,7 @@ use app\models\Book;
 use app\models\BookOrder;
 use app\models\BookOrderPosition;
 use app\models\BookOrderPositionItem;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use app\widgets\autocomplete\AutoCompleteWidget;
 use yii\helpers\Html;
 use yii\helpers\Url;
@@ -101,7 +101,7 @@ foreach ($itemModel->getPaymentTypes() ?? [] as $key => $value) {
             <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
 
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
         
         <?= $this->render('_form', [
                 'book'    => $book,

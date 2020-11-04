@@ -14,7 +14,7 @@
  * @var string     $userInfoBlock
  */
 
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\data\Pagination;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
@@ -125,7 +125,7 @@ if (Yii::$app->request->get('type')) {
         <p class="pull-left visible-xs">
             <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
         <?php if (!empty($services)) { ?>        
         <?php
             $prev = $url_params;

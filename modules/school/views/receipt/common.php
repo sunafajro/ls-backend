@@ -1,6 +1,6 @@
 <?php
 
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
@@ -38,7 +38,7 @@ $roleId = Yii::$app->session->get('user.ustatus');
             <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
 
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
 
         <?php
             $form = ActiveForm::begin([

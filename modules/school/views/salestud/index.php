@@ -13,7 +13,7 @@ use app\models\Sale;
 use app\models\Salestud;
 use app\models\search\StudentDiscountSearch;
 use app\models\Student;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\data\ActiveDataProvider;
 use yii\grid\GridView;
 use yii\helpers\Html;
@@ -46,7 +46,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Approve discounts');
             <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
 
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
 
         <?= GridView::widget([
             'dataProvider' => $dataProvider,

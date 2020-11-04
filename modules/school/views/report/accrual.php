@@ -17,7 +17,7 @@
  */
 
 use app\modules\school\assets\ReportAccrualsAsset;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
@@ -100,7 +100,7 @@ ReportAccrualsAsset::register($this);
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
         <?php
             $pager = []; 
             if (!$params['tid'] || $params['tid'] == 'all') {

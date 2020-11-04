@@ -3,7 +3,9 @@
 namespace app\modules\exams\models;
 
 use app\models\BaseRole;
+use app\models\queries\BaseRoleQuery;
 use app\modules\exams\Exams;
+use yii\db\ActiveQuery;
 
 /**
  * This is the model class for table "roles".
@@ -16,6 +18,15 @@ use app\modules\exams\Exams;
  */
 class Role extends BaseRole
 {
+    /**
+     * @return BaseRoleQuery | ActiveQuery
+     */
+    public static function find() : ActiveQuery
+    {
+        $query = parent::find();
+        return $query->andWhere(['module_type' => Exams::MODULE_NAME]);
+    }
+
     /**
      * Метод возвращает список доступных ролей пользователей в виде многомерного массива.
      *

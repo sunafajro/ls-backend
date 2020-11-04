@@ -3,8 +3,13 @@
 namespace app\modules\exams\controllers;
 
 use app\modules\exams\Exams;
+use app\modules\exams\models\forms\UserForm;
+use app\modules\exams\models\Role;
+use app\modules\exams\models\search\UserSearch;
 use app\modules\exams\models\User;
+use Yii;
 use yii\filters\AccessControl;
+use yii\filters\VerbFilter;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 
@@ -15,7 +20,7 @@ class UserController extends Controller
 {
     public function behaviors()
     {
-        $rules = [ 'index', 'view'];
+        $rules = ['index', 'create', 'update', 'delete'];
         return [
             'access' => [
                 'class' => AccessControl::class,
@@ -32,30 +37,104 @@ class UserController extends Controller
                         'roles' => ['@'],
                     ],
                 ],
-            ]
+            ],
+            'verbs' => [
+                'class'   => VerbFilter::class,
+                'actions' => [
+                    'delete' => ['post'],
+                ],
+            ],
         ];
     }
 
     /**
-     * @return string
-     * @throws NotFoundHttpException
+     * @return mixed
      */
     public function actionIndex()
     {
-        return $this->render('index', []);
+        $searchModel = new UserSearch();
+        $dataProvider = $searchModel->search(Yii::$app->request->get());
+
+        return $this->render('index', [
+            'dataProvider' => $dataProvider,
+            'roles'        => Role::find()->select('name')->indexBy('id')->column(),
+            'searchModel'  => $searchModel,
+        ]);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function actionCreate()
+    {
+        $userForm = new UserForm();
+        $userForm->scenario = UserForm::SCENARIO_CREATE;
+
+        if (Yii::$app->request->isPost) {
+            if ($userForm->load(Yii::$app->request->post())) {
+                if ($userForm->save()) {
+                    Yii::$app->session->setFlash('success', "Успешно создан пользователь #{$userForm->id}.");
+
+                    return $this->redirect(['user/index']);
+                } else {
+                    Yii::$app->session->setFlash('error', "Не удалось создать пользователя.");
+                }
+            }
+        }
+
+        return $this->render('create', [
+            'roles'    => Role::find()->select('name')->indexBy('id')->column(),
+            'userForm' => $userForm,
+        ]);
     }
 
     /**
      * @param $id
      *
-     * @return string
+     * @return mixed
      * @throws NotFoundHttpException
      */
-    public function actionView($id)
+    public function actionUpdate($id)
     {
         $user = $this->findModel($id);
+        $userForm = UserForm::loadFromModel($user);
+        $userForm->scenario = UserForm::SCENARIO_UPDATE;
 
-        return $this->render('view', []);
+        if (Yii::$app->request->isPost) {
+            if ($userForm->load(Yii::$app->request->post())) {
+                if ($userForm->save()) {
+                    Yii::$app->session->setFlash('success', "Пользователь #{$userForm->id} успешно изменен.");
+
+                    return $this->redirect(['user/index']);
+                } else {
+                    Yii::$app->session->setFlash('error', "Не удалось изменить пользователя #{$userForm->id}.");
+                }
+            }
+        }
+
+        return $this->render('update', [
+            'roles'    => Role::find()->select('name')->indexBy('id')->column(),
+            'userForm' => $userForm,
+        ]);
+    }
+
+    /**
+     * @param int $id
+     *
+     * @return mixed
+     * @throws NotFoundHttpException
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
+     */
+    public function actionDelete(int $id)
+    {
+        $user = $this->findModel($id);
+        if ($user->delete()) {
+            Yii::$app->session->setFlash('success', "Пользователь #{$user->id} успешно удален.");
+        } else {
+            Yii::$app->session->setFlash('error', "Не удалось удалить пользователя #{$user->id}.");
+        }
+        return $this->redirect(Yii::$app->request->referrer);
     }
 
     /**
@@ -69,7 +148,7 @@ class UserController extends Controller
     protected function findModel($id)
     {
         /** @var User|null $model */
-        if (($model = User::find()->andWhere(['id' => $id, 'module_type' => Exams::MODULE_NAME])->one()) !== null) {
+        if (($model = User::find()->byId($id)->one()) !== null) {
             return $model;
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');

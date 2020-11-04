@@ -1,7 +1,7 @@
 <?php
 use app\models\ClientAccess;
 use app\models\Student;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\web\View;
 use yii\widgets\Breadcrumbs;
 
@@ -39,7 +39,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Create client login & password')
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
 		</p>
-		<?= Alert::widget() ?>
+		<?= AlertWidget::widget() ?>
         <?= $this->render('_form', [
             'model' => $model,
         ]) ?>

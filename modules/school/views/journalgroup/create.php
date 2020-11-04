@@ -14,7 +14,7 @@
  * @var string       $userInfoBlock
  */
 
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use app\models\Journalgroup;
 use yii\helpers\Html;
 use yii\web\View;
@@ -59,7 +59,7 @@ foreach($groupInfo as $key => $value) {
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
 		</p>
         
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
 
         <h4><?= Yii::t('app', 'Add lesson to journal of group') . ' #'. $params['gid'] ?></h4>
         <?= $this->render('_form', [

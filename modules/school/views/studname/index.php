@@ -13,7 +13,7 @@
  */
 
 use app\modules\school\assets\StudentListAsset;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\data\Pagination;
 use yii\helpers\Html;
 use yii\web\View;
@@ -84,7 +84,7 @@ $roleId = Yii::$app->session->get('user.ustatus');
             <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
 
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
 
         <?php
             // первый элемент страницы

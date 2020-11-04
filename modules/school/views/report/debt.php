@@ -15,7 +15,7 @@
  * @var string              $userInfoBlock
  */
 
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use yii\widgets\Breadcrumbs;
@@ -89,7 +89,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Debt report');
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
 		</p>
 
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
 
         <?php if ($totalDebt < 0) { ?>
             <div class="alert alert-danger" style="text-align: center">

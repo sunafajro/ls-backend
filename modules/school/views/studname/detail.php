@@ -9,7 +9,7 @@
  */
 
 use app\models\Student;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\bootstrap\Tabs;
 use yii\data\ArrayDataProvider;
 use yii\helpers\Url;
@@ -39,7 +39,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Detail');
         <p class="pull-left visible-xs">
             <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle</button>
         </p>
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
         <?php
             $items = [];
             foreach (Student::getDetailTypes() as $typeId => $typeName) {

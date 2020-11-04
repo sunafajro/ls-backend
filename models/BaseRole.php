@@ -2,7 +2,9 @@
 
 namespace app\models;
 
+use app\models\queries\BaseRoleQuery;
 use Yii;
+use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
 use yii\helpers\ArrayHelper;
 
@@ -50,6 +52,14 @@ class BaseRole extends ActiveRecord
             'visible'     => Yii::t('app', 'Visible'),
             'module_type' => Yii::t('app', 'Module'),
         ];
+    }
+
+    /**
+     * @return BaseRoleQuery|ActiveQuery
+     */
+    public static function find() : ActiveQuery
+    {
+        return new BaseRoleQuery(get_called_class(), []);
     }
 
     /**

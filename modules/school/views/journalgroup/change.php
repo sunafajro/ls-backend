@@ -13,7 +13,7 @@
  * @var string     $userInfoBlock
  */
 
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use yii\widgets\Breadcrumbs;
@@ -58,7 +58,7 @@ foreach($groupInfo as $key => $value) {
 	    <p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
 		</p>
-		<?= Alert::widget() ?>
+		<?= AlertWidget::widget() ?>
 		<h4><?= Yii::t('app', 'Change lesson members') . ' #' . $params['gid'] ?></h4>
 		<hr>
 		<p>

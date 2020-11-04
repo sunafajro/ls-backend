@@ -3,7 +3,7 @@
 use app\modules\school\assets\MessageListAsset;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\web\View;
 use yii\widgets\Breadcrumbs;
 
@@ -78,7 +78,7 @@ ksort($months);
             <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
         
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
     
         <table class="table table-stripped table-bordered table-hover table-condensed">
             <thead>

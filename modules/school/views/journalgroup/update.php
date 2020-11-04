@@ -14,7 +14,7 @@
  */
 
 use app\models\Journalgroup;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\Breadcrumbs;
@@ -57,7 +57,7 @@ foreach($groupInfo as $key => $value) {
             <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
 
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
         <?= $this->render('_form', [
                 'model'    => $model,
                 'roleId'   => $roleId,

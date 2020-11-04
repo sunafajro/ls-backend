@@ -3,7 +3,7 @@
 use app\modules\school\assets\StudentGradeFormAsset;
 use app\models\Student;
 use app\models\StudentGrade;
-use app\widgets\Alert;
+use app\widgets\alert\AlertWidget;
 use yii\grid\GridView;
 use yii\helpers\Html;
 use yii\helpers\Json;
@@ -189,7 +189,7 @@ if (((int)Yii::$app->session->get('user.ustatus') === 3 ||
 		<p class="pull-left visible-xs">
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
 		</p>
-        <?= Alert::widget() ?>
+        <?= AlertWidget::widget() ?>
         <?php if (in_array($roleId, [3, 4]) && (int)$student->active === 1) { ?>
             <?= $this->render('_form', [
                 'model'     => $model,
