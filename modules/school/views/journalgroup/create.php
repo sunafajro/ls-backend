@@ -14,6 +14,7 @@
  * @var string       $userInfoBlock
  */
 
+use app\modules\school\assets\JournalGroupFormAsset;
 use app\widgets\alert\AlertWidget;
 use app\models\Journalgroup;
 use yii\helpers\Html;
@@ -23,6 +24,8 @@ use yii\widgets\Breadcrumbs;
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Add lesson');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Group') . ' №' . $params['gid'], 'url' => ['groupteacher/view', 'id' => $params['gid']]];
 $this->params['breadcrumbs'][] = Yii::t('app', 'Add lesson');
+
+JournalGroupFormAsset::register($this);
 
 $groupParams = [];
 foreach($groupInfo as $key => $value) {

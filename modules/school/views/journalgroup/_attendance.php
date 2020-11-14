@@ -1,15 +1,16 @@
 <?php
 
+/**
+ * @var View  $this
+ * @var array $students
+ * @var bool  $isNew
+ * @var bool  $successes
+ */
+
 use app\models\Journalgroup;
 use app\models\Studjournalgroup;
 use yii\helpers\Html;
 use yii\web\View;
-
-/**
- * @var View  $this
- * @var array $students
- $ @var bool  $isNew
- */
 ?>
 <?php foreach ($students ?? [] as $student) { ?>
     <div class="form-group field-calcstudjournalgroup-student_<?= $student['id'] ?>">
@@ -23,7 +24,7 @@ use yii\web\View;
                     [
                         'id' => "calcstudjournalgroup-comment_{$student['id']}",
                         'class' => 'form-control js--comment-for-student',
-                        'required' => true,
+                        'required' => (int)($student['status'] ?? Journalgroup::STUDENT_STATUS_PRESENT) === Journalgroup::STUDENT_STATUS_PRESENT,
                     ]
                 ) ?>
             </div>
@@ -36,10 +37,11 @@ use yii\web\View;
                     "Studjournalgroup[successes_{$student['id']}]",
                     $student['successes'] ?? Studjournalgroup::SUCCESSES_MIN_COUNT,
                     [
-                        'class' => 'form-control js--student-successes',
-                        'id'    => "calcstudjournalgroup-successes_{$student['id']}",
-                        'min'   => Studjournalgroup::SUCCESSES_MIN_COUNT,
-                        'max'   => Studjournalgroup::SUCCESSES_MAX_COUNT,
+                        'class'    => 'form-control js--student-successes',
+                        'id'       => "calcstudjournalgroup-successes_{$student['id']}",
+                        'min'      => Studjournalgroup::SUCCESSES_MIN_COUNT,
+                        'max'      => Studjournalgroup::SUCCESSES_MAX_COUNT,
+                        'readonly' => !$successes,
                     ]
                 )?>
             </div>

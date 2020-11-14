@@ -95,16 +95,6 @@ class Groupteacher extends \yii\db\ActiveRecord
             ->one();
     }
 
-    public static function getGroupStateById($id)
-    {
-        $state = NULL;
-        
-        if(($model = self::findOne($id)) !== NULL) {
-           $state =  $model->visible;
-        }
-        
-        return $state;
-    }
     public static function getMenuItemList($id, $request)
     {
         

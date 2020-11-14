@@ -10,15 +10,12 @@
  * @var int          $userId
  */
 
-use app\modules\school\assets\JournalGroupFormAsset;
 use app\models\Journalgroup;
 use kartik\datetime\DateTimePicker;
 use kartik\time\TimePicker;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
-
-JournalGroupFormAsset::register($this);
 ?>
 <?php $form = ActiveForm::begin(); ?>
     <div class="row">
@@ -45,7 +42,8 @@ JournalGroupFormAsset::register($this);
             ?>
         </div>
         <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
-            <?= $form->field($model, 'type')->dropDownList(Journalgroup::getLessonLocationTypes(), ['prompt' => Yii::t('app', '-select-')]) ?>
+            <?= $form->field($model, 'type')
+                    ->dropDownList(Journalgroup::getLessonLocationTypes(), ['prompt' => Yii::t('app', '-select-'), 'class' => 'form-control js--lesson-location-type']) ?>
         </div>
     </div>
     <?php if (count($teachers) > 1) { ?>
@@ -113,7 +111,11 @@ JournalGroupFormAsset::register($this);
     <?= $form->field($model, 'description')->textArea(['rows' => 3]) ?>
     <?= $form->field($model, 'homework')->textArea(['rows' => 3]) ?>
     <?php if ($model->isNewRecord && !empty($students)) {
-        echo $this->render('_attendance', ['students' => $students, 'isNew' => true]);
+        echo $this->render('_attendance', [
+            'students'  => $students,
+            'isNew'     => true,
+            'successes' => false,
+        ]);
     } ?>
     <div class="form-group">
         <?= Html::submitButton(Yii::t('app', $model->isNewRecord ? 'Add' : 'Update'), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>

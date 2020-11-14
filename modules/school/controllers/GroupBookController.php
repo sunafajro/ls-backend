@@ -71,7 +71,7 @@ class GroupBookController extends Controller
             throw new NotFoundHttpException("Группа №{$gid} не найдена.");
         }
         $params['gid'] = $gid;
-        $params['active'] = Groupteacher::getGroupStateById($gid);
+        $params['active'] = $group->visible ?? null;
 
         $language   = $group->language;
         $groupBooks = $group->groupBooks;

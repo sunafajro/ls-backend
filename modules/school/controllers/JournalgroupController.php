@@ -67,7 +67,7 @@ class JournalgroupController extends Controller
             throw new NotFoundHttpException("Группа №{$gid} не найдена.");
         }
         $params['gid'] = $gid;
-        $params['active'] = Groupteacher::getGroupStateById($gid);
+        $params['active'] = $group->visible ?? null;
         // получаем массив со списком преподавателей назначенных группе
         $groupTeachers = Groupteacher::getGroupTeacherListSimple($gid);
         
@@ -107,7 +107,7 @@ class JournalgroupController extends Controller
                 if (!$model->calc_teacher && count($groupTeachers) == 1) {
                     // пишем id преподавателя из ранее полученного списка преподавателей
                     $keys = array_keys($groupTeachers);
-                    $model->calc_teacher = $keys[0];
+                    $model->calc_teacher = reset($keys);
                 }
                 $model->calc_groupteacher = $gid;
                 $postData = Yii::$app->request->post('Studjournalgroup');
@@ -124,7 +124,7 @@ class JournalgroupController extends Controller
                                 'calc_journalgroup'  => $model->id,
                                 'calc_studname'      => (int)$student['id'],
                                 'calc_statusjournal' => $student['status'],
-                                'successes'          => $student['successes'],
+                                'successes'          => $model->type === Journalgroup::TYPE_ONLINE ? $student['successes'] : 0,
                                 'comments'           => $student['comment'],
                             ]);
                             if (!$studentRecord->save()) {
@@ -187,7 +187,7 @@ class JournalgroupController extends Controller
             throw new NotFoundHttpException("Группа №{$gid} не найдена.");
         }
         $params['gid'] = $gid;
-        $params['active'] = Groupteacher::getGroupStateById($gid);
+        $params['active'] = $group->visible ?? null;
         // получаем массив со списком преподавателей назначенных группе
         $groupTeachers = Groupteacher::getGroupTeacherListSimple($gid);
         // находим запись о занятии
@@ -250,7 +250,12 @@ class JournalgroupController extends Controller
 	        throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
-        $group = Groupteacher::findOne($gid);
+	    $lessonModel = $this->findModel($id);
+	    if ((int)$gid !== $lessonModel->calc_groupteacher) {
+            $gid = $lessonModel->calc_groupteacher;
+        }
+        $group = Groupteacher::find()->andWhere(['id' => $gid])->one();
+
         if (empty($group)) {
             throw new NotFoundHttpException("Группа №{$gid} не найдена.");
         }
@@ -339,7 +344,7 @@ class JournalgroupController extends Controller
                             'calc_journalgroup'  => $id,
                             'calc_studname'      => (int)$student['id'],
                             'calc_statusjournal' => $student['status'],
-                            'successes'          => $student['successes'],
+                            'successes'          => $lessonModel->type === Journalgroup::TYPE_ONLINE ? $student['successes'] : 0,
                             'comments'           => $student['comment'],
                         ]);
                         if (!$model->save()) {
@@ -370,9 +375,10 @@ class JournalgroupController extends Controller
                 'history'       => $history,
                 'items'         => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
                 'params'        => [
-                    'active'    => Groupteacher::getGroupStateById($gid),
+                    'active'    => $group->visible ?? null,
                     'gid'       => (int)$gid,
                     'lid'       => (int)$id,
+                    'successes' => $lessonModel->type === Journalgroup::TYPE_ONLINE,
                 ],
 				'students'      => $students,
                 'userInfoBlock' => User::getUserInfoBlock(),

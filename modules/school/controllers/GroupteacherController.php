@@ -398,7 +398,7 @@ class GroupteacherController extends Controller
         $group = $this->findModel($gid);
 
         $params['gid'] = $gid;
-        $params['active'] = Groupteacher::getGroupStateById($gid);
+        $params['active'] = $group->visible ?? null;
         
 		// создаем новую пустую модель
 		$model = new Teachergroup();
@@ -527,7 +527,7 @@ class GroupteacherController extends Controller
         $group = $this->findModel($gid);
 
         $params['gid'] = $gid;
-        $params['active'] = Groupteacher::getGroupStateById($gid);
+        $params['active'] = $group->visible ?? null;
 		// создаем новую модель
 		$model = new Studgroup();
 

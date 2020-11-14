@@ -13,6 +13,7 @@
  * @var string     $userInfoBlock
  */
 
+use app\modules\school\assets\JournalGroupFormAsset;
 use app\widgets\alert\AlertWidget;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
@@ -22,6 +23,8 @@ use yii\web\View;
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Edit lesson');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Group').' №' . $params['gid'], 'url' => ['groupteacher/view', 'id' => $params['gid']]];
 $this->params['breadcrumbs'][] = Yii::t('app', 'Edit lesson');
+
+JournalGroupFormAsset::register($this);
 
 $roleId    = (int)Yii::$app->session->get('user.ustatus');
 $userId    = (int)Yii::$app->user->identity->id;
@@ -69,7 +72,11 @@ foreach($groupInfo as $key => $value) {
 
     <?php
 	if (!empty($students)) {
-        echo $this->render('_attendance', ['students' => $students, 'isNew' => false]);
+        echo $this->render('_attendance', [
+            'students'  => $students,
+            'isNew'     => false,
+            'successes' => $params['successes'],
+        ]);
 		echo Html::submitButton(Yii::t('app', 'Update'), ['class' => 'btn btn-primary']);
 	}
     ActiveForm::end(); ?>
