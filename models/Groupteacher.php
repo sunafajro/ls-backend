@@ -3,6 +3,8 @@
 namespace app\models;
 
 use Yii;
+use yii\db\ActiveQuery;
+use yii\db\ActiveRecord;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\web\NotFoundHttpException;
@@ -23,12 +25,17 @@ use yii\web\NotFoundHttpException;
  * @property integer $corp
  * @property integer company
  * 
- * @property Book[] $books
+ * @property Book[]   $books
+ * @property Edulevel $eduLevel
+ * @property array    $groupBooks
+ * @property Office   $office
+ * @property Service  $service
+ * @property Timenorm $timeNorm
  */
-class Groupteacher extends \yii\db\ActiveRecord
+class Groupteacher extends ActiveRecord
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public static function tableName()
     {
@@ -36,7 +43,7 @@ class Groupteacher extends \yii\db\ActiveRecord
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function rules()
     {
@@ -48,31 +55,71 @@ class Groupteacher extends \yii\db\ActiveRecord
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
-            'calc_teacher' => Yii::t('app', 'Teacher'),
-            'calc_service' => Yii::t('app', 'Service'),
-            'calc_office' => Yii::t('app', 'Office'),
+            'id'            => 'ID',
+            'calc_teacher'  => Yii::t('app', 'Teacher'),
+            'calc_service'  => Yii::t('app', 'Service'),
+            'calc_office'   => Yii::t('app', 'Office'),
             'calc_edulevel' => Yii::t('app', 'Level'),
-            'data' => Yii::t('app', 'Date'),
-            'user' => 'User',
-            'data_visible' => 'Data Visible',
-            'user_visible' => 'User Visible',
-            'visible' => 'Visible',
-            'corp' => 'Corp',
-            'company' => Yii::t('app', 'Job place')
+            'data'          => Yii::t('app', 'Date'),
+            'user'          => 'User',
+            'data_visible'  => 'Data Visible',
+            'user_visible'  => 'User Visible',
+            'visible'       => 'Visible',
+            'corp'          => 'Corp',
+            'company'       => Yii::t('app', 'Job place')
         ];
     }
 
+    /**
+     * @return ActiveQuery
+     * @throws \yii\base\InvalidConfigException
+     */
     public function getBooks()
     {
         return $this->hasMany(Book::class, ['id' => 'book_id'])->viaTable(GroupBook::tableName(), ['group_id' => 'id']);
     }
 
+    /**
+     * @return ActiveQuery
+     */
+    public function getEduLevel()
+    {
+        return $this->hasOne(Edulevel::class, ['id' => 'calc_edulevel']);
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getOffice()
+    {
+        return $this->hasOne(Office::class, ['id' => 'calc_office']);
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getService()
+    {
+        return $this->hasOne(Service::class, ['id' => 'calc_service']);
+    }
+
+    /**
+     * @return ActiveQuery
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function getTimeNorm()
+    {
+        return $this->hasOne(Timenorm::class, ['id' => 'calc_timenorm'])->viaTable(Service::tableName(), ['id' => 'calc_service']);
+    }
+
+    /**
+     * @return array
+     */
     public function getGroupBooks()
     {
         return (new \yii\db\Query())
@@ -84,6 +131,9 @@ class Groupteacher extends \yii\db\ActiveRecord
             ->all();
     }
 
+    /**
+     * @return array|bool
+     */
     public function getLanguage()
     {
         return (new \yii\db\Query())
@@ -183,39 +233,7 @@ class Groupteacher extends \yii\db\ActiveRecord
 
     public function getInfo()
 	{
-		$jobPlace = [ 1 => 'ШИЯ', 2 => 'СРР' ];
-        // получаем информацию о группе
-        $data =  (new \yii\db\Query())
-        ->select('cgt.id as gid, cs.name as sname, ct.id as tid, ct.name as tname, cel.name as elname, cgt.data as gdate, co.name as oname, ctn.value as tnvalue, cgt.visible as gvisible, cgt.company as direction')
-        ->from(['cgt' => self::tableName()])
-        ->leftJoin('calc_teacher ct', 'ct.id=cgt.calc_teacher')
-        ->leftJoin('calc_edulevel cel', 'cel.id=cgt.calc_edulevel')
-        ->leftJoin('calc_service cs', 'cs.id=cgt.calc_service')
-        ->leftJoin('calc_timenorm ctn', 'ctn.id=cs.calc_timenorm')
-        ->leftJoin('calc_office co', 'co.id=cgt.calc_office')
-        ->where('cgt.id=:id', [':id' => $this->id])
-        ->one();
-		
-		$result = [];
-
-		if (!empty($data)) {
-			$result[Yii::t('app', 'Service')] = $data['sname'];
-			$result[Yii::t('app', 'Level')] = $data['elname'];
-			$result[Yii::t('app', 'Teacher')] = static::getGroupTeacherListString($this->id, ', ', true);
-			$result[Yii::t('app', 'Office')] = $data['oname'];
-			$result[Yii::t('app', 'Start date')] = '<span class="label label-default">' . date('d.m.Y', strtotime($data['gdate'])) . '</span>';
-            $result[Yii::t('app', 'Books')] = join(', ', ArrayHelper::getColumn($this->books ?? [], 'name'));
-			if($data['gvisible'] != 0) {
-			    $result[Yii::t('app', 'Status')] = '<span class="label label-success">' . Yii::t('app', 'Active') . '</span>';
-				$result[Yii::t('app', 'Schedule')] = static::getGroupLessonScheduleString($this->id);
-		    } else {
-				$result[Yii::t('app', 'State')] = '<span class="label label-danger">' . Yii::t('app', 'Finished') . '</span>';
-			}
-			$result[Yii::t('app', 'Duration')] = $data['tnvalue'] . ' ч.';
-			$result[Yii::t('app', 'Job place')] = '<span class="label ' . ((int)$data['direction'] === 1 ? 'label-success' : 'label-info' ) . '">' . $jobPlace[$data['direction']] . '</span>';
-		}
-			
-		return $result;
+		return [];
 	}
 
 	/**
@@ -231,14 +249,15 @@ class Groupteacher extends \yii\db\ActiveRecord
 	
 	/**
 	 * Метод возврашает список преподавателей назначенных группе, в виде строки. Разделитель запятая.
-     * @param int $id
-     * @param string $divider
-     * @param bool $withLabel
+     * @param Groupteacher|int $group
+     * @param string           $divider
+     * @param bool             $withLabel
+     *
      * @return string
 	 */
-	public static function getGroupTeacherListString(int $id, string $divider = ', ', $withLabel = false) : string
+	public static function getGroupTeacherListString($group, string $divider = ', ', $withLabel = false) : string
 	{
-        $teachers = self::getGroupTeacherList($id, $withLabel);
+        $teachers = self::getGroupTeacherList($group, $withLabel);
         
         $result = [];
         foreach($teachers as $t) {
@@ -278,16 +297,19 @@ class Groupteacher extends \yii\db\ActiveRecord
 		
 		return $str;
     }
-	
-	/**
-	 *  Метод возврашает расписание занятий группы, в виде строки. Разделитель запятая.
-	 */
-	protected static function getGroupLessonScheduleString($id)	
+
+    /**
+     *  Метод возврашает расписание занятий группы, в виде строки. Разделитель запятая.
+     * @param $id
+     *
+     * @return string
+     */
+	public static function getGroupLessonScheduleString($id)
 	{
 		$schedule =  (new \yii\db\Query())
         ->select('d.name as day, s.time_begin as start, s.time_end as end')
-        ->from('calc_schedule s')
-        ->leftJoin('calc_denned d', 'd.id=s.calc_denned')
+        ->from(['s' => Schedule::tableName()])
+        ->leftJoin('calc_denned d', 'd.id = s.calc_denned')
         ->where('s.visible=:one and s.calc_groupteacher=:gid', [':gid' => $id, ':one' => 1])
         ->orderby(['s.calc_denned'=>SORT_ASC, 's.time_begin'=>SORT_ASC])
         ->all();
@@ -302,16 +324,23 @@ class Groupteacher extends \yii\db\ActiveRecord
 		}
 		return $str;
     }
-	
-	/**
-	 * Возвращает массив преподавателей назначенных группе
-     * @param int $id
-     * @param bool $withLabel
+
+    /**
+     * Возвращает массив преподавателей назначенных группе
+     * @param Groupteacher|int $group
+     * @param bool             $withLabel
+     *
      * @return array
-	 */
-	protected static function getGroupTeacherList($id, $withLabel = false)
+     * @throws NotFoundHttpException
+     */
+	protected static function getGroupTeacherList($group, bool $withLabel = false)
 	{
-        $group = self::findOne($id);
+	    if (!($group instanceof Groupteacher)) {
+	        $id = $group;
+            $group = self::find()->andWhere(['id' => $id])->one();
+        } else {
+            $id = $group->id;
+        }
         if (empty($group)) {
             throw new NotFoundHttpException("Группа #{$id} не найдена");
         }

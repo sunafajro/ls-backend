@@ -3,9 +3,9 @@
 /**
  * @var View       $this
  * @var ActiveForm $form
+ * @var Groupteacher $group
  * @var array      $checkTeachers
  * @var array      $dates
- * @var array      $groupInfo
  * @var array      $history
  * @var array      $items
  * @var array      $params
@@ -13,8 +13,10 @@
  * @var string     $userInfoBlock
  */
 
+use app\models\Groupteacher;
 use app\modules\school\assets\JournalGroupFormAsset;
 use app\widgets\alert\AlertWidget;
+use app\widgets\groupInfo\GroupInfoWidget;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use yii\widgets\Breadcrumbs;
@@ -29,11 +31,6 @@ JournalGroupFormAsset::register($this);
 $roleId    = (int)Yii::$app->session->get('user.ustatus');
 $userId    = (int)Yii::$app->user->identity->id;
 $teacherId = (int)Yii::$app->session->get('user.uteacher');
-
-$groupParams = [];
-foreach($groupInfo as $key => $value) {
-    $groupParams[] = Html::tag('span', Html::tag('b', $key . ':'), ['class' => 'small']) . ' ' . Html::tag('span', $value, ['class' => 'text-muted small']);
-}
 ?>
 <div class="row row-offcanvas row-offcanvas-left journalgroup-change">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
@@ -48,9 +45,8 @@ foreach($groupInfo as $key => $value) {
 			<?php foreach($items as $item) { ?>
 				<?= Html::a($item['title'], $item['url'], $item['options']) ?>
 			<?php } ?>
-		<?php } ?> 
-		<h4>Параметры группы №<?= $params['gid']; ?></h4>
-        <div class="well well-sm"><?= join('<br />', $groupParams) ?></div>
+		<?php } ?>
+        <?= GroupInfoWidget::widget(['group' => $group]) ?>
 	</div>
 	<div class="col-sm-10">
 	    <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>

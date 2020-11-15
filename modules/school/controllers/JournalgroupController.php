@@ -148,7 +148,7 @@ class JournalgroupController extends Controller
                 }
             } else {
                 return $this->render('create', [
-                    'groupInfo'      => $group->getInfo(),
+                    'group'          => $group,
                     'items'          => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
                     'model'          => $model,
                     'params'         => $params,
@@ -218,7 +218,7 @@ class JournalgroupController extends Controller
             }
 			
             return $this->render('update', [
-                'groupInfo'     => $group->getInfo(),
+                'group'         => $group,
                 'items'         => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
                 'model'         => $model,
                 'params'        => $params,
@@ -371,7 +371,7 @@ class JournalgroupController extends Controller
 	        return $this->render('change', [
                 'checkTeachers' => Groupteacher::getGroupTeacherListSimple($gid),
                 'dates'         => $dates,
-                'groupInfo'     => $group->getInfo(),
+                'group'         => $group,
                 'history'       => $history,
                 'items'         => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
                 'params'        => [

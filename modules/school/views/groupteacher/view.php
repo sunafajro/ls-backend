@@ -5,7 +5,6 @@
  * @var Groupteacher $model
  * @var Pagination   $pages
  * @var array        $checkTeachers
- * @var array        $groupInfo
  * @var array        $groupStudents
  * @var array        $items
  * @var array        $lesattend
@@ -21,6 +20,7 @@ use app\modules\school\assets\GroupViewAsset;
 use app\models\Groupteacher;
 use app\models\Journalgroup;
 use app\widgets\alert\AlertWidget;
+use app\widgets\groupInfo\GroupInfoWidget;
 use yii\data\Pagination;
 use yii\helpers\Html;
 use yii\helpers\Url;
@@ -34,10 +34,6 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Journal');
 
 GroupViewAsset::register($this);
 
-$groupParams = [];
-foreach($groupInfo as $key => $value) {
-    $groupParams[] = Html::tag('b', $key . ':') . ' ' . $value;
-}
 $userRoleId = (int)Yii::$app->session->get('user.ustatus');
 $userId = (int)Yii::$app->session->get('user.uid');
 function getStudentOptions($lesson, $lessonBalance) {
@@ -93,13 +89,10 @@ function getStudentOptions($lesson, $lessonBalance) {
             ], ['class' => 'form-control input-sm']) ?>
         </div>
         <div class="form-group">
-            <?= Html::submitButton('<span class="fa fa-filter" aria-hidden="true"></span> ' . Yii::t('app', 'Apply'), ['class' => 'btn btn-info btn-sm btn-block']) ?>
+            <?= Html::submitButton(Html::tag('i', '', ['class' => 'fa fa-filter', 'aria-hidden' => 'true']) . Yii::t('app', 'Apply'), ['class' => 'btn btn-info btn-sm btn-block']) ?>
         </div>
         <?php ActiveForm::end(); ?>
-        <h4>Параметры группы №<?= $model->id; ?></h4>
-        <div class="well">
-            <?= join(Html::tag('br'), $groupParams) ?>
-        </div>
+        <?= GroupInfoWidget::widget(['group' => $model]) ?>
     </div>
 	<div class="col-sm-10">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>

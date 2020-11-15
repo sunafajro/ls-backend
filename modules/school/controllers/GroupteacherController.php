@@ -225,7 +225,6 @@ class GroupteacherController extends Controller
 
         return $this->render('view', [
             'model'         => $this->findModel($id),
-            'groupInfo'     => $group->getInfo(),
             'groupStudents' => $groupStudents,
             'lessons'       => $lessons,
             'lid'           => $lid,
@@ -438,7 +437,6 @@ class GroupteacherController extends Controller
 				'check_teachers' => Groupteacher::getGroupTeacherListSimple($gid, true),
                 'curteachers'    => $curteachers,
                 'group'          => $group,
-				'groupinfo'      => $group->getInfo(),
                 'items'          => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
                 'model'          => $model,
                 'params'         => $params,
@@ -592,8 +590,8 @@ class GroupteacherController extends Controller
 				'model'          => $model,
 				'curstudents'    => $curstudents,
 				'students'       => Groupteacher::getStudentListSimple($gid),
-				'check_teachers' => Groupteacher::getGroupTeacherListSimple($gid, true),
-				'groupinfo'      => $group->getInfo(),
+				'checkTeachers'  => Groupteacher::getGroupTeacherListSimple($gid, true),
+                'group'          => $group,
                 'items'          => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
                 'userInfoBlock'  => User::getUserInfoBlock(),
                 'params'         => $params,

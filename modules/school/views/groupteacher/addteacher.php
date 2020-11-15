@@ -1,8 +1,10 @@
 <?php
 
+use app\models\Teachergroup;
 use app\modules\school\assets\ChangeGroupParamsAsset;
 use app\models\Groupteacher;
 use app\widgets\alert\AlertWidget;
+use app\widgets\groupInfo\GroupInfoWidget;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\ActiveForm;
@@ -12,8 +14,8 @@ use yii\web\View;
  * @var View         $this
  * @var ActiveForm   $form
  * @var Groupteacher $group
+ * @var Teachergroup $model
  * @var array        $check_teachers
- * @var array        $groupinfo
  * @var array        $items
  * @var array        $params
  * @var array        $teachers
@@ -30,29 +32,19 @@ $roleId = Yii::$app->session->get('user.ustatus');
 <div class="row row-offcanvas row-offcanvas-left group-add-teacher">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
         <?= $userInfoBlock ?>
-        <?php if($params['active'] == 1): ?>
-            <?php if(in_array($roleId, [3, 4]) || array_key_exists(Yii::$app->session->get('user.uteacher'), $check_teachers)): ?>
+        <?php if($params['active'] == 1) { ?>
+            <?php if(in_array($roleId, [3, 4]) || array_key_exists(Yii::$app->session->get('user.uteacher'), $check_teachers)) { ?>
                 <?= Html::a(
                         Html::tag('span', '', ['class' => 'fa fa-plus', 'aria-hidden' => 'true']) . ' ' . Yii::t('app','Add lesson'),
                         ['journalgroup/create','gid' => $params['gid']],
                         ['class' => 'btn btn-default btn-block']
                     ) ?>
-            <?php endif; ?>        
-            <?php foreach($items as $item): ?>
+            <?php } ?>
+            <?php foreach($items as $item) { ?>
                 <?= Html::a($item['title'], $item['url'], $item['options']) ?>
-            <?php endforeach; ?>
-        <?php endif; ?>
-        <h4>Параметры группы №<?= $params['gid'] ?></h4>
-		<div class="well well-sm">
-		<?php $i = 0; ?>
-        <?php foreach($groupinfo as $key => $value): ?>
-		    <?php if($i != 0): ?>
-			<br>
-            <?php endif; ?>			
-            <span class="small"><b><?= $key ?>:</b></span> <span class="text-muted small"><?= $value ?></span>
-			<?php $i++; ?>
-        <?php endforeach; ?>
-	    </div>
+            <?php } ?>
+        <?php } ?>
+        <?= GroupInfoWidget::widget(['group' => $group]) ?>
     </div>
 	<div class="col-sm-10">
 		<p class="pull-left visible-xs">

@@ -103,9 +103,9 @@ class GroupBookController extends Controller
         return $this->render('create', [
             'model'         => $model,
             'books'         => $books,
+            'group'         => $group,
             'groupBooks'    => $groupBooks,
             'userInfoBlock' => User::getUserInfoBlock(),
-            'groupInfo'     => $group->getInfo(),
             'items'         => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
             'params'        => $params,
         ]);
