@@ -7,7 +7,6 @@
  * @var array        $teachers
  * @var array        $items
  * @var array        $params
- * @var int          $roleId
  * @var array        $students
  * @var array        $timeHints
  * @var int          $userId
@@ -19,6 +18,7 @@ use app\modules\school\assets\JournalGroupFormAsset;
 use app\widgets\alert\AlertWidget;
 use app\models\Journalgroup;
 use app\widgets\groupInfo\GroupInfoWidget;
+use app\widgets\groupMenu\GroupMenuWidget;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\Breadcrumbs;
@@ -28,6 +28,10 @@ $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Group') . ' №' . $
 $this->params['breadcrumbs'][] = Yii::t('app', 'Add lesson');
 
 JournalGroupFormAsset::register($this);
+
+$roleId     = (int)Yii::$app->session->get('user.ustatus');
+$userId     = (int)Yii::$app->session->get('user.uid');
+$teacherId  = Yii::$app->session->get('user.uteacher');
 ?>
 <div class="row row-offcanvas row-offcanvas-left journalgroup-create">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
@@ -35,16 +39,13 @@ JournalGroupFormAsset::register($this);
             <div id="main-menu"></div>
 		<?php } ?>
         <?= $userInfoBlock ?>
-        <?php if ($params['active'] == 1) { ?>
-            <?php if (in_array($roleId, [3, 4]) ||
-                    (int)Yii::$app->session->get('user.uid') === 296 ||
-                    array_key_exists(Yii::$app->session->get('user.uteacher'), $teachers)) { ?>
-                <?= Html::a('<span class="fa fa-plus" aria-hidden="true"></span> '.Yii::t('app','Add lesson'), ['journalgroup/create','gid' => $params['gid']], ['class' => 'btn btn-block btn-primary']) ?>
-            <?php } ?>
-            <?php foreach($items as $item) { ?>
-                <?= Html::a($item['title'], $item['url'], $item['options']) ?>
-            <?php } ?>
-        <?php } ?>
+        <?php if ($params['active'] == 1) {
+            echo GroupMenuWidget::widget([
+                'activeItem' => 'add-lesson',
+                'canCreate'  => in_array($roleId, [3, 4]) || in_array($teacherId, array_keys($teachers)) || $userId === 296,
+                'groupId'    => $group->id,
+            ]);
+        } ?>
         <?= GroupInfoWidget::widget(['group' => $group]) ?>
     </div>
 	<div class="col-sm-10">

@@ -21,6 +21,7 @@ use app\models\Groupteacher;
 use app\models\Journalgroup;
 use app\widgets\alert\AlertWidget;
 use app\widgets\groupInfo\GroupInfoWidget;
+use app\widgets\groupMenu\GroupMenuWidget;
 use yii\data\Pagination;
 use yii\helpers\Html;
 use yii\helpers\Url;
@@ -34,8 +35,9 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Journal');
 
 GroupViewAsset::register($this);
 
-$userRoleId = (int)Yii::$app->session->get('user.ustatus');
-$userId = (int)Yii::$app->session->get('user.uid');
+$roleId     = (int)Yii::$app->session->get('user.ustatus');
+$userId     = (int)Yii::$app->session->get('user.uid');
+$teacherId  = Yii::$app->session->get('user.uteacher');
 function getStudentOptions($lesson, $lessonBalance) {
     $options = [
         'class' => 'text-default',
@@ -63,14 +65,13 @@ function getStudentOptions($lesson, $lessonBalance) {
             <div id="main-menu"></div>
         <?php } ?>
         <?= $userInfoBlock ?>
-        <?php if ($model->visible == 1) { ?>
-            <?php if (in_array($userRoleId, [3, 4, 10]) || $userId === 296 || array_key_exists(Yii::$app->session->get('user.uteacher'), $checkTeachers)) { ?>
-                   <?= Html::a('<span class="fa fa-plus" aria-hidden="true"></span> '.Yii::t('app','Add lesson'), ['journalgroup/create','gid' => $model->id], ['class' => 'btn btn-default btn-block']) ?>
-                <?php } ?>
-            <?php foreach($items as $item) { ?>
-                <?= Html::a($item['title'], $item['url'], $item['options']) ?>
-            <?php } ?>
-        <?php } ?>
+        <?php if ($model->visible == 1) {
+            echo GroupMenuWidget::widget([
+                    'activeItem' => 'journal',
+                    'canCreate'  => in_array($roleId, [3, 4, 10]) || in_array($teacherId, array_keys($checkTeachers)) || $userId === 296,
+                    'groupId'    => $model->id,
+            ]);
+        } ?>
         <h4><?= Yii::t('app', 'Filters') ?>:</h4>
         <?php $form = ActiveForm::begin([
                 'method' => 'get',
@@ -188,25 +189,25 @@ function getStudentOptions($lesson, $lessonBalance) {
             if($lesson['jdone']!=1){
                 if ($lesson['jview']==0) {
                     // занятие могут отредактировать только  преподаватель назначенный в группу, менеджер или руководитель
-                    if (in_array($userRoleId, [3, 4, 10]) || array_key_exists(Yii::$app->session->get('user.uteacher'), $checkTeachers)) {
+                    if (in_array($roleId, [3, 4, 10]) || array_key_exists(Yii::$app->session->get('user.uteacher'), $checkTeachers)) {
                         $actions[] = Html::a(Yii::t('app','Edit'), ['journalgroup/update', 'id' => $lesson['jid'], 'gid' => $model->id]);
                     }
                     // проверить занятие могут только менеджер или руководитель
-                    if (in_array($userRoleId, [3, 4]) || $userId === 296) {
+                    if (in_array($roleId, [3, 4]) || $userId === 296) {
                         $actions[] = Html::a("Так и есть :)",['journalgroup/view','id' => $lesson['jid'], 'gid' => $model->id]);
                     }
-                } else if((int)$lesson['jview'] === 1 && (in_array($userRoleId, [3, 4]) || $userId === 296)) {
+                } else if((int)$lesson['jview'] === 1 && (in_array($roleId, [3, 4]) || $userId === 296)) {
                     // отменить проверку занятия могут только менеджер или руководитель
                     $actions[] = Html::a("Отменить 'проверено'",['journalgroup/unview','gid' => $model->id,'id' => $lesson['jid']]);
                 }
                 // занятие могут исключить только преподаватель назначенный в группу, менеджер или руководитель
-                if (in_array($userRoleId, [3, 4, 10]) || array_key_exists(Yii::$app->session->get('user.uteacher'), $checkTeachers)) {
+                if (in_array($roleId, [3, 4, 10]) || in_array($teacherId, array_keys($checkTeachers))) {
                     $actions[] = Html::a("Исключить из журнала",['journalgroup/delete','gid' => $model->id,'id' => $lesson['jid']]);
                 }
             }
         } else {
             $actions[] = Html::a("Восстановить в журнал",['journalgroup/restore','gid'=>$model->id,'id'=>$lesson['jid']]);
-            if (in_array($userRoleId, [3, 4])) {
+            if (in_array($roleId, [3, 4])) {
                 $actions[] = Html::a(
                         Yii::t('app', 'Delete'),
                         ['journalgroup/remove', 'gid' => $model->id, 'id' => $lesson['jid']],
@@ -273,7 +274,7 @@ function getStudentOptions($lesson, $lessonBalance) {
         echo Html::endTag('p');
         echo Html::beginTag('p', ['class' => 'small']);
         // для руководителей и менеджеров выводим ссылку на редактирование состава занятия
-        if ((in_array($userRoleId, [3, 4])) && (int)$lesson['jview'] !== 1) {
+        if ((in_array($roleId, [3, 4])) && (int)$lesson['jview'] !== 1) {
             echo Html::a(
                 "Редактировать состав занятия #" . $lesson['jid'],
                 ['journalgroup/change','id' => $lesson['jid'], 'gid'=>$model->id],
@@ -328,7 +329,7 @@ function getStudentOptions($lesson, $lessonBalance) {
                             ['studname/view', 'id' => $student['sid']],
                             getStudentOptions($lesson, $groupStudents[$student['sid']])
                         );
-                        if (in_array($userRoleId, [3, 4]) && (int)$lesson['jview'] === 1) {
+                        if (in_array($roleId, [3, 4]) && (int)$lesson['jview'] === 1) {
                             $link .= ' ' . Html::a(
                                 Html::tag('span', null, ['class' => 'fa fa-times', 'aria-hidden' => 'true']),
                                 ['journalgroup/absent', 'id' => $lesson['jid'], 'studentId' => $student['sid']],

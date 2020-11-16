@@ -17,6 +17,7 @@ use app\models\Groupteacher;
 use app\modules\school\assets\JournalGroupFormAsset;
 use app\widgets\alert\AlertWidget;
 use app\widgets\groupInfo\GroupInfoWidget;
+use app\widgets\groupMenu\GroupMenuWidget;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use yii\widgets\Breadcrumbs;
@@ -38,14 +39,13 @@ $teacherId = (int)Yii::$app->session->get('user.uteacher');
             <div id="main-menu"></div>
 		<?php } ?>
 		<?= $userInfoBlock ?>
-		<?php if($params['active'] == 1) { ?>
-			<?php if(in_array ($roleId, [3, 4]) || $userId === 296 || array_key_exists($teacherId, $checkTeachers)) { ?>
-                <?= Html::a('<span class="fa fa-plus" aria-hidden="true"></span> ' . Yii::t('app','Edit lesson'), ['journalgroup/change','gid' => $params['gid'], 'id' => $params['lid']], ['class' => 'btn btn-block btn-primary']) ?>
-            <?php } ?>
-			<?php foreach($items as $item) { ?>
-				<?= Html::a($item['title'], $item['url'], $item['options']) ?>
-			<?php } ?>
-		<?php } ?>
+		<?php if($params['active'] == 1) {
+            echo GroupMenuWidget::widget([
+                'activeItem' => 'add-lesson',
+                'canCreate'  => in_array($roleId, [3, 4]) || in_array($teacherId, array_keys($checkTeachers)) || $userId === 296,
+                'groupId'    => $group->id,
+            ]);
+        } ?>
         <?= GroupInfoWidget::widget(['group' => $group]) ?>
 	</div>
 	<div class="col-sm-10">

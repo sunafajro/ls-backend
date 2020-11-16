@@ -1,49 +1,47 @@
 <?php
 
-use app\models\Teachergroup;
-use app\modules\school\assets\ChangeGroupParamsAsset;
-use app\models\Groupteacher;
-use app\widgets\alert\AlertWidget;
-use app\widgets\groupInfo\GroupInfoWidget;
-use yii\helpers\Html;
-use yii\helpers\Url;
-use yii\widgets\ActiveForm;
-use yii\web\View;
-
 /**
  * @var View         $this
  * @var ActiveForm   $form
  * @var Groupteacher $group
  * @var Teachergroup $model
- * @var array        $check_teachers
+ * @var array        $checkTeachers
+ * @var array        $curteachers
  * @var array        $items
  * @var array        $params
  * @var array        $teachers
  * @var string       $userInfoBlock
  */
 
+use app\models\Teachergroup;
+use app\modules\school\assets\ChangeGroupParamsAsset;
+use app\models\Groupteacher;
+use app\widgets\alert\AlertWidget;
+use app\widgets\groupInfo\GroupInfoWidget;
+use app\widgets\groupMenu\GroupMenuWidget;
+use yii\helpers\Html;
+use yii\helpers\Url;
+use yii\widgets\ActiveForm;
+use yii\web\View;
+
 ChangeGroupParamsAsset::register($this);
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'List of teachers');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Group').' №' . $params['gid'], 'url' => ['groupteacher/view', 'id' => $params['gid']]];
 $this->params['breadcrumbs'][] = Yii::t('app', 'List of teachers');
-$roleId = Yii::$app->session->get('user.ustatus');
+$roleId    = Yii::$app->session->get('user.ustatus');
+$teacherId = Yii::$app->session->get('user.uteacher');
 ?>
 <div class="row row-offcanvas row-offcanvas-left group-add-teacher">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
         <?= $userInfoBlock ?>
-        <?php if($params['active'] == 1) { ?>
-            <?php if(in_array($roleId, [3, 4]) || array_key_exists(Yii::$app->session->get('user.uteacher'), $check_teachers)) { ?>
-                <?= Html::a(
-                        Html::tag('span', '', ['class' => 'fa fa-plus', 'aria-hidden' => 'true']) . ' ' . Yii::t('app','Add lesson'),
-                        ['journalgroup/create','gid' => $params['gid']],
-                        ['class' => 'btn btn-default btn-block']
-                    ) ?>
-            <?php } ?>
-            <?php foreach($items as $item) { ?>
-                <?= Html::a($item['title'], $item['url'], $item['options']) ?>
-            <?php } ?>
-        <?php } ?>
+        <?php if ($params['active'] == 1) {
+            echo GroupMenuWidget::widget([
+                'activeItem' => 'teachers',
+                'canCreate'  => in_array($roleId, [3, 4]) || in_array($teacherId, array_keys($checkTeachers)),
+                'groupId'    => $group->id,
+            ]);
+        } ?>
         <?= GroupInfoWidget::widget(['group' => $group]) ?>
     </div>
 	<div class="col-sm-10">

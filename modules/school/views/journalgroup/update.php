@@ -17,6 +17,7 @@ use app\models\Groupteacher;
 use app\models\Journalgroup;
 use app\widgets\alert\AlertWidget;
 use app\widgets\groupInfo\GroupInfoWidget;
+use app\widgets\groupMenu\GroupMenuWidget;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\Breadcrumbs;
@@ -25,6 +26,10 @@ $this->title = Yii::$app->params['appTitle'] . Yii::t('app','Update lesson');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Group').' №' . $params['gid'], 'url' => ['groupteacher/view', 'id' => $params['gid']]];
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Lesson').' №' . $model->id];
 $this->params['breadcrumbs'][] = Yii::t('app', 'Update lesson');
+
+$roleId     = (int)Yii::$app->session->get('user.ustatus');
+$userId     = (int)Yii::$app->session->get('user.uid');
+$teacherId  = Yii::$app->session->get('user.uteacher');
 ?>
 <div class="row row-offcanvas row-offcanvas-left journalgroup-update">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
@@ -32,14 +37,13 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Update lesson');
             <div id="main-menu"></div>
         <?php } ?>
         <?= $userInfoBlock ?>
-        <?php if ($params['active'] == 1) { ?>
-            <?php if(Yii::$app->session->get('user.ustatus')==3 || Yii::$app->session->get('user.ustatus')==4 || array_key_exists(Yii::$app->session->get('user.uteacher'), $teachers)) { ?>
-                <?= Html::a('<span class="fa fa-pencil" aria-hidden="true"></span> '.Yii::t('app','Edit lesson'), ['journalgroup/update', 'id' => $model->id, 'gid' => $params['gid']], ['class' => 'btn btn-block btn-primary']) ?>
-            <?php } ?>
-            <?php foreach ($items as $item) { ?>
-                <?= Html::a($item['title'], $item['url'], $item['options']) ?>
-            <?php } ?>
-        <?php } ?>
+        <?php if ($params['active'] == 1) {
+            echo GroupMenuWidget::widget([
+                'activeItem' => 'add-lesson',
+                'canCreate'  => in_array($roleId, [3, 4]) || in_array($teacherId, array_keys($teachers)) || $userId === 296,
+                'groupId'    => $group->id,
+            ]);
+        } ?>
         <?= GroupInfoWidget::widget(['group' => $group]) ?>
     </div>
 	<div class="col-sm-10">

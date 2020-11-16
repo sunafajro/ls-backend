@@ -35,7 +35,7 @@ class GroupInfoWidget extends Widget {
             }
         }
 
-        return $this->render('_groupInfo', [
+        return $this->render('groupInfo', [
             'data' => $data,
         ]);
     }

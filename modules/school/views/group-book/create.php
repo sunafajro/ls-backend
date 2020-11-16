@@ -4,6 +4,7 @@ use app\models\GroupBook;
 use app\models\Groupteacher;
 use app\widgets\alert\AlertWidget;
 use app\widgets\groupInfo\GroupInfoWidget;
+use app\widgets\groupMenu\GroupMenuWidget;
 use yii\helpers\Html;
 use yii\web\View;
 
@@ -26,22 +27,13 @@ $roleId = (int)Yii::$app->session->get('user.ustatus');
 <div class="row row-offcanvas row-offcanvas-left group-book-create">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
         <?= $userInfoBlock ?>
-        <?php if ($params['active'] == 1) { ?>
-            <?php if (in_array($roleId, [3, 4])) { ?>
-                <?= Html::a(
-                        Html::tag(
-                            'span',
-                            null,
-                            ['class' => 'fa fa-plus', 'aria-hidden' => 'true']
-                        ) . ' ' . Yii::t('app', 'Add lesson'),
-                        ['journalgroup/create','gid' => $params['gid']],
-                        ['class' => 'btn btn-default btn-block']
-                    ) ?>
-            <?php } ?>
-            <?php foreach($items as $item) { ?>
-                <?= Html::a($item['title'], $item['url'], $item['options']) ?>
-            <?php } ?>
-        <?php } ?>
+        <?php if ($params['active'] == 1) {
+            echo GroupMenuWidget::widget([
+                'activeItem' => 'books',
+                'canCreate'  => in_array($roleId, [3, 4]),
+                'groupId'    => $group->id,
+            ]);
+        } ?>
         <?= GroupInfoWidget::widget(['group' => $group]) ?>
 	</div>
 	<div id="content" class="col-sm-6">

@@ -330,6 +330,7 @@ return array(
     'Margin report' => 'Отчет по марже',
     'Matgin/Income' => 'Маржа к доходу',
     'Margin/Lesson' => 'Маржа с занятия',
+    'Menu' => 'Меню',
     'Merge' => 'Объединить',
     'Merge account' => 'Объединить профиль',
     'Message successfully created!' => 'Сообщение успешно создано!',

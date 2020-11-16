@@ -17,6 +17,7 @@ use app\models\Groupteacher;
 use app\models\Teachergroup;
 use app\widgets\alert\AlertWidget;
 use app\widgets\groupInfo\GroupInfoWidget;
+use app\widgets\groupMenu\GroupMenuWidget;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
@@ -24,18 +25,19 @@ use yii\widgets\ActiveForm;
 $this->title = Yii::t('app', 'List of students');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Group') . ' №'. $params['gid'], 'url' => ['groupteacher/view','id' => $params['gid']]];
 $this->params['breadcrumbs'][] = $this->title;
+$roleId    = Yii::$app->session->get('user.ustatus');
+$teacherId = Yii::$app->session->get('user.uteacher');
 ?>
 <div class="row row-offcanvas row-offcanvas-left group-add-student">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
         <?= $userInfoBlock ?>
-        <?php if($params['active'] == 1): ?>
-            <?php if(Yii::$app->session->get('user.ustatus')==3 || Yii::$app->session->get('user.ustatus')==4 || array_key_exists(Yii::$app->session->get('user.uteacher'), $checkTeachers)): ?>
-                <?= Html::a('<span class="fa fa-plus" aria-hidden="true"></span> '.Yii::t('app','Add lesson'), ['journalgroup/create','gid' => $params['gid']], ['class' => 'btn btn-default btn-block']) ?>
-            <?php endif; ?>
-            <?php foreach($items as $item): ?>
-                <?= Html::a($item['title'], $item['url'], $item['options']) ?>
-            <?php endforeach; ?>
-        <?php endif; ?>
+        <?php if ($params['active'] == 1) {
+            echo GroupMenuWidget::widget([
+                'activeItem' => 'students',
+                'canCreate'  => in_array($roleId, [3, 4]) || in_array($teacherId, array_keys($checkTeachers)),
+                'groupId'    => $group->id,
+            ]);
+        } ?>
         <?= GroupInfoWidget::widget(['group' => $group]) ?>
     </div>
 	<div class="col-sm-10">
@@ -80,13 +82,14 @@ $this->params['breadcrumbs'][] = $this->title;
 		        <td><?= $curstudent['date'] ?></td>
 		        <td><?= $curstudent['user'] ?></td>
                 <td>
-                <?php if(Yii::$app->session->get('user.ustatus')==3 || Yii::$app->session->get('user.ustatus')==4): ?>
+                <?php if(in_array($roleId, [3, 4])) { ?>
                     <?php switch($curstudent['visible']){
-                        case 0: echo Html::a('', ['groupteacher/restorestudent','gid' => $params['gid'] ,'sid' => $curstudent['id']], ['class'=>'glyphicon glyphicon-ok']);break;
-                        case 1: echo Html::a('', ['groupteacher/delstudent','gid' => $params['gid'] ,'sid' => $curstudent['id']],['class'=>'glyphicon glyphicon-remove']);break;
-                        default: echo "";break;
+                        case 0: echo Html::a('', ['groupteacher/restorestudent','gid' => $params['gid'] ,'sid' => $curstudent['id']], ['class'=>'fa fa-check']);
+                        break;
+                        case 1: echo Html::a('', ['groupteacher/delstudent','gid' => $params['gid'] ,'sid' => $curstudent['id']],['class'=>'fa fa-times']);
+                        break;
                     } ?>
-	            <?php endif; ?>
+	            <?php } ?>
                 </td>
                 <?php endforeach; ?>
 	            </tbody>
