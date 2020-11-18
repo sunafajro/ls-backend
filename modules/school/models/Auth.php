@@ -4,6 +4,19 @@ namespace app\modules\school\models;
 
 use app\models\BaseAuth;
 
+/**
+ * Class Auth
+ * @package app\modules\school\models
+ *
+ * @property string $fullName
+ * @property int    $roleId
+ * @property string $roleName
+ * @property int    $teacherId
+ * @property int    $officeId
+ * @property string $officeName
+ * @property int    $cityId
+ * @property string $cityName
+ */
 class Auth extends BaseAuth
 {
     /**

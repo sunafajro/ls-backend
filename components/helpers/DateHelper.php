@@ -2,6 +2,8 @@
 
 namespace app\components\helpers;
 
+use DateTime;
+
 class DateHelper {
     /**
      * Возвращает дату дня текущей недели по его имени.

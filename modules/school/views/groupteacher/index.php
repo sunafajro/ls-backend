@@ -8,7 +8,6 @@
  * @var array              $languages
  * @var array              $levels
  * @var array              $offices
- * @var string             $userInfoBlock
  */
 
 use app\modules\school\assets\GroupListAsset;
@@ -16,6 +15,7 @@ use app\models\Groupteacher;
 use app\models\Schedule;
 use app\models\search\GroupSearch;
 use app\widgets\alert\AlertWidget;
+use app\widgets\userInfo\UserInfoWidget;
 use yii\data\ActiveDataProvider;
 use yii\grid\GridView;
 use yii\helpers\ArrayHelper;
@@ -36,7 +36,7 @@ $roleId = (int)Yii::$app->session->get('user.ustatus');
         <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
             <div id="main-menu"></div>
         <?php } ?>
-        <?= $userInfoBlock ?>
+        <?= UserInfoWidget::widget() ?>
         <ul style="margin-top: 1rem">
             <li>Информация по расписанию занятий группы, берется из раздела Расписание.</li>
             <li>В поле Услуга, при вводе числа фильтрация очуществляется по услуге, при вводе текста - по имени.</li>

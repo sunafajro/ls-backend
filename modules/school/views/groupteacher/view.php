@@ -2,10 +2,10 @@
 
 /**
  * @var View         $this
- * @var Groupteacher $model
+ * @var Groupteacher $group
  * @var Pagination   $pages
- * @var array        $checkTeachers
  * @var array        $groupStudents
+ * @var int[]        $groupTeachers
  * @var array        $items
  * @var array        $lesattend
  * @var array        $lessons
@@ -13,15 +13,16 @@
  * @var int|null     $page
  * @var int|null     $state
  * @var array        $students
- * @var string       $userInfoBlock
  */
 
 use app\modules\school\assets\GroupViewAsset;
 use app\models\Groupteacher;
 use app\models\Journalgroup;
+use app\modules\school\models\Auth;
 use app\widgets\alert\AlertWidget;
 use app\widgets\groupInfo\GroupInfoWidget;
 use app\widgets\groupMenu\GroupMenuWidget;
+use app\widgets\userInfo\UserInfoWidget;
 use yii\data\Pagination;
 use yii\helpers\Html;
 use yii\helpers\Url;
@@ -29,15 +30,18 @@ use yii\widgets\ActiveForm;
 use yii\widgets\Breadcrumbs;
 use yii\web\View;
 
-$this->title = Yii::$app->params['appTitle'] . ' Группа №' . $model->id;
-$this->params['breadcrumbs'][] = Yii::t('app','Group') . ' №' . $model->id;
+$this->title = Yii::$app->params['appTitle'] . ' Группа №' . $group->id;
+$this->params['breadcrumbs'][] = Yii::t('app','Group') . ' №' . $group->id;
 $this->params['breadcrumbs'][] = Yii::t('app', 'Journal');
 
 GroupViewAsset::register($this);
 
-$roleId     = (int)Yii::$app->session->get('user.ustatus');
-$userId     = (int)Yii::$app->session->get('user.uid');
-$teacherId  = Yii::$app->session->get('user.uteacher');
+/** @var Auth $user */
+$user       = Yii::$app->user->identity;
+$roleId     = $user->roleId;
+$userId     = $user->id;
+$teacherId  = $user->teacherId;
+
 function getStudentOptions($lesson, $lessonBalance) {
     $options = [
         'class' => 'text-default',
@@ -64,18 +68,18 @@ function getStudentOptions($lesson, $lessonBalance) {
         <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
             <div id="main-menu"></div>
         <?php } ?>
-        <?= $userInfoBlock ?>
-        <?php if ($model->visible == 1) {
+        <?= UserInfoWidget::widget() ?>
+        <?php if ($group->visible == 1) {
             echo GroupMenuWidget::widget([
                     'activeItem' => 'journal',
-                    'canCreate'  => in_array($roleId, [3, 4, 10]) || in_array($teacherId, array_keys($checkTeachers)) || $userId === 296,
-                    'groupId'    => $model->id,
+                    'canCreate'  => in_array($roleId, [3, 4, 10]) || in_array($teacherId, $groupTeachers) || $userId === 296,
+                    'groupId'    => $group->id,
             ]);
         } ?>
         <h4><?= Yii::t('app', 'Filters') ?>:</h4>
         <?php $form = ActiveForm::begin([
                 'method' => 'get',
-                'action' => ['groupteacher/view', 'id'=>$model->id],
+                'action' => ['groupteacher/view', 'id'=> $group->id],
             ]); ?>
         <div class="form-group">
             <?= Html::input('number', 'lid', $lid ?? null, ['class' => 'form-control input-sm', 'placeholder' => 'номер урока']); ?>
@@ -93,7 +97,7 @@ function getStudentOptions($lesson, $lessonBalance) {
             <?= Html::submitButton(Html::tag('i', '', ['class' => 'fa fa-filter', 'aria-hidden' => 'true']) . Yii::t('app', 'Apply'), ['class' => 'btn btn-info btn-sm btn-block']) ?>
         </div>
         <?php ActiveForm::end(); ?>
-        <?= GroupInfoWidget::widget(['group' => $model]) ?>
+        <?= GroupInfoWidget::widget(['group' => $group]) ?>
     </div>
 	<div class="col-sm-10">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
@@ -102,24 +106,28 @@ function getStudentOptions($lesson, $lessonBalance) {
             ]); ?>
         <?php } ?>
 
-        <p class="pull-left visible-xs">
-            <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
-        </p>
+        <div>
+            <p class="visible-xs">
+                <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">
+                    <?= Yii::t('app', 'Toggle nav') ?>
+                </button>
+            </p>
+        </div>
 
         <?= AlertWidget::widget() ?>
 
-        <h4>Журнал группы №<?= $model->id ?></h4>
+        <h4>Журнал группы №<?= $group->id ?></h4>
         <?php
             $pagerItems = [
                 'previous' => [
                     'show'  => ($page > 1) && ((($page - 1) * 5) < $pages->totalCount),
                     'title' => Yii::t('app', 'Previous'),
-                    'url'   => Url::to(['groupteacher/view', 'id' => $model->id, 'status' => $state ? $state : 'all', 'page'=>($page - 1)]),
+                    'url'   => Url::to(['groupteacher/view', 'id' => $group->id, 'status' => $state ? $state : 'all', 'page'=>($page - 1)]),
                 ],
                 'next' => [
                     'show'  => ($page * 5) < $pages->totalCount,
                     'title' => Yii::t('app', 'Next'),
-                    'url'   => Url::to(['groupteacher/view', 'id' => $model->id, 'status' => $state ? $state : 'all', 'page' => ($page + 1)]),
+                    'url'   => Url::to(['groupteacher/view', 'id' => $group->id, 'status' => $state ? $state : 'all', 'page' => ($page + 1)]),
                 ]
             ]; ?>
         <?= $this->render('_lesson_pager', [
@@ -189,28 +197,28 @@ function getStudentOptions($lesson, $lessonBalance) {
             if($lesson['jdone']!=1){
                 if ($lesson['jview']==0) {
                     // занятие могут отредактировать только  преподаватель назначенный в группу, менеджер или руководитель
-                    if (in_array($roleId, [3, 4, 10]) || array_key_exists(Yii::$app->session->get('user.uteacher'), $checkTeachers)) {
-                        $actions[] = Html::a(Yii::t('app','Edit'), ['journalgroup/update', 'id' => $lesson['jid'], 'gid' => $model->id]);
+                    if (in_array($roleId, [3, 4, 10]) || in_array($teacherId, $groupTeachers)) {
+                        $actions[] = Html::a(Yii::t('app','Edit'), ['journalgroup/update', 'id' => $lesson['jid'], 'gid' => $group->id]);
                     }
                     // проверить занятие могут только менеджер или руководитель
                     if (in_array($roleId, [3, 4]) || $userId === 296) {
-                        $actions[] = Html::a("Так и есть :)",['journalgroup/view','id' => $lesson['jid'], 'gid' => $model->id]);
+                        $actions[] = Html::a("Так и есть :)",['journalgroup/view','id' => $lesson['jid'], 'gid' => $group->id]);
                     }
                 } else if((int)$lesson['jview'] === 1 && (in_array($roleId, [3, 4]) || $userId === 296)) {
                     // отменить проверку занятия могут только менеджер или руководитель
-                    $actions[] = Html::a("Отменить 'проверено'",['journalgroup/unview','gid' => $model->id,'id' => $lesson['jid']]);
+                    $actions[] = Html::a("Отменить 'проверено'",['journalgroup/unview','gid' => $group->id,'id' => $lesson['jid']]);
                 }
                 // занятие могут исключить только преподаватель назначенный в группу, менеджер или руководитель
-                if (in_array($roleId, [3, 4, 10]) || in_array($teacherId, array_keys($checkTeachers))) {
-                    $actions[] = Html::a("Исключить из журнала",['journalgroup/delete','gid' => $model->id,'id' => $lesson['jid']]);
+                if (in_array($roleId, [3, 4, 10]) || in_array($teacherId, $groupTeachers)) {
+                    $actions[] = Html::a("Исключить из журнала",['journalgroup/delete','gid' => $group->id,'id' => $lesson['jid']]);
                 }
             }
         } else {
-            $actions[] = Html::a("Восстановить в журнал",['journalgroup/restore','gid'=>$model->id,'id'=>$lesson['jid']]);
+            $actions[] = Html::a("Восстановить в журнал",['journalgroup/restore','gid' => $group->id,'id'=>$lesson['jid']]);
             if (in_array($roleId, [3, 4])) {
                 $actions[] = Html::a(
                         Yii::t('app', 'Delete'),
-                        ['journalgroup/remove', 'gid' => $model->id, 'id' => $lesson['jid']],
+                        ['journalgroup/remove', 'gid' => $group->id, 'id' => $lesson['jid']],
                         [
                             'data-method' => 'post',
                             'data-confirm' => 'Вы действительно хотите полностью удалить запись из журнала?',
@@ -277,7 +285,7 @@ function getStudentOptions($lesson, $lessonBalance) {
         if ((in_array($roleId, [3, 4])) && (int)$lesson['jview'] !== 1) {
             echo Html::a(
                 "Редактировать состав занятия #" . $lesson['jid'],
-                ['journalgroup/change','id' => $lesson['jid'], 'gid'=>$model->id],
+                ['journalgroup/change','id' => $lesson['jid'], 'gid'=> $group->id],
                 ['class' => 'small']
             );
         }

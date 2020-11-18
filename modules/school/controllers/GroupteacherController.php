@@ -13,6 +13,7 @@ use app\models\Studgroup;
 use app\models\Studjournalgroup;
 use app\models\Teacher;
 use app\models\Teachergroup;
+use app\modules\school\models\Auth;
 use app\modules\school\models\User;
 use app\models\search\GroupSearch;
 use Yii;
@@ -34,6 +35,7 @@ class GroupteacherController extends Controller
             'status', 'addteacher', 'delteacher',
             'restoreteacher', 'addstudent', 'delstudent',
             'restorestudent', 'change-params',
+            'announcements', 'files',
         ];
         return [
 	        'access' => [
@@ -61,8 +63,12 @@ class GroupteacherController extends Controller
         ];
     }
 
+    /**
+     * @return mixed
+     */
     public function actionIndex()
     {
+        // TODO проверка доступа
         $searchModel = new GroupSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->get());
         return $this->render('index', [
@@ -72,7 +78,6 @@ class GroupteacherController extends Controller
             'languages'     => Lang::getLanguagesSimple(),
             'offices'       => Office::getOfficesListSimple(),
             'searchModel'   => $searchModel,
-            'userInfoBlock' => User::getUserInfoBlock(),
         ]);
     }
 
@@ -86,12 +91,13 @@ class GroupteacherController extends Controller
      */
     public function actionView(int $id)
     {
-        $roleId = (int)Yii::$app->session->get('user.ustatus');
-        /** @var Groupteacher $group */
-        $group = $this->findModel($id);
+        /** @var Auth $user */
+        $user   = Yii::$app->user->identity;
+        $roleId = $user->roleId;
+        $group  = $this->findModel($id);
 
-        /* проверяем права доступа (! переделать в поведения !) */
-        if(!in_array($roleId, [3, 4, 5, 6]) !== 3 && ($roleId === 10 && $group->company !== 2)) {
+        // TODO переделать в поведения
+        if (!in_array($roleId, [3, 4, 5, 6]) !== 3 && ($roleId === 10 && $group->company !== 2)) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
@@ -103,12 +109,10 @@ class GroupteacherController extends Controller
         $page    = NULL;
 
         // задаем дефолтный лимит по количеству занятий
-        $limit = 5;
+        $limit  = 5;
         $offset = 0;
         if ((int)Yii::$app->request->get('page', null) > 1) {
             $offset = 5 * ((int)Yii::$app->request->get('page') - 1);
-        } else {
-            $offset = 0;
         }
 
         if (Yii::$app->request->get('page', false)) {
@@ -224,19 +228,16 @@ class GroupteacherController extends Controller
         }
 
         return $this->render('view', [
-            'model'         => $this->findModel($id),
+            'group'         => $this->findModel($id),
             'groupStudents' => $groupStudents,
+            'groupTeachers' => array_keys(Groupteacher::getGroupTeacherListSimple($id)),
             'lessons'       => $lessons,
             'lid'           => $lid,
             'pages'         => $pages,
             'page'          => $page,
             'state'         => $state,
-			'checkTeachers' => Groupteacher::getGroupTeacherListSimple($id),
             'students'      => $students,
             'lesattend'     => $lesattend,
-            'items'         => Groupteacher::getMenuItemList($id, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
-            'userInfoBlock' => User::getUserInfoBlock(),
-            'jobPlace'      => [ 1 => 'ШИЯ', 2 => 'СРР' ]
         ]);
     }
 
@@ -249,8 +250,11 @@ class GroupteacherController extends Controller
      */
     public function actionCreate($tid)
     {
-        /* проверяем права доступа (! переделать в поведения !) */
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+        /** @var Auth $user */
+        $user   = Yii::$app->user->identity;
+        $roleId = $user->roleId;
+        // TODO переделать в поведения
+        if (!in_array($roleId, [3, 4])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
@@ -293,8 +297,8 @@ class GroupteacherController extends Controller
 		$tmp_levels = (new \yii\db\Query())
 		->select('id, name')
 		->from('calc_edulevel')
-                ->where('visible=:one', [':one' => 1])
-                ->orderBy(['name' => SORT_ASC])
+        ->where('visible=:one', [':one' => 1])
+        ->orderBy(['name' => SORT_ASC])
 		->all();
 
         $tmp = [];
@@ -343,29 +347,30 @@ class GroupteacherController extends Controller
 			'visible'=>$model->visible,
 			])
 	        ->execute();
-                // задаем сообщение об успешном добавлении группы
                 Yii::$app->session->setFlash('success', "Успешно создана группа #$model->id!");
             } else {
-                // задаем сообщение об успешном добавлении группы
                 Yii::$app->session->setFlash('error', "Не удалось создать группу!");
             }
             return $this->redirect(['teacher/view', 'id' => $tid, 'tab'=>1]);
         } else {
             // если нет данных, выводим переменные в вьюз создания группы
             return $this->render('create', [
-                'model' => $model,
-				'teacher' => $teacher,
+                'model'    => $model,
+				'teacher'  => $teacher,
 				'services' => $services,
-				'levels' => $levels,
-				'offices' => $offices,
-                'userInfoBlock' => User::getUserInfoBlock(),
-                'jobPlace' => [ 1 => 'ШИЯ', 2 => 'СРР' ]
+				'levels'   => $levels,
+				'offices'  => $offices,
             ]);
         }
     }
 
     /**
-     * Функция для изменения состояния группы
+     * @param $id
+     * @param $lid
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
      */
     public function actionStatus($id, $lid)
     {
@@ -390,10 +395,22 @@ class GroupteacherController extends Controller
     }
 
     /**
-     * функция добавления преподавателя в учебную группу
+     * @param $gid
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
      */
     public function actionAddteacher($gid)
 	{
+        /** @var Auth $user */
+        $user   = Yii::$app->user->identity;
+        $roleId = $user->roleId;
+        // TODO переделать в поведения
+        if (!in_array($roleId, [3, 4])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        }
+
         $group = $this->findModel($gid);
 
         $params['gid'] = $gid;
@@ -434,94 +451,101 @@ class GroupteacherController extends Controller
 		    return $this->redirect(['groupteacher/addteacher', 'gid' => $gid]);
 		} else {
 			return $this->render('addteacher', [
-				'check_teachers' => Groupteacher::getGroupTeacherListSimple($gid, true),
-                'curteachers'    => $curteachers,
-                'group'          => $group,
-                'items'          => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
-                'model'          => $model,
-                'params'         => $params,
-                'teachers'       => Groupteacher::getTeacherListSimple($gid),
-                'userInfoBlock'  => User::getUserInfoBlock(),
+				'groupTeachers' => array_keys(Groupteacher::getGroupTeacherListSimple($gid)),
+                'curteachers'   => $curteachers,
+                'group'         => $group,
+                'model'         => $model,
+                'params'        => $params,
+                'teachers'      => Groupteacher::getTeacherListSimple($gid),
 			]);
 		}
     }
-	
+
     /**
-     * функция исключения преподавателя из учебной группы
+     * @param $gid
+     * @param $tid
+     * @return Response
+     * @throws ForbiddenHttpException
      */
     public function actionDelteacher($gid, $tid)
 	{
-        /* проверяем права доступа (! переделать в поведения !) */
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+        /** @var Auth $user */
+        $user   = Yii::$app->user->identity;
+        $roleId = $user->roleId;
+        // TODO переделать в поведения
+        if (!in_array($roleId, [3, 4])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
-        // проверяем есть ли другие активные преподаватели в группе
         $check = Teachergroup::find()->where('visible=:vis and calc_groupteacher=:gid and calc_teacher!=:tid', [':vis'=>1, ':gid'=>$gid, ':tid'=>$tid])->all();
-        // если есть     
-        if(!empty($check)) {
-            // находим запись, заодно проверяем активная ли она
+        if (!empty($check)) {
             $model = Teachergroup::find()->where('visible=:vis and calc_groupteacher=:gid and calc_teacher=:tid', [':vis'=>1, ':gid'=>$gid, ':tid'=>$tid])->one();
-            // если нашли
-            if($model != NULL) {
-	        // меняем параметр видимости на 0
+            if ($model != NULL) {
                 $model->visible = 0;
                 if($model->save()) {
-                     // задаем сообщение об успехе
                      Yii::$app->session->setFlash('success', 'Преподаватель успешно удален из группы!');
                 } else {
-                     // задаем сообщение об ошибке
                      Yii::$app->session->setFlash('error', 'Неудалось удалить преподавателя!');
                 }
             } else {
-                // задаем сообщение об ошибке
                 Yii::$app->session->setFlash('error', 'Неудалось удалить преподавателя! Преподаватель не является активным для группы.');
             }
         } else {
-            // задаем сообщение об ошибке
             Yii::$app->session->setFlash('error', 'Неудалось удалить преподавателя! В группе нет других активных преподавателей.');
         }
-		// возвращаемся обратно
+
 		return $this->redirect(Yii::$app->request->referrer);
     }
 
-    /** 
-     * функция восстановления преподавателя в учебную группу
+    /**
+     * @param $gid
+     * @param $tid
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
      */
     public function actionRestoreteacher($gid, $tid)
     {
-        /* проверяем права доступа (! переделать в поведения !) */
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+        /** @var Auth $user */
+        $user   = Yii::$app->user->identity;
+        $roleId = $user->roleId;
+        // TODO переделать в поведения
+        if (!in_array($roleId, [3, 4])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
-        // находим запись, заодно проверяем неактивная ли она
         $model = Teachergroup::find()->where('visible=:vis and calc_groupteacher=:gid and calc_teacher=:tid', [':vis'=>0, ':gid'=>$gid, ':tid'=>$tid])->one();
-        // если нашли
-        if($model != NULL) {
-            // меняем параметр видимости на 0
+        if ($model != NULL) {
             $model->visible = 1;
-            if($model->save()) {
-                // задаем сообщение об успехе
+            if ($model->save()) {
                 Yii::$app->session->setFlash('success', 'Преподаватель успешно восстановлен в группу!');
             } else {
-                // задаем сообщение об ошибке
                 Yii::$app->session->setFlash('error', 'Неудалось восстановить преподавателя в группу!');
             }
         } else {
-            // задаем сообщение об ошибке
             Yii::$app->session->setFlash('error', 'Неудалось восстановить преподавателя! Преподаватель не состоит в группе.');
         }
 
-		// возвращаемся обратно
 		return $this->redirect(Yii::$app->request->referrer);
     }
-	
+
     /**
-     * функция добавления студента в учебную группу
+     * @param $gid
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
      */
     public function actionAddstudent($gid)
     {
+        /** @var Auth $user */
+        $user   = Yii::$app->user->identity;
+        $roleId = $user->roleId;
+        // TODO переделать в поведения
+        if (!in_array($roleId, [3, 4])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        }
+
         $group = $this->findModel($gid);
 
         $params['gid'] = $gid;
@@ -590,22 +614,28 @@ class GroupteacherController extends Controller
 				'model'          => $model,
 				'curstudents'    => $curstudents,
 				'students'       => Groupteacher::getStudentListSimple($gid),
-				'checkTeachers'  => Groupteacher::getGroupTeacherListSimple($gid, true),
+				'groupTeachers'  => array_keys(Groupteacher::getGroupTeacherListSimple($gid)),
                 'group'          => $group,
-                'items'          => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
-                'userInfoBlock'  => User::getUserInfoBlock(),
                 'params'         => $params,
 			]);
 		}
 	}
 
     /**
-     *  функция исключения студента из учебной группы
+     * @param $gid
+     * @param $sid
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws \yii\db\Exception
      */
 	public function actionDelstudent($gid, $sid)
 	{
-        /* проверяем права доступа (! переделать в поведения !) */
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+        /** @var Auth $user */
+        $user   = Yii::$app->user->identity;
+        $roleId = $user->roleId;
+        // TODO переделать в поведения
+        if (!in_array($roleId, [3, 4])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
@@ -618,14 +648,22 @@ class GroupteacherController extends Controller
 		// возвращаемся обратно
 		return $this->redirect(Yii::$app->request->referrer);
     }
-	
-    /** 
-     *  функция восстановления студента в учебную группу
+
+    /**
+     * @param $gid
+     * @param $sid
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws \yii\db\Exception
      */
 	public function actionRestorestudent($gid, $sid)
 	{
-        /* проверяем права доступа (! переделать в поведения !) */
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
+        /** @var Auth $user */
+        $user   = Yii::$app->user->identity;
+        $roleId = $user->roleId;
+        // TODO переделать в поведения
+        if (!in_array($roleId, [3, 4])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
@@ -633,8 +671,8 @@ class GroupteacherController extends Controller
 	    $db = (new \yii\db\Query())
 		->createCommand()
 		->update('calc_studgroup', ['visible'=>1], 'calc_groupteacher=:gid AND calc_studname=:sid')
-		->bindParam(':gid',$gid)->
-		bindParam(':sid',$sid)
+		->bindParam(':gid',$gid)
+        ->bindParam(':sid',$sid)
 		->execute();
 		// возвращаемся обратно
 		return $this->redirect(Yii::$app->request->referrer);
@@ -643,18 +681,22 @@ class GroupteacherController extends Controller
     /**
      * Изменяет параметры группы: офис, уровень, корпоративный статус, основной преподаватель.
      * @param integer $id
-     * @param string  $name
+     * @param string $name
      * @param integer $value
-     * 
+     *
      * @return mixed
+     * @throws NotFoundHttpException|ForbiddenHttpException
      */
     public function actionChangeParams(int $id, string $name, int $value)
     {
-        if (!in_array(Yii::$app->session->get('user.ustatus'), [3, 4])) {
+        /** @var Auth $user */
+        $user   = Yii::$app->user->identity;
+        $roleId = $user->roleId;
+        // TODO переделать в поведения
+        if (!in_array($roleId, [3, 4])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
-        /** @var Groupteacher $group */
         $group = $this->findModel($id);
         if (!$group->hasAttribute($name)) {
             throw new NotFoundHttpException("Параметра группы - {$name}, не существует");
@@ -678,6 +720,56 @@ class GroupteacherController extends Controller
                 'status' => false,
             ];
         }
+    }
+
+    /**
+     * @param $id
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
+     */
+    public function actionAnnouncements($id)
+    {
+        /** @var Auth $user */
+        $user   = Yii::$app->user->identity;
+        $roleId = $user->roleId;
+        // TODO переделать в поведения
+        if (!in_array($roleId, [3, 4, 5])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        }
+
+        $group = $this->findModel($id);
+
+        return $this->render('announcements', [
+            'group'         => $group,
+            'groupTeachers' => array_keys(Groupteacher::getGroupTeacherListSimple($id)),
+        ]);
+    }
+
+    /**
+     * @param $id
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
+     */
+    public function actionFiles($id)
+    {
+        /** @var Auth $user */
+        $user   = Yii::$app->user->identity;
+        $roleId = $user->roleId;
+        // TODO переделать в поведения
+        if (!in_array($roleId, [3, 4, 5])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        }
+
+        $group = $this->findModel($id);
+
+        return $this->render('files', [
+            'group'         => $group,
+            'groupTeachers' => array_keys(Groupteacher::getGroupTeacherListSimple($id)),
+        ]);
     }
 
     /**

@@ -106,7 +106,6 @@ class GroupBookController extends Controller
             'group'         => $group,
             'groupBooks'    => $groupBooks,
             'userInfoBlock' => User::getUserInfoBlock(),
-            'items'         => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
             'params'        => $params,
         ]);
     }

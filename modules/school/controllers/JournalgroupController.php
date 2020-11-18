@@ -149,7 +149,6 @@ class JournalgroupController extends Controller
             } else {
                 return $this->render('create', [
                     'group'          => $group,
-                    'items'          => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
                     'model'          => $model,
                     'params'         => $params,
                     'students'       => $students,
@@ -218,7 +217,6 @@ class JournalgroupController extends Controller
 			
             return $this->render('update', [
                 'group'         => $group,
-                'items'         => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
                 'model'         => $model,
                 'params'        => $params,
                 'teachers'      => $groupTeachers,
@@ -371,7 +369,6 @@ class JournalgroupController extends Controller
                 'dates'         => $dates,
                 'group'         => $group,
                 'history'       => $history,
-                'items'         => Groupteacher::getMenuItemList($gid, Yii::$app->controller->id . '/' . Yii::$app->controller->action->id),
                 'params'        => [
                     'active'    => $group->visible ?? null,
                     'gid'       => (int)$gid,

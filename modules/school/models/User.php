@@ -175,17 +175,19 @@ class User extends BaseUser
      */
     public static function getUserInfoBlock()
     {
+        /** @var Auth $user */
+        $user = Yii::$app->user->identity;
         $array = [];
         $array[] = Html::beginTag('div', ['class' => 'well well-sm small']);
-		$array[] = Html::tag('b', Yii::$app->user->identity->fullName);
-        if (Yii::$app->user->identity->teacherId) {
-            $array[] = Html::a('', ['teacher/view', 'id' => Yii::$app->user->identity->teacherId], ['class'=>'fa fa-user btn btn-default btn-xs']);
+		$array[] = Html::tag('b', $user->fullName);
+        if ($user->teacherId) {
+            $array[] = Html::a('', ['teacher/view', 'id' => $user->teacherId], ['class'=>'fa fa-user btn btn-default btn-xs']);
         }            
         $array[] = Html::tag('br');
-        $array[] = Html::tag('i', Yii::$app->user->identity->roleName);
-        if (Yii::$app->user->identity->roleId === 4) {
+        $array[] = Html::tag('i', $user->roleName);
+        if ($user->roleId === 4) {
             $array[] = Html::tag('br');
-            $array[] = Yii::$app->user->identity->officeName;
+            $array[] = $user->officeName;
         }
         $array[] = Html::endTag('div');
         

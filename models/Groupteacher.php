@@ -145,33 +145,6 @@ class Groupteacher extends ActiveRecord
             ->one();
     }
 
-    public static function getMenuItemList($id, $request)
-    {
-        
-        $items[] = [
-            'title' => Yii::t('app','Journal'),
-            'url' => ['groupteacher/view','id' => $id],
-            'options' => ['class' => 'btn btn-block' . (('groupteacher/view' == $request) ? ' btn-primary' : ' btn-default')],
-        ];
-        $items[] = [
-            'title' => Yii::t('app','Students'),
-            'url' => ['groupteacher/addstudent','gid' => $id],
-            'options' => ['class' => 'btn btn-block' . (('groupteacher/addstudent' == $request) ? ' btn-primary' : ' btn-default')],           
-        ];
-        $items[] = [
-            'title' => Yii::t('app','Teachers'),
-            'url' => ['groupteacher/addteacher','gid' => $id],
-            'options' => ['class' => 'btn btn-block' . (('groupteacher/addteacher' == $request) ? ' btn-primary' : ' btn-default')],         
-        ];
-        $items[] = [
-            'title' => Yii::t('app','Books'),
-            'url' => ['group-book/create','gid' => $id],
-            'options' => ['class' => 'btn btn-block' . (('group-book/create' == $request) ? ' btn-primary' : ' btn-default')],         
-        ];
-
-        return $items;
-    }
-
     /**
      * Список преподавателей доступных для добавления в группу
      * @param  int   $id

@@ -5,6 +5,16 @@ namespace app\models;
 use yii\base\BaseObject;
 use yii\web\IdentityInterface;
 
+/**
+ * Class BaseAuth
+ * @package app\models
+ *
+ * @property int    $id
+ * @property string $username
+ * @property string $password
+ * @property string $authKey
+ * @property string $accessToken
+ */
 class BaseAuth extends BaseObject implements IdentityInterface
 {
     public $id;
