@@ -7,8 +7,10 @@
  * @var string     $userInfoBlock
  */
 
+use app\components\helpers\IconHelper;
 use app\models\File;
 use app\models\UploadForm;
+use app\modules\school\models\Auth;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
@@ -17,7 +19,10 @@ use yii\widgets\Breadcrumbs;
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app','Documents');
 $this->params['breadcrumbs'][] = Yii::t('app','Documents');
-$roleId = (int)Yii::$app->session->get('user.ustatus');
+
+/** @var Auth $user */
+$user   = Yii::$app->user->identity;
+$roleId = $user->roleId;
 ?>
 <div class="row row-offcanvas row-offcanvas-left document-index">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
@@ -35,7 +40,7 @@ $roleId = (int)Yii::$app->session->get('user.ustatus');
                 <?= $form->field($uploadForm, 'file')->fileInput()->label(Yii::t('app','File')) ?>
                 <div class="form-group">
                     <?= Html::submitButton(
-                        Html::tag('i', ' ' . Yii::t('app','Upload'), ['class' => 'fa fa-upload', 'aria-hidden' => 'true']),
+                        IconHelper::icon('upload') . ' ' . Yii::t('app','Upload'),
                         ['class' => 'btn btn-success btn-block']
                     ) ?>
                 </div>

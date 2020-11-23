@@ -4,6 +4,7 @@ namespace app\modules\school\controllers;
 
 use app\models\Eduage;
 use app\models\Edulevel;
+use app\models\File;
 use app\models\Groupteacher;
 use app\models\Journalgroup;
 use app\models\Lang;
@@ -13,7 +14,9 @@ use app\models\Studgroup;
 use app\models\Studjournalgroup;
 use app\models\Teacher;
 use app\models\Teachergroup;
+use app\models\UploadForm;
 use app\modules\school\models\Auth;
+use app\modules\school\models\search\FileSearch;
 use app\modules\school\models\User;
 use app\models\search\GroupSearch;
 use Yii;
@@ -25,6 +28,7 @@ use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
+use yii\web\UploadedFile;
 
 class GroupteacherController extends Controller
 {
@@ -765,10 +769,36 @@ class GroupteacherController extends Controller
         }
 
         $group = $this->findModel($id);
+        $model = new UploadForm();
+
+        if (Yii::$app->request->isPost) {
+            $model->file = UploadedFile::getInstance($model, 'file');
+            if ($model->file && $model->validate()) {
+                if ($model->saveFile(Yii::getAlias('@files/temp'))) {
+                    $file = new File([
+                        'file_name'     => $model->file_name,
+                        'original_name' => $model->original_name,
+                    ]);
+                    if ($file->save()) {
+                        $file->setEntity(File::TYPE_GROUP_FILES, $group->id);
+                    }
+                    Yii::$app->session->setFlash('success', Yii::t('app', 'File successfully uploaded!'));
+                } else {
+                    Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to upload file!'));
+                }
+                return $this->redirect(['groupteacher/files', 'id' => $group->id]);
+            }
+        }
+
+        $searchModel = new FileSearch();
+        $dataProvider = $searchModel->searchByGroup($group->id, Yii::$app->request->get());
 
         return $this->render('files', [
+            'dataProvider'  => $dataProvider,
             'group'         => $group,
             'groupTeachers' => array_keys(Groupteacher::getGroupTeacherListSimple($id)),
+            'searchModel'   => $searchModel,
+            'uploadForm'    => new UploadForm(),
         ]);
     }
 

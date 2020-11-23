@@ -3,7 +3,8 @@
 namespace app\models;
 
 use Yii;
-use yii\base\Exception;
+use app\modules\school\models\User;
+use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
 use yii\helpers\FileHelper;
 
@@ -24,6 +25,7 @@ class File extends ActiveRecord
     const TYPE_TEMP         = 'temp';
     const TYPE_USERS        = 'users';
     const TYPE_DOCUMENTS    = 'documents';
+    const TYPE_GROUP_FILES  = 'group_files';
     const TYPE_ATTACHMENTS  = 'attachments';
     const TYPE_CERTIFICATES = 'certificates';
 
@@ -51,9 +53,32 @@ class File extends ActiveRecord
         ];
     }
 
+    public function attributeLabels()
+    {
+        return [
+            'id'            => 'ID',
+            'original_name' => Yii::t('app', 'File name'),
+            'user_id'       => Yii::t('app', 'User'),
+            'create_date'   => Yii::t('app', 'Date'),
+        ];
+    }
+
+    /**
+     * @return false|int
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
+     */
     public function delete()
     {
         return FileHelper::unlink($this->getPath()) ? parent::delete() : false;
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getUser()
+    {
+        return $this->hasOne(User::class, ['id' => 'user_id']);
     }
 
     /**
