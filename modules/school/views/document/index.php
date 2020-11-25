@@ -3,12 +3,12 @@
 /**
  * @var View       $this
  * @var UploadForm $uploadForm
- * @var File[]     $fileList
+ * @var BaseFile[]     $fileList
  * @var string     $userInfoBlock
  */
 
 use app\components\helpers\IconHelper;
-use app\models\File;
+use app\models\BaseFile;
 use app\models\UploadForm;
 use app\modules\school\models\Auth;
 use yii\helpers\Html;

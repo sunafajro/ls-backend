@@ -6,7 +6,7 @@
  * @var array        $url
  */
 
-use app\models\File;
+use app\models\BaseFile;
 use yii\helpers\Html;
 ?>
 <div id="<?= $id ?>" class="modal fade" tabindex="-1" role="dialog">
@@ -28,9 +28,9 @@ use yii\helpers\Html;
                 </p>
                 <?= $data['body'] ?? '' ?>
                 <?php
-                    /** @var File[] $files */
-                    $files = File::find()->andWhere([
-                        'entity_type' => File::TYPE_ATTACHMENTS, 'entity_id' => $data['mid']
+                    /** @var BaseFile[] $files */
+                    $files = BaseFile::find()->andWhere([
+                        'entity_type' => BaseFile::TYPE_ATTACHMENTS, 'entity_id' => $data['mid']
                     ])->all();
                     if (!empty($files)) {
                         echo Html::beginTag('div');

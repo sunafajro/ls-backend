@@ -3,7 +3,7 @@
 
 namespace app\commands;
 
-use app\models\File;
+use app\models\BaseFile;
 use Yii;
 use yii\console\Controller;
 use yii\db\Query;
@@ -14,13 +14,13 @@ class FilesController extends Controller
     public function actionMigrateDocuments()
     {
         $exclude = [
-            '.', '..', '.gitkeep', File::TYPE_DOCUMENTS,
-            File::TYPE_ATTACHMENTS, File::TYPE_TEMP,
-            File::TYPE_CERTIFICATES, File::TYPE_USERS,
+            '.', '..', '.gitkeep', BaseFile::TYPE_DOCUMENTS,
+            BaseFile::TYPE_ATTACHMENTS, BaseFile::TYPE_TEMP,
+            BaseFile::TYPE_CERTIFICATES, BaseFile::TYPE_USERS,
         ];
         $path  = Yii::getAlias('@files');
-        if (!file_exists($path . '/' . File::TYPE_DOCUMENTS)) {
-            FileHelper::createDirectory($path . '/' . File::TYPE_DOCUMENTS);
+        if (!file_exists($path . '/' . BaseFile::TYPE_DOCUMENTS)) {
+            FileHelper::createDirectory($path . '/' . BaseFile::TYPE_DOCUMENTS);
         }
         $files = scandir($path);
         foreach($files as $fileName) {
@@ -28,14 +28,14 @@ class FilesController extends Controller
                 $oldPath = "$path/{$fileName}";
                 $name = explode('.', $fileName);
                 $newName = uniqid() . '.' . (array_pop($name));
-                $newPath = $path . '/' . File::TYPE_DOCUMENTS . '/' . $newName;
+                $newPath = $path . '/' . BaseFile::TYPE_DOCUMENTS . '/' . $newName;
                 if (rename($oldPath, $newPath)) {
                     $newFile = (new Query())
                         ->createCommand()
-                        ->insert(File::tableName(), [
+                        ->insert(BaseFile::tableName(), [
                             'file_name'     => $newName,
                             'original_name' => $fileName,
-                            'entity_type'   => File::TYPE_DOCUMENTS,
+                            'entity_type'   => BaseFile::TYPE_DOCUMENTS,
                             'user_id'       => 139,
                             'create_date'   => date('Y-m-d'),
                         ])->execute();

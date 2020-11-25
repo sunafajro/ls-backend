@@ -2,14 +2,16 @@
 
 namespace app\modules\school\controllers;
 
-use app\models\File;
+use app\modules\school\School;
 use Yii;
 use app\models\Message;
 use app\models\Student;
 use app\models\Teacher;
 use app\models\UploadForm;
+use app\modules\school\models\File;
 use app\modules\school\models\User;
 use yii\base\Exception;
+use yii\db\Query;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\helpers\ArrayHelper;
@@ -174,7 +176,7 @@ class MessageController extends Controller
             }
             if ($model->save()) {
                 foreach ($files ?? [] as $fileId) {
-                    $file = File::find()->andWhere(['id' => $fileId])->one();
+                    $file = File::find()->andWhere(['id' => $fileId, 'module_type' => School::MODULE_NAME])->one();
                     $file->setEntity(File::TYPE_ATTACHMENTS, $model->id);
                 }
                 Yii::$app->session->setFlash('success', Yii::t('app', 'Message successfully created!'));
@@ -224,7 +226,12 @@ class MessageController extends Controller
                 }
                 if ($model->save(true, ['name', 'description'])) {
                     foreach ($files ?? [] as $fileId) {
-                        $file = File::find()->andWhere(['id' => $fileId, 'entity_type' => File::TYPE_TEMP, 'entity_id' => null])->one();
+                        $file = File::find()->andWhere([
+                            'id' => $fileId,
+                            'entity_type' => File::TYPE_TEMP,
+                            'entity_id' => null,
+                            'module_type' => School::MODULE_NAME,
+                        ])->one();
                         if ($file) {
                             $file->setEntity(File::TYPE_ATTACHMENTS, $model->id);
                         }
@@ -306,16 +313,16 @@ class MessageController extends Controller
         if (!empty($message)) {
             $target = $message->calc_messwhomtype;
             try {
-                $db = (new \yii\db\Query())
-                ->createCommand()
-                ->update(
-                    'calc_messreport',
-                    ['ok' => '1'],
-                    [
-                        'calc_message' => $id,
-                        'user'         => Yii::$app->user->identity->id
-                    ])
-                ->execute();
+                (new Query())
+                    ->createCommand()
+                    ->update(
+                        'calc_messreport',
+                        ['ok' => '1'],
+                        [
+                            'calc_message' => $id,
+                            'user'         => Yii::$app->user->identity->id
+                        ])
+                    ->execute();
                 if ($toResponse && in_array($target, [5, 100])) {
                     return $this->redirect(['message/create', 'target_type' => $target == 100 ? 13 : 5, 'target_id' => $message->user]);
                 } else {
@@ -374,13 +381,12 @@ class MessageController extends Controller
             ];
             if (in_array($message->calc_messwhomtype, [5, 13])) {
                 $condition['user'] = $message->refinement_id;
-                $report = (new \yii\db\Query())
-                ->createCommand()
-                ->insert('calc_messreport', $condition)
-                ->execute();
+                (new Query())
+                    ->createCommand()
+                    ->insert('calc_messreport', $condition)
+                    ->execute();
             } else if (in_array($message->calc_messwhomtype, [1, 2, 3, 4])) {
-                $recievers = [];
-                $query = (new \yii\db\Query())
+                $query = (new Query())
                 ->select(['id' => 'u.id'])
                 ->from(['u' => User::tableName()])
                 ->where(['u.visible' => 1]);
@@ -396,14 +402,14 @@ class MessageController extends Controller
                         ->andWhere(['t.visible' => 1]);
                         break;
                 }
-                $recievers = $query->all();
-                if (!empty($recievers)) {
-                    foreach ($recievers as $r) {
+                $receivers = $query->all();
+                if (!empty($receivers)) {
+                    foreach ($receivers as $r) {
                         $condition['user'] = $r['id'];
-                        $report = (new \yii\db\Query())
-                        ->createCommand()
-                        ->insert('calc_messreport', $condition)
-                        ->execute();
+                        (new Query())
+                            ->createCommand()
+                            ->insert('calc_messreport', $condition)
+                            ->execute();
                     }
                 }
             }            
@@ -419,25 +425,26 @@ class MessageController extends Controller
         return $this->redirect(['index']);
     }
 
+    /**
+     * @return string
+     * @throws NotFoundHttpException
+     */
     public function actionAjaxgroup() 
     {
         if (Yii::$app->request->isAjax){
-            if(Yii::$app->request->post('type')!='5'&&Yii::$app->request->post('type')!='13'){
+            if (Yii::$app->request->post('type')!='5'&&Yii::$app->request->post('type')!='13'){
                 $users = "<input type='hidden' id='message-refinement_id' class='form-control' name='Message[refinement_id]' value='0'><div class='help-block'></div>";
             } else {
                 //если получатель сотрудник
                 if(Yii::$app->request->post('type')=='5'){
-                    $susers = (new \yii\db\Query())
+                    $susers = (new Query())
                     ->select('u.id as uid, u.name as uname')
                     ->from(['u' => User::tableName()])
                     ->where('u.visible=:vis and u.id!=:uid', [':vis'=>1, ':uid'=>Yii::$app->session->get('user.uid')])
                     ->orderBy(['u.name'=>SORT_ASC])
                     ->all();
-                }
-
-                //если получатель студент
-                elseif(Yii::$app->request->post('type')=='13'){
-                    $susers = (new \yii\db\Query())
+                } else if (Yii::$app->request->post('type')=='13'){
+                    $susers = (new Query())
                     ->select('cs.id as uid, cs.name as uname')
                     ->from('calc_studname cs')
                     ->leftJoin('tbl_client_access tca','tca.calc_studname=cs.id')
@@ -446,7 +453,7 @@ class MessageController extends Controller
                     ->all();
                 }
 
-                $users = "<label class='control-label' for='message-refinement_id'>".\Yii::t('app','Reciever')."</label>"; 
+                $users = "<label class='control-label' for='message-refinement_id'>" . Yii::t('app','Reciever') . "</label>";
                 $users .= "<select id='message-refinement_id' class='form-control' name='Message[refinement_id]'>";
                 $users .= "<option value=''>".Yii::t('app','-select-')."</option>";
                 foreach($susers as $suser){
@@ -456,6 +463,8 @@ class MessageController extends Controller
                 $users .= "<div class='help-block'></div>";
             }
             return $users;
+        } else {
+            throw new NotFoundHttpException();
         }
     }
 

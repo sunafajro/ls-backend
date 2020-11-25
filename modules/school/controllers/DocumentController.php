@@ -3,8 +3,9 @@
 namespace app\modules\school\controllers;
 
 use app\models\AccessRule;
-use app\models\File;
+use app\modules\school\models\File;
 use app\modules\school\models\User;
+use app\modules\school\School;
 use Yii;
 use yii\base\Action;
 use yii\web\BadRequestHttpException;
@@ -69,7 +70,10 @@ class DocumentController extends Controller
     public function actionIndex()
     {
         return $this->render('index', [
-            'fileList'      => File::find()->andWhere(['entity_type' => File::TYPE_DOCUMENTS])->all(),
+            'fileList'      => File::find()->andWhere([
+                'entity_type' => File::TYPE_DOCUMENTS,
+                'module_type' => School::MODULE_NAME,
+            ])->all(),
             'uploadForm'    => new UploadForm(),
             'userInfoBlock' => User::getUserInfoBlock(),
         ]);
@@ -84,7 +88,7 @@ class DocumentController extends Controller
     public function actionDownload(int $id)
     {
         /** @var File|null $file */
-        $file = File::find()->andWhere(['id' => $id])->one();
+        $file = File::find()->andWhere(['id' => $id, 'module_type' => School::MODULE_NAME])->one();
         if (empty($file)) {
             throw new NotFoundHttpException(Yii::t('app', 'File not found!'));
         }
@@ -103,10 +107,11 @@ class DocumentController extends Controller
         $model = new UploadForm();
         $model->file = UploadedFile::getInstance($model, 'file');
         if ($model->file && $model->validate()) {
-            if ($model->saveFile(Yii::getAlias('@files/temp'))) {
+            if ($model->saveFile(File::getTempDirPath())) {
                 $file = new File([
-                    'file_name' => $model->file_name,
+                    'file_name'     => $model->file_name,
                     'original_name' => $model->original_name,
+                    'size'          => $model->file->size,
                 ]);
                 if ($file->save()) {
                     $file->setEntity(File::TYPE_DOCUMENTS);
@@ -128,7 +133,7 @@ class DocumentController extends Controller
      */
     public function actionDelete(int $id)
     {
-        $file = File::find()->andWhere(['id' => $id])->one();
+        $file = File::find()->andWhere(['id' => $id, 'module_type' => School::MODULE_NAME])->one();
         if (empty($file)) {
             throw new NotFoundHttpException(Yii::t('app', 'File not found!'));
         }

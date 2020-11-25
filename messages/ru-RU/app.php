@@ -240,6 +240,8 @@ return array(
     'Failed to upload file!' => 'Не удалось загрузить файл!',
     'Female' => 'Женский',
     'File'   => 'Файл',
+    'File name' => 'Имя файла',
+    'File size' => 'Размер файла',
     'Files'  => 'Файлы',
     'File not found!' => 'Файл не найден!',
     'File successfully deleted!' => 'Файл успешно удален!',

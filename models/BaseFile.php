@@ -3,7 +3,6 @@
 namespace app\models;
 
 use Yii;
-use app\modules\school\models\User;
 use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
 use yii\helpers\FileHelper;
@@ -14,20 +13,18 @@ use yii\helpers\FileHelper;
  * @property integer $id
  * @property string  $file_name
  * @property string  $original_name
+ * @property integer $size
  * @property string  $entity_type
  * @property integer $entity_id
+ * @property string  $module_type
  * @property integer $user_id
  * @property string  $create_date
  */
 
-class File extends ActiveRecord
+class BaseFile extends ActiveRecord
 {
-    const TYPE_TEMP         = 'temp';
-    const TYPE_USERS        = 'users';
-    const TYPE_DOCUMENTS    = 'documents';
-    const TYPE_GROUP_FILES  = 'group_files';
-    const TYPE_ATTACHMENTS  = 'attachments';
-    const TYPE_CERTIFICATES = 'certificates';
+    const TYPE_TEMP  = 'temp';
+    const TYPE_USERS = 'users';
 
     /**
      * @inheritdoc
@@ -43,13 +40,14 @@ class File extends ActiveRecord
     public function rules()
     {
         return [
+            [['size'],        'default', 'value' => 0],
             [['entity_type'], 'default', 'value' => self::TYPE_TEMP],
-            [['user_id'], 'default', 'value' => Yii::$app->user->identity->id],
+            [['user_id'],     'default', 'value' => Yii::$app->user->identity->id],
             [['create_date'], 'default', 'value' => date('Y-m-d')],
-            [['file_name', 'original_name', 'entity_type'], 'string'],
-            [['entity_id', 'user_id'], 'integer'],
+            [['file_name', 'original_name', 'entity_type', 'module_type'], 'string'],
+            [['size', 'entity_id', 'user_id'], 'integer'],
             [['create_date'], 'safe'],
-            [['file_name', 'original_name', 'entity_type', 'user_id', 'create_date'], 'required'],
+            [['size', 'file_name', 'original_name', 'entity_type', 'user_id', 'create_date'], 'required'],
         ];
     }
 
@@ -58,6 +56,7 @@ class File extends ActiveRecord
         return [
             'id'            => 'ID',
             'original_name' => Yii::t('app', 'File name'),
+            'size'          => Yii::t('app', 'File size'),
             'user_id'       => Yii::t('app', 'User'),
             'create_date'   => Yii::t('app', 'Date'),
         ];
@@ -74,20 +73,13 @@ class File extends ActiveRecord
     }
 
     /**
-     * @return ActiveQuery
-     */
-    public function getUser()
-    {
-        return $this->hasOne(User::class, ['id' => 'user_id']);
-    }
-
-    /**
      * @return string
      */
     public function getPath()
     {
         $filePath = [
             Yii::getAlias('@files'),
+            $this->module_type,
             $this->entity_type
         ];
         if ($this->entity_id) {
@@ -108,6 +100,7 @@ class File extends ActiveRecord
         $oldPath = $this->getPath();
         $newPath = [
             Yii::getAlias('@files'),
+            $this->module_type,
             $entityType,
         ];
         if ($entityId) {

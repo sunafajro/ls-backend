@@ -4,7 +4,6 @@ namespace app\modules\school\controllers;
 
 use app\models\Eduage;
 use app\models\Edulevel;
-use app\models\File;
 use app\models\Groupteacher;
 use app\models\Journalgroup;
 use app\models\Lang;
@@ -16,6 +15,7 @@ use app\models\Teacher;
 use app\models\Teachergroup;
 use app\models\UploadForm;
 use app\modules\school\models\Auth;
+use app\modules\school\models\File;
 use app\modules\school\models\search\FileSearch;
 use app\modules\school\models\User;
 use app\models\search\GroupSearch;
@@ -774,10 +774,11 @@ class GroupteacherController extends Controller
         if (Yii::$app->request->isPost) {
             $model->file = UploadedFile::getInstance($model, 'file');
             if ($model->file && $model->validate()) {
-                if ($model->saveFile(Yii::getAlias('@files/temp'))) {
+                if ($model->saveFile(File::getTempDirPath())) {
                     $file = new File([
                         'file_name'     => $model->file_name,
                         'original_name' => $model->original_name,
+                        'size'          => $model->file->size,
                     ]);
                     if ($file->save()) {
                         $file->setEntity(File::TYPE_GROUP_FILES, $group->id);

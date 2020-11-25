@@ -2,8 +2,9 @@
 
 namespace app\modules\school\controllers;
 
-use app\models\File;
 use app\models\UploadForm;
+use app\modules\school\models\File;
+use app\modules\school\School;
 use Yii;
 use yii\base\Exception;
 use yii\filters\AccessControl;
@@ -64,10 +65,11 @@ class FilesController extends Controller
         ];
 
         if ($model->file && $model->validate()) {
-            if ($model->saveFile(Yii::getAlias('@files/temp'))) {
+            if ($model->saveFile(File::getTempDirPath())) {
                 $file = new File([
-                    'file_name' => $model->file_name,
+                    'file_name'     => $model->file_name,
                     'original_name' => $model->original_name,
+                    'size'          => $model->file->size,
                 ]);
                 if ($file->save()) {
                     $result['success']  = true;
@@ -132,7 +134,8 @@ class FilesController extends Controller
      */
     protected function findModel($id)
     {
-        if (($model = File::findOne($id)) !== null) {
+        /** @var File $model */
+        if (($model = File::find()->andWhere(['id' => $id, 'module_type' => School::MODULE_NAME])->one()) !== null) {
             return $model;
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');

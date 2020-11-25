@@ -10,12 +10,13 @@
  */
 
 use app\components\helpers\IconHelper;
-use app\models\File;
+use app\models\BaseFile;
 use app\models\Groupteacher;
 use app\models\UploadForm;
 use app\modules\school\models\Auth;
 use app\modules\school\models\search\FileSearch;
 use app\widgets\alert\AlertWidget;
+use app\widgets\groupInfo\GroupInfoWidget;
 use app\widgets\groupMenu\GroupMenuWidget;
 use app\widgets\userInfo\UserInfoWidget;
 use yii\data\ActiveDataProvider;
@@ -62,6 +63,7 @@ $teacherId  = $user->teacherId;
             </div>
             <?php ActiveForm::end(); ?>
         <?php } ?>
+        <?= GroupInfoWidget::widget(['group' => $group]) ?>
     </div>
     <div class="col-sm-10">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
@@ -87,13 +89,30 @@ $teacherId  = $user->teacherId;
                     'original_name' => [
                         'attribute' => 'original_name',
                         'format' => 'html',
-                        'value' => function (File $file) {
+                        'value' => function (BaseFile $file) {
                             return Html::a($file->original_name, ['document/download', 'id' => $file->id], ['target' => '_blank']);
+                        }
+                    ],
+                    'size'     => [
+                        'attribute' => 'size',
+                        'value' => function (BaseFile $file) {
+                            $result = '';
+                            if (!$file->size) {
+                                $result = '-';
+                            } else if ($file->size > 0 && $file->size < 1000) {
+                                $result = $file->size . ' B';
+                            } else if ($file->size >= 1000 && $file->size < 1000000) {
+                                $result = round($file->size / 1000, 2) . ' KB';
+                            } else if ($file->size >= 1000 && $file->size < 1000000) {
+                                $result = round($file->size / 1000000, 2) . ' MB';
+                            }
+
+                            return $result;
                         }
                     ],
                     'user_id'     => [
                         'attribute' => 'user_id',
-                        'value' => function (File $file) {
+                        'value' => function (BaseFile $file) {
                             $user = $file->user ?? null;
                             return $user->name ?? '';
                         }

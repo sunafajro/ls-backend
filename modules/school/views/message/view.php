@@ -1,6 +1,6 @@
 <?php
 
-use app\models\File;
+use app\models\BaseFile;
 use app\widgets\alert\AlertWidget;
 use yii\helpers\Html;
 use yii\web\View;
@@ -89,9 +89,9 @@ $this->params['breadcrumbs'][] = $message['title'];
             <?= $message['text'] ?>
         </div>
         <?php
-            /** @var File[] $files */
-            $files = File::find()->andWhere([
-                'entity_type' => File::TYPE_ATTACHMENTS, 'entity_id' => $message['id']
+            /** @var BaseFile[] $files */
+            $files = BaseFile::find()->andWhere([
+                'entity_type' => BaseFile::TYPE_ATTACHMENTS, 'entity_id' => $message['id']
             ])->all();
             if (!empty($files)) {
                 echo Html::beginTag('div');

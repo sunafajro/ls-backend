@@ -2,10 +2,10 @@
 
 /**
  * @var View $this
- * @var File $model
+ * @var BaseFile $model
  */
 
-use app\models\File;
+use app\models\BaseFile;
 use yii\helpers\Html;
 use yii\web\View;
 ?>

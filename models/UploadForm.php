@@ -9,6 +9,10 @@ use yii\web\UploadedFile;
 
 /**
  * UploadForm is the model behind the upload form.
+ *
+ * @property UploadedFile $file
+ * @property string       $file_name
+ * @property string       $original_name
  */
 class UploadForm extends Model
 {
