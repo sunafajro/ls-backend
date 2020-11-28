@@ -137,17 +137,19 @@ class DocumentController extends Controller
         if (empty($file)) {
             throw new NotFoundHttpException(Yii::t('app', 'File not found!'));
         }
+        $errorMessage = Yii::t('app', 'Failed to delete file!');
         try {
             if ($file->delete()) {
                 Yii::$app->session->setFlash('success', Yii::t('app', 'File successfully deleted!'));
             } else {
-                Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to delete file!'));
+                Yii::$app->session->setFlash('error', $errorMessage);
             }
         } catch (\Exception $e) {
-            Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to delete file!'));
+            Yii::$app->session->setFlash('error', $errorMessage);
         } catch (\Throwable $e) {
-            Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to delete file!'));
+            Yii::$app->session->setFlash('error', $errorMessage);
         }
+
         return $this->redirect(['document/index']);
     }
 }

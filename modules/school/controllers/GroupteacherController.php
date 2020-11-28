@@ -19,6 +19,7 @@ use app\modules\school\models\File;
 use app\modules\school\models\search\FileSearch;
 use app\modules\school\models\User;
 use app\models\search\GroupSearch;
+use app\modules\school\School;
 use Yii;
 use yii\data\Pagination;
 use yii\filters\AccessControl;
@@ -752,23 +753,51 @@ class GroupteacherController extends Controller
     }
 
     /**
-     * @param $id
+     * @param string $id
+     * @param string|null $action
+     * @param string|null $file_id
      *
      * @return mixed
      * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
+     * @throws \yii\base\Exception
+     * @throws \Throwable
      */
-    public function actionFiles($id)
+    public function actionFiles(string $id, string $action = null, string $file_id = null)
     {
         /** @var Auth $user */
         $user   = Yii::$app->user->identity;
         $roleId = $user->roleId;
         // TODO переделать в поведения
-        if (!in_array($roleId, [3, 4, 5])) {
+        if (!in_array($roleId, [3, 4, 5, 6, 10])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
         $group = $this->findModel($id);
+
+        if (in_array($action, ['download', 'delete']) && $file_id) {
+            /** @var File|null $file */
+            $file = File::find()->andWhere([
+                    'id'          => $file_id,
+                    'entity_type' => File::TYPE_GROUP_FILES,
+                    'entity_id'   => $group->id,
+                    'module_type' => School::MODULE_NAME,
+                ])->one();
+            if (empty($file)) {
+                throw new NotFoundHttpException(Yii::t('app', 'File not found!'));
+            }
+            if ($action === 'delete') {
+                if ($file->delete()) {
+                    Yii::$app->session->setFlash('success', Yii::t('app', 'File successfully deleted!'));
+                } else {
+                    Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to delete file!'));
+                }
+                return $this->redirect(['groupteacher/files', 'id' => $group->id]);
+            } else if ($action === 'download') {
+                return Yii::$app->response->sendFile($file->getPath(), $file->original_name, ['inline' => true]);
+            }
+        }
+
         $model = new UploadForm();
 
         if (Yii::$app->request->isPost) {

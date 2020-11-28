@@ -15,7 +15,10 @@ use yii\web\View;
 use yii\widgets\Breadcrumbs;
 
 $this->title = Yii::$app->params['appTitle'] . ' Группа №' . $group->id;
-$this->params['breadcrumbs'][] = Yii::t('app','Group') . ' №' . $group->id;
+$this->params['breadcrumbs'][] = [
+    'label' => Yii::t('app','Group') . " №{$group->id}",
+    'url' => ['groupteacher/view', 'id' => $group->id],
+];
 $this->params['breadcrumbs'][] = Yii::t('app', 'Announcements');
 
 /** @var Auth $user */
