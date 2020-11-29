@@ -58,6 +58,11 @@ class MessageController extends Controller
         ];
     }
 
+    /**
+     * @param string|null $month
+     * @param string|null $year
+     * @return string
+     */
     public function actionIndex(string $month = NULL, string $year = NULL)
     {
         if ($month) {
@@ -112,7 +117,6 @@ class MessageController extends Controller
             'messagesReaded' => $messagesReaded,
             'month'          => $month,
             'unreaded'       => $unreaded,
-            'userInfoBlock'  => User::getUserInfoBlock(),
             'year'           => $year,
         ]);
     }
@@ -136,7 +140,6 @@ class MessageController extends Controller
         ) {
             return $this->render('view', [
                 'message' => $message,
-                'userInfoBlock' => User::getUserInfoBlock()
             ]);
         } else {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
@@ -189,10 +192,9 @@ class MessageController extends Controller
             return $this->redirect(['view', 'id' => $model->id]);
         } else {
             return $this->render('create', [
-                'model'         => $model,
-                'types'         => $types,
-                'receivers'     => ArrayHelper::map($receivers ?? [], 'id', 'name'),
-                'userInfoBlock' => User::getUserInfoBlock()
+                'model'     => $model,
+                'types'     => $types,
+                'receivers' => ArrayHelper::map($receivers ?? [], 'id', 'name'),
             ]);
         }
     }
@@ -246,10 +248,9 @@ class MessageController extends Controller
                 return $this->redirect(['view', 'id' => $model->id]);
             } else {
                 return $this->render('update', [
-                    'model'         => $model,
-                    'receivers'     => ArrayHelper::map($receivers ?? [], 'id', 'name'),
-                    'types'         => $types,
-                    'userInfoBlock' => User::getUserInfoBlock()
+                    'model'     => $model,
+                    'receivers' => ArrayHelper::map($receivers ?? [], 'id', 'name'),
+                    'types'     => $types,
                 ]);
             }
         } else {
@@ -359,12 +360,17 @@ class MessageController extends Controller
             }
         }
         return $this->render('upload', [
-            'model' => $model,
+            'model'   => $model,
             'message' => $message,
-            'userInfoBlock' => User::getUserInfoBlock()
         ]);
     }
-    
+
+    /**
+     * @param int $id
+     * @return \yii\web\Response
+     * @throws NotFoundHttpException
+     * @throws \yii\db\Exception
+     */
     public function actionSend(int $id)
     {
         $userId     = (int)Yii::$app->user->identity->id;

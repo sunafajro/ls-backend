@@ -1,6 +1,7 @@
 <?php
 
 use app\modules\school\assets\MessageListAsset;
+use app\widgets\userInfo\UserInfoWidget;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use app\widgets\alert\AlertWidget;
@@ -15,7 +16,6 @@ use yii\widgets\Breadcrumbs;
  * @var array       $messagesReaded
  * @var string      $month
  * @var array       $unreaded
- * @var string      $userInfoBlock
  * @var string      $year
  */
 
@@ -36,7 +36,7 @@ ksort($months);
         <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
             <div id="main-menu"></div>
         <?php } ?>
-        <?= $userInfoBlock ?>
+        <?= UserInfoWidget::widget() ?>
         <h4><?= Yii::t('app', 'Actions') ?></h4>
         <?= Html::a('<span class="fa fa-plus" aria-hidden="true"></span> ' . Yii::t('app', 'Add'),
           ['create'],

@@ -173,15 +173,15 @@ class Message extends \yii\db\ActiveRecord
                 $message['sender'] = $sender['name'];
             }
             $response = (new \yii\db\Query())
-            ->select(['id' => 'id'])
-            ->from(['mr' => 'calc_messreport'])
-            ->where([
-                'calc_message' => $message['id'],
-                'ok' => 0,
-                'user' => Yii::$app->session->get('user.uid')
-            ])
-            ->one();
-            if ($response !== null) {
+                ->select(['id' => 'id'])
+                ->from(['mr' => 'calc_messreport'])
+                ->where([
+                    'calc_message' => $message['id'],
+                    'ok' => 0,
+                    'user' => Yii::$app->session->get('user.uid')
+                ])
+                ->one();
+            if (!empty($response)) {
                 $message['response'] = $response['id'];
             }
         }

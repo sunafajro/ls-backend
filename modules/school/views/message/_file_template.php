@@ -1,11 +1,13 @@
 <?php
 
 /**
- * @var View $this
- * @var BaseFile $model
+ * @var View      $this
+ * @var Message   $model
+ * @var File|null $file
  */
 
-use app\models\BaseFile;
+use app\models\Message;
+use app\modules\school\models\File;
 use yii\helpers\Html;
 use yii\web\View;
 ?>

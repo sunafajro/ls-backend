@@ -3,14 +3,14 @@
 /**
  * @var View       $this
  * @var UploadForm $uploadForm
- * @var BaseFile[]     $fileList
- * @var string     $userInfoBlock
+ * @var File[]     $fileList
  */
 
 use app\components\helpers\IconHelper;
-use app\models\BaseFile;
 use app\models\UploadForm;
 use app\modules\school\models\Auth;
+use app\modules\school\models\File;
+use app\widgets\userInfo\UserInfoWidget;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
@@ -29,7 +29,7 @@ $roleId = $user->roleId;
 		<?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
             <div id="main-menu"></div>
         <?php } ?>
-        <?= $userInfoBlock ?>
+        <?= UserInfoWidget::widget() ?>
         <?php if (in_array($roleId, [3, 4])) { ?>
             <h4><?= Yii::t('app', 'Actions') ?></h4>
             <?php $form = ActiveForm::begin([

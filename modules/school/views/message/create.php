@@ -2,6 +2,7 @@
 
 use app\models\Message;
 use app\widgets\alert\AlertWidget;
+use app\widgets\userInfo\UserInfoWidget;
 use yii\web\View;
 use yii\widgets\Breadcrumbs;
 
@@ -10,7 +11,6 @@ use yii\widgets\Breadcrumbs;
  * @var Message $model
  * @var array   $receivers
  * @var array   $types
- * @var string  $userInfoBlock
  */
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Messages');
@@ -22,7 +22,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Add message');
         <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
             <div id="main-menu"></div>
         <?php } ?>
-        <?= $userInfoBlock ?>
+        <?= UserInfoWidget::widget() ?>
         <div style="margin-top: 1rem">
             <h4><?= Yii::t('app', 'Hints') ?>:</h4>
             <ul>

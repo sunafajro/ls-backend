@@ -3,6 +3,7 @@
 use app\models\Message;
 use app\models\UploadForm;
 use app\widgets\alert\AlertWidget;
+use app\widgets\userInfo\UserInfoWidget;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use yii\web\View;
@@ -12,7 +13,6 @@ use yii\widgets\Breadcrumbs;
  * @var View       $this
  * @var Message    $message
  * @var UploadForm $model
- * @var string     $userInfoBlock
  */
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Upload image');
@@ -25,7 +25,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Upload file');
         <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
         <div id="main-menu"></div>
         <?php endif; ?>
-        <?= $userInfoBlock ?>
+        <?= UserInfoWidget::widget() ?>
         <div style="margin-top: 1rem">
             <h4><?= Yii::t('app', 'Hints') ?>:</h4>
             <ul>

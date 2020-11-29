@@ -1,16 +1,17 @@
 <?php
 
-use app\models\BaseFile;
-use app\widgets\alert\AlertWidget;
-use yii\helpers\Html;
-use yii\web\View;
-use yii\widgets\Breadcrumbs;
-
 /**
  * @var View   $this
  * @var array  $message
  * @var string $userInfoBlock
  */
+
+use app\modules\school\models\File;
+use app\widgets\alert\AlertWidget;
+use app\widgets\userInfo\UserInfoWidget;
+use yii\helpers\Html;
+use yii\web\View;
+use yii\widgets\Breadcrumbs;
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Messages');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Messages'), 'url' => ['index']];
@@ -21,7 +22,7 @@ $this->params['breadcrumbs'][] = $message['title'];
         <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
             <div id="main-menu"></div>
         <?php } ?>
-        <?= $userInfoBlock ?>
+        <?= UserInfoWidget::widget() ?>
         <?php if ((int)$message['sended'] === 0) { ?>
             <h4><?= Yii::t('app', 'Actions') ?>:</h4>
             <?=
@@ -89,9 +90,9 @@ $this->params['breadcrumbs'][] = $message['title'];
             <?= $message['text'] ?>
         </div>
         <?php
-            /** @var BaseFile[] $files */
-            $files = BaseFile::find()->andWhere([
-                'entity_type' => BaseFile::TYPE_ATTACHMENTS, 'entity_id' => $message['id']
+            /** @var File[] $files */
+            $files = File::find()->andWhere([
+                'entity_type' => File::TYPE_ATTACHMENTS, 'entity_id' => $message['id']
             ])->all();
             if (!empty($files)) {
                 echo Html::beginTag('div');
@@ -135,7 +136,7 @@ $this->params['breadcrumbs'][] = $message['title'];
                     ]
                 );
             }
-            if ($message['response']) {
+            if ($message['response'] ?? false) {
                 echo Html::a(
                     $message['canResponse'] ? 'Прочтено' : 'Я внимательно прочитал!',
                     $url,

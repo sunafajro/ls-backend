@@ -70,12 +70,11 @@ class DocumentController extends Controller
     public function actionIndex()
     {
         return $this->render('index', [
-            'fileList'      => File::find()->andWhere([
+            'fileList' => File::find()->andWhere([
                 'entity_type' => File::TYPE_DOCUMENTS,
                 'module_type' => School::MODULE_NAME,
             ])->all(),
-            'uploadForm'    => new UploadForm(),
-            'userInfoBlock' => User::getUserInfoBlock(),
+            'uploadForm' => new UploadForm(),
         ]);
     }
 
