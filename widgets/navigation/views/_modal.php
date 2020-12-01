@@ -1,13 +1,14 @@
 <?php
 /**
- * @var yii\web\View $this
- * @var array        $data
- * @var string       $id
- * @var array        $url
+ * @var View   $this
+ * @var array  $data
+ * @var string $id
+ * @var array  $url
  */
 
-use app\models\BaseFile;
+use app\modules\school\models\File;
 use yii\helpers\Html;
+use yii\web\View;
 ?>
 <div id="<?= $id ?>" class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
@@ -28,9 +29,9 @@ use yii\helpers\Html;
                 </p>
                 <?= $data['body'] ?? '' ?>
                 <?php
-                    /** @var BaseFile[] $files */
-                    $files = BaseFile::find()->andWhere([
-                        'entity_type' => BaseFile::TYPE_ATTACHMENTS, 'entity_id' => $data['mid']
+                    /** @var File[] $files */
+                    $files = File::find()->andWhere([
+                        'entity_type' => File::TYPE_ATTACHMENTS, 'entity_id' => $data['mid']
                     ])->all();
                     if (!empty($files)) {
                         echo Html::beginTag('div');
