@@ -1,7 +1,7 @@
 <?php
 use yii\helpers\ArrayHelper;
-// comment out the following two lines when deployed to production
-defined('YII_DEBUG') or define('YII_DEBUG', isset($_SERVER['YII_DEBUG']) ? $_SERVER['YII_DEBUG'] : 'true');
+
+defined('YII_DEBUG') or define('YII_DEBUG', isset($_SERVER['YII_DEBUG']) ? filter_var($_SERVER['YII_DEBUG'], FILTER_VALIDATE_BOOLEAN) : true);
 defined('YII_ENV') or define('YII_ENV', isset($_SERVER['YII_ENV']) ? $_SERVER['YII_ENV'] : 'dev');
 
 if (YII_ENV === 'maintenance') {
