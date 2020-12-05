@@ -3,6 +3,7 @@
 namespace app\modules\school\controllers;
 
 use app\models\UploadForm;
+use app\modules\school\models\Auth;
 use app\modules\school\models\File;
 use app\modules\school\School;
 use Yii;
@@ -14,7 +15,7 @@ use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 use yii\web\UploadedFile;
-
+// TODO перенести методы в MessageController
 class FilesController extends Controller
 {
     /** @inheritDoc */
@@ -93,7 +94,7 @@ class FilesController extends Controller
     public function actionDownload($id)
     {
         $file = $this->findModel($id);
-
+        // TODO должно быть доступно только администратору, загрузившему файл и адресату сообщения
         return Yii::$app->response->sendFile($file->getPath(), $file->original_name, ['inline' => true]);
     }
 
@@ -107,7 +108,9 @@ class FilesController extends Controller
     public function actionDelete($id)
     {
         $file = $this->findModel($id);
-        if ((int)$file->user_id === (int)Yii::$app->user->identity->id) {
+        /** @var Auth $user */
+        $user = Yii::$app->user->identity;
+        if ($file->user_id === $user->id) {
             Yii::$app->response->format = Response::FORMAT_JSON;
             try {
                 if ($file->delete()) {

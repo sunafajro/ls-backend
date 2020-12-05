@@ -3,6 +3,7 @@
 namespace app\modules\school\controllers;
 
 use app\models\AccessRule;
+use app\modules\school\models\Auth;
 use app\modules\school\models\File;
 use app\modules\school\models\search\FileSearch;
 use app\modules\school\School;
@@ -143,6 +144,12 @@ class DocumentController extends Controller
      */
     public function actionDelete(int $id)
     {
+        /** @var Auth $user */
+        $user   = Yii::$app->user->identity;
+        $roleId = $user->roleId;
+        $userId = $user->id;
+
+        /** @var File $file */
         $file = File::find()->andWhere([
             'id'          => $id,
             'module_type' => School::MODULE_NAME,
@@ -153,6 +160,9 @@ class DocumentController extends Controller
         }
         $errorMessage = Yii::t('app', 'Failed to delete file!');
         try {
+            if (!in_array($roleId, [3]) && $file->user_id !== $userId) {
+                throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+            }
             if ($file->delete()) {
                 Yii::$app->session->setFlash('success', Yii::t('app', 'File successfully deleted!'));
             } else {

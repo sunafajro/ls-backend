@@ -99,7 +99,7 @@ class User extends BaseUser
      */
     public static function findUserByCondition(array $condition, bool $onlyActive = true)
     {
-        return self::find()
+        $userData = self::find()
             ->select([
                 'id'         => 'users.id',
                 'username'   => 'users.login',
@@ -123,6 +123,15 @@ class User extends BaseUser
             ->andWhere($condition)
             ->asArray()
             ->one();
+
+        // принудительное приведение типов
+        foreach ($userData ?? [] as $key => $value) {
+            if (in_array($key, ['id', 'roleId', 'teacherId', 'officeId', 'cityId']) && !empty($value)) {
+                $userData[$key] = intval($value);
+            }
+        }
+
+        return $userData;
     }
 
     /**
