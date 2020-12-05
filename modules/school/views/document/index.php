@@ -1,16 +1,22 @@
 <?php
 
 /**
- * @var View       $this
- * @var UploadForm $uploadForm
- * @var File[]     $fileList
+ * @var View               $this
+ * @var UploadForm         $uploadForm
+ * @var ActiveDataProvider $dataProvider
+ * @var FileSearch         $searchModel
  */
 
 use app\components\helpers\IconHelper;
 use app\models\UploadForm;
 use app\modules\school\models\Auth;
 use app\modules\school\models\File;
+use app\modules\school\models\search\FileSearch;
 use app\widgets\userInfo\UserInfoWidget;
+use yii\data\ActiveDataProvider;
+use yii\grid\ActionColumn;
+use yii\grid\GridView;
+use yii\grid\SerialColumn;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
@@ -23,6 +29,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Documents');
 /** @var Auth $user */
 $user   = Yii::$app->user->identity;
 $roleId = $user->roleId;
+$userId = $user->id;
 ?>
 <div class="row row-offcanvas row-offcanvas-left document-index">
     <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
@@ -57,44 +64,58 @@ $roleId = $user->roleId;
 			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
         </p>
         <?= AlertWidget::widget() ?>
-        <table class="table table-bordered table-stripped table-hover table-condensed">
-            <thead>
-                <th style="width: 5%">№</th>
-                <th><?= Yii::t('app', 'File') ?></th>
-                <th style="width: 10%"><?= Yii::t('app', 'Act.') ?></th>
-            </thead>
-            <tbody>
-                <?php foreach($fileList ?? [] as $key => $file) { ?>
-                    <tr>
-                        <td><?= $key + 1 ?></td>
-                        <td><?= $file->original_name ?></td>
-                        <td>
-                            <?= Html::a(
-                                Html::tag('i', '', ['class' => 'fa fa-download', 'aria-hidden' => 'true']),
-                                [
-                                    'document/download',
-                                    'id' => $file->id,
-                                ],
-                                [
-                                    'target' => '_blank',
-                                    'title'  => Yii::t('app', 'Download'),
-                                ]) ?>
-                            <?php if (in_array($roleId, [3])) { ?>
-                            <?= Html::a(
-                                Html::tag('i', '', ['class' => 'fa fa-trash', 'aria-hidden' => 'true']),
-                                [
-                                    'document/delete',
-                                    'id' => $file->id,
-                                ],
+        <?= GridView::widget([
+            'dataProvider' => $dataProvider,
+            'filterModel'  => $searchModel,
+            'columns' => [
+                ['class' => SerialColumn::class],
+                'original_name' => [
+                    'attribute' => 'original_name',
+                    'format' => 'raw',
+                    'value' => function (File $file) {
+                        return Html::a($file->original_name, [
+                            'document/download',
+                            'id'      => $file->id,
+                        ], ['target' => '_blank']);
+                    }
+                ],
+                'size' => [
+                    'attribute' => 'size',
+                    'format'    => ['shortSize', 2],
+                ],
+                'user_id'     => [
+                    'attribute' => 'user_id',
+                    'value' => function (File $file) {
+                        $user = $file->user ?? null;
+                        return $user->name ?? '';
+                    }
+                ],
+                'create_date' => [
+                    'attribute' => 'create_date',
+                    'format' => ['date', 'php:d.m.Y'],
+                ],
+                [
+                    'class' => ActionColumn::class,
+                    'header' => Yii::t('app', 'Act.'),
+                    'buttons' => [
+                        'delete' => function ($url, File $file) use ($userId, $roleId) {
+                            $canWrite = in_array($roleId, [3]) || $file->user_id === $userId;
+                            return $canWrite ? Html::a(
+                                IconHelper::icon('trash'),
+                                ['document/delete', 'id' => $file->id],
                                 [
                                     'title' => Yii::t('app', 'Delete'),
-                                    'data-method' => 'POST',
-                                ]) ?>
-                            <?php } ?>
-                        </td>
-                    </tr>
-                <?php } ?>
-            </tbody>
-        </table>
+                                    'data' => [
+                                        'method' => 'post',
+                                        'confirm' => 'Вы действительно хотите удалить файл?',
+                                    ],
+                                ]
+                            ) : '';
+                        }
+                    ],
+                    'template' => '{delete}',
+                ],
+            ],
+        ]) ?>
     </div>
 </div>

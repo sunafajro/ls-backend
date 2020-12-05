@@ -4,7 +4,7 @@ namespace app\modules\school\controllers;
 
 use app\models\AccessRule;
 use app\modules\school\models\File;
-use app\modules\school\models\User;
+use app\modules\school\models\search\FileSearch;
 use app\modules\school\School;
 use Yii;
 use yii\base\Action;
@@ -67,13 +67,20 @@ class DocumentController extends Controller
 		}
     }
 
+    /**
+     * @return mixed
+     */
     public function actionIndex()
     {
+        $searchModel = new FileSearch();
+        $dataProvider = $searchModel->search(File::find()->andWhere([
+            'entity_type' => File::TYPE_DOCUMENTS,
+            'module_type' => School::MODULE_NAME,
+        ]), Yii::$app->request->get());
+
         return $this->render('index', [
-            'fileList' => File::find()->andWhere([
-                'entity_type' => File::TYPE_DOCUMENTS,
-                'module_type' => School::MODULE_NAME,
-            ])->all(),
+            'dataProvider' => $dataProvider,
+            'searchModel'  => $searchModel,
             'uploadForm' => new UploadForm(),
         ]);
     }
@@ -87,7 +94,11 @@ class DocumentController extends Controller
     public function actionDownload(int $id)
     {
         /** @var File|null $file */
-        $file = File::find()->andWhere(['id' => $id, 'module_type' => School::MODULE_NAME])->one();
+        $file = File::find()->andWhere([
+            'id'          => $id,
+            'module_type' => School::MODULE_NAME,
+            'entity_type' => File::TYPE_DOCUMENTS,
+        ])->one();
         if (empty($file)) {
             throw new NotFoundHttpException(Yii::t('app', 'File not found!'));
         }
@@ -132,7 +143,11 @@ class DocumentController extends Controller
      */
     public function actionDelete(int $id)
     {
-        $file = File::find()->andWhere(['id' => $id, 'module_type' => School::MODULE_NAME])->one();
+        $file = File::find()->andWhere([
+            'id'          => $id,
+            'module_type' => School::MODULE_NAME,
+            'entity_type' => File::TYPE_DOCUMENTS,
+        ])->one();
         if (empty($file)) {
             throw new NotFoundHttpException(Yii::t('app', 'File not found!'));
         }

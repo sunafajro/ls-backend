@@ -105,20 +105,7 @@ $canWrite  = in_array($user->roleId, [3, 4]) || in_array($user->teacherId, $grou
                     ],
                     'size'     => [
                         'attribute' => 'size',
-                        'value' => function (File $file) {
-                            $result = '';
-                            if (!$file->size) {
-                                $result = '-';
-                            } else if ($file->size > 0 && $file->size < 1000) {
-                                $result = $file->size . ' B';
-                            } else if ($file->size >= 1000 && $file->size < 1000000) {
-                                $result = round($file->size / 1000, 2) . ' KB';
-                            } else if ($file->size >= 1000 && $file->size < 1000000) {
-                                $result = round($file->size / 1000000, 2) . ' MB';
-                            }
-
-                            return $result;
-                        }
+                        'format'    => ['shortSize', 2],
                     ],
                     'user_id'     => [
                         'attribute' => 'user_id',
