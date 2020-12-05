@@ -2,6 +2,7 @@
 
 namespace app\modules\school\controllers;
 
+use app\modules\school\models\News;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -9,9 +10,6 @@ use yii\web\Controller;
 use yii\web\Response;
 use app\modules\school\models\LoginForm;
 use app\modules\school\models\LoginLog;
-use app\models\News;
-use app\models\Tool;
-use app\modules\school\models\User;
 
 class SiteController extends Controller
 {
@@ -64,13 +62,15 @@ class SiteController extends Controller
     public function actionIndex()
     {
         $params = ['month' => date('m'), 'year' => date('Y')];
-        $url_params = self::getUrlParams($params);
+        $urlParams = self::getUrlParams($params);
 
         return $this->render('index',[
-            'url_params'    => $url_params,
-			'news'          => News::getNewsList($url_params['month'], $url_params['year']),
-            'months'        => Tool::getMonthsSimple(),
-            'userInfoBlock' => User::getUserInfoBlock()
+            'urlParams' => $urlParams,
+			'news'      => News::find()
+                ->active()
+                ->andFilterWhere(['MONTH(date)' => $urlParams['month']])
+                ->andFilterWhere(['YEAR(date)'  => $urlParams['year']])
+                ->all(),
 	    ]);
     }
 

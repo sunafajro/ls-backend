@@ -315,11 +315,10 @@ class ReportController extends Controller
 		
         /* выводим данные в вьюз */      
         return $this->render('margin',[
-            'month' => $month,
-            'year' => $year,
-			'teachers' => $teachers,
+            'month'      => $month,
+            'year'       => $year,
+			'teachers'   => $teachers,
             'reportlist' => Report::getReportTypeList(),
-			'userInfoBlock' => User::getUserInfoBlock(),
         ]);
         /* выводим данные в вьюз */
 

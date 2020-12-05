@@ -1,21 +1,40 @@
 <?php
-    use yii\helpers\Html;
-    use yii\widgets\ActiveForm;
-    use yii\widgets\Breadcrumbs;
-    $this->title = 'Система учета :: ' . Yii::t('app', 'News');
-    $this->params['breadcrumbs'][] = Yii::t('app', 'News');
-?>
 
+/**
+ * @var View   $this
+ * @var News[] $news
+ * @var array  $months
+ * @var array  $urlParams
+ */
+
+use app\components\helpers\DateHelper;
+use app\components\helpers\IconHelper;
+use app\modules\school\models\Auth;
+use app\modules\school\models\News;
+use app\widgets\alert\AlertWidget;
+use app\widgets\userInfo\UserInfoWidget;
+use yii\helpers\Html;
+use yii\web\View;
+use yii\widgets\ActiveForm;
+
+$this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'News');
+$this->params['breadcrumbs'][] = Yii::t('app', 'News');
+/** @var Auth $user */
+$user   = Yii::$app->user->identity;
+$roleId = $user->roleId;
+$userId = $user->id;
+?>
 <div class="row row-offcanvas row-offcanvas-left student-view">
-    <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
-        <div id="main-menu"></div>
-        <?php endif; ?>
-        <?= $userInfoBlock ?>
-        <?php if(Yii::$app->session->get('user.ustatus') == 3): ?>
+    <div id="sidebar" class="col-xs-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+        <?= UserInfoWidget::widget() ?>
+        <?php if (in_array($roleId, [3])) { ?>
             <h4><?= Yii::t('app', 'Actions') ?>:</h4>
-            <?= Html::a('<span class="fa fa-plus" aria-hidden="true"></span> ' . Yii::t('app', 'News'), ['news/create'], ['class' => 'btn btn-success btn-sm btn-block']) ?>
-        <?php endif; ?>
+            <?= Html::a(
+                    IconHelper::icon('plus') . ' ' . Yii::t('app', 'News'),
+                    ['news/create'],
+                    ['class' => 'btn btn-success btn-sm btn-block']
+            ) ?>
+        <?php } ?>
         <h4><?= Yii::t('app', 'Filters') ?>:</h4>
         <?php 
             $form = ActiveForm::begin([
@@ -26,66 +45,65 @@
         <div class="form-group">
             <select class="form-control input-sm" name="month">
                 <option value="all"><?= Yii::t('app', '-all months-') ?></option>
-                <?php foreach($months as $key => $value): ?>
-                    <option	value="<?php echo $key; ?>"<?php echo ($key==$url_params['month']) ? ' selected' : ''; ?>><?= $value ?></option>
+                <?php foreach(DateHelper::getMonths() as $key => $value): ?>
+                    <option	value="<?= $key ?>"<?= ($key==$urlParams['month']) ? ' selected' : '' ?>><?= $value ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
         <div class="form-group">
             <select class="form-control input-sm" name="year">
             <?php for($i=2012; $i<=date('Y'); $i++): ?>
-                <option value="<?= $i ?>"<?= ($i==$url_params['year']) ? ' selected' : '' ?>><?= $i ?></option>
+                <option value="<?= $i ?>"<?= ($i==$urlParams['year']) ? ' selected' : '' ?>><?= $i ?></option>
             <?php endfor; ?>
             </select>
         </div>
         <div class="form-group">
-            <?= Html::submitButton('<span class="fa fa-filter" aria-hidden="true"></span> ' . Yii::t('app', 'Apply'), ['class' => 'btn btn-info btn-sm btn-block']) ?>
+            <?= Html::submitButton(
+                    IconHelper::icon('filter') . ' ' . Yii::t('app', 'Apply'),
+                    ['class' => 'btn btn-info btn-sm btn-block']
+            ) ?>
         </div>
         <?php ActiveForm::end(); ?>
     </div>
-    <div id="content" class="col-sm-10">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
-        <?= Breadcrumbs::widget([
-            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
-        ]); ?>
-        <?php endif; ?>
-		<p class="pull-left visible-xs">
-			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
-		</p>
-        <?php if(Yii::$app->session->hasFlash('error')): ?>
-		    <div class="alert alert-danger" role="alert"><?= Yii::$app->session->getFlash('error') ?></div>
-        <?php endif; ?>    
-        <?php if(Yii::$app->session->hasFlash('success')): ?>
-		    <div class='alert alert-success' role='alert'><?= Yii::$app->session->getFlash('success'); ?></div>
-        <?php endif; ?> 
-        <?php if(!empty($news)): ?>
-	    <?php foreach($news as $n): ?>
+    <div id="content" class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+        <?= AlertWidget::widget() ?>
+        <?php if (!empty($news)) { ?>
+	        <?php foreach ($news as $n) { ?>
 				<div class="panel panel-primary">
 					<div class="panel-heading">
-						<?= $n['subject'] ?>
-						<?php if(Yii::$app->session->get('user.uid')==139): ?>
-                            <?= Html::a('', ['news/delete','id'=>$n['id']], 
-                            [
-                                'class'=>'fa fa-trash pull-right', 
-                                'title'=>Yii::t('app','Delete'),
-                                'style'=>'text-decoration:none;color:white',
-                                'data' => [
-                                    'confirm' => Yii::t('app', 'Are you sure?'),
-                                    'method' => 'post',
-                                ],
-                            ]) 
-                        ?>
-                        <?= Html::a('', ['news/update','id'=>$n['id']], ['class'=>'fa fa-pencil pull-right', 'title'=>Yii::t('app','Edit'), 'style'=>'text-decoration:none;color:white']) ?>
-						<?php endif; ?>
+						<?= $n->subject ?>
+						<?php if (in_array($userId, [139])) { ?>
+                            <?= Html::a(
+                                    IconHelper::icon('trash'),
+                                    ['news/delete', 'id' => $n->id],
+                                    [
+                                        'class'=>'pull-right',
+                                        'title'=>Yii::t('app','Delete'),
+                                        'style'=>'text-decoration:none;color:white',
+                                        'data' => [
+                                            'confirm' => Yii::t('app', 'Are you sure?'),
+                                            'method' => 'post',
+                                        ],
+                                    ])
+                            ?>
+                            <?= Html::a(
+                                    IconHelper::icon('pencil'),
+                                    ['news/update', 'id' => $n->id],
+                                    [
+                                        'class' => 'pull-right',
+                                        'title' => Yii::t('app','Edit'),
+                                        'style' => 'text-decoration:none;color:white;margin-right:5px']
+                                ) ?>
+						<?php } ?>
 					</div>
 					<div class="panel-body">
-						<p><?= $n['description'] ?></p>
+						<p><?= $n->body ?></p>
 					</div>
-					<div class='panel-footer'>
-                        <small><em><?= $n['author'] ?> <?= date('d.m.Y',strtotime($n['date'])) ?> в <?= date('H:m',strtotime($n['date'])) ?></em></small>
+					<div class="panel-footer small">
+                        <i><?= $n->user->name ?> <?= date('d.m.Y', strtotime($n->date)) ?> в <?= date('H:m', strtotime($n->date)) ?></i>
 					</div>
 				</div>
-			<?php endforeach; ?>
-        <?php endif; ?>
+			<?php } ?>
+        <?php } ?>
     </div>
 </div>

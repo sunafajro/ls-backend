@@ -6,6 +6,7 @@
  */
 
 use app\modules\school\models\Navigation;
+use app\widgets\userInfo\UserInfoWidget;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\Breadcrumbs;
@@ -26,35 +27,36 @@ $hideModal = $this->context->id === 'message' && in_array($this->context->action
         <?php $this->head() ?>
     </head>
     <body>
-<?php $this->beginBody() ?>
-    <?php if (Yii::$app->params['appMode'] !== 'bitrix' && !Yii::$app->user->isGuest): ?>
-        <?= NavigationWidget::widget([
+<?php
+    $this->beginBody();
+    if (Yii::$app->params['appMode'] !== 'bitrix' && !Yii::$app->user->isGuest) {
+        echo NavigationWidget::widget([
                 'model' => new Navigation(),
                 'hideModal' => $hideModal,
-        ]) ?>
-    <?php endif; ?>
+        ]);
+    } ?>
     <div class="container-fluid">
-        <?php if (Yii::$app->params['appMode'] !== 'bitrix' && !Yii::$app->user->isGuest) : ?>
-        <?= Breadcrumbs::widget([
-            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
-        ]) ?>
-        <?php endif; ?>
-        <?= $content ?>
+        <?php if (Yii::$app->params['appMode'] !== 'bitrix' && !Yii::$app->user->isGuest) { ?>
+            <?= Breadcrumbs::widget([
+                'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+            ]) ?>
+        <?php }
+        echo $content; ?>
     </div>
     <?php if (Yii::$app->params['appMode'] !== 'bitrix') { ?>
-    <footer class="footer">
-        <div class="container-fluid">
-            <span class="text-muted">
-            <?php if (\Yii::$app->user->isGuest) { ?>
-                &copy; Школа иностранных языков "Язык для Успеха" <?= date('Y') ?>
-            <?php } else { ?>
-                version: <?= Yii::$app->params['appVersion'] ?? '-' ?>, env: <?= YII_ENV ?>, debug: <?= var_export(YII_DEBUG, 1) ?>
-            <?php } ?>
-            </span>
-        </div>
-    </footer>
-    <?php } ?>
-<?php $this->endBody() ?>
+        <footer class="footer">
+            <div class="container-fluid">
+                <span class="text-muted">
+                <?php if (\Yii::$app->user->isGuest) { ?>
+                    &copy; Школа иностранных языков "Язык для Успеха" <?= date('Y') ?>
+                <?php } else { ?>
+                    version: <?= Yii::$app->params['appVersion'] ?? '-' ?>, env: <?= YII_ENV ?>, debug: <?= var_export(YII_DEBUG, 1) ?>
+                <?php } ?>
+                </span>
+            </div>
+        </footer>
+    <?php }
+    $this->endBody(); ?>
 </body>
 </html>
-<?php $this->endPage() ?>
+<?php $this->endPage();

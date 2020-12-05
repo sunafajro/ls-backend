@@ -10,24 +10,6 @@ use yii\base\Model;
  */
 class Tool extends Model
 {
-    /* список месяцев */
-    public static function getMonthsSimple() {
-        $months = [];
-        
-        $data = (new \yii\db\Query())
-        ->select('id as id, name as name')
-        ->from('calc_month')
-        ->where('visible=:vis', [':vis' => 1])
-        ->orderby(['id'=>SORT_ASC])
-        ->all();
-        
-        foreach($data as $d){
-            $months[$d['id']] = $d['name'];
-        }
-        
-        return $months;
-    }
-
     /* список дней недели */
     public static function getDayOfWeekSimple() {
         $days = [];

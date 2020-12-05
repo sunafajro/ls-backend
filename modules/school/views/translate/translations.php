@@ -1,17 +1,26 @@
 <?php
-    use yii\helpers\Html;
-    use yii\widgets\ActiveForm;
-    use yii\widgets\Breadcrumbs;
-    $this->title = 'Система учета :: '.Yii::t('app','Translations');
-    $this->params['breadcrumbs'][] = Yii::t('app','Translations');
-?>
 
-<div class="row row-offcanvas row-offcanvas-left schedule-index">
-    <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
-        <div id="main-menu"></div>
-        <?php endif; ?>
-        <?= $userInfoBlock ?>
+/**
+ * @var View  $this
+ * @var array $languages
+ * @var array $translations
+ * @var array $url_params
+ * @var array $years
+ */
+
+use app\components\helpers\DateHelper;
+use app\widgets\alert\AlertWidget;
+use app\widgets\userInfo\UserInfoWidget;
+use yii\helpers\Html;
+use yii\web\View;
+use yii\widgets\ActiveForm;
+
+$this->title = Yii::$app->params['appTitle'] . Yii::t('app','Translations');
+$this->params['breadcrumbs'][] = Yii::t('app','Translations');
+?>
+<div class="row translations-index">
+    <div id="sidebar" class="col-xs-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+        <?= UserInfoWidget::widget() ?>
         <h4><?= Yii::t('app', 'Actions') ?>:</h4>
         <div class="form-group">
             <?= Html::a('<span class="fa fa-plus" aria-hidden="true"></span> ' . Yii::t('app', 'Add'), ['translation/create'], ['class' => 'btn btn-success btn-sm btn-block']) ?>
@@ -70,7 +79,7 @@
 	        <select class='form-control input-sm' name='MONTH'>";
 		        <option value='all'><?= Yii::t('app', '-all months-') ?></option>";
 		    	<?php // распечатываем список месяцев в селект
-		        foreach($months as $key => $value){ ?>
+		        foreach(DateHelper::getMonths() as $key => $value){ ?>
 		            <option value="<?php echo $key; ?>" <?php echo ($key==$url_params['MONTH']) ? ' selected' : ''; ?>><?php echo $value; ?></option>
 		        <?php } ?>
 	        </select>
@@ -89,29 +98,9 @@
         </div>
         <?php ActiveForm::end(); ?>
     </div>
-    <div id="content" class="col-sm-10">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
-        <?= Breadcrumbs::widget([
-            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
-        ]); ?>
-        <?php endif; ?>
-        <p class="pull-left visible-xs">
-            <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
-        </p>
-        <?php if(Yii::$app->session->hasFlash('error')): ?>
-        <div class="alert alert-danger" role="alert">
-            <?= Yii::$app->session->getFlash('error') ?>
-        </div>
-        <?php endif; ?>
-   
-        <?php if(Yii::$app->session->hasFlash('success')): ?>
-        <div class="alert alert-success" role="alert">
-            <?= Yii::$app->session->getFlash('success') ?>
-        </div>
-        <?php endif; ?>
-        
+    <div id="content" class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+        <?= AlertWidget::widget() ?>
         <?php $sum = 0; ?>
-
         <table class="table table-stripped table-bordered table-hover table-condensed small">
             <thead>
                 <tr>

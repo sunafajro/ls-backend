@@ -32,10 +32,7 @@ $roleId = $user->roleId;
 $userId = $user->id;
 ?>
 <div class="row row-offcanvas row-offcanvas-left document-index">
-    <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
-		<?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
-            <div id="main-menu"></div>
-        <?php } ?>
+    <div id="sidebar" class="col-xs-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
         <?= UserInfoWidget::widget() ?>
         <?php if (in_array($roleId, [3, 4])) { ?>
             <h4><?= Yii::t('app', 'Actions') ?></h4>
@@ -54,15 +51,7 @@ $userId = $user->id;
             <?php ActiveForm::end(); ?>
         <?php } ?>
 	</div>
-	<div id="content" class="col-sm-10">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
-        <?= Breadcrumbs::widget([
-            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
-        ]); ?>
-        <?php } ?>
-		<p class="pull-left visible-xs">
-			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
-        </p>
+	<div id="content" class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
         <?= AlertWidget::widget() ?>
         <?= GridView::widget([
             'dataProvider' => $dataProvider,

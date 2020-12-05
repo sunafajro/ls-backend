@@ -74,9 +74,7 @@ class TranslateController extends Controller
         $params = self::getUrlParams($url_params);
         
         return $this->render('translations', [
-            'userInfoBlock' => User::getUserInfoBlock(),
             'languages' => Translationlang::getLanguageListSimple(),
-            'months' => Tool::getMonthsSimple(),
             'years' => Tool::getYearsSimple(),
             'translations'=> Translation::getTranslationList($params),
             'url_params' => $params
