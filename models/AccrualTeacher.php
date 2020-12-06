@@ -427,55 +427,52 @@ class AccrualTeacher extends \yii\db\ActiveRecord
      */
     public static function getViewedLessonList(array $list, array $order, int $gid = NULL, array $dateRange = null) : array
     {
-        $dateRangeExpression = [
-            'and',
-            ['>=', 'jg.data', $dateRange[0]],
-            ['<=', 'jg.data', $dateRange[1]],
+        $dateRangeExpression = ['and',
+            ['>=', 'jg.data', $dateRange[0] ?? null],
+            ['<=', 'jg.data', $dateRange[1] ?? null],
         ];
         /* формируем подзапрос для выборки количество учеников на занятии */
         $SubQuery = (new \yii\db\Query())
         ->select('count(sjg.id)')
-        ->from('calc_studjournalgroup sjg')
+        ->from(['sjg' => Studjournalgroup::tableName()])
         ->where('sjg.calc_statusjournal = 1 and sjg.calc_journalgroup = jg.id');
         
         /* получаем данные по занятиям ожидающим начисление */
-        $lessons = (new \yii\db\Query()) 
-		->select([
-		    'id'          => 'jg.id',
-            'date'        => 'jg.data',
-            'groupId'     => 'jg.calc_groupteacher',
-            'serviceId'   => 's.id',
-            'service'     => 's.name',
-		    'time'        => 'tn.value',
-            'teacherId'   => 'jg.calc_teacher',
-            'level'       => 'el.name',
-            'office'      => 'o.name',
-            'description' => 'jg.description',
-            'eduTimeId'   => 'jg.calc_edutime',
-            'viewed'      => 'jg.view',
-            'corp'        => 'gt.corp',
-            'languageId'  => 's.calc_lang',
-            'company'     => 'gt.company',
-        ])
-        ->addSelect(['studentCount' => $SubQuery])
-        ->from(['jg' => Journalgroup::tableName()])
-        ->leftJoin(['gt' => Groupteacher::tableName()], 'gt.id = jg.calc_groupteacher')
-        ->leftJoin(['s' => Service::tableName()], 's.id = gt.calc_service')
-        ->leftJoin(['tn' => Timenorm::tableName()], 'tn.id = s.calc_timenorm')
-        ->leftJoin(['el' => Edulevel::tableName()], 'el.id = gt.calc_edulevel')
-        ->leftJoin(['o' => Office::tableName()], 'o.id = gt.calc_office')
-        ->where([
-            'jg.done'    => 0,
-            'jg.view'    => 1,
-            'jg.visible' => 1
-        ])
-        ->andWhere(['in', 'jg.calc_teacher', $list])
-        ->andFilterWhere(['jg.calc_groupteacher' => $gid])
-        ->andFilterWhere($dateRangeExpression)
-        ->orderby($order)
-        ->all();
-        
-        return $lessons;
+        return (new \yii\db\Query())
+            ->select([
+                'id'          => 'jg.id',
+                'date'        => 'jg.data',
+                'groupId'     => 'jg.calc_groupteacher',
+                'serviceId'   => 's.id',
+                'service'     => 's.name',
+                'time'        => 'tn.value',
+                'teacherId'   => 'jg.calc_teacher',
+                'level'       => 'el.name',
+                'office'      => 'o.name',
+                'description' => 'jg.description',
+                'eduTimeId'   => 'jg.calc_edutime',
+                'viewed'      => 'jg.view',
+                'corp'        => 'gt.corp',
+                'languageId'  => 's.calc_lang',
+                'company'     => 'gt.company',
+            ])
+            ->addSelect(['studentCount' => $SubQuery])
+            ->from(['jg' => Journalgroup::tableName()])
+            ->leftJoin(['gt' => Groupteacher::tableName()], 'gt.id = jg.calc_groupteacher')
+            ->leftJoin(['s'  => Service::tableName()], 's.id = gt.calc_service')
+            ->leftJoin(['tn' => Timenorm::tableName()], 'tn.id = s.calc_timenorm')
+            ->leftJoin(['el' => Edulevel::tableName()], 'el.id = gt.calc_edulevel')
+            ->leftJoin(['o'  => Office::tableName()], 'o.id = gt.calc_office')
+            ->where([
+                'jg.done'    => 0,
+                'jg.view'    => 1,
+                'jg.visible' => 1
+            ])
+            ->andWhere(['in', 'jg.calc_teacher', $list])
+            ->andFilterWhere(['jg.calc_groupteacher' => $gid])
+            ->andFilterWhere($dateRangeExpression)
+            ->orderby($order)
+            ->all();
 	}
 
     /**

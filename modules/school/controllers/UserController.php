@@ -2,6 +2,7 @@
 
 namespace app\modules\school\controllers;
 
+use app\modules\school\models\Auth;
 use app\modules\school\School;
 use Yii;
 use app\models\City;
@@ -24,7 +25,7 @@ class UserController extends Controller
 {
     public function behaviors()
     {
-        $rules = ['index','create','update','delete','enable','disable','upload','changepass', 'app-info'];
+        $rules = ['index','create','update','delete','enable','disable','upload','change-password','app-info','view'];
         return [
             'access' => [
                 'class' => AccessControl::class,
@@ -56,19 +57,22 @@ class UserController extends Controller
      */
     public function actionIndex(string $active = '1', string $role = null)
     {
-        if ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.uid') !== 296) {
+        /** @var Auth $user */
+        $user = Yii::$app->user->identity;
+
+        if ($user->roleId !== 3 && $user->id !== 296) {
             throw new ForbiddenHttpException();
         }
+
         $urlParams = [];
 
         $urlParams['active'] = $active !== 'all' ? $active : NULL;
         $urlParams['role']   =  $role && $role !== 'all' ? $role : NULL;;
 
         return $this->render('index', [
-            'statuses'      => Role::getRolesList(),
-            'urlParams'     => $urlParams,
-            'userInfoBlock' => User::getUserInfoBlock(),
-            'users'         => User::getUserListFiltered($urlParams),
+            'statuses'  => Role::getRolesList(),
+            'urlParams' => $urlParams,
+            'users'     => User::getUserListFiltered($urlParams),
         ]);
     }
 
@@ -82,7 +86,10 @@ class UserController extends Controller
      */
     public function actionCreate()
     {
-        if(Yii::$app->session->get('user.ustatus') != 3 && (int)Yii::$app->session->get('user.uid') !== 296){
+        /** @var Auth $user */
+        $user = Yii::$app->user->identity;
+
+        if ($user->roleId !== 3 && $user->id !== 296) {
             throw new ForbiddenHttpException();
         }
 
@@ -102,12 +109,11 @@ class UserController extends Controller
         }
 
         return $this->render('create', [
-            'model'         => $model,
-            'teachers'      => Teacher::getTeachersInUserListSimple(),
-            'statuses'      => Role::getRolesListSimple(),
-            'offices'       => Office::getOfficesListSimple(),
-            'cities'        => City::getCitiesInUserListSimple(),
-            'userInfoBlock' => User::getUserInfoBlock(),
+            'model'    => $model,
+            'teachers' => Teacher::getTeachersInUserListSimple(),
+            'statuses' => Role::getRolesListSimple(),
+            'offices'  => Office::getOfficesListSimple(),
+            'cities'   => City::getCitiesInUserListSimple(),
         ]);
     }
 
@@ -115,14 +121,17 @@ class UserController extends Controller
      * Метод обновляет информацию о пользователе (кроме пароля и фото).
      * В случае успешности переходим на страницу со списком пользователей.
      * Метод доступен только руководителям (Роль 3).
-     * @param integer $id
+     * @param string $id
      *
      * @return mixed
      * @throws NotFoundHttpException
      */
-    public function actionUpdate($id)
+    public function actionUpdate(string $id)
     {
-        if ((int)Yii::$app->session->get('user.ustatus')!==3 && (int)Yii::$app->session->get('user.uid') !== 296) {
+        /** @var Auth $user */
+        $user = Yii::$app->user->identity;
+
+        if ($user->roleId !== 3 && $user->id !== 296) {
             throw new ForbiddenHttpException();
         }
 
@@ -153,26 +162,29 @@ class UserController extends Controller
         }
 
         return $this->render('update', [
-            'model'         => $model,
-            'teachers'      => Teacher::getTeachersInUserListSimple(),
-            'statuses'      => Role::getRolesListSimple(),
-            'offices'       => Office::getOfficesListSimple(),
-            'cities'        => City::getCitiesInUserListSimple(),
-            'userInfoBlock' => User::getUserInfoBlock(),
+            'model'    => $model,
+            'teachers' => Teacher::getTeachersInUserListSimple(),
+            'statuses' => Role::getRolesListSimple(),
+            'offices'  => Office::getOfficesListSimple(),
+            'cities'   => City::getCitiesInUserListSimple(),
         ]);
     }
 
     /**
-     * Deletes an existing User model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param integer $id
-     * @return mixed
+     * @param string $id
      *
+     * @return mixed
+     * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
      */
-    public function actionDelete($id)
+    public function actionDelete(string $id)
     {
-        if (Yii::$app->session->get('user.ustatus')!=3){
+        /** @var Auth $user */
+        $user = Yii::$app->user->identity;
+
+        if ($user->roleId !== 3) {
             throw new ForbiddenHttpException();
         }
 
@@ -181,45 +193,70 @@ class UserController extends Controller
         return $this->redirect(['index']);
     }
 
-    public function actionEnable($id)
+    /**
+     * @param string $id
+     *
+     * @return mixed
+     * @throws NotFoundHttpException
+     */
+    public function actionEnable(string $id)
     {
-        if((int)Yii::$app->session->get('user.ustatus')!==3 && (int)Yii::$app->session->get('user.uid') !== 296){
-            return $this->redirect(Yii::$app->request->referrer);
+        /** @var Auth $user */
+        $user = Yii::$app->user->identity;
+
+        if ($user->roleId !== 3 && $user->id !== 296){
+            throw new ForbiddenHttpException();
         }
 
-        // получаем информацию по пользователю
-        $model=$this->findModel($id);
-        //проверяем текущее состояние
-        if($model->visible==0){
+        $model = $this->findModel($id);
+
+        if ($model->visible === 0) {
             $model->visible = 1;
-            $model->save();
-	}
+            $model->save(true, ['visible']);
+	    }
 
         return $this->redirect(['index']);
     }
 
-    public function actionDisable($id)
+    /**
+     * @param string $id
+     * @return Response
+     * @throws NotFoundHttpException
+     */
+    public function actionDisable(string $id)
     {
-        if((int)Yii::$app->session->get('user.ustatus')!==3 && (int)Yii::$app->session->get('user.uid') !== 296){
-            return $this->redirect(Yii::$app->request->referrer);
+        /** @var Auth $user */
+        $user = Yii::$app->user->identity;
+
+        if ($user->roleId !== 3 && $user->id !== 296){
+            throw new ForbiddenHttpException();
         }
 
-        // получаем информацию по пользователю
-        $model=$this->findModel($id);
-        //проверяем текущее состояние
-        if($model->visible==1){
-	    $model->visible = 0;
-            $model->save();
-	}
-    return $this->redirect(['index']);
+        $model = $this->findModel($id);
+        if ($model->visible === 1) {
+	        $model->visible = 0;
+            $model->save(true, ['visible']);
+	    }
+
+        return $this->redirect(['index']);
     }
 
+    /**
+     * @param string $id
+     *
+     * @return mixed
+     * @throws NotFoundHttpException
+     * @throws \yii\base\Exception
+     */
     public function actionUpload(string $id)
     {
-        if((int)Yii::$app->session->get('user.ustatus') !== 3 &&
-           (int)Yii::$app->session->get('user.uid') !== 296) {
-            return $this->redirect(Yii::$app->request->referrer);
+        /** @var Auth $user */
+        $user = Yii::$app->user->identity;
+
+        if ($user->roleId !== 3 && $user->id !== 296){
+            throw new ForbiddenHttpException();
         }
+
         $user = $this->findModel($id);
         if ($user !== NULL) {
             $model = new UploadForm();
@@ -235,48 +272,56 @@ class UserController extends Controller
             }
             return $this->render('upload', [
                 'model' => $model,
-                'user' => $user,
-                'userInfoBlock' => User::getUserInfoBlock()
+                'user'  => $user,
             ]);
         } else {
             throw new NotFoundHttpException(Yii::t('yii', 'The requested page does not exist.'));
         }
     }
 
-    public function actionChangepass($id)
+    /**
+     * @param $id
+     *
+     * @return mixed
+     * @throws NotFoundHttpException
+     * @throws \yii\db\Exception
+     */
+    public function actionChangePassword($id)
     {
-        if((int)Yii::$app->session->get('user.ustatus')!==3 && (int)Yii::$app->session->get('user.uid') !== 296){
-            return $this->redirect(Yii::$app->request->referrer);
+        /** @var Auth $user */
+        $user = Yii::$app->user->identity;
+
+        if ($user->roleId !== 3 && $user->id !== 296){
+            throw new ForbiddenHttpException();
         }
 
         $model = $this->findModel($id);
         $model->pass = '';
-        if(Yii::$app->request->post()){
+        if (Yii::$app->request->post()) {
             $pass = Yii::$app->request->post('User')['pass'];
-            $passr = Yii::$app->request->post('User')['pass_repeat'];
+            $passRepeat = Yii::$app->request->post('User')['pass_repeat'];
 
-            if($pass == $passr){
+            if ($pass === $passRepeat){
                 $password = md5($pass);
                 $db = (new \yii\db\Query())
                 ->createCommand()
                 ->update(User::tableName(), ['pass' => $password], ['id'=>$id])
                 ->execute();
-                Yii::$app->session->setFlash('success', \Yii::t('app','Password succesfuly changed!'));
-                return $this->redirect(['changepass','id'=>$id]);
+                Yii::$app->session->setFlash('success', \Yii::t('app','Password successfully changed!'));
+                return $this->redirect(['change-password','id' => $id]);
             } else {
                 Yii::$app->session->setFlash('error', \Yii::t('app','Passwords did not match!'));
-                return $this->redirect(['changepass','id'=>$id]);
+                return $this->redirect(['change-password','id' => $id]);
             }
         }
-        return $this->render('changepass', [
+        return $this->render('change-password', [
             'model' => $model,
-            'userInfoBlock' => User::getUserInfoBlock()
         ]);
     }
 
     /**
      * Запрос данных текущего пользователя (для js приложений)
-     * @return array
+     * @return mixed
      */
     public function actionAppInfo()
     {
@@ -284,6 +329,27 @@ class UserController extends Controller
         return [
             'userData' => User::getUserInfo()
         ];
+    }
+
+    /**
+     * @param string $id
+     *
+     * @return mixed
+     */
+    public function actionView(string $id)
+    {
+        /** @var Auth $user */
+        $user = Yii::$app->user->identity;
+
+        if ($user->roleId !== 3 && $user->id !== (int)$id){
+            throw new ForbiddenHttpException();
+        }
+
+        $model = $this->findModel($id);
+
+        return $this->render('view', [
+            'model' => $model,
+        ]);
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace app\modules\school\models;
 
+use app\components\helpers\IconHelper;
 use app\models\BaseUser;
 use app\models\City;
 use app\models\Office;
@@ -182,21 +183,27 @@ class User extends BaseUser
      * 
      * @return string
      */
-    public static function getUserInfoBlock()
+    public static function getUserInfoBlock() : string
     {
         /** @var Auth $user */
         $user = Yii::$app->user->identity;
         $array = [];
         $array[] = Html::beginTag('div', ['class' => 'well well-sm small']);
-		$array[] = Html::tag('b', $user->fullName);
         if ($user->teacherId) {
-            $array[] = Html::a('', ['teacher/view', 'id' => $user->teacherId], ['class'=>'fa fa-user btn btn-default btn-xs']);
-        }            
+            $array[] = Html::a(
+                IconHelper::icon('user') . ' ' . Html::tag('b', $user->fullName),
+                ['teacher/view', 'id' => $user->teacherId],
+                ['title' => 'Перейти в профиль преподавателя']
+            );
+        } else {
+            $array[] = Html::tag('b', $user->fullName);
+        }
         $array[] = Html::tag('br');
-        $array[] = Html::tag('i', $user->roleName);
+        $array[] = Html::tag('i', $user->roleName)
+            . ($user->roleId === 4 ? ' ' . Html::a(IconHelper::icon('clock-o'), ['user/view', 'id' => $user->id], ['title' => 'Учет рабочего времени']) : '');
         if ($user->roleId === 4) {
             $array[] = Html::tag('br');
-            $array[] = $user->officeName;
+            $array[] = IconHelper::icon('building') . ' ' . $user->officeName;
         }
         $array[] = Html::endTag('div');
         
@@ -208,7 +215,7 @@ class User extends BaseUser
      * 
      * @return array
      */
-    public static function getUserInfo()
+    public static function getUserInfo() : array
     {
         $userData = [];
 
@@ -228,6 +235,19 @@ class User extends BaseUser
         }
 
         return $userData;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getImageWebPath()
+    {
+        $image = Yii::getAlias("@uploads/user/{$this->id}/logo/{$this->logo}");
+        if (file_exists($image)) {
+            return "/uploads/user/{$this->id}/logo/{$this->logo}";
+        }
+
+        return null;
     }
 
     /* метод генерирует html блок с информацией о текущем пользователе */

@@ -1,28 +1,32 @@
 <?php
 
 /**
- * @var array  $statuses
- * @var array  $urlParams
- * @var string $userInfoBlock
- * $var array  $users
+ * @var View  $this
+ * @var array $statuses
+ * @var array $urlParams
+ * @var array $users
  */
 
+use app\components\helpers\IconHelper;
+use app\widgets\alert\AlertWidget;
+use app\widgets\userInfo\UserInfoWidget;
 use yii\helpers\Html;
+use yii\web\View;
 use yii\widgets\ActiveForm;
-use yii\widgets\Breadcrumbs;
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app','Users');
 $this->params['breadcrumbs'][] = Yii::t('app','Users');
 ?>
-<div class="row row-offcanvas row-offcanvas-left user-index">
-    <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
-        <div id="main-menu"></div>
-        <?php endif; ?>
-        <?= $userInfoBlock ?>
+<div class="row user-index">
+    <div id="sidebar" class="col-xs-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+        <?= UserInfoWidget::widget() ?>
         <h4><?= Yii::t('app', 'Actions') ?>:</h4>
         <div class="form-group">
-            <?= Html::a('<span class="fa fa-plus" aria-hidden="true"></span> ' . Yii::t('app', 'Add'), ['user/create'], ['class' => 'btn btn-success btn-sm btn-block']) ?>
+            <?= Html::a(
+                    IconHelper::icon('plus') . ' ' . Yii::t('app', 'Add'),
+                    ['user/create'],
+                    ['class' => 'btn btn-success btn-sm btn-block']
+            ) ?>
         </div>
         <h4><?= Yii::t('app', 'Filters') ?>:</h4>
         <?php
@@ -47,31 +51,15 @@ $this->params['breadcrumbs'][] = Yii::t('app','Users');
             </select>
         </div>
         <div class="form-group">
-            <?= Html::submitButton('<span class="fa fa-filter" aria-hidden="true"></span> ' . Yii::t('app', 'Apply'), ['class' => 'btn btn-info btn-sm btn-block']) ?>
+            <?= Html::submitButton(
+                    IconHelper::icon('filter') . ' ' . Yii::t('app', 'Apply'),
+                    ['class' => 'btn btn-info btn-sm btn-block']
+            ) ?>
         </div>
         <?php ActiveForm::end(); ?>
     </div>
-    <div id="content" class="col-sm-10">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
-        <?= Breadcrumbs::widget([
-            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
-        ]); ?>
-        <?php endif; ?>
-        <p class="pull-left visible-xs">
-            <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
-        </p>
-        <?php if(Yii::$app->session->hasFlash('error')): ?>
-        <div class="alert alert-danger" role="alert">
-            <?= Yii::$app->session->getFlash('error') ?>
-        </div>
-        <?php endif; ?>
-
-        <?php if(Yii::$app->session->hasFlash('success')): ?>
-        <div class="alert alert-success" role="alert">
-            <?= Yii::$app->session->getFlash('success') ?>
-        </div>
-        <?php endif; ?>
-
+    <div id="content" class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+        <?= AlertWidget::widget() ?>
         <table class="table table-hover table-stripped table-bordered table-condensed small">
             <thead>
                 <tr>
@@ -83,24 +71,28 @@ $this->params['breadcrumbs'][] = Yii::t('app','Users');
                 </tr>
             </thead>
             <tbody>
-            <?php foreach($users as $u) : ?>
+            <?php foreach($users as $u) { ?>
                 <tr>
-                    <td><?= $u['name'] ?></td>
+                    <td><?= Html::a($u['name'], ['user/view', 'id' => $u['id']]) ?></td>
                     <td><?= $u['login'] ?></td>
                     <td><?= $u['role'] ?></td>
                     <td><?= $u['office'] ?></td>
                     <td>
-                        <?php if ((int)$u['visible'] === 1) : ?>
-                            <?= Html::a('<span class="fa fa-times"></span>', ['user/disable', 'id' => $u['id']], ['Title' => Yii::t('app', 'Disable user')]) ?>
-                            <?= Html::a('<span class="fa fa-pencil" aria-hidden="true"></span>', ['user/update', 'id' => $u['id']], ['title' => Yii::t('app', 'Update user')]) ?>
-                            <?= Html::a('<span class="fa fa-key" aria-hidden="true"></span>', ['user/changepass', 'id' => $u['id']], ['title' => Yii::t('app', 'Change password')]) ?>
-                            <?= Html::a('<span class="fa fa-picture-o" aria-hidden="true"></span>', ['user/upload', 'id' => $u['id']], ['title' => Yii::t('app', 'Add picture')]) ?>
-                        <?php else : ?>
-                            <?= Html::a('<span class="fa fa-check"></span>', ['user/enable', 'id' => $u['id']], ['Title' => Yii::t('app', 'Enable user')]) ?>
-                        <?php endif; ?>
+                        <?php if ((int)$u['visible'] === 1) { ?>
+                            <?= Html::a(
+                                    IconHelper::icon('times'),
+                                    ['user/disable', 'id' => $u['id']],
+                                    ['Title' => Yii::t('app', 'Disable user')]
+                            ) ?>
+                            <?= Html::a(IconHelper::icon('pencil'), ['user/update', 'id' => $u['id']], ['title' => Yii::t('app', 'Update user')]) ?>
+                            <?= Html::a(IconHelper::icon('key'), ['user/change-password', 'id' => $u['id']], ['title' => Yii::t('app', 'Change password')]) ?>
+                            <?= Html::a(IconHelper::icon('picture-o'), ['user/upload', 'id' => $u['id']], ['title' => Yii::t('app', 'Add picture')]) ?>
+                        <?php } else { ?>
+                            <?= Html::a(IconHelper::icon('check'), ['user/enable', 'id' => $u['id']], ['Title' => Yii::t('app', 'Enable user')]) ?>
+                        <?php } ?>
                     </td>
                 </tr>
-            <?php endforeach; ?>
+            <?php } ?>
             </tbody>
         </table>
     </div>

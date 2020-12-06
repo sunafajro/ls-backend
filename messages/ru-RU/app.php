@@ -104,6 +104,7 @@ return array(
     'Cash' => 'Наличные',
     'Cash +' => 'Наличка +',
     'Cash -' => 'Наличка -',
+    'Change' => 'Изменить',
     'Change lesson members' => 'Редактировать состав занятия',
     'Change password' => 'Изменить пароль',
     'Check' => 'Проверить',
