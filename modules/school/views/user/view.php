@@ -14,6 +14,7 @@ use app\widgets\userInfo\UserInfoWidget;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\web\View;
+use yii\widgets\ActiveForm;
 use yii\widgets\DetailView;
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app','Profile') . ': ' . $model->name;
@@ -25,6 +26,19 @@ UserViewAsset::register($this);
 <div class="row user-view">
     <div id="sidebar" class="col-xs-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
         <?= UserInfoWidget::widget() ?>
+        <h4><?= Yii::t('app', 'Actions') ?>:</h4>
+        <?php $form = ActiveForm::begin(); ?>
+        <div class="form-group">
+
+        </div>
+        <div class="form-group">
+            <?= Html::a(
+                IconHelper::icon('plus') . ' ' . Yii::t('app', 'Add'),
+                ['user/create'],
+                ['class' => 'btn btn-success btn-sm btn-block']
+            ) ?>
+        </div>
+        <?php ActiveForm::end(); ?>
     </div>
     <div id="content" class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
         <?= AlertWidget::widget() ?>

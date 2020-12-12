@@ -423,6 +423,7 @@ return array(
     'Primary' => 'Основной',
     'Print' => 'Распечатать',
     'Print symbols count' => 'Кол-во печатных символов',
+    'Profile' => 'Профиль',
     'Publish' => 'Опубликовать',
     'Published' => 'Опубликован',
     'Publish date' => 'Дата добавления',

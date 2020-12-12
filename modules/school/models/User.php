@@ -8,6 +8,7 @@ use app\models\City;
 use app\models\Office;
 use app\models\Teacher;
 use app\modules\school\School;
+use app\widgets\userInfo\UserInfoWidget;
 use Yii;
 use yii\db\ActiveQuery;
 use yii\db\Query;
@@ -175,39 +176,14 @@ class User extends BaseUser
     {
         return $this->hasOne(Teacher::class, ['id' => 'calc_teacher']);
     }
-    
+
     /**
-     * 
-     * Метод генерирует html блок с краткой информацией о текущем пользователе.
-     * Блок размещается в боковое меню.
-     * 
      * @return string
+     * @throws \Exception
      */
     public static function getUserInfoBlock() : string
     {
-        /** @var Auth $user */
-        $user = Yii::$app->user->identity;
-        $array = [];
-        $array[] = Html::beginTag('div', ['class' => 'well well-sm small']);
-        if ($user->teacherId) {
-            $array[] = Html::a(
-                IconHelper::icon('user') . ' ' . Html::tag('b', $user->fullName),
-                ['teacher/view', 'id' => $user->teacherId],
-                ['title' => 'Перейти в профиль преподавателя']
-            );
-        } else {
-            $array[] = Html::tag('b', $user->fullName);
-        }
-        $array[] = Html::tag('br');
-        $array[] = Html::tag('i', $user->roleName)
-            . ($user->roleId === 4 ? ' ' . Html::a(IconHelper::icon('clock-o'), ['user/view', 'id' => $user->id], ['title' => 'Учет рабочего времени']) : '');
-        if ($user->roleId === 4) {
-            $array[] = Html::tag('br');
-            $array[] = IconHelper::icon('building') . ' ' . $user->officeName;
-        }
-        $array[] = Html::endTag('div');
-        
-        return join('', $array);
+        return UserInfoWidget::widget();
     }
 
     /**

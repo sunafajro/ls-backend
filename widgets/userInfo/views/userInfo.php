@@ -20,7 +20,7 @@ use yii\web\View;
         <b><?= $user->fullName ?></b>
     <?php } ?>
     <br />
-    <i><?= $user->roleName ?></i> <?= $user->roleId === 4 ? Html::a(IconHelper::icon('clock-o'), ['user/view', 'id' => $user->id], ['title' => 'Учет рабочего времени']) : '' ?>
+    <i><?= $user->roleName ?></i> <?= Html::a(IconHelper::icon('cogs'), ['user/view', 'id' => $user->id], ['title' => 'Настройки']) ?>
     <?php if ($user->roleId === 4) { ?>
     <br />
     <?= IconHelper::icon('building') ?> <?= $user->officeName ?>
