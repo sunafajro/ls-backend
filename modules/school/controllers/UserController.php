@@ -12,10 +12,10 @@ use app\modules\school\models\Role;
 use app\modules\school\models\User;
 use app\models\UploadForm;
 use yii\filters\AccessControl;
+use yii\filters\VerbFilter;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
-use yii\web\Response;
 use yii\web\UploadedFile;
 
 /**
@@ -42,7 +42,13 @@ class UserController extends Controller
                         'roles' => ['@'],
                     ],
                 ],
-            ]
+            ],
+            'verbs' => [
+                'class' => VerbFilter::class,
+                'actions' => [
+                    'change-password' => ['POST'],
+                ],
+            ],
         ];
     }
 
@@ -61,7 +67,7 @@ class UserController extends Controller
         $user = Yii::$app->user->identity;
 
         if ($user->roleId !== 3 && $user->id !== 296) {
-            throw new ForbiddenHttpException();
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
         $urlParams = [];
@@ -90,7 +96,7 @@ class UserController extends Controller
         $user = Yii::$app->user->identity;
 
         if ($user->roleId !== 3 && $user->id !== 296) {
-            throw new ForbiddenHttpException();
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
         $model = new User();
@@ -124,6 +130,7 @@ class UserController extends Controller
      * @param string $id
      *
      * @return mixed
+     * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
      */
     public function actionUpdate(string $id)
@@ -132,7 +139,7 @@ class UserController extends Controller
         $user = Yii::$app->user->identity;
 
         if ($user->roleId !== 3 && $user->id !== 296) {
-            throw new ForbiddenHttpException();
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
         $model = $this->findModel($id);
@@ -185,7 +192,7 @@ class UserController extends Controller
         $user = Yii::$app->user->identity;
 
         if ($user->roleId !== 3) {
-            throw new ForbiddenHttpException();
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
         $this->findModel($id)->delete();
@@ -197,6 +204,7 @@ class UserController extends Controller
      * @param string $id
      *
      * @return mixed
+     * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
      */
     public function actionEnable(string $id)
@@ -205,7 +213,7 @@ class UserController extends Controller
         $user = Yii::$app->user->identity;
 
         if ($user->roleId !== 3 && $user->id !== 296){
-            throw new ForbiddenHttpException();
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
         $model = $this->findModel($id);
@@ -215,12 +223,14 @@ class UserController extends Controller
             $model->save(true, ['visible']);
 	    }
 
-        return $this->redirect(['index']);
+        return $this->redirect(Yii::$app->request->referrer);
     }
 
     /**
      * @param string $id
-     * @return Response
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
      */
     public function actionDisable(string $id)
@@ -229,7 +239,7 @@ class UserController extends Controller
         $user = Yii::$app->user->identity;
 
         if ($user->roleId !== 3 && $user->id !== 296){
-            throw new ForbiddenHttpException();
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
         $model = $this->findModel($id);
@@ -238,13 +248,14 @@ class UserController extends Controller
             $model->save(true, ['visible']);
 	    }
 
-        return $this->redirect(['index']);
+        return $this->redirect(Yii::$app->request->referrer);
     }
 
     /**
      * @param string $id
      *
      * @return mixed
+     * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
      * @throws \yii\base\Exception
      */
@@ -254,7 +265,7 @@ class UserController extends Controller
         $user = Yii::$app->user->identity;
 
         if ($user->roleId !== 3 && $user->id !== 296){
-            throw new ForbiddenHttpException();
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
         $user = $this->findModel($id);
@@ -263,10 +274,13 @@ class UserController extends Controller
             if (Yii::$app->request->isPost) {
                 $model->file = UploadedFile::getInstance($model, 'file');
                 if ($model->file && $model->validate()) {
-                    $spath = Yii::getAlias('@uploads/user');
-                    $filename = $model->resizeAndSave($spath, $id, 'logo');
+                    $filename = $model->resizeAndSave(Yii::getAlias('@uploads/user'), $id, 'logo');
                     $user->logo = $filename;
-                    $user->save();
+                    if ($user->save()) {
+                        Yii::$app->session->setFlash('success', 'Изображение пользователя успешно изменено!');
+                    } else {
+                        Yii::$app->session->setFlash('error', 'Не удалось изменить изображение пользователя!');
+                    }
                     return $this->redirect(['user/upload','id' => $id]);
                 }
             }
@@ -283,6 +297,7 @@ class UserController extends Controller
      * @param $id
      *
      * @return mixed
+     * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
      * @throws \yii\db\Exception
      */
@@ -291,32 +306,31 @@ class UserController extends Controller
         /** @var Auth $user */
         $user = Yii::$app->user->identity;
 
-        if ($user->roleId !== 3 && $user->id !== 296){
-            throw new ForbiddenHttpException();
+        if ($user->roleId !== 3 && !in_array($user->id, [(int)$id, 296])){
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
         $model = $this->findModel($id);
-        $model->pass = '';
-        if (Yii::$app->request->post()) {
-            $pass = Yii::$app->request->post('User')['pass'];
-            $passRepeat = Yii::$app->request->post('User')['pass_repeat'];
-
-            if ($pass === $passRepeat){
-                $password = md5($pass);
-                $db = (new \yii\db\Query())
-                ->createCommand()
-                ->update(User::tableName(), ['pass' => $password], ['id'=>$id])
-                ->execute();
-                Yii::$app->session->setFlash('success', \Yii::t('app','Password successfully changed!'));
-                return $this->redirect(['change-password','id' => $id]);
+        $result = [
+            'success' => true,
+            'message' => null,
+        ];
+        if ($model->load(Yii::$app->request->post())) {
+            if ($model->validate(['pass'])) {
+                $model->pass = md5($model->pass);
+                if (!$model->save(true, ['pass'])) {
+                    $result['success'] = false;
+                    $result['message'] = $model->getFirstError('pass');
+                } else {
+                    Yii::$app->session->setFlash('success', 'Пароль пользователя успешно изменен!');
+                }
             } else {
-                Yii::$app->session->setFlash('error', \Yii::t('app','Passwords did not match!'));
-                return $this->redirect(['change-password','id' => $id]);
+                $result['success'] = false;
+                $result['message'] = $model->getFirstError('pass');
             }
         }
-        return $this->render('change-password', [
-            'model' => $model,
-        ]);
+
+        return $this->asJson($result);
     }
 
     /**
@@ -325,30 +339,35 @@ class UserController extends Controller
      */
     public function actionAppInfo()
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        return [
+        return $this->asJson([
             'userData' => User::getUserInfo()
-        ];
+        ]);
     }
 
     /**
      * @param string $id
      *
      * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
      */
     public function actionView(string $id)
     {
         /** @var Auth $user */
         $user = Yii::$app->user->identity;
 
-        if ($user->roleId !== 3 && $user->id !== (int)$id){
-            throw new ForbiddenHttpException();
+        if ($user->roleId !== 3 && !in_array($user->id, [(int)$id, 296])){
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
         $model = $this->findModel($id);
 
         return $this->render('view', [
-            'model' => $model,
+            'model'    => $model,
+            'can' => [
+                'update' => $user->roleId === 3 || in_array($user->id, [296]),
+                'updatePassword' => $user->roleId === 3 || in_array($user->id, [(int)$id, 296]),
+            ],
         ]);
     }
 

@@ -10,13 +10,13 @@
  * @var array      $teachers
  */
 
-use app\modules\school\assets\UsersFormAsset;
+use app\modules\school\assets\UserFormAsset;
 use app\modules\school\models\User;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
 
-UsersFormAsset::register($this);
+UserFormAsset::register($this);
 ?>
 <div class="user-form">
     <?php $form = ActiveForm::begin(['options' => ['enctype' => 'multipart/form-data']]); ?>

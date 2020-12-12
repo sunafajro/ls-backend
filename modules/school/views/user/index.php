@@ -85,7 +85,6 @@ $this->params['breadcrumbs'][] = Yii::t('app','Users');
                                     ['Title' => Yii::t('app', 'Disable user')]
                             ) ?>
                             <?= Html::a(IconHelper::icon('pencil'), ['user/update', 'id' => $u['id']], ['title' => Yii::t('app', 'Update user')]) ?>
-                            <?= Html::a(IconHelper::icon('key'), ['user/change-password', 'id' => $u['id']], ['title' => Yii::t('app', 'Change password')]) ?>
                             <?= Html::a(IconHelper::icon('picture-o'), ['user/upload', 'id' => $u['id']], ['title' => Yii::t('app', 'Add picture')]) ?>
                         <?php } else { ?>
                             <?= Html::a(IconHelper::icon('check'), ['user/enable', 'id' => $u['id']], ['Title' => Yii::t('app', 'Enable user')]) ?>
