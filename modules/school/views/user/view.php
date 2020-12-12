@@ -1,63 +1,56 @@
 <?php
 
 /**
- * @var View  $this
- * @var User  $model
- * @var array $can
+ * @var View                 $this
+ * @var User                 $user
+ * @var UserTimeTrackingForm $model
+ * @var array                $can
  */
 
 use app\components\helpers\IconHelper;
 use app\modules\school\assets\UserViewAsset;
 use app\modules\school\models\User;
+use app\modules\school\models\forms\UserTimeTrackingForm;
 use app\widgets\alert\AlertWidget;
 use app\widgets\userInfo\UserInfoWidget;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\web\View;
-use yii\widgets\ActiveForm;
 use yii\widgets\DetailView;
 
-$this->title = Yii::$app->params['appTitle'] . Yii::t('app','Profile') . ': ' . $model->name;
+$this->title = Yii::$app->params['appTitle'] . Yii::t('app','Profile') . ": {$user->name}";
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Users'), 'url' => ['index']];
-$this->params['breadcrumbs'][] = $model->name;
+$this->params['breadcrumbs'][] = $user->name;
 
 UserViewAsset::register($this);
 ?>
 <div class="row user-view">
     <div id="sidebar" class="col-xs-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
         <?= UserInfoWidget::widget() ?>
-        <h4><?= Yii::t('app', 'Actions') ?>:</h4>
-        <?php $form = ActiveForm::begin(); ?>
-        <div class="form-group">
-
-        </div>
-        <div class="form-group">
-            <?= Html::a(
-                IconHelper::icon('plus') . ' ' . Yii::t('app', 'Add'),
-                ['user/create'],
-                ['class' => 'btn btn-success btn-sm btn-block']
-            ) ?>
-        </div>
-        <?php ActiveForm::end(); ?>
+        <?php if ($can['createTimeTracking']) {
+            echo $this->render('time-tracking/_form', [
+                    'model' => $model,
+            ]);
+        } ?>
     </div>
     <div id="content" class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
         <?= AlertWidget::widget() ?>
-            <?php if ($can['update']) { ?>
+            <?php if ($can['updateUser']) { ?>
             <div style="margin-bottom: 1rem">
                 <?= Html::a(
                     IconHelper::icon('edit') . ' ' . Yii::t('app', 'Update'),
-                    ['user/update', 'id' => $model->id],
+                    ['user/update', 'id' => $user->id],
                     ['class' => 'btn btn-info']
                 ) ?>
                 <?= Html::a(
-                    IconHelper::icon($model->visible ? 'times' : 'check') . ' ' . Yii::t('app', $model->visible ? 'Disable' : 'Enable'),
-                    ['user/' . ($model->visible ? 'disable' : 'enable'), 'id' => $model->id],
-                    ['class' => 'btn btn-' . ($model->visible ? 'danger' : 'success')]
+                    IconHelper::icon($user->visible ? 'times' : 'check') . ' ' . Yii::t('app', $user->visible ? 'Disable' : 'Enable'),
+                    ['user/' . ($user->visible ? 'disable' : 'enable'), 'id' => $user->id],
+                    ['class' => 'btn btn-' . ($user->visible ? 'danger' : 'success')]
                 ) ?>
             </div>
         <?php } ?>
         <?= DetailView::widget([
-                'model'      => $model,
+                'model'      => $user,
                 'attributes' => [
                     'id',
                     [
@@ -135,7 +128,7 @@ UserViewAsset::register($this);
                         'value' => function(User $user) use ($can) {
                             $logoPath = $user->getImageWebPath();
                             $html = [];
-                            if ($can['update']) {
+                            if ($can['updateUser']) {
                                 $html[] = Html::tag(
                                     'div',
                                     Html::a(

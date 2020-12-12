@@ -3,6 +3,7 @@
 namespace app\modules\school\controllers;
 
 use app\modules\school\models\Auth;
+use app\modules\school\models\forms\UserTimeTrackingForm;
 use app\modules\school\School;
 use Yii;
 use app\models\City;
@@ -360,14 +361,30 @@ class UserController extends Controller
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
-        $model = $this->findModel($id);
+        $userModel = $this->findModel($id);
+        $model = new UserTimeTrackingForm([
+            'start' => date('d.m.Y H:i'),
+            'end' => date('d.m.Y H:i'),
+        ]);
+
+        if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
+            $model->userId = $id;
+            if ($model->save()) {
+                Yii::$app->session->setFlash('success', 'Запись успешно внесена в журнал рабочего времени!');
+                return $this->redirect(['user/view', 'id' => $id]);
+            } else {
+                Yii::$app->session->setFlash('error', 'Не удалось добавить запись в журнал рабочего времени!');
+            }
+        }
 
         return $this->render('view', [
-            'model'    => $model,
             'can' => [
-                'update' => $user->roleId === 3 || in_array($user->id, [296]),
-                'updatePassword' => $user->roleId === 3 || in_array($user->id, [(int)$id, 296]),
+                'createTimeTracking' => $user->roleId === 3 || in_array($user->id, [(int)$id, 296]),
+                'updateUser'         => $user->roleId === 3 || in_array($user->id, [296]),
+                'updatePassword'     => $user->roleId === 3 || in_array($user->id, [(int)$id, 296]),
             ],
+            'model' => $model,
+            'user'  => $userModel,
         ]);
     }
 
