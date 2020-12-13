@@ -4,6 +4,8 @@ namespace app\modules\school\controllers;
 
 use app\modules\school\models\Auth;
 use app\modules\school\models\forms\UserTimeTrackingForm;
+use app\modules\school\models\search\UserTimeTrackingSearch;
+use app\modules\school\models\UserTimeTracking;
 use app\modules\school\School;
 use Yii;
 use app\models\City;
@@ -26,7 +28,7 @@ class UserController extends Controller
 {
     public function behaviors()
     {
-        $rules = ['index','create','update','delete','enable','disable','upload','change-password','app-info','view'];
+        $rules = ['index','create','update','delete','enable','disable','upload','change-password','app-info','view', 'time-tracking'];
         return [
             'access' => [
                 'class' => AccessControl::class,
@@ -362,29 +364,63 @@ class UserController extends Controller
         }
 
         $userModel = $this->findModel($id);
-        $model = new UserTimeTrackingForm([
+
+        return $this->render('view', [
+            'can' => [
+                'updateUser'       => $user->roleId === 3 || in_array($user->id, [296]),
+                'updatePassword'   => $user->roleId === 3 || in_array($user->id, [(int)$id, 296]),
+                'viewTimeTracking' => $user->roleId === 3 || $user->id === 296 || ($user->roleId === 4 && in_array($user->id, [(int)$id])),
+            ],
+            'user'  => $userModel,
+        ]);
+    }
+
+    /**
+     * @param string $id
+     * @param string $record_id
+     *
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
+     */
+    public function actionTimeTracking(string $id, string $record_id = null)
+    {
+        /** @var Auth $user */
+        $user = Yii::$app->user->identity;
+
+        if ($user->roleId !== 3 && !in_array($user->id, [(int)$id, 296])){
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        }
+
+        $userModel = $this->findModel($id);
+        $timeTrackingForm = new UserTimeTrackingForm([
             'start' => date('d.m.Y H:i'),
-            'end' => date('d.m.Y H:i'),
+            'end'   => date('d.m.Y H:i'),
         ]);
 
-        if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
-            $model->userId = $id;
-            if ($model->save()) {
+        if (Yii::$app->request->isPost && $timeTrackingForm->load(Yii::$app->request->post())) {
+            $timeTrackingForm->userId = $id;
+            if ($timeTrackingForm->save()) {
                 Yii::$app->session->setFlash('success', 'Запись успешно внесена в журнал рабочего времени!');
-                return $this->redirect(['user/view', 'id' => $id]);
+                return $this->redirect(['user/time-tracking', 'id' => $id]);
             } else {
                 Yii::$app->session->setFlash('error', 'Не удалось добавить запись в журнал рабочего времени!');
             }
         }
 
-        return $this->render('view', [
+        $searchModel = new UserTimeTrackingSearch();
+        $dataProvider = $searchModel->search(UserTimeTracking::find()->byEntityId((int)$id)->active(), Yii::$app->request->get());
+
+        return $this->render('time-tracking', [
             'can' => [
                 'createTimeTracking' => $user->roleId === 3 || in_array($user->id, [(int)$id, 296]),
-                'updateUser'         => $user->roleId === 3 || in_array($user->id, [296]),
-                'updatePassword'     => $user->roleId === 3 || in_array($user->id, [(int)$id, 296]),
+                'updateTimeTracking' => $user->roleId === 3 || in_array($user->id, [(int)$id, 296]),
+                'deleteTimeTracking' => $user->roleId === 3 || in_array($user->id, [(int)$id, 296]),
             ],
-            'model' => $model,
-            'user'  => $userModel,
+            'dataProvider'     => $dataProvider,
+            'timeTrackingForm' => $timeTrackingForm,
+            'searchModel'      => $searchModel,
+            'user'             => $userModel,
         ]);
     }
 

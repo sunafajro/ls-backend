@@ -27,11 +27,14 @@ UserViewAsset::register($this);
 <div class="row user-view">
     <div id="sidebar" class="col-xs-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
         <?= UserInfoWidget::widget() ?>
-        <?php if ($can['createTimeTracking']) {
-            echo $this->render('time-tracking/_form', [
-                    'model' => $model,
-            ]);
-        } ?>
+        <?php if ($can['viewTimeTracking']) { ?>
+            <h4>Действия:</h4>
+            <?= Html::a(
+                IconHelper::icon('clock-o') . ' Учет времени',
+                ['user/time-tracking', 'id' => $user->id],
+                ['class' => 'btn btn-default btn-block']
+            ) ?>
+        <?php } ?>
     </div>
     <div id="content" class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
         <?= AlertWidget::widget() ?>

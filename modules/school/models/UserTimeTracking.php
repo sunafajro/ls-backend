@@ -3,6 +3,7 @@
 
 namespace app\modules\school\models;
 
+use app\modules\school\models\queries\UserTimeTrackingQuery;
 use Yii;
 use yii\db\ActiveRecord;
 
@@ -69,6 +70,14 @@ class UserTimeTracking extends ActiveRecord
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public static function find()
+    {
+        return new UserTimeTrackingQuery(get_called_class(), []);
+    }
+
+    /**
      * @return string[]
      */
     public static function getTypeLabels() : array
@@ -78,5 +87,15 @@ class UserTimeTracking extends ActiveRecord
             self::TYPE_TIME_OFF  => 'Отгул',
             self::TYPE_VACATION  => 'Отпуск',
         ];
+    }
+
+    /**
+     * @param string $value
+     *
+     * @return string
+     */
+    public static function getTypeLabel(string $value) : string
+    {
+        return self::getTypeLabels()[$value] ?? '';
     }
 }

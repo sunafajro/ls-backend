@@ -13,7 +13,6 @@ use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
 ?>
-<h4>Учет времени:</h4>
 <?php $form = ActiveForm::begin(); ?>
 <?php
 $datePickerOptions = [
