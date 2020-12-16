@@ -37,6 +37,19 @@ class FileSearch extends File
 
         return new ActiveDataProvider([
             'query' => $query,
+            'pagination' => [
+                'pageSize' => 20,
+            ],
+            'sort'=> [
+                'attributes' => [
+                    'original_name',
+                    'size',
+                    'create_date',
+                ],
+                'defaultOrder' => [
+                    'original_name' => SORT_ASC,
+                ],
+            ],
         ]);
     }
 

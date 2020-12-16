@@ -94,17 +94,19 @@ class Language extends ActiveRecord
 
         return $languages;
     }
-    /* возвращает список языков по которым есть занятия в расписании */
-    public function getTeachersLanguages()
+
+    /**
+     * @return array
+     */
+    public function getTeachersLanguages() : array
     {
-        $langs =  (new \yii\db\Query())
-        ->select(['id' => 'l.id', 'name' => 'l.name'])
+        return (new \yii\db\Query())
+        ->select(['id' => 'l.id', 'name' => 'l.name', 'teacherName' => 'lt.calc_teacher'])
         ->distinct()
-        ->from(['l' => 'calc_lang'])
-        ->innerJoin('calc_langteacher lt', 'l.id=lt.calc_lang')
+        ->from(['l' => self::tableName()])
+        ->innerJoin(['lt' => Langteacher::tableName()], 'l.id = lt.calc_lang')
         ->where(['lt.visible' => 1])
         ->orderBy(['l.name' => SORT_ASC, 'lt.calc_teacher' => SORT_ASC])
         ->all();
-        return $langs;
     }
 }

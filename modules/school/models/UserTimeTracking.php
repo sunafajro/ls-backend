@@ -5,6 +5,7 @@ namespace app\modules\school\models;
 
 use app\modules\school\models\queries\UserTimeTrackingQuery;
 use Yii;
+use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
 
 /**
@@ -70,11 +71,21 @@ class UserTimeTracking extends ActiveRecord
     }
 
     /**
-     * {@inheritdoc}
+     * @return UserTimeTrackingQuery|ActiveQuery
      */
-    public static function find()
+    public static function find() : ActiveQuery
     {
         return new UserTimeTrackingQuery(get_called_class(), []);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function delete() : bool
+    {
+        $this->visible = 0;
+
+        return $this->save(true, ['visible']);
     }
 
     /**

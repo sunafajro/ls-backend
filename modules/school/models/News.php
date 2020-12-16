@@ -59,9 +59,9 @@ class News extends ActiveRecord
     }
 
     /**
-     * {@inheritdoc}
+     * @return NewsQuery|ActiveQuery
      */
-    public static function find()
+    public static function find() : ActiveQuery
     {
         return new NewsQuery(get_called_class(), []);
     }

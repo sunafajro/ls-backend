@@ -3,6 +3,7 @@
 /**
  * @var View                 $this
  * @var UserTimeTrackingForm $model
+ * @var int                  $userId
  */
 
 use app\components\helpers\IconHelper;
@@ -44,9 +45,20 @@ try {
 <?= $form->field($model, 'type')->dropDownList(UserTimeTracking::getTypeLabels(), ['prompt' => Yii::t('app', '-select-')]) ?>
 <?= $form->field($model, 'comment')->textarea(['rows' => 3]) ?>
 <div class="form-group">
-    <?= Html::submitButton(
-        IconHelper::icon('plus') . ' ' . Yii::t('app', 'Add'),
-        ['class' => 'btn btn-success btn-sm btn-block']
-    ) ?>
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+            <?= Html::submitButton(
+                IconHelper::icon(!$model->id ? 'plus' : 'save') . ' ' . Yii::t('app', !$model->id ? 'Add' : 'Update'),
+                ['class' => 'btn btn-success btn-sm btn-block']
+            ) ?>
+        </div>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+            <?= Html::a(
+                IconHelper::icon('eraser') . ' ' . Yii::t('app', 'Clear'),
+                ['user/time-tracking', 'id' => $userId],
+                ['class' => 'btn btn-warning btn-sm btn-block']
+            ) ?>
+        </div>
+    </div>
 </div>
 <?php ActiveForm::end();

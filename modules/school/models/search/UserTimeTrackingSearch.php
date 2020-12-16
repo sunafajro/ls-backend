@@ -53,7 +53,21 @@ class UserTimeTrackingSearch extends UserTimeTracking
         }
 
         return new ActiveDataProvider([
-            'query' => $query
+            'query' => $query,
+            'pagination' => [
+                'pageSize' => 20,
+            ],
+            'sort'=> [
+                'attributes' => [
+                    'type',
+                    'start',
+                    'end',
+                    'comment',
+                ],
+                'defaultOrder' => [
+                    'start' => SORT_ASC,
+                ],
+            ],
         ]);
     }
 }

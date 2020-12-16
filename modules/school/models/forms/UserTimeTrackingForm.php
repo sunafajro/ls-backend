@@ -10,6 +10,7 @@ use yii\base\Model;
  * Class UserTimeTrackingForm
  * @package app\modules\school\models\forms
  *
+ * @property int    $id
  * @property string $type
  * @property string $start
  * @property string $end
@@ -18,6 +19,8 @@ use yii\base\Model;
  */
 class UserTimeTrackingForm extends Model
 {
+    /** @var int */
+    public $id;
     /** @var string */
     public $type;
     /** @var string */
@@ -56,6 +59,18 @@ class UserTimeTrackingForm extends Model
     }
 
     /**
+     * @param UserTimeTracking $timeTracking
+     */
+    public function loadFromModel(UserTimeTracking $timeTracking)
+    {
+        $this->id      = $timeTracking->id;
+        $this->type    = $timeTracking->type;
+        $this->start   = date('d.m.Y H:i', strtotime($timeTracking->start));
+        $this->end     = date('d.m.Y H:i', strtotime($timeTracking->end));
+        $this->comment = $timeTracking->comment;
+    }
+
+    /**
      * @return bool
      */
     public function save() : bool
@@ -67,6 +82,14 @@ class UserTimeTrackingForm extends Model
         $userTimeTracking = new UserTimeTracking([
             'entity_id' => $this->userId,
         ]);
+
+        if ($this->id) {
+            $model = UserTimeTracking::find()->byId($this->id)->one();
+            if (!empty($model)) {
+                $userTimeTracking = $model;
+            }
+        }
+
         $start = \DateTime::createFromFormat('d.m.Y H:i', $this->start);
         $end   = \DateTime::createFromFormat('d.m.Y H:i', $this->end);
         if ($start === false) {

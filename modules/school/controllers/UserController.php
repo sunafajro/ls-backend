@@ -377,13 +377,14 @@ class UserController extends Controller
 
     /**
      * @param string $id
-     * @param string $record_id
+     * @param string $time_tracking_id
+     * @param string $action
      *
      * @return mixed
      * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
      */
-    public function actionTimeTracking(string $id, string $record_id = null)
+    public function actionTimeTracking(string $id, string $time_tracking_id = null, string $action = null)
     {
         /** @var Auth $user */
         $user = Yii::$app->user->identity;
@@ -393,18 +394,60 @@ class UserController extends Controller
         }
 
         $userModel = $this->findModel($id);
+
+        $timeTracking = $time_tracking_id
+            ? UserTimeTracking::find()->byId((int)$time_tracking_id)->byEntityId((int)$id)->one()
+            : null;
+
         $timeTrackingForm = new UserTimeTrackingForm([
             'start' => date('d.m.Y H:i'),
             'end'   => date('d.m.Y H:i'),
         ]);
 
-        if (Yii::$app->request->isPost && $timeTrackingForm->load(Yii::$app->request->post())) {
-            $timeTrackingForm->userId = $id;
-            if ($timeTrackingForm->save()) {
-                Yii::$app->session->setFlash('success', 'Запись успешно внесена в журнал рабочего времени!');
+        if (!empty($timeTracking)) {
+            $timeTrackingForm->loadFromModel($timeTracking);
+        }
+
+        if (Yii::$app->request->isPost) {
+            if ($timeTrackingForm->id && $action === 'delete') {
+                if (!empty($timeTracking)) {
+                    if ($timeTracking->delete()) {
+                        Yii::$app->session->setFlash(
+                            'success',
+                            "Запись #{$time_tracking_id} успешно удалена из журнала рабочего времени!"
+                        );
+                    } else {
+                        Yii::$app->session->setFlash(
+                            'error',
+                            "Не удалось удалить запись #{$time_tracking_id} из журнала рабочего времени!"
+                        );
+                    }
+                } else {
+                    Yii::$app->session->setFlash(
+                        'warning',
+                        "Не удалось найти запись #{$time_tracking_id} в журнале рабочего времени!"
+                    );
+                }
                 return $this->redirect(['user/time-tracking', 'id' => $id]);
-            } else {
-                Yii::$app->session->setFlash('error', 'Не удалось добавить запись в журнал рабочего времени!');
+            } else if ($timeTrackingForm->load(Yii::$app->request->post())) {
+                $timeTrackingForm->userId = $id;
+                if ($timeTrackingForm->save()) {
+                    Yii::$app->session->setFlash(
+                        'success',
+                        !$timeTrackingForm->id
+                            ? "Запись #{$timeTrackingForm->id} успешно внесена в журнал рабочего времени!"
+                            : "Запись #{$timeTrackingForm->id} успешно обновлена в журнале рабочего времени!"
+                    );
+
+                    return $this->redirect(['user/time-tracking', 'id' => $id]);
+                } else {
+                    Yii::$app->session->setFlash(
+                        'error',
+                        !$timeTrackingForm->id
+                            ? "Не удалось добавить запись в журнал рабочего времени!"
+                            : "Не удалось обновить запись #{$timeTrackingForm->id} в журнале рабочего времени!"
+                    );
+                }
             }
         }
 
