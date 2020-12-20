@@ -76,21 +76,4 @@ class ClientAccess extends \yii\db\ActiveRecord
             return false;
         }
     }
-
-    /**
-     * @deprecated
-     * метод подменяет в строках идентификатор одного студента на идентификатор другого
-     * @param integer $id1
-     * @param integer $id2
-     * @return boolean
-     */
-    protected static function changeStudentId($id1, $id2)
-    {
-        $sql = (new \yii\db\Query())
-        ->createCommand()
-        ->update(self::tableName(), ['calc_studname' => $id1], ['calc_studname' => $id2])
-        ->execute();
-
-        return ($sql == 0) ? false : true;
-    }
 }

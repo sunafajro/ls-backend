@@ -1,7 +1,8 @@
 <?php
 
-namespace app\models;
+namespace app\models\forms;
 
+use app\models\BaseAuth;
 use Yii;
 use yii\base\Model;
 

@@ -3,6 +3,7 @@
 namespace app\models;
 
 use app\modules\school\models\User;
+use app\traits\StudentMergeTrait;
 use Yii;
 use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
@@ -27,6 +28,8 @@ use yii\db\ActiveRecord;
  */
 class BookOrderPositionItem extends ActiveRecord
 {
+    use StudentMergeTrait;
+
     const PAYMENT_TYPE_CASH = 'cash';
     const PAYMENT_TYPE_BANK = 'bank';
 

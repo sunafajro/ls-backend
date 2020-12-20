@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @var yii\web\View     $this
+ * @var View             $this
  * @var ActiveForm       $form
  * @var Student          $student
  * @var StudentMergeForm $model
@@ -10,9 +10,10 @@
  */
 
 use app\models\Student;
-use app\models\StudentMergeForm;
+use app\modules\school\models\forms\StudentMergeForm;
 use app\widgets\alert\AlertWidget;
 use yii\helpers\Html;
+use yii\web\View;
 use yii\widgets\ActiveForm;
 use yii\widgets\Breadcrumbs;
 

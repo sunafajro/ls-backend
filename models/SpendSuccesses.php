@@ -12,7 +12,7 @@ use yii\db\ActiveRecord;
  *
  * @property integer $id
  * @property integer $visible
- * @property integer student_id
+ * @property integer $student_id
  * @property integer $count
  * @property string  $cause
  * @property integer $user_id

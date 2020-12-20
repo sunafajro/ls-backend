@@ -3,9 +3,10 @@
 /**
  * @var View      $this
  * @var LoginForm $model
+ * @var ActiveForm $form
  */
 
-use app\modules\exams\models\LoginForm;
+use app\modules\exams\models\forms\LoginForm;
 use yii\bootstrap4\ActiveForm;
 use yii\bootstrap4\Html;
 use yii\web\View;

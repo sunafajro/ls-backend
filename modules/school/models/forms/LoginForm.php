@@ -1,8 +1,9 @@
 <?php
 
-namespace app\modules\exams\models;
+namespace app\modules\school\models\forms;
 
-use app\models\BaseLoginForm;
+use app\models\forms\BaseLoginForm;
+use app\modules\school\models\Auth;
 
 /**
  * LoginForm is the model behind the login form.

@@ -8,7 +8,7 @@ use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
 use yii\web\Response;
-use app\modules\school\models\LoginForm;
+use app\modules\school\models\forms\LoginForm;
 use app\modules\school\models\LoginLog;
 
 class SiteController extends Controller

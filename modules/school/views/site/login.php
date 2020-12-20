@@ -1,8 +1,16 @@
 <?php
+/**
+ * @var View       $this
+ * @var LoginForm  $model
+ * @var ActiveForm $form
+ */
+
+use app\modules\school\models\forms\LoginForm;
 use yii\helpers\Html;
 use yii\bootstrap\ActiveForm;
+use yii\web\View;
 
-$this->title = 'Система учета :: '.Yii::t('app','Login');
+$this->title = Yii::$app->params['appTitle'] . Yii::t('app','Login');
 $this->params['breadcrumbs'][] = Yii::t('app','Login');
 ?>
 <div class="site-login">

@@ -1,11 +1,15 @@
 <?php
+
+/**
+ * @var View        $this
+ * @var ActiveForm  $form
+ * @var ContactForm $model
+ */
+use app\modules\school\models\forms\ContactForm;
 use yii\helpers\Html;
 use yii\bootstrap\ActiveForm;
 use yii\captcha\Captcha;
-
-/* @var $this yii\web\View */
-/* @var $form yii\bootstrap\ActiveForm */
-/* @var $model app\models\ContactForm */
+use yii\web\View;
 
 $this->title = 'Contact';
 $this->params['breadcrumbs'][] = $this->title;
@@ -43,7 +47,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 <?= $form->field($model, 'email') ?>
                 <?= $form->field($model, 'subject') ?>
                 <?= $form->field($model, 'body')->textArea(['rows' => 6]) ?>
-                <?= $form->field($model, 'verifyCode')->widget(Captcha::className(), [
+                <?= $form->field($model, 'verifyCode')->widget(Captcha::class, [
                     'template' => '<div class="row"><div class="col-lg-3">{image}</div><div class="col-lg-6">{input}</div></div>',
                 ]) ?>
                 <div class="form-group">
