@@ -3,12 +3,12 @@
 namespace app\modules\school\controllers;
 
 use Yii;
-use app\models\AccrualTeacher;
 use app\models\Groupteacher;
 use app\models\LanguagePremium;
 use app\models\Service;
 use app\models\Teacher;
 use app\models\TeacherLanguagePremium;
+use app\modules\school\models\AccrualTeacher;
 use app\modules\school\models\User;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;

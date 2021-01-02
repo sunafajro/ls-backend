@@ -2,9 +2,10 @@
 
 namespace app\modules\school\controllers;
 
-use app\models\AccrualTeacher;
 use app\models\Journalgroup;
 use app\models\Teacher;
+use app\modules\school\models\AccrualTeacher;
+use app\modules\school\models\Auth;
 use Exception;
 use Yii;
 use yii\web\Controller;
@@ -20,7 +21,10 @@ use yii\web\ServerErrorHttpException;
  */
 class AccrualController extends Controller
 {
-    public function behaviors()
+    /**
+     * {@inheritDoc}
+     */
+    public function behaviors() : array
     {
 		$rules = ['create', 'delete', 'done', 'undone'];
         return [
@@ -56,18 +60,20 @@ class AccrualController extends Controller
      * Добавляет начисление
      * @param int      $tid   id преподавателя
      * @param int|null $month месяц в котором прошли занятия
+     * @param int|null $year  год в котором прошли занятия
      *
      * @return mixed
-     *
      * @throws BadRequestHttpException
      * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
      * @uses $_POST['groups'] directly
      */
-    public function actionCreate(int $tid, int $month = null)
+    public function actionCreate(int $tid, int $month = NULL, int $year = NULL)
     {
-        if ((int)Yii::$app->session->get('user.ustatus') !== 3) {
-            throw new ForbiddenHttpException();
+        /** @var Auth $user */
+        $user = Yii::$app->user->identity;
+        if (!in_array($user->roleId, [3])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
         /** @var Teacher $teacher */
 		$teacher = Teacher::find()->andWhere(['id' => $tid])->one();
@@ -83,7 +89,7 @@ class AccrualController extends Controller
 		try {
 		    foreach ($groups as $gid) {
 				/** @var array */
-				$totalAccrual = AccrualTeacher::calculateFullTeacherAccrual((int)$tid, (int)$gid, $month);
+				$totalAccrual = AccrualTeacher::calculateFullTeacherAccrual((int)$tid, (int)$gid, $month, $year);
 				$lessons = [];
 				foreach ($totalAccrual['lessons'] ?? [] as $lesson) {
                     $lessons[$lesson['id']] = [
@@ -149,8 +155,10 @@ class AccrualController extends Controller
      */
 	public function actionDelete(int $id)
 	{
-        if ((int)Yii::$app->session->get('user.ustatus') !== 3) {
-            throw new ForbiddenHttpException();
+        /** @var Auth $user */
+        $user = Yii::$app->user->identity;
+        if (!in_array($user->roleId, [3])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
         $model = $this->findModel($id);
@@ -199,50 +207,55 @@ class AccrualController extends Controller
 	}
 
     /**
-     * Помечает начисление как "Выплаченное"
-     * @param int         $id
-     * @param string|null $type
-     * @param int|null    $page
+     * Ставить на начисления отметку "Выплаченное"
+     * @param string|null $id
      *
      * @return mixed
      * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
+     * @throws BadRequestHttpException
+     * @uses $_POST['accruals'] directly
      */
-	public function actionDone(int $id, string $type = null, int $page = null)
+	public function actionDone(string $id = null)
 	{
-        if (!in_array((int)Yii::$app->session->get('user.ustatus'), [3, 8])) {
-            throw new ForbiddenHttpException();
+        /** @var Auth $user */
+        $user = Yii::$app->user->identity;
+        if (!in_array($user->roleId, [3, 8])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
-        $model = $this->findModel($id);
-
-        if ($type === 'report') {
-        	$tid = $model->calc_teacher;
-			if ($page && (int)$page > 0) {
-		        $tid = 'all';
-		    }
-            $backPath = ['report/accrual', 'page' => $page ?? 1, 'TID' => $tid,  '#' => 'block_tid_' . $model->calc_teacher];
+        $models = [];
+        if ($id) {
+            $model = $this->findModel($id);
+            $models[] = $model;
         } else {
-        	$backPath = ['teacher/view', 'id' => $model->calc_teacher, 'tab' => 3];
+            $accruals = explode(',', Yii::$app->request->post('accruals', ''));
+            if (empty($accruals)) {
+                throw new BadRequestHttpException('Missing POST param: $accruals.');
+            }
+            $models = AccrualTeacher::find()->andWhere(['id' => $accruals])->all();
         }
 
-		
-		if ($model->visible) {
-			if (!$model->done) {
-				$model->done = 1;
-				$model->user_done = Yii::$app->session->get('user.uid');
-				$model->data_done = date('Y-m-d');
-				if ($model->save(true, ['done', 'user_done', 'data_done'])) {
-					// если начисление успешно выплачено
-				    Yii::$app->session->setFlash('success', "Начисление #$id успешно выплачено!");
-				} else {
-					// если выплатить начисление не удалось
-				    Yii::$app->session->setFlash('error', "Неудалось выплатить начисление #$id!");
-				}
-		    }
-		}
+        $result = [
+            'success' => [],
+            'error' => [],
+        ];
+        foreach ($models as $model) {
+            if ($model->payoff()) {
+                $result['success'][] = $model->id;
+            } else {
+                $result['error'][] = $model->id;
+            }
+        }
 
-		return $this->redirect($backPath);
+        if (!empty($result['success'])) {
+            Yii::$app->session->setFlash('success', 'Начисления успешно выплачены: #' . join(', ', $result['success']) . '!');
+        }
+        if (!empty($result['error'])) {
+            Yii::$app->session->setFlash('error', 'Неудалось выплатить начисления: #' . join(', ', $result['error']) . '!');
+        }
+
+        return $this->redirect(Yii::$app->request->referrer);
 	}
 
     /**
@@ -255,8 +268,10 @@ class AccrualController extends Controller
      */
 	public function actionUndone(int $id)
 	{
-        if (!in_array((int)Yii::$app->session->get('user.ustatus'), [3, 8])) {
-            throw new ForbiddenHttpException();
+        /** @var Auth $user */
+        $user = Yii::$app->user->identity;
+        if (!in_array($user->roleId, [3, 8])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
         $model = $this->findModel($id);
@@ -273,7 +288,7 @@ class AccrualController extends Controller
 				}
 		    }
 		}
-		return $this->redirect(['teacher/view', 'id' => $model->calc_teacher, 'tab' => 3]);
+        return $this->redirect(Yii::$app->request->referrer);
 	}
 	
 	/**

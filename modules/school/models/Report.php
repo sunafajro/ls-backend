@@ -3,7 +3,6 @@
 namespace app\modules\school\models;
 
 use app\components\helpers\DateHelper;
-use app\models\AccrualTeacher;
 use app\models\Edunormteacher;
 use app\models\Groupteacher;
 use app\models\Journalgroup;

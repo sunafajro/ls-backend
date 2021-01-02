@@ -1,9 +1,22 @@
 <?php
 
-namespace app\models;
+namespace app\modules\school\models;
 
 use app\components\helpers\DateHelper;
+use app\models\Edulevel;
+use app\models\Edunorm;
+use app\models\Edunormteacher;
+use app\models\Groupteacher;
+use app\models\Journalgroup;
+use app\models\Office;
+use app\models\Service;
+use app\models\Studjournalgroup;
+use app\models\Teacher;
+use app\models\TeacherLanguagePremium;
+use app\models\Timenorm;
 use Yii;
+use yii\db\ActiveRecord;
+use yii\db\Query;
 use yii\helpers\ArrayHelper;
 
 /**
@@ -28,7 +41,7 @@ use yii\helpers\ArrayHelper;
  * @property string  $value_transport_desc
  * @property string  $outlay
  */
-class AccrualTeacher extends \yii\db\ActiveRecord
+class AccrualTeacher extends ActiveRecord
 {
     // Введены начиная с 01.10.2020
     const EDU_LEVEL_COEFFICIENTS = [
@@ -96,6 +109,29 @@ class AccrualTeacher extends \yii\db\ActiveRecord
             'value_transport' => Yii::t('app', 'Value Transport'),
             'value_transport_desc' => Yii::t('app', 'Value Transport Desc'),
         ];
+    }
+
+    /**
+     * Выплатить начисление
+     * @return bool
+     */
+    public function payoff() : bool
+    {
+        if ($this->visible) {
+            /** @var Auth $user */
+            $user = Yii::$app->user->identity;
+            if (!$this->done) {
+                $this->done = 1;
+                $this->user_done = $user->id;
+                $this->data_done = date('Y-m-d');
+
+                return $this->save(true, ['done', 'user_done', 'data_done']);
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
     }
 
 	/**
@@ -182,7 +218,6 @@ class AccrualTeacher extends \yii\db\ActiveRecord
      */
     private static function calculateLessonAccrual(array $lesson, float $wageRate, float $corpPremium = 0, float $languagePremium = 0) : array
     {
-		$accrual = 0;
 		/* считаем коэффициент в зависимости от количества учеников */
 		$studentCountRate = self::calculateMultiplier($lesson['studentCount']);
 		// Коэффициент вводится начиная с 01.10.2020
@@ -227,13 +262,14 @@ class AccrualTeacher extends \yii\db\ActiveRecord
 
     /**
      * Считает и возвращает общую сумму начислений преподавателя по текущим проверенным и неначисленным занятиям 
-	 * @param int      $id  id преподавателя
-     * @param int|null $gid id группы
+	 * @param int      $id    id преподавателя
+     * @param int|null $gid   id группы
      * @param int|null $month месяц проведения занятий
+     * @param int|null $year  год проведения занятий
      * 
 	 * @return array
      */
-	public static function calculateFullTeacherAccrual(int $id, int $gid = null, int $month = NULL) : array
+	public static function calculateFullTeacherAccrual(int $id, int $gid = null, int $month = NULL, int $year = NULL) : array
 	{
         // получаем нормы оплаты преподавателя и корпоративную надбавку
         /** @var Teacher $teacher */
@@ -255,7 +291,7 @@ class AccrualTeacher extends \yii\db\ActiveRecord
 			// получаем данные по занятиям
 			$list = [$id];
             $order = ['jg.data' => SORT_DESC];
-            $lessons = self::getViewedLessonList($list, $order, $gid, DateHelper::getDateRangeByMonth($month));
+            $lessons = self::getViewedLessonList($list, $order, $gid, DateHelper::getDateRangeByMonth($month, $year));
 			if (!empty($lessons)) {
                 $totalValue         = 0;
                 $languagePremiumSum = 0;
@@ -331,21 +367,21 @@ class AccrualTeacher extends \yii\db\ActiveRecord
      */
     private static function getTeachersWithViewedLessons() : array
     {
-        $t_lessons = (new \yii\db\Query()) 
+        $t_lessons = (new Query())
         ->select('t.id as id, t.name as name')
         ->distinct()
         ->from('calc_journalgroup jg')
         ->innerJoin('calc_teacher t', 't.id=jg.calc_teacher')
         ->where('jg.done!=:one AND jg.view=:one AND jg.visible=:one AND t.visible=:one AND t.old!=:one', [':one' => 1]);
 
-        $t_accruals = (new \yii\db\Query()) 
+        $t_accruals = (new Query())
         ->select('t.id as id, t.name as name')
         ->distinct()
         ->from('calc_accrualteacher at')
         ->innerJoin('calc_teacher t', 't.id=at.calc_teacher')
         ->where('at.visible=:one AND at.done!=:one AND t.visible=:one AND t.old!=:one', [':one' => 1]);
 
-        $teachers = (new yii\db\Query())
+        $teachers = (new Query())
         ->select('*')
         ->from(['table' => $t_lessons->union($t_accruals)])
         ->orderBy('name')
@@ -384,7 +420,7 @@ class AccrualTeacher extends \yii\db\ActiveRecord
      */
 	public static function getTeachersWithViewedLessonsInfo(array $list) : array
 	{
-        $rawTeachers = (new \yii\db\Query())
+        $rawTeachers = (new Query())
         ->select([
             'id'        => 't.id',
             'name'      => 't.name',
@@ -433,13 +469,13 @@ class AccrualTeacher extends \yii\db\ActiveRecord
             ['<=', 'jg.data', $dateRange[1] ?? null],
         ];
         /* формируем подзапрос для выборки количество учеников на занятии */
-        $SubQuery = (new \yii\db\Query())
+        $SubQuery = (new Query())
         ->select('count(sjg.id)')
         ->from(['sjg' => Studjournalgroup::tableName()])
         ->where('sjg.calc_statusjournal = 1 and sjg.calc_journalgroup = jg.id');
         
         /* получаем данные по занятиям ожидающим начисление */
-        return (new \yii\db\Query())
+        return (new Query())
             ->select([
                 'id'          => 'jg.id',
                 'date'        => 'jg.data',
@@ -484,7 +520,7 @@ class AccrualTeacher extends \yii\db\ActiveRecord
      */
     public static function getAccrualsByTeacherList(array $list) : array
     {
-        $SubQuery = (new \yii\db\Query())
+        $SubQuery = (new Query())
             ->select('SUM(tn.value)')
             ->from('calc_timenorm tn')
             ->leftJoin('calc_service s','s.calc_timenorm=tn.id')
@@ -492,7 +528,7 @@ class AccrualTeacher extends \yii\db\ActiveRecord
             ->leftJoin('calc_journalgroup jg', 'jg.calc_groupteacher=gt.id')
             ->where('gt.id=at.calc_groupteacher and jg.calc_accrual=at.id');
 
-        $accruals = (new \yii\db\Query())
+        $accruals = (new Query())
             ->select('at.id as aid, at.data as date, t.id as tid, t.name as tname, at.value as value, at.calc_groupteacher as gid')
             ->addSelect(['hours' => $SubQuery])
             ->from('calc_accrualteacher at')
@@ -507,7 +543,7 @@ class AccrualTeacher extends \yii\db\ActiveRecord
     
     public static function getAccrualsByTeachers($start = null, $end = null, $teachers = null)
     {
-        $accruals = (new \yii\db\Query())
+        $accruals = (new Query())
         ->select([
           'id' => 'act.id',
           'teacherId' => 'act.calc_teacher',

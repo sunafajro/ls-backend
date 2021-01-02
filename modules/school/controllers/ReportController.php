@@ -3,7 +3,6 @@
 namespace app\modules\school\controllers;
 
 use app\components\helpers\DateHelper;
-use app\models\AccrualTeacher;
 use app\models\Invoicestud;
 use app\models\Journalgroup;
 use app\models\Moneystud;
@@ -14,6 +13,7 @@ use app\models\Student;
 use app\models\search\StudentCommissionSearch;
 use app\models\Teacher;
 use app\models\Tool;
+use app\modules\school\models\AccrualTeacher;
 use app\modules\school\models\Auth;
 use app\modules\school\models\User;
 use app\models\search\LessonSearch;

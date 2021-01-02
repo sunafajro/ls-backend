@@ -16,13 +16,13 @@
  */
 
 use app\components\helpers\DateHelper;
+use app\components\helpers\IconHelper;
 use app\modules\school\assets\ReportAccrualsAsset;
 use app\widgets\alert\AlertWidget;
 use app\widgets\filters\FiltersWidget;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
-use yii\widgets\Breadcrumbs;
 
 $this->title = Yii::$app->params['appTitle'] . 'Отчет по начислениям';
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
@@ -60,14 +60,6 @@ ReportAccrualsAsset::register($this);
         'reportList' => $reportList ?? [],
     ]) ?>
     <div id="content" class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
-        <?= Breadcrumbs::widget([
-            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
-        ]); ?>
-        <?php endif; ?>
-		<p class="pull-left visible-xs">
-			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
-        </p>
         <?= AlertWidget::widget() ?>
         <?php
             $pager = []; 
@@ -91,12 +83,12 @@ ReportAccrualsAsset::register($this);
                 $pager[] = Html::beginTag('ul', ['class' => 'pager']);
                 $pager[] = Html::tag(
                     'li',
-                    (($start > 1) ? Html::a('Предыдущий', ['report/accrual', 'page' => $prevpage, 'tid' => $params['tid'], 'month' => $params['month']]) : ''),
+                    (($start > 1) ? Html::a('Предыдущий', ['report/accrual', 'page' => $prevpage, 'tid' => $params['tid'], 'month' => $params['month'], 'year' => $params['year']]) : ''),
                     ['class' => 'previous']
                 );
                 $pager[] = Html::tag(
                     'li',
-                    (($end < $pages) ? Html::a('Следующий', ['report/accrual', 'page' => $nextpage, 'tid' => $params['tid'], 'month' => $params['month']]) : ''),
+                    (($end < $pages) ? Html::a('Следующий', ['report/accrual', 'page' => $nextpage, 'tid' => $params['tid'], 'month' => $params['month'], 'year' => $params['year']]) : ''),
                     ['class' => 'next']
                 );
                 $pager[] = Html::endTag('ul');
@@ -125,8 +117,21 @@ ReportAccrualsAsset::register($this);
                     ) ?>
                 <span>ставка: <?= implode(' р. / ', $teacher['value']) ?> р.</span>
                 <?= Html::a(
+                    'Выплатить все',
+                    ['accrual/done'],
+                    [
+                        'class' => 'btn btn-xs btn-warning pull-right js--accrual-done-all-link',
+                        'data' => [
+                            'method' => 'POST',
+                            'params' => '',
+                        ],
+                        'style' => 'display: none;margin-left:5px',
+                    ]
+                ) ?>
+
+                <?= Html::a(
                         'Начислить все',
-                        ['accrual/create', 'tid' => $teacher['id'], 'month' => $params['month'] ?? null],
+                        ['accrual/create', 'tid' => $teacher['id'], 'month' => $params['month'] ?? null, 'year' => $params['year'] ?? null],
                         [
                             'class' => 'btn btn-xs btn-success pull-right js--accrual-all-link',
                             'data' => [
@@ -153,7 +158,7 @@ ReportAccrualsAsset::register($this);
                                     </a>
                                     <?= Html::a(
                                             "Начислить {$group['time']} ч.",
-                                            ['accrual/create', 'tid' => $teacher['id'], 'month' => $params['month'] ?? null],
+                                            ['accrual/create', 'tid' => $teacher['id'], 'month' => $params['month'] ?? null, 'year' => $params['year'] ?? null],
                                             [
                                                 'class' => 'btn btn-xs btn-success pull-right js--accrual-link',
                                                 'data' => [
@@ -161,7 +166,6 @@ ReportAccrualsAsset::register($this);
                                                     'params' => [
                                                         'groups' => [$groupId],
                                                     ],
-                                                    'group-id' => $groupId,
                                                 ],
                                             ]
                                         ) ?>
@@ -178,7 +182,7 @@ ReportAccrualsAsset::register($this);
                                             } ?>
                                             </td>
                                             <td width="tbl-cell-10">#<?= $lesson['id'] ?></td>
-                                            <td class="tbl-cell-5"><?= ($lesson['viewed'] ? '<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>' : '') ?></td>
+                                            <td class="tbl-cell-5"><?= ($lesson['viewed'] ? IconHelper::icon('check') : '') ?></td>
                                             <td class="tbl-cell-10"><?= Html::a(date('d.m.Y', strtotime($lesson['date'])), ['groupteacher/view','id' => $groupId]) ?></td>
                                             <td class="tbl-cell-5"><?= $lesson['studentCount'] ?> чел.</td>
                                             <td><?= $lesson['description'] ?></td>
@@ -200,7 +204,20 @@ ReportAccrualsAsset::register($this);
 		    <?php if (!empty($accruals)) { ?>
                 <?php foreach ($accruals as $a) { ?>
                     <?php if ($a['tid']==$teacher['id']) { ?>
-                        <p>начисление зарплаты #<?= $a['aid'] ?> (за <?= $a['hours'] ?> ч. в группе #<?= Html::a($a['gid'], ['groupteacher/view', 'id'=>$a['gid']]) ?>) от <?= date('d.m.Y', strtotime($a['date'])) ?> на сумму <span class="text-danger"><?= number_format($a['value'], 2, ',', ' ') ?></span> р. <?= Html::a('Выплатить', ['accrual/done', 'id' => $a['aid'], 'type' => 'report', 'TID'=>$teacher['id'], 'page' => $page], ['class' => 'btn btn-warning btn-xs pull-right', 'data-method' => 'post']) ?></p>
+                        <p>
+                            начисление зарплаты #<?= $a['aid'] ?> (за <?= $a['hours'] ?> ч. в группе #<?= Html::a($a['gid'], ['groupteacher/view', 'id'=>$a['gid']]) ?>)
+                            от <?= date('d.m.Y', strtotime($a['date'])) ?> на сумму <span class="text-danger">
+                                <?= number_format($a['value'], 2, ',', ' ') ?>
+                            </span> р. <?= Html::a(
+                                    'Выплатить',
+                                    ['accrual/done', 'id' => $a['aid']],
+                                    [
+                                        'class' => 'btn btn-warning btn-xs pull-right js--accrual-done-link',
+                                        'data-method' => 'post',
+                                        'data-params' => ['accruals' => [$a['aid']]],
+                                    ]
+                            ) ?>
+                        </p>
                         <?php $sum = $sum + $a['value']; ?>
                     <?php } ?>
                 <?php } ?>
