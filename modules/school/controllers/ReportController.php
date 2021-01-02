@@ -2,33 +2,37 @@
 
 namespace app\modules\school\controllers;
 
-use app\models\Journalgroup;
-use DateTime;
-use Yii;
+use app\components\helpers\DateHelper;
 use app\models\AccrualTeacher;
 use app\models\Invoicestud;
+use app\models\Journalgroup;
 use app\models\Moneystud;
 use app\models\Office;
-use app\models\Report;
 use app\models\Sale;
 use app\models\Schedule;
 use app\models\Student;
 use app\models\search\StudentCommissionSearch;
 use app\models\Teacher;
 use app\models\Tool;
+use app\modules\school\models\Auth;
 use app\modules\school\models\User;
 use app\models\search\LessonSearch;
+use app\modules\school\models\Report;
+use DateTime;
+use Yii;
 use yii\db\Query;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 use yii\data\Pagination;
-use yii\helpers\ArrayHelper;
 
 class ReportController extends Controller
 {
-    public function behaviors()
+    /**
+     * {@inheritDoc}
+     */
+    public function behaviors() : array
     {
         $rules = [
             'accrual',
@@ -65,7 +69,10 @@ class ReportController extends Controller
         ];
     }
 
-    public function actions()
+    /**
+     * {@inheritDoc}
+     */
+    public function actions() : array
     {
         return [
             'error' => [
@@ -78,14 +85,17 @@ class ReportController extends Controller
      * отчет по Начислениям
      * @param string|null $tid
      * @param string|null $month
+     * @param string|null $year
      * @param string|null $page
      *
      * @return mixed
      * @throws ForbiddenHttpException
      */
-    public function actionAccrual(string $tid = null, string $month = null, string $page = null)
+    public function actionAccrual(string $tid = null, string $month = null, string $year = null, string $page = null)
     {
-        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        /** @var Auth $user */
+        $user = Yii::$app->user->identity;
+        $roleId = $user->roleId;
         if (!in_array($roleId, [3])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
@@ -93,17 +103,17 @@ class ReportController extends Controller
         /** @var array */
         $groups   = [];
         /** @var int */
-        $i        = 0;
-        /** @var int */
         $limit    = 10;
+        /** @var int */
+        $offset   = 0;
         /** @var array */
         $list     = [];
         /** @var int|null */
-        $month    = $month !== 'all' ? $month : null;
-        /** @var int */
-        $offset   = 0;
+        $month    = $month !== 'all' && !is_null($month) ? (int)$month : null;
         /** @var int|null */
-        $tid      = $tid !== 'all' ? $tid : null; 
+        $year     = $year !== 'all' && !is_null($year) ? (int)$year : null;
+        /** @var int|null */
+        $tid      = $tid !== 'all' && !is_null($tid) ? (int)$tid : null;
 
         /** @var array */
         $listTeachers = AccrualTeacher::getTeachersWithViewedLessonsIds();
@@ -133,10 +143,10 @@ class ReportController extends Controller
         /** @var array */
         $order = ['jg.calc_teacher' => SORT_ASC, 'jg.calc_groupteacher' => SORT_DESC, 'jg.id' => SORT_DESC];
         /** @var array */
-        $lessons = AccrualTeacher::getViewedLessonList($list, $order, null, Report::getDateRangeByMonth($month));
+        $lessons = AccrualTeacher::getViewedLessonList($list, $order, null, DateHelper::getDateRangeByMonth($month, $year));
         
         // создаем массив с данными по группам и суммарному колич часов
-        foreach ($lessons as $lesson) {
+        foreach ($lessons as $i => $lesson) {
             $groups[$lesson['groupId']][$lesson['teacherId']]['teacherId'] = $lesson['teacherId'];
             $groups[$lesson['groupId']][$lesson['teacherId']]['groupId']   = $lesson['groupId'];
             $groups[$lesson['groupId']][$lesson['teacherId']]['company']   = $lesson['company'];
@@ -150,25 +160,24 @@ class ReportController extends Controller
                 $groups[$lesson['groupId']][$lesson['teacherId']]['time'] = $lesson['time'];
             }
             $lessons[$i]['money'] = round(AccrualTeacher::getLessonFinalCost($teachers, $lesson), 2);
-            $i++;
         }
         
         return $this->render('accrual', [
             'accruals'      => AccrualTeacher::getAccrualsByTeacherList($list),
+            'actionUrl'     => ['report/accrual'],
 			'groups'        => $groups,
             'jobPlaces'     => Yii::$app->params['jobPlaces'],
             'lessons'       => $lessons,
-            'months'        => $this->getMonths(),
             'pages'         => $pages,
             'params'        => [
                 'month' => $month,
+                'year'  => $year,
                 'tid'   => $tid,
                 'page'  => $page,
             ],
             'reportList'    => Report::getReportTypeList(),
             'teachers'      => $teachers,
             'teachersList'  => $teachersList,
-            'userInfoBlock' => User::getUserInfoBlock(),
         ]);
     }
 
@@ -354,7 +363,6 @@ class ReportController extends Controller
             'payments'      => $payments,
             'reportList'    => Report::getReportTypeList(),
             'start'         => $start,
-            'userInfoBlock' => User::getUserInfoBlock(),
         ]);
     }
 
@@ -400,7 +408,6 @@ class ReportController extends Controller
             'oid'           => $oid,
             'reportList'    => Report::getReportTypeList(),
             'start'         => $start,
-            'userInfoBlock' => User::getUserInfoBlock(),
         ]);
     }
 
@@ -480,11 +487,11 @@ class ReportController extends Controller
 				// если необходима инфармация по следующему месяцу, опрелеляем след месяц и год
 				
 				// обращаемся к внешней функции для рассчета колич дней
-				$totalcount = $s['cnt'] * $this->reportHowdays($s['day'], $month, $year);
-				$lessonplan += $totalcount;
-				$moneyplan += $totalcount * $s['cost'] * $s['pupils'];
-				$schedule[$i]['totalcnt'] = $totalcount;
-				$schedule[$i]['totalcost'] = $totalcount * $s['cost'];
+				$totalCount = $s['cnt'] *  DateHelper::countDaysInMonth($s['day'], $month, $year);
+				$lessonplan += $totalCount;
+				$moneyplan += $totalCount * $s['cost'] * $s['pupils'];
+				$schedule[$i]['totalcnt'] = $totalCount;
+				$schedule[$i]['totalcost'] = $totalCount * $s['cost'];
 				$i++;
 			}
 			unset($s);
@@ -875,7 +882,6 @@ class ReportController extends Controller
             'end'           => $end,
             'start'         => $start,
             'reportList'    => Report::getReportTypeList(),
-			'userInfoBlock' => User::getUserInfoBlock(),
         ]);
 
     }
@@ -1023,7 +1029,6 @@ class ReportController extends Controller
             'reportList'    => Report::getReportTypeList(),
             'searchModel'   => $searchModel,
             'start'         => $start,
-            'userInfoBlock' => User::getUserInfoBlock(),
         ]);
     }
 
@@ -1061,7 +1066,6 @@ class ReportController extends Controller
             'reportList'    => Report::getReportTypeList(),
             'searchModel'   => $searchModel,
             'start'         => $start,
-            'userInfoBlock' => User::getUserInfoBlock(),
         ]);
     }
 
@@ -1268,7 +1272,6 @@ class ReportController extends Controller
             'start'         => $start,
             'teachers'      => Teacher::getTeachersInUserListSimple(),
             'tid'           => $tid,
-            'userInfoBlock' => User::getUserInfoBlock(),
         ]);
     }
     
@@ -1356,9 +1359,10 @@ class ReportController extends Controller
         ->andWhere(['in','jg.calc_teacher',$list])
         ->orderby(['jg.calc_teacher'=>SORT_ASC, 'jg.calc_groupteacher'=>SORT_DESC, 'jg.id'=>SORT_DESC])
         ->all();
-        $i = 0;
+
+        $groups = [];
         // создаем массив с данными по группам и суммарному колич часов
-        foreach($lessons as $lesson){
+        foreach($lessons as $i => $lesson){
             $groups[$lesson['gid']]['tid'] = $lesson['tid'];
             $groups[$lesson['gid']]['gid'] = $lesson['gid'];
             $groups[$lesson['gid']]['course'] = $lesson['service'];
@@ -1383,14 +1387,14 @@ class ReportController extends Controller
             */
             //$lessons[$i]['pcount'] = $lesson['pupil'];
             $accrual = 0;
-            foreach($teachers as $t) {
-                if($t['id']==$lesson['tid']) {
+            foreach ($teachers as $t) {
+                if ($t['id']==$lesson['tid']) {
                     // задаем коэффициэнт по умолчанию
                     $koef = 1;                  
                     //выбираем коэффициент в зависимости от количества учеников
-                    switch($lesson['pcount']) {
-                        case 1: $koef = 1; break;
-                        case 2: $koef = 1; break;
+                    switch ($lesson['pcount']) {
+                        case 1:
+                        case 2:
                         case 3: $koef = 1; break;
                         case 4: $koef = 1.1; break;
                         case 5: $koef = 1.2; break;
@@ -1400,18 +1404,18 @@ class ReportController extends Controller
                         case 9: $koef = 1.6; break;
                         case 10: $koef = 1.7; break;
                     }
-                    if($lesson['pcount'] > 10) {
+                    if ($lesson['pcount'] > 10) {
                         $koef = 1.8;
                     }
-            // задаем полную ставку (ставка + надбавка)
+                    // задаем полную ставку (ставка + надбавка)
                     $fullnorm = $t['norm'];
                     // если надбавка больше 0
-                    if($lesson['corp'] > 0) {
+                    if ($lesson['corp'] > 0) {
                         // суммируем ее со ставкой
                         $fullnorm = $t['norm'] + $t['vcorp'];
                     }               
                     // считаем сумму начисления
-                    switch($lesson['edutime']){
+                    switch ($lesson['edutime']){
                         // дневное время у всех из ставки вычитается 50 рублей
                         case 1: $accrual += ($fullnorm - 50) * $lesson['time'] * $koef; break;
                         // вечернее время используем полную ставку
@@ -1422,29 +1426,11 @@ class ReportController extends Controller
                 }
             }
             $lessons[$i]['money'] = round($accrual, 2);
-            $i++;
         }
-        
-        // получаем данные по посещаемости занятий длоя рассчета коэффициента
-
 
         return array($teachers, $lessons, $groups, $pages, $tchrs);
     }
-    
-	protected function reportHowdays($day, $month, $year)
-	{
-		// Считаем сколько дней в месяце
-		$mdays = date("t", mktime(0, 0, 0, $month, 1, $year));
-		$howday = 0; 
-		   for ($i = 1; $i <= $mdays; $i++){ 
-			// Цикл проходит по всем дням месяца. И если  условие верно то добавляем +1		   
-			$wday  =  date("N", mktime(0, 0, 0, $month, $i, $year));  
-				if ($wday == $day) {
-					$howday++;
-				}			
-			 }
-		return $howday;
-    }
+
  /*  
     public function actionTemp() 
 	{
@@ -1563,13 +1549,4 @@ class ReportController extends Controller
 		return 'success!';
 	}
 */
-    
-    private function getMonths()
-    {
-        return ArrayHelper::map((new Query())
-        ->select('id as id, name as name')
-        ->from('calc_month')
-        ->where(['visible' => 1])
-        ->all(), 'id', 'name');
-    }
 }

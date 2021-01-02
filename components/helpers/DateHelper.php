@@ -6,6 +6,59 @@ use DateTime;
 
 class DateHelper {
     /**
+     * @return string[]
+     */
+    public static function getWeekDays() : array
+    {
+        return [
+            1 => 'Понедельник',
+            2 => 'Вторник',
+            3 => 'Среда',
+            4 => 'Четверг',
+            5 => 'Пятница',
+            6 => 'Суббота',
+            7 => 'Воскресенье',
+        ];
+    }
+
+    /**
+     * @return string[]
+     */
+    public static function getMonths() : array
+    {
+        return [
+            1  => 'Январь',
+            2  => 'Февраль',
+            3  => 'Март',
+            4  => 'Апрель',
+            5  => 'Май',
+            6  => 'Июнь',
+            7  => 'Июль',
+            8  => 'Август',
+            9  => 'Сентябрь',
+            10 => 'Октябрь',
+            11 => 'Ноябрь',
+            12 => 'Декабрь',
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    public static function getYears() : array
+    {
+        $result = [];
+
+        if (($startYear = \Yii::$app->params['startYear']) > 0) {
+            for ($year = $startYear; $year <= date('Y'); $year++) {
+                $result[$year] = $year;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * Возвращает дату дня текущей недели по его имени.
      * Принимает смещение относительно текущей недели: +/- количество недель.
      * @param string   $name
@@ -90,23 +143,160 @@ class DateHelper {
     }
 
     /**
-     * @return string[]
+     * Возвращает массив с датами начала и конца месяца.
+     * Если не заданы месяц или год, используются значения месяца/года от текущей даты.
+     * @var int|null $month
+     * @var int|null $year
+     *
+     * @return array
      */
-    public static function getMonths() : array
+    public static function getDateRangeByMonth(int $month = null, int $year = null) : array
     {
-        return [
-            1  => 'Январь',
-            2  => 'Февраль',
-            3  => 'Март',
-            4  => 'Апрель',
-            5  => 'Май',
-            6  => 'Июнь',
-            7  => 'Июль',
-            8  => 'Август',
-            9  => 'Сентябрь',
-            10 => 'Октябрь',
-            11 => 'Ноябрь',
-            12 => 'Декабрь',
-        ];
+        if (!$month) {
+            $month = (int)date('m');
+        }
+        if (!$year) {
+            $year = (int)date('m');
+        }
+
+        $date = new DateTime();
+        $date->setDate($year, $month, 1);
+        $dateRange = [];
+        $dateRange[] = $date->format('Y-m-d');
+        $date->modify('last day of this month');
+        $dateRange[] = $date->format('Y-m-d');
+
+        return $dateRange;
+    }
+
+    /**
+     * Возвращает количество определенных дней (понедельников, вторников...) в месяце.
+     * Если не задан день недели, возвращает количество дней в месяце.
+     * Если не заданы месяц или год, используются значения месяца/года от текущей даты.
+     * @param int|null $day
+     * @param int|null $month
+     * @param int|null $year
+     *
+     * @return int
+     */
+    public static function countDaysInMonth(int $day = null, int $month = null, int $year = null) : int
+    {
+        if (!$month) {
+            $month = (int)date('m');
+        }
+
+        if (!$year) {
+            $year = (int)date('Y');
+        }
+
+        $monthDays = (int)date("t", mktime(0, 0, 0, $month, 1, $year));
+        if (!$day) {
+            return $monthDays;
+        }
+        $result = 0;
+        for ($i = 1; $i <= $monthDays; $i++) {
+            $weekDay  =  (int)date("N", mktime(0, 0, 0, $month, $i, $year));
+            if ($weekDay === $day) {
+                $result++;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * @deprecated
+     * Возвращает список недель (первый - последний день) указанного года.
+     * Если не задан год, используется значение года от текущей даты.
+     * @param int|null $year
+     *
+     * @return array
+     */
+    public static function getWeekList(int $year = null) : array
+    {
+        if (!$year) {
+            $year = (int)date('Y');
+        }
+
+        $arr = [];
+        $firstDayOfYear = mktime(0, 0, 0, 1, 1, $year);
+        $nextMonday     = strtotime('monday', $firstDayOfYear);
+        $nextSunday     = strtotime('sunday', $nextMonday);
+
+        $num = 1;
+        while (date('Y', $nextMonday) == $year) {
+            $arr[$num]  = date('d/m', $nextMonday) . '-' . date('d/m', $nextSunday);
+            $nextMonday = strtotime('+1 week', $nextMonday);
+            $nextSunday = strtotime('+1 week', $nextSunday);
+            $num++;
+        }
+
+        return $arr;
+    }
+
+    /**
+     * @deprecated
+     * Возвращает первый и последний дни текущей недели, а так же номер недели.
+     * Если не заданы месяц или год, используются значения месяца/года от текущей даты.
+     * @param int|null $day
+     * @param int|null $month
+     * @param int|null $year
+     *
+     * @return array
+     */
+    public static function getWeekInfo(int $day = null, int $month = null, int $year = null) : array
+    {
+        if (!$day) {
+            $day = (int)date('d');
+        }
+        if (!$month) {
+            $month = (int)date('m');
+        }
+        if (!$year) {
+            $year = (int)date('Y');
+        }
+        $today = mktime(0, 0, 0, $month, $day, $year);
+
+        if(date('N', $today) == 1) {
+            /* если текущий день понедельник*/
+            $monday = strtotime('monday', $today);
+        } else {
+            /* если текущий день не понедельник*/
+            $monday = strtotime('last monday', $today);
+        }
+        $sunday = strtotime('sunday', $monday);
+
+        /* заполняем результирующий массив */
+        $arr['start'] = $monday;
+        $arr['end'] = $sunday;
+        $arr['num'] = self::getNumberOfWeek($monday, $sunday);
+
+        return $arr;
+    }
+
+    /**
+     * @deprecated
+     * Возвращает номер недели по дате понедельника и воскресенья.
+     * @param int $start
+     * @param int $end
+     *
+     * @return int
+     */
+    public static function getNumberOfWeek(int $start, int $end): int
+    {
+        $firstDayOfYear = mktime(0, 0, 0, 1, 1, date('Y', $start));
+        $nextMonday = strtotime('monday', $firstDayOfYear);
+        $nextSunday = strtotime('sunday', $nextMonday);
+
+        $num = 1;
+        while (date('Y', $nextMonday) === date('Y', $start)) {
+            if ($start === $nextMonday && $end === $nextSunday) {
+                return $num;
+            }
+            $nextMonday = strtotime('+1 week', $nextMonday);
+            $nextSunday = strtotime('+1 week', $nextSunday);
+            $num++;
+        }
+
+        return 0;
     }
 }

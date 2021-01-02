@@ -1,25 +1,34 @@
 <?php
 
-namespace app\models;
+namespace app\modules\school\models;
 
 use app\components\helpers\DateHelper;
+use app\models\AccrualTeacher;
+use app\models\Edunormteacher;
+use app\models\Groupteacher;
+use app\models\Journalgroup;
+use app\models\Moneystud;
+use app\models\Service;
+use app\models\Teacher;
+use app\models\Timenorm;
+use DateTime;
 use Yii;
 use yii\base\Model;
-use yii\data\Pagination;
 use yii\db\Expression;
+use yii\db\Query;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
 
 /**
- * 
+ * Class Report
+ * @package app\models
  */
- 
 class Report extends Model
 {
-    const DEFAULT_LIMIT  = 10;
-    const DEFAULT_OFFSET = 0;
-
-    public static function getReportTypes()
+    /**
+     * @return array
+     */
+    public static function getReportTypes() : array
     {
         $roleId = (int)Yii::$app->session->get('user.ustatus');
         $items = [];
@@ -117,6 +126,7 @@ class Report extends Model
 
         return $items;
     }
+
     /**
      * Список отчетов для создания выпадающего меню
      * 
@@ -126,71 +136,15 @@ class Report extends Model
     {
         return ArrayHelper::map(static::getReportTypes(), 'label', 'url');
     }
-    
-    /* метод для получения списка недель (первый - последний день) указанного кода */
-    public static function getWeekList($year) 
-    {
-        $arr = [];
-        $firstDayOfYear = mktime(0, 0, 0, 1, 1, $year);
-        $nextMonday     = strtotime('monday', $firstDayOfYear);
-        $nextSunday     = strtotime('sunday', $nextMonday);
-        
-        $num = 1;
-        while (date('Y', $nextMonday) == $year) {
-            $arr[$num] = date('d/m', $nextMonday) . '-' . date('d/m', $nextSunday);
-            $nextMonday = strtotime('+1 week', $nextMonday);
-            $nextSunday = strtotime('+1 week', $nextSunday);
-            $num++;
-        }
 
-        return $arr;
-    }
-    /* метод для получения списка недель (первый - последний день) указанного кода */
-
-    /* метод для получения первого и последнего дня текущей недели, а так же номера недели */
-    public static function getWeekInfo($day, $month, $year) {
-        $today = mktime(0, 0, 0, $month, $day, $year);
-        
-        if(date('N', $today) == 1) {
-            /* если текущий день понедельник*/
-            $monday = strtotime('monday', $today);
-        } else {
-            /* если текущий день не понедельник*/
-            $monday = strtotime('last monday', $today);
-        }
-        $sunday = strtotime('sunday', $monday);
-
-        /* заполняем результирующий массив */
-        $arr['start'] = $monday;
-        $arr['end'] = $sunday;
-        $arr['num'] = self::getNumberOfWeek($monday, $sunday);
-
-        return $arr;
-    }
-    /* метод для получения первого и последнего дня текущей недели, а так же номера недели */
-
-    /* метод возвращает номер недели по дате понедельника и воскресенья */
-    public static function getNumberOfWeek($start, $end)
-    {
-        $firstDayOfYear = mktime(0, 0, 0, 1, 1, date('Y', $start));
-        $nextMonday = strtotime('monday', $firstDayOfYear);
-        $nextSunday = strtotime('sunday', $nextMonday);
-        
-        $num = 1;
-        while (date('Y', $nextMonday) == date('Y', $start)) {
-            if($start == $nextMonday && $end == $nextSunday) {
-               return $num; 
-            }
-            $nextMonday = strtotime('+1 week', $nextMonday);
-            $nextSunday = strtotime('+1 week', $nextSunday);
-            $num++;
-        }
-        
-        return 0;
-    }
-    /* метод возвращает номер недели по дате понедельника и воскресенья */
-
-    public static function getPayments($start = null, $end = null, $office = null)
+    /**
+     * @param null $start
+     * @param null $end
+     * @param null $office
+     *
+     * @return array
+     */
+    public static function getPayments($start = null, $end = null, $office = null) : array
     {
         $result = [];
         $payments = Moneystud::getPayments($start, $end, $office);
@@ -261,8 +215,12 @@ class Report extends Model
         return $result;
     }
 
-    // возвращает заголовки таблицы отчета по оплатам
-    public static function getSalariesReportColumns()
+    /**
+     * возвращает заголовки таблицы отчета по оплатам
+     *
+     * @return array[]
+     */
+    public static function getSalariesReportColumns() : array
     {
         return [
             [
@@ -310,7 +268,12 @@ class Report extends Model
         ];
     }
 
-    public static function getSalariesReportRows($params = null)
+    /**
+     * @param null $params
+     *
+     * @return array
+     */
+    public static function getSalariesReportRows($params = null) : array
     {
         $result = [];
         $teachersKeyVal = [];
@@ -363,10 +326,15 @@ class Report extends Model
         ];
     }
 
+    /**
+     * @param array $params
+     *
+     * @return array
+     */
     public function getTeacherHours(array $params) : array
     {
-        $startOfWeek = \DateTime::createFromFormat('Y-m-d', $params['start']);
-        $endOfWeek = \DateTime::createFromFormat('Y-m-d', $params['end']);
+        $startOfWeek = DateTime::createFromFormat('Y-m-d', $params['start']);
+        $endOfWeek = DateTime::createFromFormat('Y-m-d', $params['end']);
         if (!$startOfWeek) {
             $startOfWeek = DateHelper::getStartOfWeek(null, false);
         }
@@ -379,7 +347,7 @@ class Report extends Model
             $endOfWeek = clone($checkEndOfWeek);
         }
 
-        $teachers = (new \yii\db\Query())
+        $teachers = (new Query())
         ->select(['id' => 't.id', 'name' => 't.name'])
         ->from(['t' => Teacher::tableName()])
         ->innerJoin(['j' => 'calc_journalgroup'], 'j.calc_teacher = t.id')
@@ -396,7 +364,7 @@ class Report extends Model
         ->all();
         $ids = ArrayHelper::getColumn($teachers, 'id');
 
-        $lessons = (new \yii\db\Query())
+        $lessons = (new Query())
         ->select([
             'teacherId' => 't.id',
             'teacher'   => 't.name',
@@ -439,27 +407,5 @@ class Report extends Model
             'teachers' => ArrayHelper::map($teachers, 'id', 'name'),
             'hours' => $result
         ];
-    }
-
-    /**
-     * Возвращает массив с датами начала и конца месяца
-     * @var int|null $month
-     * 
-     * @return array|null
-     */
-    public static function getDateRangeByMonth(int $month = null)
-    {
-        if (!$month) {
-            return null;
-        }
-
-        $date = new \DateTime();
-        $date->setDate(date('Y'), $month, 1);
-        $dateRange = [];
-        $dateRange[] = $date->format('Y-m-d');
-        $date->modify('last day of this month');
-        $dateRange[] = $date->format('Y-m-d');
-
-        return $dateRange;
     }
 }

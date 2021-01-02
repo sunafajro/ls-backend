@@ -25,10 +25,10 @@ $this->title = Yii::$app->params['appTitle'] . Yii::t('app','Reports');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
 $this->params['breadcrumbs'][] = Yii::t('app','Commissions');
 ?>
-<div class="row row-offcanvas row-offcanvas-left report-commissions">
+<div class="report-commissions">
     <?= $this->render('_sidebar', [
-            'actionUrl'     => $actionUrl,
-            'hints'         => [
+            'actionUrl' => $actionUrl,
+            'hints'     => [
                 'При фильтрации по столбцу Дата, фильтр по периоду игнорируется.',
             ],
             'items' => [
@@ -45,10 +45,9 @@ $this->params['breadcrumbs'][] = Yii::t('app','Commissions');
                     'value' => $end ?? '',
                 ],
             ],
-            'reportList'    => $reportList ?? [],
-            'userInfoBlock' => $userInfoBlock ?? '',
+            'reportList' => $reportList ?? [],
     ]) ?>
-    <div class="col-xs-12 col-sm-10">
+    <div class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') {
             try {
                 echo Breadcrumbs::widget([

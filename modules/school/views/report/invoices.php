@@ -23,7 +23,7 @@ $this->title = Yii::$app->params['appTitle'] . Yii::t('app','Reports');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
 $this->params['breadcrumbs'][] = Yii::t('app','Invoices report');
 ?>
-<div class="row row-offcanvas row-offcanvas-left report-invoices">
+<div class="report-invoices">
     <?= $this->render('_sidebar', [
             'actionUrl'     => ['report/invoices'],
             'hints'         => [],
@@ -50,9 +50,8 @@ $this->params['breadcrumbs'][] = Yii::t('app','Invoices report');
                 ],
             ],
             'reportList'    => $reportList,
-            'userInfoBlock' => $userInfoBlock,
     ]) ?>
-    <div class="col-sm-10">
+    <div class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') {
             try {
                 echo Breadcrumbs::widget([

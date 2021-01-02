@@ -31,7 +31,7 @@ $user   = Yii::$app->user->identity;
 $roleId = $user->roleId;
 $userId = $user->id;
 ?>
-<div class="row row-offcanvas row-offcanvas-left document-index">
+<div class="row document-index">
     <div id="sidebar" class="col-xs-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
         <?= UserInfoWidget::widget() ?>
         <?php if (in_array($roleId, [3, 4])) { ?>

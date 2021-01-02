@@ -1,6 +1,7 @@
 <?php
 
 use app\widgets\filters\FiltersWidget;
+use app\widgets\userInfo\UserInfoWidget;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
@@ -16,16 +17,15 @@ use yii\widgets\ActiveForm;
  * @var array      $reportList
  * @var array      $teachers
  * @var string     $tid
- * @var string     $userInfoBlock
  */
 unset($actionUrl['start']);
 unset($actionUrl['end']);
 ?>
-<div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
+<div id="sidebar" class="col-xs-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
     <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
         <div id="main-menu"></div>
     <?php } ?>	
-    <?= $userInfoBlock ?>
+    <?= UserInfoWidget::widget() ?>
     <?php if (!empty($reportList)) { ?>
     <div class="dropdown">
         <?= Html::button('<span class="fa fa-list-alt" aria-hidden="true"></span> ' . Yii::t('app', 'Reports') . ' <span class="caret"></span>', ['class' => 'btn btn-default dropdown-toggle btn-sm btn-block', 'type' => 'button', 'id' => 'dropdownMenu', 'data-toggle' => 'dropdown', 'aria-haspopup' => 'true', 'aria-expanded' => 'true']) ?>

@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use app\components\helpers\DateHelper;
 use Yii;
 use yii\helpers\ArrayHelper;
 
@@ -254,7 +255,7 @@ class AccrualTeacher extends \yii\db\ActiveRecord
 			// получаем данные по занятиям
 			$list = [$id];
             $order = ['jg.data' => SORT_DESC];
-            $lessons = self::getViewedLessonList($list, $order, $gid, Report::getDateRangeByMonth($month));
+            $lessons = self::getViewedLessonList($list, $order, $gid, DateHelper::getDateRangeByMonth($month));
 			if (!empty($lessons)) {
                 $totalValue         = 0;
                 $languagePremiumSum = 0;

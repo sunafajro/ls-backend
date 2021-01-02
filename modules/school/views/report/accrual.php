@@ -4,20 +4,21 @@
  * @var View       $this
  * @var ActiveForm $form
  * @var array      $accruals
+ * @var array      $actionUrl
  * @var array      $groups
  * @var array      $jobPlaces
  * @var array      $lessons
- * @var array      $months
  * @var int        $pages
  * @var array      $params
  * @var array      $reportList
  * @var array      $teachers
  * @var array      $teachersList
- * @var string     $userInfoBlock
  */
 
+use app\components\helpers\DateHelper;
 use app\modules\school\assets\ReportAccrualsAsset;
 use app\widgets\alert\AlertWidget;
+use app\widgets\filters\FiltersWidget;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
@@ -29,69 +30,36 @@ $this->params['breadcrumbs'][] = 'Отчет по начислениям';
 
 ReportAccrualsAsset::register($this);
 ?>
-<div class="row row-offcanvas row-offcanvas-left schedule-index">
-    <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
-            <div id="main-menu"></div>
-        <?php } ?>
-        <?= $userInfoBlock ?>
-        <?php if (!empty($reportList)) { ?>
-        <div class="dropdown">
-            <?= Html::button(
-                    Html::tag('span', '', ['class' => 'fa fa-list-alt', 'aria-hidden' => 'true']) 
-                    . ' '
-                    . Yii::t('app', 'Reports')
-                    . ' '
-                    . Html::tag('span', '', ['class' => 'caret']),
-                    [
-                        'class'         => 'btn btn-default dropdown-toggle btn-sm btn-block',
-                        'type'          => 'button',
-                        'id'            => 'dropdownMenu',
-                        'data-toggle'   => 'dropdown',
-                        'aria-haspopup' => 'true',
-                        'aria-expanded' => 'true'
-                    ]
-                ) ?>
-            <ul class="dropdown-menu" aria-labelledby="dropdownMenu">
-                <?php foreach ($reportList as $key => $value) { ?>
-                <li><?= Html::a($key, $value, ['class'=>'dropdown-item']) ?></li>
-                <?php } ?>
-            </ul>
-        </div>
-        <?php } ?>
-        <h4><?= Yii::t('app', 'Filters') ?></h4>
-        <?php $form = ActiveForm::begin([
-                'method' => 'get',
-                'action' => ['report/accrual'],
-                ]); ?>
-            <div class="form-group">
-                <select class='form-control input-sm' name='month'>";
-                    <option value='all'><?= Yii::t('app', '-all months-') ?></option>";
-                    <?php foreach ($months as $mkey => $mvalue) { ?>
-                        <option value="<?= $mkey ?>" <?php echo ($mkey==$params['month']) ? ' selected' : ''; ?>>
-                            <?= $mvalue ?>
-                        </option>
-                    <?php } ?>
-                </select>
-            </div>
-            <div class="form-group">
-                <select class="form-control input-sm" name="tid">
-                    <option value="all"><?= Yii::t('app', '-all teachers-') ?></option>
-                    <?php if (!empty($teachersList)) {
-                        foreach ($teachersList as $key => $value) { ?>
-                            <option value="<?= $key ?>"<?= ($key == $params['tid']) ? ' selected' : ''?>>
-                                <?= $value ?>
-                            </option>
-                        <?php } ?>
-                    <?php } ?>
-                </select>
-            </div>
-            <div class="form-group">
-                <?= Html::submitButton('<span class="fa fa-filter" aria-hidden="true"></span> ' . Yii::t('app', 'Apply'), ['class' => 'btn btn-info btn-sm btn-block']) ?>
-            </div>
-        <?php ActiveForm::end(); ?>
-    </div>
-    <div id="content" class="col-sm-10">
+<div class="row report-accruals">
+    <?= $this->render('_sidebar', [
+        'actionUrl' => $actionUrl,
+        'items'     => [
+            [
+                'name'    => 'month',
+                'options' => DateHelper::getMonths(),
+                'title'   => Yii::t('app', 'Month'),
+                'type'    => FiltersWidget::FIELD_TYPE_DROPDOWN,
+                'value'   => $params['month'] ?? date('m'),
+            ],
+            [
+                'name'    => 'year',
+                'options' => DateHelper::getYears(),
+                'title'   => Yii::t('app', 'Year'),
+                'type'    => FiltersWidget::FIELD_TYPE_DROPDOWN,
+                'value'   => $params['year'] ?? date('Y'),
+            ],
+            [
+                'name'    => 'tid',
+                'options' => $teachersList,
+                'title'   => Yii::t('app', 'Teacher'),
+                'type'    => FiltersWidget::FIELD_TYPE_DROPDOWN,
+                'value'   => $params['tid'] ?? null,
+            ]
+        ],
+        'hints'      => [],
+        'reportList' => $reportList ?? [],
+    ]) ?>
+    <div id="content" class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
         <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
         <?= Breadcrumbs::widget([
             'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],

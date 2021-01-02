@@ -2,6 +2,7 @@
 namespace app\models;
 
 use app\components\helpers\DateHelper;
+use app\modules\school\models\Report;
 use Yii;
 use yii\helpers\ArrayHelper;
 
