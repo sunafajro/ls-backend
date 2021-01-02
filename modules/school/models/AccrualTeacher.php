@@ -61,22 +61,25 @@ class AccrualTeacher extends ActiveRecord
     ];
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    public static function tableName()
+    public static function tableName() : string
     {
         return 'calc_accrualteacher';
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    public function rules()
+    public function rules() : array
     {
+        /** @var Auth $user */
+        $user = Yii::$app->user->identity;
+
         return [
             [['visible'], 'default', 'value' => 1],
             [['data'],    'default', 'value' => date('Y-m-d')],
-            [['user'],    'default', 'value' => Yii::$app->session->get('user.uid')],
+            [['user'],    'default', 'value' => $user->id],
             [['calc_groupteacher', 'calc_edunormteacher', 'calc_teacher', 'user', 'data', 'visible', 'value', 'value_corp', 'value_prem'], 'required'],
             [['calc_groupteacher', 'calc_edunormteacher', 'calc_teacher', 'user', 'visible', 'user_visible', 'done', 'user_done'], 'integer'],
             [['data', 'data_visible', 'data_done', 'outlay'], 'safe'],
@@ -86,9 +89,9 @@ class AccrualTeacher extends ActiveRecord
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    public function attributeLabels()
+    public function attributeLabels() : array
     {
         return [
             'id' => Yii::t('app', 'ID'),
@@ -128,6 +131,68 @@ class AccrualTeacher extends ActiveRecord
                 return $this->save(true, ['done', 'user_done', 'data_done']);
             } else {
                 return true;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Откатить выплату начисления
+     * @return bool
+     */
+    public function payoffReset() : bool
+    {
+        if ($this->visible) {
+            if ($this->done) {
+                $this->done = 0;
+                $this->user_done = 0;
+                $this->data_done = '0000-00-00';
+
+                return $this->save(true, ['done', 'user_done', 'data_done']);
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    public function delete(): bool
+    {
+        /** @var Auth $user */
+        $user = Yii::$app->user->identity;
+        if ($this->visible) {
+            if (!$this->done) {
+                $this->visible = 0;
+                $this->data_visible = date('Y-m-d');
+                $this->user_visible = $user->id;
+                if ($this->save(true, ['visible', 'data_visible', 'user_visible'])) {
+                    /** @var Teacher $teacher */
+                    $teacher = Teacher::find()->andWhere($this->calc_teacher)->one();
+                    $teacher->accrual = $teacher->accrual - $this->value;
+                    if (!$teacher->save(true, ['accrual'])) {
+                        return false;
+                    }
+                    /** @var Journalgroup $lesson */
+                    foreach (Journalgroup::find()->andWhere(['calc_accrual' => $this->id])->all() ?? [] as $lesson) {
+                        $lesson->done         = 0;
+                        $lesson->user_done    = 0;
+                        $lesson->data_done    = '0000-00-00';
+                        $lesson->calc_accrual = 0;
+                        if (!$lesson->save(true, ['done', 'user_done', 'data_done', 'calc_accrual'])) {
+                            return false;
+                        }
+                    }
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
             }
         } else {
             return false;

@@ -17,7 +17,8 @@ use yii\web\ForbiddenHttpException;
 use yii\web\ServerErrorHttpException;
 
 /**
- * AccrualController используем для записи начислений зп в базу.
+ * Class AccrualController
+ * @package app\modules\school\controllers
  */
 class AccrualController extends Controller
 {
@@ -58,9 +59,9 @@ class AccrualController extends Controller
 
     /**
      * Добавляет начисление
-     * @param int      $tid   id преподавателя
-     * @param int|null $month месяц в котором прошли занятия
-     * @param int|null $year  год в котором прошли занятия
+     * @param string      $tid   id преподавателя
+     * @param string|null $month месяц в котором прошли занятия
+     * @param string|null $year  год в котором прошли занятия
      *
      * @return mixed
      * @throws BadRequestHttpException
@@ -68,8 +69,17 @@ class AccrualController extends Controller
      * @throws NotFoundHttpException
      * @uses $_POST['groups'] directly
      */
-    public function actionCreate(int $tid, int $month = NULL, int $year = NULL)
+    public function actionCreate(string $tid, string $month = NULL, string $year = NULL)
     {
+        if (is_string($tid)) {
+            $tid = (int)$tid;
+        }
+        if (!is_null($month) && is_string($month)) {
+            $month = (int)$month;
+        }
+        if (!is_null($year) && is_string($year)) {
+            $year = (int)$year;
+        }
         /** @var Auth $user */
         $user = Yii::$app->user->identity;
         if (!in_array($user->roleId, [3])) {
@@ -89,7 +99,7 @@ class AccrualController extends Controller
 		try {
 		    foreach ($groups as $gid) {
 				/** @var array */
-				$totalAccrual = AccrualTeacher::calculateFullTeacherAccrual((int)$tid, (int)$gid, $month, $year);
+				$totalAccrual = AccrualTeacher::calculateFullTeacherAccrual($tid, $gid, $month, $year);
 				$lessons = [];
 				foreach ($totalAccrual['lessons'] ?? [] as $lesson) {
                     $lessons[$lesson['id']] = [
@@ -147,14 +157,19 @@ class AccrualController extends Controller
 
     /**
      * Аннулирует начисление
-     * @param int $id
+     * @param string $id
      *
      * @return mixed
      * @throws ForbiddenHttpException
-     * @throws NotFoundHttpException
+     * @throws NotFoundHttpException|\Throwable
      */
-	public function actionDelete(int $id)
+	public function actionDelete(string $id)
 	{
+        if (is_string($id)) {
+            /** @var int $id */
+            $id = (int)$id;
+        }
+
         /** @var Auth $user */
         $user = Yii::$app->user->identity;
         if (!in_array($user->roleId, [3])) {
@@ -163,46 +178,15 @@ class AccrualController extends Controller
 
         $model = $this->findModel($id);
 
-		if ($model->visible) {
-			if (!$model->done) {
-                $transaction = Yii::$app->db->beginTransaction();
-                try {
-                    $model->visible = 0;
-                    $model->data_visible = date('Y-m-d');
-                    $model->user_visible = Yii::$app->session->get('user.uid');
-                    if ($model->save(true, ['visible', 'data_visible', 'user_visible'])) {
-                        /** @var Teacher $teacher */
-                        $teacher = Teacher::find()->andWhere($model->calc_teacher)->one();
-                        $teacher->accrual = $teacher->accrual - $model->value;
-                        if (!$teacher->save(true, ['accrual'])) {
-                            throw new ServerErrorHttpException('error', "Неудалось отменить начисление #$id!");
-                        }
-                        // обновляем записи в журнале
-                        /** @var Journalgroup $lesson */
-                        foreach (Journalgroup::find()->andWhere(['calc_accrual' => $id])->all() ?? [] as $lesson) {
-                            $lesson->done         = 0;
-                            $lesson->user_done    = 0;
-                            $lesson->data_done    = '0000-00-00';
-                            $lesson->calc_accrual = 0;
-                            if (!$lesson->save(true, ['done', 'user_done', 'data_done', 'calc_accrual'])) {
-                                throw new ServerErrorHttpException('Не удалось отменить начисление. Ошибка обновления занятий.');
-                            }
-                        }
-                        // если отмена начисления начисление прошла не успешно
-                        Yii::$app->session->setFlash('success', "Начисление #$id успешно отменено!");
-                        $transaction->commit();
-                    } else {
-                        throw new ServerErrorHttpException('error', "Неудалось отменить начисление #$id!");
-                    }
-                } catch (Exception $e) {
-                    Yii::$app->session->setFlash('error', $e->getMessage());
-                    $transaction->rollback();
-                }
-			} else {
-				Yii::$app->session->setFlash('error', "Нельзя удалить начисление #$id, пожалуйста сначала отмените выплату!");
-			}
-		}
-		
+        $transaction = Yii::$app->db->beginTransaction();
+        if ($model->delete()) {
+            $transaction->commit();
+            Yii::$app->session->setFlash('success', "Начисление #{$id} успешно отменено!");
+        } else {
+            $transaction->rollback();
+            Yii::$app->session->setFlash('error', "Неудалось отменить начисление #{$id}!");
+        }
+
 		return $this->redirect(['teacher/view', 'id' => $model->calc_teacher, 'tab' => 3]);
 	}
 
@@ -218,6 +202,11 @@ class AccrualController extends Controller
      */
 	public function actionDone(string $id = null)
 	{
+        if (is_string($id)) {
+            /** @var int $id */
+            $id = (int)$id;
+        }
+
         /** @var Auth $user */
         $user = Yii::$app->user->identity;
         if (!in_array($user->roleId, [3, 8])) {
@@ -260,14 +249,18 @@ class AccrualController extends Controller
 
     /**
      * Помечает начисление как "Ожидает выплаты"
-     * @param int $id
+     * @param string $id
      *
      * @return mixed
      * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
      */
-	public function actionUndone(int $id)
+	public function actionUndone(string $id)
 	{
+	    if (is_string($id)) {
+	        /** @var int $id */
+	        $id = (int)$id;
+        }
         /** @var Auth $user */
         $user = Yii::$app->user->identity;
         if (!in_array($user->roleId, [3, 8])) {
@@ -276,18 +269,12 @@ class AccrualController extends Controller
 
         $model = $this->findModel($id);
 
-		if ($model->visible) {
-			if ($model->done) {
-				$model->done = 0;
-				$model->user_done = 0;
-				$model->data_done = '0000-00-00';
-				if ($model->save(true, ['done', 'user_done', 'data_done'])) {
-				    Yii::$app->session->setFlash('success', "Выплата начисления #$id успешно отменена!");
-				} else {
-				    Yii::$app->session->setFlash('error', "Неудалось отменить выплатиту начисления #$id!");
-				}
-		    }
-		}
+        if ($model->payoffReset()) {
+            Yii::$app->session->setFlash('success', "Выплата начисления #$id успешно отменена!");
+        } else {
+            Yii::$app->session->setFlash('error', "Неудалось отменить выплатиту начисления #$id!");
+        }
+
         return $this->redirect(Yii::$app->request->referrer);
 	}
 	
@@ -299,7 +286,7 @@ class AccrualController extends Controller
      * @return AccrualTeacher the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
-    protected function findModel($id)
+    protected function findModel(int $id) : AccrualTeacher
     {
         if (($model = AccrualTeacher::findOne($id)) !== null) {
             return $model;
