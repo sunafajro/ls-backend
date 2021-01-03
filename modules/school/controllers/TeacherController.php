@@ -511,7 +511,7 @@ class TeacherController extends Controller
 		->where('calc_teacher=:tid and done!=:one and visible=:one', [':tid'=>$id, ':one'=>1])
 		->one();
 
-		$accrual = AccrualTeacher::calculateFullTeacherAccrual((int)$id);
+		$accrual = AccrualTeacher::calculateFullTeacherAccrual((int)$id, null, false, false);
 
 		return $this->render('view', [
             'accrualSum'      => $accrual['totalValue'],

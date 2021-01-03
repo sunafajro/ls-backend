@@ -327,14 +327,14 @@ class AccrualTeacher extends ActiveRecord
 
     /**
      * Считает и возвращает общую сумму начислений преподавателя по текущим проверенным и неначисленным занятиям 
-	 * @param int      $id    id преподавателя
-     * @param int|null $gid   id группы
-     * @param int|null $month месяц проведения занятий
-     * @param int|null $year  год проведения занятий
+	 * @param int            $id    id преподавателя
+     * @param int|null       $gid   id группы
+     * @param int|null|false $month месяц проведения занятий
+     * @param int|null|false $year  год проведения занятий
      * 
 	 * @return array
      */
-	public static function calculateFullTeacherAccrual(int $id, int $gid = null, int $month = NULL, int $year = NULL) : array
+	public static function calculateFullTeacherAccrual(int $id, int $gid = null, $month = NULL, $year = NULL) : array
 	{
         // получаем нормы оплаты преподавателя и корпоративную надбавку
         /** @var Teacher $teacher */
@@ -356,7 +356,12 @@ class AccrualTeacher extends ActiveRecord
 			// получаем данные по занятиям
 			$list = [$id];
             $order = ['jg.data' => SORT_DESC];
-            $lessons = self::getViewedLessonList($list, $order, $gid, DateHelper::getDateRangeByMonth($month, $year));
+            $lessons = self::getViewedLessonList(
+                $list,
+                $order,
+                $gid,
+                $month !==false && $year !== false ? DateHelper::getDateRangeByMonth($month, $year) : null
+            );
 			if (!empty($lessons)) {
                 $totalValue         = 0;
                 $languagePremiumSum = 0;
