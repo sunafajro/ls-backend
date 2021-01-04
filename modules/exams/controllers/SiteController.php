@@ -23,15 +23,15 @@ class SiteController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::class,
-                'only' => ['index', 'login', 'logout', 'csrf'],
+                'only' => ['index', 'login', 'logout', 'csrf', 'get-exam-data', 'get-exam-file'],
                 'rules' => [
                     [
-                        'actions' => ['index', 'login', 'csrf'],
+                        'actions' => ['index', 'login', 'csrf', 'get-exam-data', 'get-exam-file'],
                         'allow' => true,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['login', 'logout', 'index', 'csrf'],
+                        'actions' => ['logout', 'index', 'csrf', 'get-exam-data', 'get-exam-file'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -116,7 +116,7 @@ class SiteController extends Controller
      * Для js приложений
      * @return mixed
      */
-    public function actionGetExams()
+    public function actionGetExamData()
     {
         $exams = Yii::$app->cache->getOrSet('exams_data', function() {
             $exams = [];
@@ -139,12 +139,32 @@ class SiteController extends Controller
 
     /**
      * Для js приложений
+     * @param string $name
+     *
+     * @return mixed
+     */
+    public function actionGetExamFile(string $name)
+    {
+        $filePath = null;
+        foreach (scandir(Yii::getAlias("@exams")) as $file) {
+            $fileNameArray = explode('.', $file);
+            $fileName = reset($fileNameArray);
+            if ($fileName === $name) {
+                $filePath = Yii::getAlias("@exams/{$file}");
+                break;
+            }
+        }
+        return $filePath ? Yii::$app->response->sendFile($filePath) : null;
+    }
+
+    /**
+     * Для js приложений
      * @return mixed
      */
     public function actionCsrf()
     {
         return $this->asJson([
-            Yii::$app->request->csrfParam => Yii::$app->request->getCsrfToken()
+            Yii::$app->request->csrfParam => Yii::$app->request->getCsrfToken(),
         ]);
     }
 

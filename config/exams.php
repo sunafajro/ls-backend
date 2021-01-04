@@ -36,6 +36,7 @@ return [
         'urlManager' => [
             'enablePrettyUrl' => true,
             'rules' => [
+                '<module:[\w-]+>/site/get-exam-file/<name:\w{13}>'             => '<module>/site/get-exam-file',
                 '<module:[\w-]+>/<controller:[\w-]+>/<action:[\w-]+>/<id:\d+>' => '<module>/<controller>/<action>',
                 '<module:[\w-]+>/<controller:[\w-]+>/<action:[\w-]+>'          => '<module>/<controller>/<action>',
                 '<module:[\w-]+>/<controller:[\w-]+>'                          => '<module>/<controller>/index',
