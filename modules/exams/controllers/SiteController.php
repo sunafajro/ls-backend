@@ -6,16 +6,19 @@ use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
-use yii\web\Response;
 use app\modules\exams\models\forms\LoginForm;
 use app\modules\exams\models\LoginLog;
 
+/**
+ * Class SiteController
+ * @package app\modules\exams\controllers
+ */
 class SiteController extends Controller
 {
     /**
      * {@inheritDoc}
      */
-    public function behaviors()
+    public function behaviors() : array
     {
         return [
             'access' => [
@@ -23,7 +26,7 @@ class SiteController extends Controller
                 'only' => ['index', 'login', 'logout', 'csrf'],
                 'rules' => [
                     [
-                        'actions' => ['login', 'csrf'],
+                        'actions' => ['index', 'login', 'csrf'],
                         'allow' => true,
                         'roles' => ['?'],
                     ],
@@ -46,7 +49,7 @@ class SiteController extends Controller
     /**
      * {@inheritDoc}
      */
-    public function actions()
+    public function actions() : array
     {
         return [
             'error' => [
@@ -111,14 +114,38 @@ class SiteController extends Controller
 
     /**
      * Для js приложений
-     * @return array
+     * @return mixed
+     */
+    public function actionGetExams()
+    {
+        $exams = Yii::$app->cache->getOrSet('exams_data', function() {
+            $exams = [];
+            foreach (['ege', 'oge'] as $fileName) {
+                $filePath = Yii::getAlias("@exams/{$fileName}.json");
+                if (file_exists($filePath)) {
+                    $rawExamsData = file_get_contents($filePath);
+                    $jsonExamsData = json_decode($rawExamsData, true);
+                    $jsonExamsData = array_filter($jsonExamsData, function ($exam) {
+                        return $exam['enabled'];
+                    });
+                    $exams = array_merge($exams, $jsonExamsData);
+                }
+            }
+            return $exams;
+        }, 3600);
+
+        return $this->asJson($exams);
+    }
+
+    /**
+     * Для js приложений
+     * @return mixed
      */
     public function actionCsrf()
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        return [
+        return $this->asJson([
             Yii::$app->request->csrfParam => Yii::$app->request->getCsrfToken()
-        ];
+        ]);
     }
 
     /**

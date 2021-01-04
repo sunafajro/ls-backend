@@ -15,6 +15,11 @@
     "minimum-stability": "stable",
     "require": {
         "php": "^7.3",
+        "ext-curl": "*",
+        "ext-gd": "*",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "ext-xml": "*",
         "yiisoft/yii2": "~2.0.31",
         "yiisoft/yii2-bootstrap": "~2.0.0",
         "yiisoft/yii2-swiftmailer": "~2.0.0",
@@ -25,10 +30,6 @@
         "kartik-v/yii2-mpdf": "dev-master",
         "2amigos/qrcode-library": "^1.1",
         "yiisoft/yii2-imagine": "^2.1",
-        "ext-curl": "*",
-        "ext-gd": "*",
-        "ext-mbstring": "*",
-        "ext-xml": "*",
         "conquer/momentjs": "*",
         "yiisoft/yii2-bootstrap4": "^2.0",
         "yidas/yii2-fontawesome": "^5.0"

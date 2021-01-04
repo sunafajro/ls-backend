@@ -32,6 +32,7 @@ composer.phar
 /data/db
 /data/files
 /data/attestates
+/data/exams
 /runtime
 /web/images
 /web/uploads
