@@ -13,7 +13,7 @@ use app\components\helpers\IconHelper;
 use app\models\Groupteacher;
 use app\models\UploadForm;
 use app\modules\school\models\Auth;
-use app\modules\school\models\File;
+use app\modules\school\models\GroupFile;
 use app\modules\school\models\search\FileSearch;
 use app\widgets\alert\AlertWidget;
 use app\widgets\groupInfo\GroupInfoWidget;
@@ -26,7 +26,6 @@ use yii\grid\SerialColumn;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
-use yii\widgets\Breadcrumbs;
 
 $this->title = Yii::$app->params['appTitle'] . ' Группа №' . $group->id;
 $this->params['breadcrumbs'][] = [
@@ -71,12 +70,6 @@ $canWrite  = in_array($user->roleId, [3, 4]) || in_array($user->teacherId, $grou
         <?= GroupInfoWidget::widget(['group' => $group]) ?>
     </div>
     <div class="col-sm-10">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
-            <?= Breadcrumbs::widget([
-                'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
-            ]); ?>
-        <?php } ?>
-
         <div>
             <p class="visible-xs">
                 <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">
@@ -84,7 +77,6 @@ $canWrite  = in_array($user->roleId, [3, 4]) || in_array($user->teacherId, $grou
                 </button>
             </p>
         </div>
-
         <?= AlertWidget::widget() ?>
         <?= GridView::widget([
                 'dataProvider' => $dataProvider,
@@ -94,7 +86,7 @@ $canWrite  = in_array($user->roleId, [3, 4]) || in_array($user->teacherId, $grou
                     'original_name' => [
                         'attribute' => 'original_name',
                         'format' => 'raw',
-                        'value' => function (File $file) use ($group) {
+                        'value' => function (GroupFile $file) use ($group) {
                             return Html::a($file->original_name, [
                                 'groupteacher/files',
                                 'id'      => $group->id,
@@ -109,7 +101,7 @@ $canWrite  = in_array($user->roleId, [3, 4]) || in_array($user->teacherId, $grou
                     ],
                     'user_id'     => [
                         'attribute' => 'user_id',
-                        'value' => function (File $file) {
+                        'value' => function (GroupFile $file) {
                             $user = $file->user ?? null;
                             return $user->name ?? '';
                         }
@@ -122,7 +114,7 @@ $canWrite  = in_array($user->roleId, [3, 4]) || in_array($user->teacherId, $grou
                         'class' => ActionColumn::class,
                         'header' => Yii::t('app', 'Act.'),
                         'buttons' => [
-                            'delete' => function ($url, File $file) use ($canWrite, $group) {
+                            'delete' => function ($url, GroupFile $file) use ($canWrite, $group) {
                                 return Html::a(
                                    IconHelper::icon('trash'),
                                    ['groupteacher/files', 'id' => $group->id, 'action' => 'delete', 'file_id' => $file->id],

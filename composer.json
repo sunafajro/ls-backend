@@ -26,6 +26,7 @@
         "2amigos/qrcode-library": "^1.1",
         "yiisoft/yii2-imagine": "^2.1",
         "ext-curl": "*",
+        "ext-exif": "*",
         "ext-gd": "*",
         "ext-mbstring": "*",
         "ext-xml": "*",

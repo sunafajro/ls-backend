@@ -4,9 +4,8 @@ namespace app\modules\school\controllers;
 
 use app\models\AccessRule;
 use app\modules\school\models\Auth;
-use app\modules\school\models\File;
-use app\modules\school\models\search\FileSearch;
-use app\modules\school\School;
+use app\modules\school\models\Document;
+use app\modules\school\models\search\DocumentSearch;
 use Yii;
 use yii\base\Action;
 use yii\web\BadRequestHttpException;
@@ -18,22 +17,30 @@ use app\models\UploadForm;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 
+/**
+ * Class DocumentController
+ * @package app\modules\school\controllers
+ */
 class DocumentController extends Controller
 {
-    public function behaviors()
+    /**
+     * {@inheritDoc}
+     */
+    public function behaviors(): array
     {
+        $rules = ['index','download','upload','delete'];
         return [
             'access' => [
                 'class' => AccessControl::class,
-                'only' => ['index','download','upload','delete'],
+                'only' => $rules,
                 'rules' => [
                     [
-                        'actions' => ['index','download','upload','delete'],
+                        'actions' => $rules,
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index','download','upload','delete'],
+                        'actions' => $rules,
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -55,7 +62,7 @@ class DocumentController extends Controller
      * @throws ForbiddenHttpException
      * @throws BadRequestHttpException
      */
-    public function beforeAction($action)
+    public function beforeAction($action): bool
     {
 		if(parent::beforeAction($action)) {
             $rule = new AccessRule();
@@ -73,11 +80,8 @@ class DocumentController extends Controller
      */
     public function actionIndex()
     {
-        $searchModel = new FileSearch();
-        $dataProvider = $searchModel->search(File::find()->andWhere([
-            'entity_type' => File::TYPE_DOCUMENTS,
-            'module_type' => School::MODULE_NAME,
-        ]), Yii::$app->request->get());
+        $searchModel = new DocumentSearch();
+        $dataProvider = $searchModel->search(Yii::$app->request->get());
 
         return $this->render('index', [
             'dataProvider' => $dataProvider,
@@ -87,23 +91,14 @@ class DocumentController extends Controller
     }
 
     /**
-     * @param int $id
+     * @param string $id
      *
      * @return mixed
      * @throws NotFoundHttpException
      */
-    public function actionDownload(int $id)
+    public function actionDownload(string $id)
     {
-        /** @var File|null $file */
-        $file = File::find()->andWhere([
-            'id'          => $id,
-            'module_type' => School::MODULE_NAME,
-            'entity_type' => File::TYPE_DOCUMENTS,
-        ])->one();
-        if (empty($file)) {
-            throw new NotFoundHttpException(Yii::t('app', 'File not found!'));
-        }
-
+        $file = $this->findModel(intval($id));
         return Yii::$app->response->sendFile($file->getPath(), $file->original_name, ['inline' => true]);
     }
 
@@ -118,14 +113,14 @@ class DocumentController extends Controller
         $model = new UploadForm();
         $model->file = UploadedFile::getInstance($model, 'file');
         if ($model->file && $model->validate()) {
-            if ($model->saveFile(File::getTempDirPath())) {
-                $file = new File([
+            if ($model->saveFile(Document::getTempDirPath())) {
+                $file = new Document([
                     'file_name'     => $model->file_name,
                     'original_name' => $model->original_name,
                     'size'          => $model->file->size,
                 ]);
                 if ($file->save()) {
-                    $file->setEntity(File::TYPE_DOCUMENTS);
+                    $file->setEntity(Document::DEFAULT_ENTITY_TYPE);
                 }
                 Yii::$app->session->setFlash('success', Yii::t('app', 'File successfully uploaded!'));
             } else {
@@ -137,27 +132,19 @@ class DocumentController extends Controller
     }
 
     /**
-     * @param int $id
+     * @param string $id
      *
      * @return mixed
      * @throws NotFoundHttpException
      */
-    public function actionDelete(int $id)
+    public function actionDelete(string $id)
     {
         /** @var Auth $user */
         $user   = Yii::$app->user->identity;
         $roleId = $user->roleId;
         $userId = $user->id;
 
-        /** @var File $file */
-        $file = File::find()->andWhere([
-            'id'          => $id,
-            'module_type' => School::MODULE_NAME,
-            'entity_type' => File::TYPE_DOCUMENTS,
-        ])->one();
-        if (empty($file)) {
-            throw new NotFoundHttpException(Yii::t('app', 'File not found!'));
-        }
+        $file = $this->findModel(intval($id));
         $errorMessage = Yii::t('app', 'Failed to delete file!');
         try {
             if (!in_array($roleId, [3]) && $file->user_id !== $userId) {
@@ -168,12 +155,24 @@ class DocumentController extends Controller
             } else {
                 Yii::$app->session->setFlash('error', $errorMessage);
             }
-        } catch (\Exception $e) {
-            Yii::$app->session->setFlash('error', $errorMessage);
         } catch (\Throwable $e) {
             Yii::$app->session->setFlash('error', $errorMessage);
         }
 
         return $this->redirect(['document/index']);
+    }
+
+    /**
+     * @param int $id
+     * @return Document
+     * @throws NotFoundHttpException
+     */
+    protected function findModel(int $id): Document
+    {
+        if (($model = Document::find()->byId($id)->one()) !== null) {
+            return $model;
+        } else {
+            throw new NotFoundHttpException(Yii::t('app', 'File not found!'));
+        }
     }
 }

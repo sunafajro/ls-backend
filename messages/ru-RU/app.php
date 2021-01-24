@@ -319,6 +319,7 @@ return array(
     'Lessons report' => 'Отчет по занятиям',
     'Level' => 'Уровень',
     'Level/Exam' => 'Уровень/Экзамен',
+    'Link' => 'Ссылка',
     'Link to Client' => 'Привязать к клиенту',
     'Link to social profile' => 'Ссылка на профиль в соц. сетях',
     'List of students' => 'Список студентов',

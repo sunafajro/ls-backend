@@ -2,6 +2,8 @@
 
 namespace app\modules\school\controllers;
 
+use app\modules\school\models\MessageFile;
+use app\modules\school\models\TempFile;
 use app\modules\school\School;
 use Yii;
 use app\models\Message;
@@ -26,7 +28,7 @@ use yii\web\UploadedFile;
 class MessageController extends Controller
 {
     /** @inheritDoc */
-    public function behaviors()
+    public function behaviors(): array
     {
         $rules = ['index','view','create','update','delete','response','upload','send','ajaxgroup'];
         return [
@@ -61,7 +63,7 @@ class MessageController extends Controller
     /**
      * @param string|null $month
      * @param string|null $year
-     * @return string
+     * @return mixed
      */
     public function actionIndex(string $month = NULL, string $year = NULL)
     {
@@ -179,8 +181,8 @@ class MessageController extends Controller
             }
             if ($model->save()) {
                 foreach ($files ?? [] as $fileId) {
-                    $file = File::find()->andWhere(['id' => $fileId, 'module_type' => School::MODULE_NAME])->one();
-                    $file->setEntity(File::TYPE_ATTACHMENTS, $model->id);
+                    $file = TempFile::find()->byId(intval($fileId))->one();
+                    $file->setEntity(MessageFile::DEFAULT_ENTITY_TYPE, $model->id);
                 }
                 Yii::$app->session->setFlash('success', Yii::t('app', 'Message successfully created!'));
                 if (Yii::$app->request->post('send', null)) {
@@ -228,14 +230,9 @@ class MessageController extends Controller
                 }
                 if ($model->save(true, ['name', 'description'])) {
                     foreach ($files ?? [] as $fileId) {
-                        $file = File::find()->andWhere([
-                            'id' => $fileId,
-                            'entity_type' => File::TYPE_TEMP,
-                            'entity_id' => null,
-                            'module_type' => School::MODULE_NAME,
-                        ])->one();
+                        $file = TempFile::find()->byId(intval($fileId))->one();
                         if ($file) {
-                            $file->setEntity(File::TYPE_ATTACHMENTS, $model->id);
+                            $file->setEntity(MessageFile::DEFAULT_ENTITY_TYPE, $model->id);
                         }
                     }
                     Yii::$app->session->setFlash('success', Yii::t('app', 'Message successfully updated!'));

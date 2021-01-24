@@ -15,11 +15,10 @@ use app\models\Teacher;
 use app\models\Teachergroup;
 use app\models\UploadForm;
 use app\modules\school\models\Auth;
-use app\modules\school\models\File;
-use app\modules\school\models\search\FileSearch;
+use app\modules\school\models\GroupFile;
+use app\modules\school\models\search\GroupFileSearch;
 use app\modules\school\models\User;
 use app\models\search\GroupSearch;
-use app\modules\school\School;
 use Yii;
 use yii\data\Pagination;
 use yii\filters\AccessControl;
@@ -33,7 +32,10 @@ use yii\web\UploadedFile;
 
 class GroupteacherController extends Controller
 {
-    public function behaviors()
+    /**
+     * @return array[]
+     */
+    public function behaviors(): array
     {
         $rules = [
             'index', 'view', 'create', 'update',
@@ -87,19 +89,18 @@ class GroupteacherController extends Controller
     }
 
     /**
-     * Displays a single Groupteacher model.
-     * @param integer $id
+     * @param string $id
      *
      * @return mixed
      * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
      */
-    public function actionView(int $id)
+    public function actionView(string $id)
     {
         /** @var Auth $user */
         $user   = Yii::$app->user->identity;
         $roleId = $user->roleId;
-        $group  = $this->findModel($id);
+        $group  = $this->findModel(intval($id));
 
         // TODO переделать в поведения
         if (!in_array($roleId, [3, 4, 5, 6]) !== 3 && ($roleId === 10 && $group->company !== 2)) {
@@ -233,7 +234,7 @@ class GroupteacherController extends Controller
         }
 
         return $this->render('view', [
-            'group'         => $this->findModel($id),
+            'group'         => $group,
             'groupStudents' => $groupStudents,
             'groupTeachers' => array_keys(Groupteacher::getGroupTeacherListSimple($id)),
             'lessons'       => $lessons,
@@ -776,13 +777,7 @@ class GroupteacherController extends Controller
         $group = $this->findModel($id);
 
         if (in_array($action, ['download', 'delete']) && $file_id) {
-            /** @var File|null $file */
-            $file = File::find()->andWhere([
-                    'id'          => $file_id,
-                    'entity_type' => File::TYPE_GROUP_FILES,
-                    'entity_id'   => $group->id,
-                    'module_type' => School::MODULE_NAME,
-                ])->one();
+            $file = GroupFile::find()->byId(intval($file_id))->byEntityId(intval($group->id))->one();
             if (empty($file)) {
                 throw new NotFoundHttpException(Yii::t('app', 'File not found!'));
             }
@@ -803,14 +798,14 @@ class GroupteacherController extends Controller
         if (Yii::$app->request->isPost) {
             $model->file = UploadedFile::getInstance($model, 'file');
             if ($model->file && $model->validate()) {
-                if ($model->saveFile(File::getTempDirPath())) {
-                    $file = new File([
+                if ($model->saveFile(GroupFile::getTempDirPath())) {
+                    $file = new GroupFile([
                         'file_name'     => $model->file_name,
                         'original_name' => $model->original_name,
                         'size'          => $model->file->size,
                     ]);
                     if ($file->save()) {
-                        $file->setEntity(File::TYPE_GROUP_FILES, $group->id);
+                        $file->setEntity(GroupFile::DEFAULT_ENTITY_TYPE, $group->id);
                     }
                     Yii::$app->session->setFlash('success', Yii::t('app', 'File successfully uploaded!'));
                 } else {
@@ -820,8 +815,8 @@ class GroupteacherController extends Controller
             }
         }
 
-        $searchModel = new FileSearch();
-        $dataProvider = $searchModel->searchByGroup($group->id, Yii::$app->request->get());
+        $searchModel = new GroupFileSearch();
+        $dataProvider = $searchModel->search(Yii::$app->request->get(), $group->id);
 
         return $this->render('files', [
             'dataProvider'  => $dataProvider,

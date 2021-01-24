@@ -57,12 +57,12 @@ class GroupMenuWidget extends Widget {
             'url'      => Url::to(['group-book/create', 'gid' => $this->groupId]),
             'isActive' => $this->activeItem === 'books',
         ];
-        $menuItems[] = [
-            'name'     => Yii::t('app','Announcements'),
-            'icon'     => 'bullhorn',
-            'url'      => Url::to(['groupteacher/announcements', 'id' => $this->groupId]),
-            'isActive' => $this->activeItem === 'announcements',
-        ];
+//        $menuItems[] = [
+//            'name'     => Yii::t('app','Announcements'),
+//            'icon'     => 'bullhorn',
+//            'url'      => Url::to(['groupteacher/announcements', 'id' => $this->groupId]),
+//            'isActive' => $this->activeItem === 'announcements',
+//        ];
         $menuItems[] = [
             'name'     => Yii::t('app','Files'),
             'icon'     => 'file',

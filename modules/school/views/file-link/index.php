@@ -2,16 +2,15 @@
 
 /**
  * @var View $this
- * @var UploadForm $uploadForm
+ * @var FileLink $model
  * @var ActiveDataProvider $dataProvider
- * @var DocumentSearch $searchModel
+ * @var FileLinkSearch $searchModel
  */
 
 use app\components\helpers\IconHelper;
-use app\models\UploadForm;
 use app\modules\school\models\Auth;
-use app\modules\school\models\Document;
-use app\modules\school\models\search\DocumentSearch;
+use app\modules\school\models\FileLink;
+use app\modules\school\models\search\FileLinkSearch;
 use app\widgets\userInfo\UserInfoWidget;
 use yii\bootstrap\Tabs;
 use yii\data\ActiveDataProvider;
@@ -24,8 +23,9 @@ use yii\web\View;
 use yii\widgets\ActiveForm;
 use app\widgets\alert\AlertWidget;
 
-$this->title = Yii::$app->params['appTitle'] . Yii::t('app','Documents');
-$this->params['breadcrumbs'][] = Yii::t('app','Documents');
+$this->title = Yii::$app->params['appTitle'] . Yii::t('app','Внешние ресурсы');
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app','Documents'), 'url' => ['document/index']];
+$this->params['breadcrumbs'][] = Yii::t('app','Внешние ресурсы');
 
 /** @var Auth $user */
 $user   = Yii::$app->user->identity;
@@ -39,36 +39,36 @@ $userId = $user->id;
             <h4><?= Yii::t('app', 'Actions') ?></h4>
             <?php $form = ActiveForm::begin([
                 'method' => 'post',
-                'action' => ['document/upload'],
-                'options' => ['enctype' => 'multipart/form-data']
+                'action' => ['file-link/create'],
             ]); ?>
-                <?= $form->field($uploadForm, 'file')->fileInput()->label(Yii::t('app','File')) ?>
-                <div class="form-group">
-                    <?= Html::submitButton(
-                        IconHelper::icon('upload') . ' ' . Yii::t('app','Upload'),
-                        ['class' => 'btn btn-success btn-block']
-                    ) ?>
-                </div>
+            <?= $form->field($model, 'file_name')->textInput() ?>
+            <?= $form->field($model, 'original_name')->textInput() ?>
+            <div class="form-group">
+                <?= Html::submitButton(
+                    IconHelper::icon('upload') . ' ' . Yii::t('app','Create'),
+                    ['class' => 'btn btn-success btn-block']
+                ) ?>
+            </div>
             <?php ActiveForm::end(); ?>
         <?php } ?>
-	</div>
-	<div id="content" class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+    </div>
+    <div id="content" class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
         <?= AlertWidget::widget() ?>
 
         <?= Tabs::widget([
-                'items' => [
-                    [
-                        'label' => 'Документы',
-                        'url' => Url::to(['document/index']),
-                        'active' => true
-                    ],
-                    [
-                        'label' => 'Внешние ресурсы',
-                        'url' => Url::to(['file-link/index']),
-                        'active' => false,
-                    ],
+            'items' => [
+                [
+                    'label' => 'Документы',
+                    'url' => Url::to(['document/index']),
+                    'active' => false,
                 ],
-            ]) ?>
+                [
+                    'label' => 'Внешние ресурсы',
+                    'url' => Url::to(['file-link/index']),
+                    'active' => true,
+                ],
+            ],
+        ]) ?>
         <?= GridView::widget([
             'dataProvider' => $dataProvider,
             'filterModel'  => $searchModel,
@@ -77,20 +77,13 @@ $userId = $user->id;
                 'original_name' => [
                     'attribute' => 'original_name',
                     'format' => 'raw',
-                    'value' => function (Document $file) {
-                        return Html::a($file->original_name, [
-                            'document/download',
-                            'id'      => $file->id,
-                        ], ['target' => '_blank']);
+                    'value' => function (FileLink $file) {
+                        return Html::a($file->original_name, $file->file_name, ['target' => '_blank']);
                     }
-                ],
-                'size' => [
-                    'attribute' => 'size',
-                    'format'    => ['shortSize', 2],
                 ],
                 'user_id'     => [
                     'attribute' => 'user_id',
-                    'value' => function (Document $file) {
+                    'value' => function (FileLink $file) {
                         $user = $file->user ?? null;
                         return $user->name ?? '';
                     }
@@ -103,16 +96,16 @@ $userId = $user->id;
                     'class' => ActionColumn::class,
                     'header' => Yii::t('app', 'Act.'),
                     'buttons' => [
-                        'delete' => function ($url, Document $file) use ($userId, $roleId) {
+                        'delete' => function ($url, FileLink $file) use ($userId, $roleId) {
                             $canWrite = in_array($roleId, [3]) || $file->user_id === $userId;
                             return $canWrite ? Html::a(
                                 IconHelper::icon('trash'),
-                                ['document/delete', 'id' => $file->id],
+                                ['file-link/delete', 'id' => $file->id],
                                 [
                                     'title' => Yii::t('app', 'Delete'),
                                     'data' => [
                                         'method' => 'post',
-                                        'confirm' => 'Вы действительно хотите удалить файл?',
+                                        'confirm' => 'Вы действительно хотите удалить ссылку?',
                                     ],
                                 ]
                             ) : '';

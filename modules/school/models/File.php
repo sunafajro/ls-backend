@@ -2,13 +2,14 @@
 
 namespace app\modules\school\models;
 
+use app\modules\school\models\queries\FileQuery;
 use app\modules\school\School;
 use app\models\BaseFile;
-use Yii;
 use yii\db\ActiveQuery;
 
 /**
- * This is the model class for table "files".
+ * Class File
+ * @package app\modules\school\models
  *
  * @property integer $id
  * @property string  $file_name
@@ -19,40 +20,32 @@ use yii\db\ActiveQuery;
  * @property string  $module_type
  * @property integer $user_id
  * @property string  $create_date
+ *
+ * @method static FileQuery|ActiveQuery find()
  */
-
 class File extends BaseFile
 {
-    const TYPE_DOCUMENTS    = 'documents';
-    const TYPE_GROUP_FILES  = 'group_files';
-    const TYPE_ATTACHMENTS  = 'attachments';
-    const TYPE_CERTIFICATES = 'certificates';
+    const TYPE_DOCUMENTS = 'documents';
+    const TYPE_EXTERNAL_FILE_LINK = 'external_file_links';
+
+    const DEFAULT_FIND_CLASS = FileQuery::class;
+    const DEFAULT_MODULE_TYPE = School::MODULE_NAME;
 
     /**
      * {@inheritdoc}
      */
-    public function rules()
+    public function rules(): array
     {
         return array_merge([
-            [['module_type'], 'default', 'value' => School::MODULE_NAME]
+            [['module_type'], 'default', 'value' => self::DEFAULT_MODULE_TYPE]
         ], parent::rules());
     }
 
     /**
      * @return ActiveQuery
      */
-    public function getUser()
+    public function getUser(): ActiveQuery
     {
         return $this->hasOne(User::class, ['id' => 'user_id']);
-    }
-
-    /**
-     * @return bool|string
-     */
-    public static function getTempDirPath()
-    {
-        $dirPathAlias = join('/', ['@files', School::MODULE_NAME, File::TYPE_TEMP]);
-
-        return Yii::getAlias($dirPathAlias);
     }
 }

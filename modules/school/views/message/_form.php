@@ -8,8 +8,9 @@
  */
 
 use app\modules\school\assets\MessageFormAsset;
-use app\modules\school\models\File;
 use app\models\Message;
+use app\modules\school\models\MessageFile;
+use app\modules\school\models\TempFile;
 use moonland\tinymce\TinyMCE;
 use yii\helpers\Html;
 use yii\helpers\Url;
@@ -81,12 +82,11 @@ MessageFormAsset::register($this);
                     . ' '
                     . Yii::t('app', 'Attach file'), ['class' => 'btn btn-default btn-xs js--upload-file-btn', 'style' => 'margin-right: 5px']) ?>
             <?php
-                /** @var File[] $files */
-                $files = File::find()->andWhere(['user_id' => Yii::$app->user->identity->id])->andWhere([
-                    'or',
-                    ['entity_type' => File::TYPE_TEMP, 'entity_id' => null],
-                    ['entity_type' => File::TYPE_ATTACHMENTS, 'entity_id' => $model->id ?? null]
-                ])->all();
+                $files = TempFile::find()->byUserId(Yii::$app->user->identity->id)->all();
+                if ($model->id) {
+                    $messageFiles = MessageFile::find()->byEntityId($model->id)->byUserId(Yii::$app->user->identity->id)->all();
+                    $files = array_merge($files, $messageFiles);
+                }
                 foreach ($files as $file) {
                     echo $this->render('_file_template', [
                         'file'  => $file,

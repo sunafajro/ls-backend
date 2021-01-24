@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use app\models\queries\BaseFileQuery;
 use Yii;
 use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
@@ -20,24 +21,31 @@ use yii\helpers\FileHelper;
  * @property integer $user_id
  * @property string  $create_date
  */
-
 class BaseFile extends ActiveRecord
 {
     const TYPE_TEMP  = 'temp';
     const TYPE_USERS = 'users';
+    const TYPE_MESSAGE_FILES = 'message_files';
+    const TYPE_MESSAGE_IMAGE = 'message_image';
+    const TYPE_GROUP_FILES = 'group_files';
+    const TYPE_CERTIFICATES = 'certificates';
+
+    const DEFAULT_FIND_CLASS = BaseFileQuery::class;
+    const DEFAULT_MODULE_TYPE = null;
+    const DEFAULT_ENTITY_TYPE = null;
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    public static function tableName()
+    public static function tableName(): string
     {
         return 'files';
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['size'],        'default', 'value' => 0],
@@ -51,7 +59,10 @@ class BaseFile extends ActiveRecord
         ];
     }
 
-    public function attributeLabels()
+    /**
+     * {@inheritdoc}
+     */
+    public function attributeLabels(): array
     {
         return [
             'id'            => 'ID',
@@ -63,19 +74,37 @@ class BaseFile extends ActiveRecord
     }
 
     /**
+     * @return BaseFileQuery|ActiveQuery
+     */
+    public static function find(): ActiveQuery
+    {
+        $findClass = static::DEFAULT_FIND_CLASS;
+        $findCondition = static::getDefaultFindCondition();
+        $findQuery = new $findClass(get_called_class(), []);
+
+        return $findQuery->andFilterWhere($findCondition);
+    }
+
+    /**
+     * @param bool $unlinkFile
+     *
      * @return false|int
      * @throws \Throwable
      * @throws \yii\db\StaleObjectException
      */
-    public function delete()
+    public function delete(bool $unlinkFile = true)
     {
-        return FileHelper::unlink($this->getPath()) ? parent::delete() : false;
+        if ($unlinkFile) {
+            return FileHelper::unlink($this->getPath()) ? parent::delete() : false;
+        } else {
+            return parent::delete();
+        }
     }
 
     /**
      * @return string
      */
-    public function getPath()
+    public function getPath(): string
     {
         $filePath = [
             Yii::getAlias('@files'),
@@ -91,11 +120,36 @@ class BaseFile extends ActiveRecord
     }
 
     /**
+     * @return bool|string
+     */
+    public static function getTempDirPath()
+    {
+        $dirPathAlias = join('/', ['@files', static::DEFAULT_MODULE_TYPE, static::TYPE_TEMP]);
+
+        return Yii::getAlias($dirPathAlias);
+    }
+
+    /**
+     * @return array
+     */
+    public static function getDefaultFindCondition(): array
+    {
+        $condition = [];
+        if (static::DEFAULT_MODULE_TYPE) {
+            $condition['module_type'] = static::DEFAULT_MODULE_TYPE;
+        }
+        if (static::DEFAULT_ENTITY_TYPE) {
+            $condition['entity_type'] = static::DEFAULT_ENTITY_TYPE;
+        }
+        return $condition;
+    }
+
+    /**
      * @param string $entityType
-     * @param int    $entityId
+     * @param int|null $entityId
      * @return bool
      */
-    public function setEntity(string $entityType, int $entityId = null)
+    public function setEntity(string $entityType, int $entityId = null): bool
     {
         $oldPath = $this->getPath();
         $newPath = [

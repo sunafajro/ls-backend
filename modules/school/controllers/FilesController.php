@@ -4,8 +4,7 @@ namespace app\modules\school\controllers;
 
 use app\models\UploadForm;
 use app\modules\school\models\Auth;
-use app\modules\school\models\File;
-use app\modules\school\School;
+use app\modules\school\models\MessageFile;
 use Yii;
 use yii\base\Exception;
 use yii\filters\AccessControl;
@@ -13,8 +12,8 @@ use yii\filters\VerbFilter;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
-use yii\web\Response;
 use yii\web\UploadedFile;
+
 // TODO перенести методы в MessageController
 class FilesController extends Controller
 {
@@ -66,8 +65,8 @@ class FilesController extends Controller
         ];
 
         if ($model->file && $model->validate()) {
-            if ($model->saveFile(File::getTempDirPath())) {
-                $file = new File([
+            if ($model->saveFile(MessageFile::getTempDirPath())) {
+                $file = new MessageFile([
                     'file_name'     => $model->file_name,
                     'original_name' => $model->original_name,
                     'size'          => $model->file->size,
@@ -80,49 +79,44 @@ class FilesController extends Controller
             }
         }
 
-        Yii::$app->response->format = Response::FORMAT_JSON;
-
-        return $result;
+        return $this->asJson($result);
     }
 
     /**
-     * @param int $id
+     * @param string $id
      *
      * @return mixed
      * @throws NotFoundHttpException
      */
-    public function actionDownload($id)
+    public function actionDownload(string $id)
     {
-        $file = $this->findModel($id);
+        $file = $this->findModel(intval($id));
         // TODO должно быть доступно только администратору, загрузившему файл и адресату сообщения
         return Yii::$app->response->sendFile($file->getPath(), $file->original_name, ['inline' => true]);
     }
 
     /**
-     * @param int $id
+     * @param string $id
      *
      * @return mixed
      * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
      */
-    public function actionDelete($id)
+    public function actionDelete(string $id)
     {
-        $file = $this->findModel($id);
+        $file = $this->findModel(intval($id));
         /** @var Auth $user */
         $user = Yii::$app->user->identity;
         if ($file->user_id === $user->id) {
-            Yii::$app->response->format = Response::FORMAT_JSON;
+            $result = ['success' => true];
             try {
-                if ($file->delete()) {
-                    return ['success' => true];
-                } else {
-                    return ['success' => false];
+                if (!$file->delete()) {
+                    throw new Exception('Не удалось удалить файл!');
                 }
-            } catch (\Exception $e) {
-                return ['success' => false];
             } catch (\Throwable $e) {
-                return ['success' => false];
+                $result['success'] = false;
             }
+            return $this->asJson($result);
         } else {
             throw new ForbiddenHttpException();
         }
@@ -132,13 +126,13 @@ class FilesController extends Controller
      * Finds the File model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return File the loaded model
+     * @return MessageFile the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
-    protected function findModel($id)
+    protected function findModel(int $id): MessageFile
     {
-        /** @var File $model */
-        if (($model = File::find()->andWhere(['id' => $id, 'module_type' => School::MODULE_NAME])->one()) !== null) {
+        /** @var MessageFile $model */
+        if (($model = MessageFile::find()->byId($id)->one()) !== null) {
             return $model;
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');
