@@ -108,9 +108,9 @@ class LessonSearch extends Journalgroup
                         [':clientId' => $options['clientId']]);
             }
             if ($options['teacherId'] ?? false) {
-                $query->where(["{$lt}.calc_teacher" => $options['teacherId']]);
+                $query->andWhere(["{$lt}.calc_teacher" => $options['teacherId']]);
             }
-        $query->where(["{$lt}.visible" => 1]);
+        $query->andWhere(["{$lt}.visible" => 1]);
 
         if ($this->validate()) {
             $query->andFilterWhere(["{$lt}.id" => $this->id]);
