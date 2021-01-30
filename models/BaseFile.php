@@ -135,11 +135,12 @@ class BaseFile extends ActiveRecord
     public static function getDefaultFindCondition(): array
     {
         $condition = [];
+        $tb = static::tableName();
         if (static::DEFAULT_MODULE_TYPE) {
-            $condition['module_type'] = static::DEFAULT_MODULE_TYPE;
+            $condition["{$tb}.module_type"] = static::DEFAULT_MODULE_TYPE;
         }
         if (static::DEFAULT_ENTITY_TYPE) {
-            $condition['entity_type'] = static::DEFAULT_ENTITY_TYPE;
+            $condition["{$tb}.entity_type"] = static::DEFAULT_ENTITY_TYPE;
         }
         return $condition;
     }

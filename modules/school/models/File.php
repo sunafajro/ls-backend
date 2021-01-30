@@ -37,7 +37,7 @@ class File extends BaseFile
     public function rules(): array
     {
         return array_merge([
-            [['module_type'], 'default', 'value' => self::DEFAULT_MODULE_TYPE]
+            [['module_type'], 'default', 'value' => static::DEFAULT_MODULE_TYPE]
         ], parent::rules());
     }
 
