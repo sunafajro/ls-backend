@@ -16,6 +16,7 @@ use app\modules\school\models\User;
 use app\models\UploadForm;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
+use yii\helpers\ArrayHelper;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
@@ -78,8 +79,11 @@ class UserController extends Controller
         $urlParams['active'] = $active !== 'all' ? $active : NULL;
         $urlParams['role']   =  $role && $role !== 'all' ? $role : NULL;;
 
+        $roles = Role::find()->active()->all();
+        $roles = ArrayHelper::map($roles, 'id', 'name');
+
         return $this->render('index', [
-            'statuses'  => Role::getRolesList(),
+            'statuses'  => $roles,
             'urlParams' => $urlParams,
             'users'     => User::getUserListFiltered($urlParams),
         ]);
@@ -117,10 +121,13 @@ class UserController extends Controller
             }
         }
 
+        $roles = Role::find()->active()->all();
+        $roles = ArrayHelper::map($roles, 'id', 'name');
+
         return $this->render('create', [
             'model'    => $model,
             'teachers' => Teacher::getTeachersInUserListSimple(),
-            'statuses' => Role::getRolesListSimple(),
+            'statuses' => $roles,
             'offices'  => Office::getOfficesListSimple(),
             'cities'   => City::getCitiesInUserListSimple(),
         ]);
@@ -171,10 +178,13 @@ class UserController extends Controller
             }
         }
 
+        $roles = Role::find()->active()->all();
+        $roles = ArrayHelper::map($roles, 'id', 'name');
+
         return $this->render('update', [
             'model'    => $model,
             'teachers' => Teacher::getTeachersInUserListSimple(),
-            'statuses' => Role::getRolesListSimple(),
+            'statuses' => $roles,
             'offices'  => Office::getOfficesListSimple(),
             'cities'   => City::getCitiesInUserListSimple(),
         ]);

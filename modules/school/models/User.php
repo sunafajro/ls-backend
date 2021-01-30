@@ -505,6 +505,8 @@ class User extends BaseUser
                 }
                 break;
             #endregion
+
+            default: $result = false;
 		}
 		return $result;
 	}

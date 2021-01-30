@@ -2,29 +2,38 @@
 
 namespace app\modules\school\controllers;
 
-use app\modules\school\models\Role;
+use app\modules\school\models\AccessRule;
+use app\models\search\EducationLevelSearch;
+use app\modules\school\models\search\RoleSearch;
 use Yii;
-use app\modules\school\models\User;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 
+/**
+ * Class AdminController
+ * @package app\modules\school\controllers
+ */
 class AdminController extends Controller
 {
-    public function behaviors()
+    /**
+     * {@inheritDoc}
+     */
+    public function behaviors(): array
     {
+        $rules = ['index', 'roles', 'education-levels'];
         return [
             'access' => [
                 'class' => AccessControl::class,
-                'only' => ['index','roles'],
+                'only' => $rules,
                 'rules' => [
                     [
-                        'actions' => ['index','roles'],
+                        'actions' => $rules,
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index','roles'],
+                        'actions' => $rules,
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -33,10 +42,16 @@ class AdminController extends Controller
         ];
     }
 
-    public function beforeAction($action)
+    /**
+     * @param \yii\base\Action $action
+     * @return bool
+     * @throws ForbiddenHttpException
+     * @throws \yii\web\BadRequestHttpException
+     */
+    public function beforeAction($action): bool
     {
-        if(parent::beforeAction($action)) {
-            if (User::checkAccess($action->controller->id, $action->id) === false) {
+        if (parent::beforeAction($action)) {
+            if (AccessRule::checkAccess($action->controller->id, $action->id) === false) {
                 throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
             }
             return true;
@@ -45,32 +60,63 @@ class AdminController extends Controller
         }
     }
 
+    /**
+     * @return mixed
+     */
     public function actionIndex()
     {
         return $this->redirect(['roles']);
     }
 
-    /* метод выводит таблицу ролей */
+    /**
+     * @return mixed
+     */
     public function actionRoles()
     {
+        $searchModel = new RoleSearch();
+        $dataProvider = $searchModel->search(\Yii::$app->request->get());
+
         return $this->render('roles', [
-            'roles' => Role::getRolesList(),
-            'links' => self::getList('roles'),
-            'userInfoBlock' => User::getUserInfoBlock(),
+            'dataProvider' => $dataProvider,
+            'searchModel' => $searchModel,
+            'menuLinks' => self::getMenuLinks('roles'),
         ]);
     }
 
-    protected function getList($key)
+    /**
+     * @return mixed
+     */
+    public function actionEducationLevels()
     {
-        $links = [
+        $searchModel = new EducationLevelSearch();
+        $dataProvider = $searchModel->search(\Yii::$app->request->get());
+
+        return $this->render('education-levels', [
+            'dataProvider' => $dataProvider,
+            'searchModel' => $searchModel,
+            'menuLinks' => self::getMenuLinks('education-levels'),
+        ]);
+    }
+
+    /**
+     * @param $key
+     * @return array[]
+     */
+    private function getMenuLinks($key): array
+    {
+        return [
             [
                 'url'     => 'admin/roles',
                 'name'    => Yii::t('app','Roles'),
                 'classes' => true,
-                'active'  => ($key === 'roles' ? true : false)
+                'active'  => $key === 'roles'
+            ],
+            [
+                'url'     => 'admin/education-levels',
+                'name'    => Yii::t('app','Education levels'),
+                'classes' => true,
+                'active'  => $key === 'education-levels'
             ]
         ];
-
-        return $links;
     }
 }

@@ -3,7 +3,7 @@
 namespace app\modules\school\models;
 
 use app\components\helpers\DateHelper;
-use app\models\Edulevel;
+use app\models\EducationLevel;
 use app\models\Edunorm;
 use app\models\Edunormteacher;
 use app\models\Groupteacher;
@@ -58,6 +58,7 @@ class AccrualTeacher extends ActiveRecord
         'ОГЭ'   => 1.1,
         'ЕГЭ'   => 1.2,
         'IELTS' => 1.3,
+        'TKT'   => 1,
     ];
 
     /**
@@ -568,7 +569,7 @@ class AccrualTeacher extends ActiveRecord
             ->leftJoin(['gt' => Groupteacher::tableName()], 'gt.id = jg.calc_groupteacher')
             ->leftJoin(['s'  => Service::tableName()], 's.id = gt.calc_service')
             ->leftJoin(['tn' => Timenorm::tableName()], 'tn.id = s.calc_timenorm')
-            ->leftJoin(['el' => Edulevel::tableName()], 'el.id = gt.calc_edulevel')
+            ->leftJoin(['el' => EducationLevel::tableName()], 'el.id = gt.calc_edulevel')
             ->leftJoin(['o'  => Office::tableName()], 'o.id = gt.calc_office')
             ->where([
                 'jg.done'    => 0,

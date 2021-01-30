@@ -2,9 +2,9 @@
 
 namespace app\modules\school\controllers;
 
+use app\modules\school\models\AccessRule;
 use Yii;
 use app\components\helpers\JsonResponse;
-use app\models\AccessRule;
 use app\models\City;
 use app\models\Edunorm;
 use app\models\Language;
@@ -108,7 +108,7 @@ class ReferencesController extends Controller
         ['columns' => $columns, 'data' => $data] = $this->getEntities($name, 'list');
 
         return [
-            'actions' => AccessRule::GetCRUD("references/{$name}"),
+            'actions' => AccessRule::getCRUD("references/{$name}"),
             'columns' => $columns,
             'data'    => $data,
             'status'  => true

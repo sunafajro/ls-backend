@@ -3,7 +3,9 @@
 namespace app\modules\school\models;
 
 use app\models\BaseRole;
+use app\modules\school\models\queries\RoleQuery;
 use app\modules\school\School;
+use yii\db\ActiveQuery;
 
 /**
  * This is the model class for table "roles".
@@ -13,39 +15,21 @@ use app\modules\school\School;
  * @property string  $description
  * @property integer $visible
  * @property string  $module_type
+ *
+ * @method static RoleQuery|ActiveQuery find()
  */
 class Role extends BaseRole
 {
+    const DEFAULT_FIND_CLASS = RoleQuery::class;
+    const DEFAULT_MODULE_TYPE = School::MODULE_NAME;
+
     /**
      * {@inheritdoc}
      */
-    public function rules()
+    public function rules(): array
     {
         return array_merge([
             [['module_type'], 'default', 'value' => School::MODULE_NAME]
         ], parent::rules());
-    }
-
-    /**
-     * Метод возвращает список доступных ролей пользователей в виде многомерного массива.
-     *
-     * @return array
-     */
-    public static function getRolesList() : array
-    {
-        return self::find()
-            ->select([
-                'id'          => 'id',
-                'name'        => 'name',
-                'description' => 'description'
-            ])
-            ->from(self::tableName())
-            ->where([
-                'visible' => 1,
-                'module_type' => School::MODULE_NAME,
-            ])
-            ->orderby(['id' => SORT_ASC])
-            ->asArray()
-            ->all();
     }
 }

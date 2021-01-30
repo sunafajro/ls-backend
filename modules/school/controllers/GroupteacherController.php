@@ -3,7 +3,7 @@
 namespace app\modules\school\controllers;
 
 use app\models\Eduage;
-use app\models\Edulevel;
+use app\models\EducationLevel;
 use app\models\Groupteacher;
 use app\models\Journalgroup;
 use app\models\Lang;
@@ -78,10 +78,14 @@ class GroupteacherController extends Controller
         // TODO проверка доступа
         $searchModel = new GroupSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->get());
+
+        $levels = EducationLevel::find()->active()->orderBy(['name' => SORT_ASC])->all();
+        $levels = ArrayHelper::map($levels, 'id', 'name');
+
         return $this->render('index', [
             'ages'          => Eduage::getEduAgesSimple(),
             'dataProvider'  => $dataProvider,
-            'levels'        => Edulevel::getEduLevelsSimple(),
+            'levels'        => $levels,
             'languages'     => Lang::getLanguagesSimple(),
             'offices'       => Office::getOfficesListSimple(),
             'searchModel'   => $searchModel,

@@ -1,6 +1,6 @@
 <?php
 
-namespace app\models;
+namespace app\modules\school\models;
 
 use Yii;
 use yii\db\ActiveRecord;
@@ -14,13 +14,12 @@ use yii\db\ActiveRecord;
  * @property integer $role_id
  * @property integer $visible
  */
-
 class AccessRule extends ActiveRecord
 {
     /**
      * @inheritdoc
      */
-    public static function tableName()
+    public static function tableName(): string
     {
         return 'access_rules';
     }
@@ -28,7 +27,7 @@ class AccessRule extends ActiveRecord
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['visible'], 'default', 'value' => 1],
@@ -41,7 +40,7 @@ class AccessRule extends ActiveRecord
     /**
      * @inheritdoc
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'id'         => 'ID',
@@ -68,7 +67,7 @@ class AccessRule extends ActiveRecord
             'moduleType' => 'r.module_type',
         ])
         ->from(['r' => self::tableName()])
-        ->innerJoin(['s' => BaseRole::tableName()], 's.id = r.role_id')
+        ->innerJoin(['s' => Role::tableName()], 's.id = r.role_id')
         ->where(['r.visible' => 1])
         ->orderby(['r.id' => SORT_ASC])
         ->all();
@@ -110,23 +109,35 @@ class AccessRule extends ActiveRecord
         ];
     }
 
-    public static function GetCRUD(string $controller)
+    /**
+     * @param string $controller
+     * @return array
+     */
+    public static function getCRUD(string $controller): array
     {
         return [
-            'create' => self::CheckAccess($controller, 'create'),
-            'update' => self::CheckAccess($controller, 'update'),
-            'delete' => self::CheckAccess($controller, 'delete'),
+            'create' => self::checkAccess($controller, 'create'),
+            'update' => self::checkAccess($controller, 'update'),
+            'delete' => self::checkAccess($controller, 'delete'),
         ];
     }
 
-    public static function CheckAccess(string $controller, string $action)
+    /**
+     * @param string $controller
+     * @param string $action
+     * @return bool
+     */
+    public static function checkAccess(string $controller, string $action): bool
     {
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+
         $result = NULL;
         if ($controller && $action) {
             $result = self::find()->where([
                 'action'     => $action,
                 'controller' => $controller,
-                'role_id'    => Yii::$app->session->get('user.ustatus'),
+                'role_id'    => $auth->roleId,
             ])
             ->one();
         }

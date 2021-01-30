@@ -45,8 +45,8 @@ $this->params['breadcrumbs'][] = Yii::t('app','Users');
         <div class="form-group">
             <select name="role" class="form-control input-sm">
                 <option value="all"><?= Yii::t('app', '-all roles-') ?></option>
-                <?php foreach($statuses as $s) : ?>
-                <option value="<?= $s['id'] ?>"<?= ($urlParams['role'] == $s['id']) ? ' selected' : '' ?>><?= $s['name'] ?></option>
+                <?php foreach($statuses as $roleKey => $roleName) : ?>
+                <option value="<?= $roleKey ?>"<?= ($urlParams['role'] == $roleKey) ? ' selected' : '' ?>><?= $roleName ?></option>
                 <?php endforeach; ?>
             </select>
         </div>

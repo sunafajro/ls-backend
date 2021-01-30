@@ -3,7 +3,7 @@
 namespace app\modules\school\controllers;
 
 use Yii;
-use app\models\AccessRule;
+use app\modules\school\models\AccessRule;
 use app\models\Office;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
@@ -43,8 +43,8 @@ class OfficeController extends Controller
 
     public function beforeAction($action)
     {
-        if(parent::beforeAction($action)) {
-            if (AccessRule::CheckAccess($action->controller->id, $action->id) === false) {
+        if (parent::beforeAction($action)) {
+            if (AccessRule::checkAccess($action->controller->id, $action->id) === false) {
                 throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
             }
             return true;

@@ -3,7 +3,7 @@
 namespace app\modules\school\controllers;
 
 use Yii;
-use app\models\AccessRule;
+use app\modules\school\models\AccessRule;
 use app\models\Receipt;
 use app\models\Student;
 use app\modules\school\models\User;
@@ -52,8 +52,7 @@ class ReceiptController extends Controller
     public function beforeAction($action)
 	{
 		if(parent::beforeAction($action)) {
-            $rule = new AccessRule();
-			if ($rule->checkAccess($action->controller->id, $action->id) === false) {
+			if (AccessRule::checkAccess($action->controller->id, $action->id) === false) {
 				throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
 			}
 			return true;

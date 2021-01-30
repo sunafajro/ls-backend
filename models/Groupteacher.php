@@ -26,7 +26,7 @@ use yii\web\NotFoundHttpException;
  * @property integer company
  * 
  * @property Book[]   $books
- * @property Edulevel $eduLevel
+ * @property EducationLevel $eduLevel
  * @property array    $groupBooks
  * @property Office   $office
  * @property Service  $service
@@ -89,7 +89,7 @@ class Groupteacher extends ActiveRecord
      */
     public function getEduLevel()
     {
-        return $this->hasOne(Edulevel::class, ['id' => 'calc_edulevel']);
+        return $this->hasOne(EducationLevel::class, ['id' => 'calc_edulevel']);
     }
 
     /**

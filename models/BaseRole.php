@@ -6,7 +6,6 @@ use app\models\queries\BaseRoleQuery;
 use Yii;
 use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
-use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "roles".
@@ -19,10 +18,13 @@ use yii\helpers\ArrayHelper;
  */
 class BaseRole extends ActiveRecord
 {
+    const DEFAULT_FIND_CLASS = BaseRoleQuery::class;
+    const DEFAULT_MODULE_TYPE = null;
+
     /**
      * {@inheritdoc}
      */
-    public static function tableName()
+    public static function tableName(): string
     {
         return 'roles';
     }
@@ -30,7 +32,7 @@ class BaseRole extends ActiveRecord
     /**
      * {@inheritdoc}
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['visible'], 'default', 'value' => 1],
@@ -43,7 +45,7 @@ class BaseRole extends ActiveRecord
     /**
      * {@inheritdoc}
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'id'          => 'ID',
@@ -59,32 +61,32 @@ class BaseRole extends ActiveRecord
      */
     public static function find() : ActiveQuery
     {
-        return new BaseRoleQuery(get_called_class(), []);
+        $findClass = static::DEFAULT_FIND_CLASS;
+        $findCondition = static::getDefaultFindCondition();
+        $findQuery = new $findClass(get_called_class(), []);
+
+        return $findQuery->andFilterWhere($findCondition);
     }
 
     /**
      * @return array
      */
-    public static function getRolesList() : array
+    public static function getDefaultFindCondition(): array
     {
-        return self::find()
-            ->select([
-                'id'          => 'id',
-                'name'        => 'name',
-                'description' => 'description'
-            ])
-            ->from(self::tableName())
-            ->where(['visible' => 1])
-            ->orderby(['id' => SORT_ASC])
-            ->asArray()
-            ->all();
+        $condition = [];
+        if (static::DEFAULT_MODULE_TYPE) {
+            $condition['module_type'] = static::DEFAULT_MODULE_TYPE;
+        }
+
+        return $condition;
     }
 
     /**
-     * @return array
+     * {@inheritDoc}
      */
-    public static function getRolesListSimple() : array
+    public function delete()
     {
-        return ArrayHelper::map(static::getRolesList(), 'id', 'name');
+        $this->visible = 0;
+        return $this->save(true, ['visible']);
     }
 }
