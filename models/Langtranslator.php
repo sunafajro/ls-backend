@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use yii\db\ActiveRecord;
 
 /**
  * This is the model class for table "calc_langtranslator".
@@ -14,12 +15,12 @@ use Yii;
  * @property string $data
  * @property integer $user
  */
-class Langtranslator extends \yii\db\ActiveRecord
+class Langtranslator extends ActiveRecord
 {
     /**
      * @inheritdoc
      */
-    public static function tableName()
+    public static function tableName(): string
     {
         return 'calc_langtranslator';
     }
@@ -27,7 +28,7 @@ class Langtranslator extends \yii\db\ActiveRecord
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['calc_translator', 'calc_translationlangs', 'visible', 'data', 'user'], 'required'],
@@ -39,7 +40,7 @@ class Langtranslator extends \yii\db\ActiveRecord
     /**
      * @inheritdoc
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'id' => Yii::t('app', 'ID'),
@@ -53,34 +54,34 @@ class Langtranslator extends \yii\db\ActiveRecord
 
     /**
      *  Метод получает список языков переводчика
-     *  @return mixed
+     *  @return array
      */
-    public static function getTranslatorLanguagesById($id)
+    public static function getTranslatorLanguagesById($id): array
     {
-        $translator_langs = (new \yii\db\Query())
-        ->select('lt.id as id, l.id as lid, l.name as lname, u.name as user, lt.data as date')
-        ->from('calc_langtranslator lt')
-        ->leftJoin('calc_translationlangs l', 'l.id=lt.calc_translationlangs')
-        ->leftJoin('user u', 'u.id=lt.user')
-        ->where('lt.visible=:vis and lt.calc_translator=:id', [':vis'=>1, ':id'=>$id])
-        ->all();
-
-        return $translator_langs;
+        return (new \yii\db\Query())
+            ->select('lt.id as id, l.id as lid, l.name as lname, u.name as user, lt.data as date')
+            ->from(['lt' => self::tableName()])
+            ->leftJoin(['l' => Translationlang::tableName()], 'l.id = lt.calc_translationlangs')
+            ->leftJoin(['u' => BaseUser::tableName()], 'u.id = lt.user')
+            ->where([
+                'lt.visible' => 1,
+                'lt.calc_translator' => $id,
+            ])
+            ->all();
     }
 	
     /**
      *  Метод получает список языков переводчиков в виде многомерного массива
+     *  @return array
      */
-    public static function getTranslatorLanguageList()
+    public static function getTranslatorLanguageList(): array
     {
-        $languages = (new \yii\db\Query())
-        ->select('lt.calc_translator as tid, l.id as lid, l.name as lname')
-        ->from('calc_langtranslator lt')
-        ->leftJoin('calc_translationlangs l', 'l.id=lt.calc_translationlangs')
-        ->where('lt.visible=:vis', [':vis'=>1])
-        ->orderby(['calc_translator'=>SORT_ASC,'name'=>SORT_ASC])
-        ->all();
-        
-        return $languages;
+        return (new \yii\db\Query())
+            ->select('lt.calc_translator as tid, l.id as lid, l.name as lname')
+            ->from(['lt' => self::tableName()])
+            ->leftJoin(['l' => Translationlang::tableName()], 'l.id = lt.calc_translationlangs')
+            ->where(['lt.visible' => 1])
+            ->orderby(['lt.calc_translator' => SORT_ASC, 'l.name' => SORT_ASC])
+            ->all();
     }
 }
