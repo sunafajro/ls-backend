@@ -28,6 +28,7 @@
         "ext-curl": "*",
         "ext-exif": "*",
         "ext-gd": "*",
+        "ext-imagick": "*",
         "ext-mbstring": "*",
         "ext-xml": "*",
         "conquer/momentjs": "*",

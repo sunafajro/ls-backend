@@ -1,3 +1,9 @@
+# yii console commands
+/yii
+/yii_test
+/yii_test.bat
+
+
 # phpstorm project files
 .idea
 
@@ -26,6 +32,7 @@ phpunit.phar
 tests/_output/*
 tests/_support/_generated
 
+# composer itself is not needed
 composer.phar
 
 /config/local
@@ -35,3 +42,15 @@ composer.phar
 /runtime
 /web/images
 /web/uploads
+
+# ignore generated files
+/school/web/index.php
+/school/web/index-test.php
+/school/web/robots.txt
+/client/web/index.php
+/client/web/index-test.php
+/client/web/robots.txt
+/exam/web/index.php
+/exam/web/index-test.php
+/exam/web/robots.txt
+
