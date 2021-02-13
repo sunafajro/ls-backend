@@ -1,3 +1,8 @@
+# yii console commands
+/yii
+/yii_test
+/yii_test.bat
+
 # phpstorm project files
 .idea
 
@@ -15,6 +20,9 @@ Thumbs.db
 # composer vendor dir
 /vendor
 
+# composer itself is not needed
+composer.phar
+
 # Mac DS_Store Files
 .DS_Store
 
@@ -23,15 +31,16 @@ phpunit.phar
 # local phpunit config
 /phpunit.xml
 
-tests/_output/*
-tests/_support/_generated
+# ignore generated files
+/school/web/index.php
+/school/web/index-test.php
+/school/web/robots.txt
+/client/web/index.php
+/client/web/index-test.php
+/client/web/robots.txt
+/exam/web/index.php
+/exam/web/index-test.php
+/exam/web/robots.txt
 
-composer.phar
-
-/config/local
-/data/db
-/data/files
-/data/attestates
-/runtime
-/web/images
-/web/uploads
+# data files
+/data

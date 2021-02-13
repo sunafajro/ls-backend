@@ -1,36 +1,44 @@
-version: '3'
-
-networks:
-  calcnet:
-    driver: bridge
+version: '3.2'
 
 services:
+
   web:
     image: yiisoftware/yii2-php:7.4-apache
-    container_name: web
+    container_name: ls_web
+    ports:
+      - 127.0.0.1:80:80
     volumes:
-      - ./:/app:delegated
+      # Re-use local composer cache via host-volume
       - ~/.composer-docker/cache:/root/.composer/cache:delegated
-      - ./docker/apache2:/etc/apache2/sites-enabled
+      # Mount source-code for development
+      - ./:/app
+      # apache config
+      - ./docker/apache2:/etc/apache2/sites-available
+      # xdebug config
       - ./docker/php/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
     environment:
       - PHP_ENABLE_XDEBUG=1
-    ports:
-      - '80:80'
     networks:
-     - calcnet
+      - ls_net
+
   db:
     image: mysql:8
+    container_name: ls_db
     command: --default-authentication-plugin=mysql_native_password
-    container_name: db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: langschool
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=langschool
+      - MYSQL_USER=lsuser
+      - MYSQL_PASSWORD=lsdbpass
     volumes:
-     - ./docker/mysql:/etc/mysql/conf.d
-     - ./data/db:/var/lib/mysql
+      - ./docker/mysql:/etc/mysql/conf.d
+      - ./data/db:/var/lib/mysql
     ports:
-     - 127.0.0.1:3306:3306
+      - 127.0.0.1:3306:3306
     networks:
-     - calcnet
+      - ls_net
+
+networks:
+  ls_net:
+    driver: bridge
