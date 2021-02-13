@@ -1,7 +1,6 @@
 # yii console commands
 /yii
-/yii_test
-/yii_test.bat
+/yii.bat
 
 # phpstorm project files
 .idea
@@ -33,13 +32,10 @@ phpunit.phar
 
 # ignore generated files
 /school/web/index.php
-/school/web/index-test.php
 /school/web/robots.txt
 /client/web/index.php
-/client/web/index-test.php
 /client/web/robots.txt
 /exam/web/index.php
-/exam/web/index-test.php
 /exam/web/robots.txt
 
 # data files
