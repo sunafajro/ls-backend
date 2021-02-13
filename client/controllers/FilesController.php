@@ -4,7 +4,7 @@ namespace client\controllers;
 
 use client\models\File;
 use client\models\Message;
-use client\models\UploadForm;
+use client\models\forms\UploadForm;
 use Yii;
 use yii\base\Exception;
 use yii\filters\AccessControl;

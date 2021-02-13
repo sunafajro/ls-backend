@@ -1,9 +1,9 @@
 <?php
 
-namespace school\models\forms;
+namespace client\models\forms;
 
+use client\models\Auth;
 use common\models\forms\BaseLoginForm;
-use school\models\Auth;
 
 /**
  * @property-read Auth|false $user

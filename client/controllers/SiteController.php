@@ -3,12 +3,11 @@
 namespace client\controllers;
 
 use Yii;
-use client\models\LoginForm;
+use client\models\forms\LoginForm;
 use client\models\Student;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
-use yii\web\Response;
 
 /**
  * Class SiteController
@@ -19,7 +18,7 @@ class SiteController extends Controller
     /**
      * {@inheritdoc}
      */
-    public function behaviors()
+    public function behaviors(): array
     {
         return [
             'access' => [
@@ -27,11 +26,6 @@ class SiteController extends Controller
                 'only' => ['index', 'login', 'logout'],
                 'rules' => [
                     [
-                        'actions' => ['index', 'logout'],
-                        'allow' => false,
-                        'roles' => ['?'],
-                    ],
-                    [
                         'actions' => ['login'],
                         'allow' => true,
                         'roles' => ['?'],
@@ -39,11 +33,6 @@ class SiteController extends Controller
                     [
                         'actions' => ['index', 'logout'],
                         'allow' => true,
-                        'roles' => ['@'],
-                    ],
-                    [
-                        'actions' => ['login'],
-                        'allow' => false,
                         'roles' => ['@'],
                     ],
                 ],
@@ -60,23 +49,17 @@ class SiteController extends Controller
     /**
      * {@inheritdoc}
      */
-    public function actions()
+    public function actions(): array
     {
         return [
             'error' => [
                 'class' => 'yii\web\ErrorAction',
             ],
-            'captcha' => [
-                'class' => 'yii\captcha\CaptchaAction',
-                'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
-            ],
         ];
     }
 
     /**
-     * Displays homepage.
-     *
-     * @return string
+     * @return mixed
      */
     public function actionIndex()
     {
@@ -90,9 +73,7 @@ class SiteController extends Controller
     }
 
     /**
-     * Login action.
-     *
-     * @return Response|string
+     * @return mixed
      */
     public function actionLogin()
     {
@@ -112,9 +93,7 @@ class SiteController extends Controller
     }
 
     /**
-     * Logout action.
-     *
-     * @return Response
+     * @return mixed
      */
     public function actionLogout()
     {

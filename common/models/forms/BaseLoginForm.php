@@ -9,29 +9,35 @@ use yii\base\Model;
 /**
  * LoginForm is the model behind the login form.
  *
- * @property BaseAuth|null $user This property is read-only.
+ * Class LoginForm
+ * @package common\models\forms
+ *
+ * @property string $username
+ * @property string $password
+ * @property bool $rememberMe
+ * @property-read BaseAuth|false $user
  *
  */
 class BaseLoginForm extends Model
 {
+    /** @var string */
     public $username;
+    /** @var string */
     public $password;
+    /** @var bool */
     public $rememberMe = true;
-
-    private $_user = false;
+    /** @var BaseAuth|false  */
+    protected $_user = false;
 
 
     /**
-     * @return array the validation rules.
+     * {@inheritDoc}
      */
-    public function rules()
+    public function rules(): array
     {
         return [
-            // username and password are both required
             [['username', 'password'], 'required'],
-            // rememberMe must be a boolean value
             ['rememberMe', 'boolean'],
-            // password is validated by validatePassword()
             ['password', 'validatePassword'],
         ];
     }
@@ -39,11 +45,12 @@ class BaseLoginForm extends Model
     /**
      * {@inheritDoc}
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'username' => Yii::t('app', 'Username'),
             'password' => Yii::t('app', 'Password'),
+            'rememberMe' => Yii::t('app', 'Remember me'),
         ];
     }
 
@@ -69,7 +76,7 @@ class BaseLoginForm extends Model
      * Logs in a user using the provided username and password.
      * @return bool whether the user is logged in successfully
      */
-    public function login()
+    public function login(): bool
     {
         if ($this->validate()) {
             return Yii::$app->user->login($this->getUser(), $this->rememberMe ? 3600*24*30 : 0);
@@ -78,9 +85,7 @@ class BaseLoginForm extends Model
     }
 
     /**
-     * Finds user by [[username]]
-     *
-     * @return BaseAuth|null
+     * @return BaseAuth|false
      */
     public function getUser()
     {

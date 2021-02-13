@@ -1,30 +1,35 @@
 <?php
 
-namespace client\models;
+namespace client\models\forms;
 
+use client\models\User;
 use Yii;
 use yii\base\Model;
-use client\models\User;
 
 /**
  * Class ChangePasswordForm
  * @package client\models
+ *
+ * @property string $password
+ * @property string $password_repeat
  */
 class ChangePasswordForm extends Model
 {
+    /** @var string */
     public $password;
+    /** @var string */
     public $password_repeat;
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['password', 'password_repeat'], 'required'],
             ['password', 'string', 'min' => 8, 'max' => 20],
             ['password_repeat', function ($attribute, $params, $validator) {
-                if ($this->password !== $this[$attribute]) {
+                if ($this->password !== $this->$attribute) {
                     $validator->addError($this, $attribute, Yii::t('app', 'Password repeat does not match password'));
                 }
             }]
@@ -32,9 +37,9 @@ class ChangePasswordForm extends Model
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'password' => Yii::t('app', 'Password'),
@@ -42,9 +47,13 @@ class ChangePasswordForm extends Model
         ];
     }
 
-    public function save()
+    /**
+     * @return bool
+     */
+    public function save(): bool
     {
         if ($this->validate()) {
+            /** @var User $client */
             $client = User::find()->where([
                 'calc_studname' => Yii::$app->user->id
             ])->one();

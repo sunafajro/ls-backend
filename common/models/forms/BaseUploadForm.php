@@ -1,6 +1,6 @@
 <?php
 
-namespace client\models;
+namespace common\models\forms;
 
 use yii\base\Exception;
 use yii\base\Model;
@@ -10,8 +10,15 @@ use yii\web\UploadedFile;
 
 /**
  * UploadForm is the model behind the upload form.
+ *
+ * Class UploadForm
+ * @package common\models\forms
+ *
+ * @property UploadedFile $file
+ * @property string       $file_name
+ * @property string       $original_name
  */
-class UploadForm extends Model
+class BaseUploadForm extends Model
 {
     /** @var UploadedFile */
     public $file;
@@ -21,9 +28,9 @@ class UploadForm extends Model
     public $original_name;
 
     /**
-     * @return array the validation rules.
+     * {@inheritDoc}
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['file'], 'file', 'skipOnEmpty' => false],
@@ -35,7 +42,7 @@ class UploadForm extends Model
      * @return bool
      * @throws Exception
      */
-    public function saveFile(string $path)
+    public function saveFile(string $path): bool
     {
         if (!file_exists($path)) {
             FileHelper::createDirectory($path);
@@ -79,4 +86,3 @@ class UploadForm extends Model
         return $filename;
     }
 }
-?>

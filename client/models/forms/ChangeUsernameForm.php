@@ -1,6 +1,6 @@
 <?php
 
-namespace client\models;
+namespace client\models\forms;
 
 use Yii;
 use yii\base\Model;
@@ -9,6 +9,9 @@ use client\models\User;
 /**
  * Class ChangeUsernameForm
  * @package client\models
+ *
+ * @property string $username
+ * @property string $username_repeat
  */
 class ChangeUsernameForm extends Model
 {
@@ -16,9 +19,9 @@ class ChangeUsernameForm extends Model
     public $username_repeat;
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['username', 'username_repeat'], 'required'],
@@ -38,7 +41,7 @@ class ChangeUsernameForm extends Model
                 }
             }],
             ['username_repeat', function ($attribute, $params, $validator) {
-                if ($this->username !== $this[$attribute]) {
+                if ($this->username !== $this->$attribute) {
                     $validator->addError($this, $attribute, Yii::t('app', 'Username repeat does not match username'));
                 }
             }]
@@ -46,9 +49,9 @@ class ChangeUsernameForm extends Model
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'username' => Yii::t('app', 'Username'),
@@ -56,9 +59,13 @@ class ChangeUsernameForm extends Model
         ];
     }
 
-    public function save()
+    /**
+     * @return bool
+     */
+    public function save(): bool
     {
         if ($this->validate()) {
+            /** @var User $client */
             $client = User::find()->where([
                 'calc_studname' => Yii::$app->user->id
             ])->one();

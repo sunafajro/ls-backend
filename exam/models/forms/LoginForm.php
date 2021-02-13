@@ -6,18 +6,12 @@ use common\models\forms\BaseLoginForm;
 use exam\models\Auth;
 
 /**
- * LoginForm is the model behind the login form.
- *
- * @property Auth|null $user This property is read-only.
+ * @property Auth|false $user
  */
 class LoginForm extends BaseLoginForm
 {
-    private $_user = false;
-
     /**
-     * Finds user by [[username]]
-     *
-     * @return Auth|null
+     * @return Auth|false
      */
     public function getUser()
     {
