@@ -2,6 +2,8 @@
 
 namespace exam\models;
 
+use common\components\helpers\IconHelper;
+use common\components\helpers\RequestHelper;
 use common\models\BaseNavigation;
 use Yii;
 use yii\helpers\Html;
@@ -23,15 +25,15 @@ class Navigation extends BaseNavigation
 
         $menu[] = [
             'url'      => Url::to(['user/index']),
-            'label'    => Html::tag('i', '', ['class' => 'fas fa-users']) . ' ' . Yii::t('app', 'Users'),
+            'label'    => IconHelper::icon('users', Yii::t('app', 'Users'), 'fa5'),
             'encode'   => false,
         ];
 
         /* ссылка на метод выхода */
         $menu[] = [
             'url'         => Url::to(['site/logout']),
-            'label'       => Html::tag('i', '', ['class' => 'fas fa-sign-out-alt']) . ' ' . Yii::t('app', 'Logout'),
-            'linkOptions' => ['data-method' => 'post'],
+            'label'       => IconHelper::icon('sign-out-alt', Yii::t('app', 'Logout'), 'fa5'),
+            'linkOptions' => RequestHelper::createLinkPostOptions(),
             'encode'      => false,
         ];
 

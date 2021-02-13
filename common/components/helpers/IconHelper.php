@@ -4,14 +4,21 @@ namespace common\components\helpers;
 
 use yii\helpers\Html;
 
+/**
+ * Class IconHelper
+ * @package common\components\helpers
+ */
 class IconHelper {
     /**
      * @param string $name
-     * 
+     * @param string|null $label
+     * @param string|null $version
+     *
      * @return string
      */
-    public static function icon(string $name) : string
+    public static function icon(string $name, string $label = null, string $version = null) : string
     {
-        return Html::tag('i', '', ['class' => "fa fa-{$name}", 'aria-hidden' => 'true']);
+        $className = $version === 'fa5' ? "fas fa-{$name}" : "fa fa-{$name}";
+        return Html::tag('i', '', ['class' => $className, 'aria-hidden' => 'true']) . ($label ? " {$label}" : '');
     }
 }

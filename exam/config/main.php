@@ -23,7 +23,7 @@ return [
             'identityCookie' => ['name' => '_identity-exam', 'httpOnly' => true],
         ],
         'session' => [
-            'name' => 'EXAMS_ID',
+            'name' => 'EXAM_ID',
         ],
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,

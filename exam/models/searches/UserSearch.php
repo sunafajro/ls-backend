@@ -1,6 +1,5 @@
 <?php
 
-
 namespace exam\models\searches;
 
 use exam\models\User;

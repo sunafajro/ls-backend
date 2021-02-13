@@ -4,9 +4,13 @@ namespace exam\assets;
 
 use yii\web\AssetBundle;
 
+/**
+ * Class AuditionAsset
+ * @package exam\assets
+ */
 class AuditionAsset extends AssetBundle
 {
-    public $sourcePath = '@app/modules/exams/views/site/assets';
+    public $sourcePath = '@exam/views/site/assets';
 
     public $css = [
         'css/vendors.css',

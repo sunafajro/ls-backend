@@ -23,7 +23,7 @@ class LoginLog extends BaseLoginLog
     public function rules()
     {
         $rules = parent::rules();
-        array_unshift($rules, [['module_type'], 'default', 'value' => Exams::MODULE_NAME]);
+        array_unshift($rules, [['module_type'], 'default', 'value' => Exam::MODULE_NAME]);
         return $rules;
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use common\components\helpers\RequestHelper;
 use yii\helpers\Html;
 use yii\web\View;
 
@@ -27,7 +28,7 @@ use yii\web\View;
                         <?php
                             $options = ['title' => $item['title']];
                             if ($item['post'] ?? false) {
-                                $options['data-method'] = 'post';
+                                $options = RequestHelper::createLinkPostOptions($options);
                             }
                             $linkContent = Html::tag('i', '', ['class' => $item['classes'], 'aria-hidden' => 'true']);
                             if ($item['hasBadge'] ?? false) {

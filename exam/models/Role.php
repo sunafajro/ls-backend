@@ -24,7 +24,7 @@ class Role extends BaseRole
     public static function find() : ActiveQuery
     {
         $query = parent::find();
-        return $query->andWhere(['module_type' => Exams::MODULE_NAME]);
+        return $query->andWhere(['module_type' => Exam::MODULE_NAME]);
     }
 
     /**
@@ -43,7 +43,7 @@ class Role extends BaseRole
             ->from(self::tableName())
             ->where([
                 'visible' => 1,
-                'module_type' => Exams::MODULE_NAME,
+                'module_type' => Exam::MODULE_NAME,
             ])
             ->orderby(['id' => SORT_ASC])
             ->asArray()

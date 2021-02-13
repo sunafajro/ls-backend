@@ -79,7 +79,7 @@ class User extends BaseUser
             ->innerJoin(['roles'  => Role::tableName()], "roles.id = users.status")
             ->where([
                 'users.visible'     => 1,
-                'users.module_type' => Exams::MODULE_NAME,
+                'users.module_type' => Exam::MODULE_NAME,
             ])
             ->andWhere($condition)
             ->asArray()
@@ -92,6 +92,6 @@ class User extends BaseUser
     public static function find() : ActiveQuery
     {
         $query = parent::find();
-        return $query->andWhere(['module_type' => Exams::MODULE_NAME]);
+        return $query->andWhere(['module_type' => Exam::MODULE_NAME]);
     }
 }

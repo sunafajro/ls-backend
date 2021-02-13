@@ -2,10 +2,9 @@
 
 namespace exam\controllers;
 
-use exam\Exams;
 use exam\models\forms\UserForm;
 use exam\models\Role;
-use exam\models\search\UserSearch;
+use exam\models\searches\UserSearch;
 use exam\models\User;
 use Yii;
 use yii\filters\AccessControl;

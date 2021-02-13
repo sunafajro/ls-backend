@@ -1,6 +1,5 @@
 <?php
 
-
 namespace exam;
 
 use yii\base\Module;

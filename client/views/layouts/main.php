@@ -3,6 +3,8 @@
 /* @var $this \yii\web\View */
 /* @var $content string */
 
+use common\components\helpers\IconHelper;
+use common\components\helpers\RequestHelper;
 use yii\helpers\Html;
 use yii\bootstrap\Nav;
 use yii\bootstrap\NavBar;
@@ -49,18 +51,16 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/jpg', 'href' => '/favi
                 ['label' => Yii::t('app', 'Attestations'), 'url' => ['/student/attestations']],
                 ['label' => Yii::t('app', 'Messages'), 'url' => ['/student/messages']],
                 ['label' => Yii::t('app', 'Settings'), 'url' => ['/student/settings']],
-                Yii::$app->user->isGuest ? (
-                    ['label' => 'Login', 'url' => ['/site/login']]
-                ) : (
-                    '<li>'
-                    . Html::beginForm(['/site/logout'], 'post')
-                    . Html::submitButton(
-                        Yii::t('app', 'Logout'),
-                        ['class' => 'btn btn-link logout']
+                Yii::$app->user->isGuest
+                    ? ['label' => Yii::t('app','Login'), 'url' => ['site/login']]
+                    : Html::tag(
+                            'li',
+                            Html::a(
+                                    IconHelper::icon('sign-out-alt', Yii::t('app', 'Logout'), 'fa5'),
+                                    ['site/logout'],
+                                    RequestHelper::createLinkPostOptions()
+                            ),
                     )
-                    . Html::endForm()
-                    . '</li>'
-                )
             ],
         ]);
         NavBar::end();
