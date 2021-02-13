@@ -14,6 +14,7 @@ use common\widgets\navigation\NavigationWidget;
 
 AppAsset::register($this);
 $hideModal = $this->context->id === 'message' && in_array($this->context->action->id, ['create', 'update']);
+$this->registerLinkTag(['rel' => 'icon', 'type' => 'image/jpg', 'href' => '/favicon-32x32.jpg', 'sizes' => '32x32']);
 ?>
 <?php $this->beginPage() ?>
 <!DOCTYPE html>

@@ -1,3 +1,6 @@
 <?php
 
-return [];
+return [
+    'appTitle'  => 'Система тестирования',
+    'navBrand'  => 'Тесты',
+];
