@@ -2,10 +2,12 @@
 
 /**
  * @var View $this
- * @var File $model
+ * @var Message $model
+ * @var File $file
  */
 
 use client\models\File;
+use client\models\Message;
 use yii\helpers\Html;
 use yii\web\View;
 ?>
