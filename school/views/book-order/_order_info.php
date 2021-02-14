@@ -1,7 +1,6 @@
 <?php
 
 use school\models\BookOrder;
-use Yii;
 use yii\helpers\Html;
 use yii\web\View;
 
