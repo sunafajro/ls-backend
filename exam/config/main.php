@@ -42,12 +42,15 @@ return [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
+                'GET site/get-exam-file/<name:\w{13}>'         => 'site/get-exam-file',
                 '<controller:[\w-]+>/<action:[\w-]+>/<id:\d+>' => '<controller>/<action>',
                 '<controller:[\w-]+>/<action:[\w-]+>'          => '<controller>/<action>',
                 '<controller:[\w-]+>'                          => '<controller>/index',
-                //'<controller:[\w-]+>/<action:[\w-]+>'                          => '/',
             ],
         ],
     ],
     'params' => $params,
+    'aliases' => [
+        '@exams' => '@data/exams',
+    ],
 ];

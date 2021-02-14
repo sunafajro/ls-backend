@@ -2,6 +2,7 @@
 
 namespace exam\controllers;
 
+use common\components\helpers\RequestHelper;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -10,25 +11,33 @@ use yii\web\Response;
 use exam\models\forms\LoginForm;
 use exam\models\LoginLog;
 
+/**
+ * Class SiteController
+ * @package exam\controllers
+ */
 class SiteController extends Controller
 {
     /**
      * {@inheritDoc}
      */
-    public function behaviors()
+    public function behaviors(): array
     {
         return [
             'access' => [
                 'class' => AccessControl::class,
-                'only' => ['index', 'login', 'logout', 'csrf'],
+                'only' => ['index', 'login', 'logout', 'csrf', 'get-exam-data', 'get-exam-file'],
                 'rules' => [
                     [
-                        'actions' => ['login', 'csrf'],
+                        'actions' => ['index', 'csrf', 'get-exam-data', 'get-exam-file'],
+                        'allow' => true,
+                    ],
+                    [
+                        'actions' => ['login'],
                         'allow' => true,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['login', 'logout', 'index', 'csrf'],
+                        'actions' => ['logout'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -46,7 +55,7 @@ class SiteController extends Controller
     /**
      * {@inheritDoc}
      */
-    public function actions()
+    public function actions(): array
     {
         return [
             'error' => [
@@ -111,14 +120,56 @@ class SiteController extends Controller
 
     /**
      * Для js приложений
-     * @return array
+     * @return mixed
+     */
+    public function actionGetExamData()
+    {
+        $exams = Yii::$app->cache->getOrSet('exams_data', function() {
+            $exams = [];
+            foreach (['ege', 'oge'] as $fileName) {
+                $filePath = Yii::getAlias("@exams/{$fileName}.json");
+                if (file_exists($filePath)) {
+                    $rawExamsData = file_get_contents($filePath);
+                    $jsonExamsData = json_decode($rawExamsData, true);
+                    $jsonExamsData = array_filter($jsonExamsData, function ($exam) {
+                        return $exam['enabled'];
+                    });
+                    $exams = array_merge($exams, $jsonExamsData);
+                }
+            }
+            return $exams;
+        }, 3600);
+
+        return $this->asJson($exams);
+    }
+
+    /**
+     * Для js приложений
+     * @param string $name
+     *
+     * @return mixed
+     */
+    public function actionGetExamFile(string $name)
+    {
+        $filePath = null;
+        foreach (scandir(Yii::getAlias("@exams")) as $file) {
+            $fileNameArray = explode('.', $file);
+            $fileName = reset($fileNameArray);
+            if ($fileName === $name) {
+                $filePath = Yii::getAlias("@exams/{$file}");
+                break;
+            }
+        }
+        return $filePath ? Yii::$app->response->sendFile($filePath) : null;
+    }
+
+    /**
+     * Для js приложений
+     * @return mixed
      */
     public function actionCsrf()
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        return [
-            Yii::$app->request->csrfParam => Yii::$app->request->getCsrfToken()
-        ];
+        return $this->asJson(RequestHelper::addCsrfToParams());
     }
 
     /**
