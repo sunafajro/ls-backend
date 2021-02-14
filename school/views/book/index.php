@@ -2,7 +2,7 @@
 
 use school\models\BookCost;
 use school\models\BookOrder;
-use school\models\search\BookSearch;
+use school\models\searches\BookSearch;
 use common\widgets\alert\AlertWidget;
 use yii\data\ActiveDataProvider;
 use yii\grid\GridView;

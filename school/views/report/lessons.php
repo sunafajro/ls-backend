@@ -1,7 +1,7 @@
 <?php
 
 use school\models\Journalgroup;
-use school\models\search\LessonSearch;
+use school\models\searches\LessonSearch;
 use common\widgets\alert\AlertWidget;
 use school\widgets\filters\FiltersWidget;
 use yii\data\ActiveDataProvider;
