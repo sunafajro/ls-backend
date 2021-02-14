@@ -14,7 +14,7 @@
     },
     "minimum-stability": "stable",
     "require": {
-        "php": ">=7.0",
+        "php": "^7.3",
         "yiisoft/yii2": "~2.0.31",
         "yiisoft/yii2-bootstrap": "~2.0.0",
         "yiisoft/yii2-swiftmailer": "~2.0.0",
@@ -26,10 +26,13 @@
         "2amigos/qrcode-library": "^1.1",
         "yiisoft/yii2-imagine": "^2.1",
         "ext-curl": "*",
+        "ext-exif": "*",
         "ext-gd": "*",
         "ext-mbstring": "*",
         "ext-xml": "*",
-        "conquer/momentjs": "*"
+        "conquer/momentjs": "*",
+        "yiisoft/yii2-bootstrap4": "^2.0",
+        "yidas/yii2-fontawesome": "^5.0"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.0.0",
