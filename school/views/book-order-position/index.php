@@ -15,7 +15,7 @@ use school\models\Book;
 use school\models\BookCost;
 use school\models\BookOrder;
 use school\models\BookOrderPosition;
-use school\models\search\BookOrderPositionSearch;
+use school\models\searches\BookOrderPositionSearch;
 use common\widgets\alert\AlertWidget;
 use yii\data\ActiveDataProvider;
 use yii\grid\GridView;

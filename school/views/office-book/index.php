@@ -1,6 +1,6 @@
 <?php
 
-use school\models\search\OfficeBookSearch;
+use school\models\searches\OfficeBookSearch;
 use common\widgets\alert\AlertWidget;
 use yii\data\ActiveDataProvider;
 use yii\grid\GridView;
