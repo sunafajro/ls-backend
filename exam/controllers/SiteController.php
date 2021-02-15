@@ -3,11 +3,11 @@
 namespace exam\controllers;
 
 use common\components\helpers\RequestHelper;
+use exam\models\SpeakingExam;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
-use yii\web\Response;
 use exam\models\forms\LoginForm;
 use exam\models\LoginLog;
 
@@ -69,6 +69,7 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
+        $this->layout = 'speaking';
         return $this->render('index', []);
     }
 
@@ -124,23 +125,7 @@ class SiteController extends Controller
      */
     public function actionGetExamData()
     {
-        $exams = Yii::$app->cache->getOrSet('exams_data', function() {
-            $exams = [];
-            foreach (['ege', 'oge'] as $fileName) {
-                $filePath = Yii::getAlias("@exams/{$fileName}.json");
-                if (file_exists($filePath)) {
-                    $rawExamsData = file_get_contents($filePath);
-                    $jsonExamsData = json_decode($rawExamsData, true);
-                    $jsonExamsData = array_filter($jsonExamsData, function ($exam) {
-                        return $exam['enabled'];
-                    });
-                    $exams = array_merge($exams, $jsonExamsData);
-                }
-            }
-            return $exams;
-        }, 3600);
-
-        return $this->asJson($exams);
+        return $this->asJson(SpeakingExam::getActiveExams()());
     }
 
     /**

@@ -10,7 +10,8 @@ use exam\models\forms\UserForm;
 use common\widgets\alert\AlertB4Widget;
 use yii\web\View;
 
-$this->title = Yii::$app->params['appTitle'];
+$this->title = Yii::$app->name;
+$this->params['breadcrumbs'][] = ['url' => ['user/index'], 'label' => Yii::t('app', 'Users')];
 $this->params['breadcrumbs'][] = 'Создать пользователя';
 ?>
 <div>

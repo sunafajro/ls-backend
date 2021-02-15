@@ -3,15 +3,15 @@
  * @var View $this
  */
 
-use exam\assets\AuditionAsset;
+use exam\assets\SpeakingExamAsset;
 use yii\bootstrap4\Html;
 use yii\helpers\Url;
 use yii\web\View;
 
-$this->title = Yii::$app->params['appTitle'];
+$this->title = Yii::$app->name;
 $this->params['breadcrumbs'][] = 'Панель управления';
 
-AuditionAsset::register($this);
+SpeakingExamAsset::register($this);
 
 $urls = json_encode([
     'exams' => Url::to(['site/get-exam-data']),

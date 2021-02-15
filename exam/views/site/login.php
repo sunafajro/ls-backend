@@ -11,7 +11,7 @@ use yii\bootstrap4\ActiveForm;
 use yii\bootstrap4\Html;
 use yii\web\View;
 
-$this->title = 'Пробные тесты ЕГЭ/ОГЭ по английскому языку';
+$this->title = Yii::$app->name;
 ?>
 <div class="site-login">
     <div class="row justify-content-center">

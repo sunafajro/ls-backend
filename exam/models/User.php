@@ -45,10 +45,10 @@ class User extends BaseUser
             'id'      => 'ID',
             'site'    => 'Site',
             'visible' => Yii::t('app','Active'),
-            'login'   => Yii::t('app','User login'),
+            'login'   => Yii::t('app','Username'),
             'pass'    => Yii::t('app','Password'),
             'name'    => Yii::t('app','Full name'),
-            'status'  => Yii::t('app','Role'),
+            'status'  => Yii::t('app','User role'),
         ];
     }
 

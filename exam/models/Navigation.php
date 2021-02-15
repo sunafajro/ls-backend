@@ -24,6 +24,12 @@ class Navigation extends BaseNavigation
         $menu = [];
 
         $menu[] = [
+            'url'      => Url::to(['speaking-exam/index']),
+            'label'    => IconHelper::icon('microphone-alt', Yii::t('app', 'Speaking'), 'fa5'),
+            'encode'   => false,
+        ];
+
+        $menu[] = [
             'url'      => Url::to(['user/index']),
             'label'    => IconHelper::icon('users', Yii::t('app', 'Users'), 'fa5'),
             'encode'   => false,

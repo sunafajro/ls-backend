@@ -5,10 +5,10 @@ namespace exam\assets;
 use yii\web\AssetBundle;
 
 /**
- * Class AuditionAsset
+ * Class SpeakingExamAsset
  * @package exam\assets
  */
-class AuditionAsset extends AssetBundle
+class SpeakingExamAsset extends AssetBundle
 {
     public $sourcePath = '@exam/views/site/assets';
 

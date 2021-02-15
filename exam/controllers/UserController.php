@@ -13,13 +13,14 @@ use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 
 /**
- * UserController implements the CRUD actions for User model.
+ * Class UserController
+ * @package exam\controllers
  */
 class UserController extends Controller
 {
-    public function behaviors()
+    public function behaviors(): array
     {
-        $rules = ['index', 'create', 'update', 'delete'];
+        $rules = ['index', 'view', 'create', 'update', 'delete'];
         return [
             'access' => [
                 'class' => AccessControl::class,
@@ -58,6 +59,17 @@ class UserController extends Controller
             'dataProvider' => $dataProvider,
             'roles'        => Role::find()->select('name')->indexBy('id')->column(),
             'searchModel'  => $searchModel,
+        ]);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function actionView(int $id)
+    {
+        $user = $this->findModel($id);
+        return $this->render('view', [
+            'user' => $user,
         ]);
     }
 
@@ -144,7 +156,7 @@ class UserController extends Controller
      * @return User the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
-    protected function findModel($id)
+    protected function findModel(int $id): ?User
     {
         /** @var User|null $model */
         if (($model = User::find()->byId($id)->one()) !== null) {

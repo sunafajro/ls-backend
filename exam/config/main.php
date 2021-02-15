@@ -8,8 +8,10 @@ $params = array_merge(
 
 return [
     'id' => 'app-exam',
+    'name' => 'Система тестирования',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
+    'language' => 'ru-RU',
     'controllerNamespace' => 'exam\controllers',
     'defaultRoute' => 'site/index',
     'components' => [
@@ -37,6 +39,18 @@ return [
         'errorHandler' => [
             'class' => 'yii\web\ErrorHandler',
             'errorAction' => 'site/error',
+        ],
+        'i18n' => [
+            'translations' => [
+                'app*' => [
+                    'class' => 'yii\i18n\PhpMessageSource',
+                    'basePath' => '@exam/messages',
+                    'fileMap' => [
+                        'app' => 'app.php',
+                        'app/error'=>'error.php'
+                    ],
+                ],
+            ],
         ],
         'urlManager' => [
             'enablePrettyUrl' => true,

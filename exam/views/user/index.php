@@ -6,7 +6,7 @@
  * @var array              $roles
  */
 
-use exam\models\search\UserSearch;
+use exam\models\searches\UserSearch;
 use exam\models\User;
 use common\widgets\alert\AlertB4Widget;
 use yii\bootstrap4\Alert;
@@ -16,8 +16,8 @@ use yii\grid\ActionColumn;
 use yii\grid\GridView;
 use yii\web\View;
 
-$this->title = Yii::$app->params['appTitle'];
-$this->params['breadcrumbs'][] = 'Пользователи';
+$this->title = Yii::$app->name;
+$this->params['breadcrumbs'][] = Yii::t('app', 'Users');
 ?>
 <div>
     <?= AlertB4Widget::widget() ?>
@@ -34,7 +34,13 @@ $this->params['breadcrumbs'][] = 'Пользователи';
                 'dataProvider' => $dataProvider,
                 'filterModel'  => $searchModel,
                 'columns' => [
-                    'id',
+                    'id' => [
+                        'attribute' => 'id',
+                        'format' => 'raw',
+                        'value' => function(User $user) {
+                            return Html::a($user->id, ['user/view', 'id' => $user->id]);
+                        }
+                    ],
                     'name',
                     'login',
                     'status' => [
