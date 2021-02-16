@@ -3,11 +3,13 @@
 
 namespace exam\controllers;
 
+use exam\components\managers\interfaces\SpeakingExamManagerInterface;
 use exam\models\SpeakingExam;
 use yii\data\ArrayDataProvider;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
+use yii\web\NotFoundHttpException;
 
 /**
  * Class SpeakingExamController
@@ -52,8 +54,11 @@ class SpeakingExamController extends Controller
      */
     public function actionIndex()
     {
+        /** @var SpeakingExamManagerInterface $orderManager */
+        $speakingExamManager = \Yii::$container->get(SpeakingExamManagerInterface::class);
+
         $dataProvider = new ArrayDataProvider([
-            'allModels' => SpeakingExam::getExams(),
+            'allModels' => $speakingExamManager->getExams(),
             'sort' => [
                 'defaultOrder' => 'id',
             ],
@@ -61,5 +66,25 @@ class SpeakingExamController extends Controller
         return $this->render('index', [
             'dataProvider' => $dataProvider,
         ]);
+    }
+
+    /**
+     * @return mixed
+     * @throws NotFoundHttpException
+     */
+    public function actionView(int $id)
+    {
+        /** @var SpeakingExamManagerInterface $orderManager */
+        $speakingExamManager = \Yii::$container->get(SpeakingExamManagerInterface::class);
+
+        $examModel = $speakingExamManager->getExamById($id);
+        return $this->render('view', [
+            'examModel' => $examModel,
+        ]);
+    }
+
+    public function actionChange(string $attribute)
+    {
+        return $this->redirect(\Yii::$app->request->referrer);
     }
 }

@@ -8,6 +8,7 @@
 use exam\models\SpeakingExam;
 use yii\bootstrap4\Html;
 use yii\data\ArrayDataProvider;
+use yii\grid\ActionColumn;
 use yii\grid\GridView;
 use yii\web\View;
 
@@ -25,8 +26,24 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Speaking');
                     return Html::a($exam->id, ['speaking-exam/view', 'id' => $exam->id]);
                 }
             ],
-            'num',
-            'waitTime',
+            'num' => [
+                'attribute' => 'num',
+                'value' => function(SpeakingExam $exam) {
+                    return "Вариант {$exam->num}";
+                },
+            ],
+            'tasks' => [
+                'attribute' => 'tasks',
+                'value' => function(SpeakingExam $exam) {
+                    return count($exam->tasks);
+                }
+            ],
+            'waitTime' => [
+                'attribute' => 'waitTime',
+                'value' => function(SpeakingExam $exam) {
+                    return "{$exam->waitTime} с";
+                },
+            ],
             'type' => [
                 'attribute' => 'type',
                 'value' => function(SpeakingExam $exam) {
@@ -39,6 +56,10 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Speaking');
                     return Yii::t('app', $exam->enabled ? 'Yes' : 'No');
                 }
             ],
+            [
+                'class' => ActionColumn::class,
+                'header' => Yii::t('app', 'Actions'),
+            ]
         ]
     ]) ?>
 </div>

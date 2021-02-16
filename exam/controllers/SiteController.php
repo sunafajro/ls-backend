@@ -3,7 +3,7 @@
 namespace exam\controllers;
 
 use common\components\helpers\RequestHelper;
-use exam\models\SpeakingExam;
+use exam\components\managers\interfaces\SpeakingExamManagerInterface;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -125,7 +125,10 @@ class SiteController extends Controller
      */
     public function actionGetExamData()
     {
-        return $this->asJson(SpeakingExam::getActiveExams()());
+        /** @var SpeakingExamManagerInterface $orderManager */
+        $speakingExamManager = \Yii::$container->get(SpeakingExamManagerInterface::class);
+
+        return $this->asJson($speakingExamManager->getActiveExams());
     }
 
     /**

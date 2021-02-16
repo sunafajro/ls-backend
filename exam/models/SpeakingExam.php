@@ -4,6 +4,7 @@
 namespace exam\models;
 
 use Yii;
+use yii\base\Model;
 
 /**
  * Class SpeakingExam
@@ -16,7 +17,7 @@ use Yii;
  * @property string $type
  * @property bool $enabled
  */
-class SpeakingExam extends \yii\base\Model
+class SpeakingExam extends Model
 {
     /** @var int */
     public $id;
@@ -33,6 +34,20 @@ class SpeakingExam extends \yii\base\Model
 
     const TYPE_OGE = 'oge';
     const TYPE_EGE = 'ege';
+
+    /**
+     * {@inheritDoc}
+     */
+    public function rules(): array
+    {
+        return [
+            [['id', 'num', 'waitTime'], 'integer'],
+            [['type'], 'string'],
+            [['type'], 'in', 'range' => [self::TYPE_OGE, self::TYPE_EGE]],
+            [['enabled'], 'boolean'],
+            [['tasks'], 'safe'],
+        ];
+    }
 
     /**
      * @return array
@@ -63,42 +78,10 @@ class SpeakingExam extends \yii\base\Model
         return [
             'id' => Yii::t('app', 'ID'),
             'num' => Yii::t('app', 'Number'),
-            'tasks' => Yii::t('app', 'Exam tasks'),
+            'tasks' => Yii::t('app', 'Tasks'),
             'waitTime' => Yii::t('app', 'Wait time'),
             'type' => Yii::t('app', 'Type'),
             'enabled' => Yii::t('app', 'Enabled'),
         ];
-    }
-
-    /**
-     * @return SpeakingExam[]
-     */
-    public static function getExams(): array
-    {
-        return Yii::$app->cache->getOrSet('exams_data', function() {
-            $exams = [];
-            foreach (['ege', 'oge'] as $fileName) {
-                $filePath = Yii::getAlias("@exams/{$fileName}.json");
-                if (file_exists($filePath)) {
-                    $rawExamsData = file_get_contents($filePath);
-                    $jsonExamsData = json_decode($rawExamsData, true);
-                    $examModels = array_map(function (array $exam) {
-                        return new self($exam);
-                    }, $jsonExamsData);
-                    $exams = array_merge($exams, $examModels);
-                }
-            }
-            return $exams;
-        }, 3600);
-    }
-
-    /**
-     * @return SpeakingExam[]
-     */
-    public static function getActiveExams(): array
-    {
-        return array_filter(self::getExams(), function(SpeakingExam $exam) {
-            return $exam->enabled;
-        });
     }
 }
