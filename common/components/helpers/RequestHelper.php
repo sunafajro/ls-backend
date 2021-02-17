@@ -23,18 +23,20 @@ class RequestHelper
 
     /**
      * @param array $options
-     * @param array $params
+     * @param array|null $params
      * @param string $confirm
      *
      * @return array
      */
-    public static function createLinkPostOptions(array $options = [], array $params = [], string $confirm = ''): array
+    public static function createLinkPostOptions(array $options = [], array $params = null, string $confirm = ''): array
     {
         $options['data-method'] = 'POST';
-        $options['data-params'] = self::addCsrfToParams($params);
+        if (!is_null($params)) {
+            $options['data-params'] = self::addCsrfToParams($params);
+        }
 
         if (!empty($confirm)) {
-            $options['confirm'] = $confirm;
+            $options['data-confirm'] = $confirm;
         }
 
         return $options;

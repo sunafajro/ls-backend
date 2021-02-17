@@ -83,8 +83,24 @@ class SpeakingExamController extends Controller
         ]);
     }
 
-    public function actionChange(string $attribute)
+    /**
+     * @param int $id
+     * @return \yii\web\Response
+     * @throws NotFoundHttpException
+     * @throws \yii\base\InvalidConfigException
+     * @throws \yii\di\NotInstantiableException
+     */
+    public function actionChange(int $id)
     {
+        /** @var SpeakingExamManagerInterface $orderManager */
+        $speakingExamManager = \Yii::$container->get(SpeakingExamManagerInterface::class);
+
+        $examModel = $speakingExamManager->getExamById($id);
+        if ($examModel->load(\Yii::$app->request->post()) && $examModel->save()) {
+            \Yii::$app->session->setFlash('success', 'The exam is successfully updated.');
+        } else {
+            \Yii::$app->session->setFlash('success', 'Failed to update the exam.');
+        }
         return $this->redirect(\Yii::$app->request->referrer);
     }
 }

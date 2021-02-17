@@ -12,20 +12,30 @@ use yii\web\NotFoundHttpException;
 interface SpeakingExamManagerInterface
 {
     /**
+     * Считывает список экзаменов из json файла, загружает в модели, кеширует и возвращает в виде массива в качестве результата.
      * @return SpeakingExam[]
      */
     public function getExams(): array;
 
     /**
+     * Возвращает массив экзаменов в активном состоянии (enabled === true).
      * @return SpeakingExam[]
      */
     public function getActiveExams(): array;
 
     /**
+     * Ищет и возвращает экзамен по его id.
      * @param int $id
      *
      * @return SpeakingExam|null
      * @throws NotFoundHttpException
      */
     public function getExamById(int $id): ?SpeakingExam;
+
+    /**
+     * Сохраняет обновленный экзамен обратно в json файл, актуализирует кеш экзаменов
+     * @param SpeakingExam $examModel
+     * @return bool
+     */
+    public function updateAndSaveExam(SpeakingExam $examModel): bool;
 }

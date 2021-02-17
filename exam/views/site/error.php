@@ -11,6 +11,7 @@ use yii\helpers\Html;
 use yii\web\View;
 
 $this->title = $name;
+$this->params['breadcrumbs'][] = Yii::t('app', 'An error occurs');
 ?>
 <div class="site-error">
     <h1><?= Html::encode($this->title) ?></h1>

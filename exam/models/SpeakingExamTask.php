@@ -7,6 +7,13 @@ use yii\base\Model;
 /**
  * Class SpeakingExamTask
  * @package exam\models
+ *
+ * @property int $id
+ * @property string $title
+ * @property string $description
+ * @property string[]|null $audio
+ * @property string[] $images
+ * @property string[] $questions
  */
 class SpeakingExamTask extends Model
 {

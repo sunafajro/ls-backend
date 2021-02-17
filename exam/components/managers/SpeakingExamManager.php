@@ -6,7 +6,9 @@ use exam\components\managers\interfaces\SpeakingExamManagerInterface;
 use exam\models\SpeakingExam;
 use exam\models\SpeakingExamTask;
 use yii\base\Component;
+use yii\caching\TagDependency;
 use yii\helpers\ArrayHelper;
+use yii\helpers\Json;
 use yii\web\NotFoundHttpException;
 
 /**
@@ -16,17 +18,17 @@ use yii\web\NotFoundHttpException;
 class SpeakingExamManager extends Component implements SpeakingExamManagerInterface
 {
     /**
-     * @return SpeakingExam[]
+     * {@inheritDoc}
      */
     public function getExams(): array
     {
-        return \Yii::$app->cache->getOrSet('exams_data', function() {
+        return \Yii::$app->cache->getOrSet('speaking_exams_data', function() {
             $exams = [];
             foreach (['ege', 'oge'] as $fileName) {
                 $filePath = \Yii::getAlias("@exams/{$fileName}.json");
                 if (file_exists($filePath)) {
                     $rawExamsData = file_get_contents($filePath);
-                    $jsonExamsData = json_decode($rawExamsData, true);
+                    $jsonExamsData = Json::decode($rawExamsData, true);
                     $examModels = array_map(function (array $exam) {
                         $exam['tasks'] = array_map(function(array $task) {
                             if (is_array($task)) {
@@ -45,7 +47,7 @@ class SpeakingExamManager extends Component implements SpeakingExamManagerInterf
     }
 
     /**
-     * @return SpeakingExam[]
+     * {@inheritDoc}
      */
     public function getActiveExams(): array
     {
@@ -55,10 +57,7 @@ class SpeakingExamManager extends Component implements SpeakingExamManagerInterf
     }
 
     /**
-     * @param int $id
-     *
-     * @return SpeakingExam|null
-     * @throws NotFoundHttpException
+     * {@inheritDoc}
      */
     public function getExamById(int $id): ?SpeakingExam
     {
@@ -70,5 +69,32 @@ class SpeakingExamManager extends Component implements SpeakingExamManagerInterf
         }
 
         return reset($filtered);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function updateAndSaveExam(SpeakingExam $examModel): bool
+    {
+        $filtered = array_filter($this->getExams(), function(SpeakingExam $exam) use ($examModel) {
+            return $exam->id !== $examModel->id;
+        });
+        $filtered[] = $examModel;
+        $arrayExamsData = array_map(function(SpeakingExam $exam) {
+            $exam->tasks = array_map(function(SpeakingExamTask $task) {
+                return $task->toArray();
+            }, $exam->tasks);
+            return $exam->toArray();
+        }, $filtered);
+
+        foreach (['ege', 'oge'] as $fileName) {
+            $filePath = \Yii::getAlias("@exams/{$fileName}.json");
+            $examsData = array_filter($arrayExamsData, function(array $exam) use ($fileName) {
+                return $exam['type'] === $fileName;
+            });
+            file_put_contents($filePath, Json::encode($examsData));
+        }
+        \Yii::$app->cache->delete('speaking_exams_data');
+        return true;
     }
 }
