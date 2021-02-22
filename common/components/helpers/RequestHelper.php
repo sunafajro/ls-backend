@@ -23,12 +23,12 @@ class RequestHelper
 
     /**
      * @param array $options
-     * @param array|null $params
+     * @param array $params
      * @param string $confirm
      *
      * @return array
      */
-    public static function createLinkPostOptions(array $options = [], array $params = null, string $confirm = ''): array
+    public static function createLinkPostOptions(array $options = [], array $params = [], string $confirm = ''): array
     {
         $options['data-method'] = 'POST';
         if (!is_null($params)) {
