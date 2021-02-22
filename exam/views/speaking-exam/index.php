@@ -7,6 +7,7 @@
 
 use common\components\helpers\IconHelper;
 use common\components\helpers\RequestHelper;
+use common\widgets\alert\AlertB4Widget;
 use exam\models\SpeakingExam;
 use yii\bootstrap4\Html;
 use yii\data\ArrayDataProvider;
@@ -18,6 +19,7 @@ $this->title = Yii::$app->name;
 $this->params['breadcrumbs'][] = Yii::t('app', 'Speaking');
 ?>
 <div class="speaking-exam-index">
+    <?= AlertB4Widget::widget() ?>
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'columns' => [

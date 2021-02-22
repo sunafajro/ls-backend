@@ -85,7 +85,7 @@ class SpeakingExamController extends Controller
 
     /**
      * @param int $id
-     * @return \yii\web\Response
+     * @return mixed
      * @throws NotFoundHttpException
      * @throws \yii\base\InvalidConfigException
      * @throws \yii\di\NotInstantiableException
@@ -97,9 +97,9 @@ class SpeakingExamController extends Controller
 
         $examModel = $speakingExamManager->getExamById($id);
         if ($examModel->load(\Yii::$app->request->post()) && $examModel->save()) {
-            \Yii::$app->session->setFlash('success', 'The exam is successfully updated.');
+            \Yii::$app->session->setFlash('success', \Yii::t('app', 'The exam was successfully updated.'));
         } else {
-            \Yii::$app->session->setFlash('success', 'Failed to update the exam.');
+            \Yii::$app->session->setFlash('success', \Yii::t('app', 'Failed to update the exam.'));
         }
         return $this->redirect(\Yii::$app->request->referrer);
     }

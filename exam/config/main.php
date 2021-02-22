@@ -65,6 +65,6 @@ return [
     ],
     'params' => $params,
     'aliases' => [
-        '@exams' => '@data/exams',
+        '@examData' => '@data/files/exam',
     ],
 ];

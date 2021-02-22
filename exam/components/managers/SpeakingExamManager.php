@@ -25,7 +25,7 @@ class SpeakingExamManager extends Component implements SpeakingExamManagerInterf
         return \Yii::$app->cache->getOrSet('speaking_exams_data', function() {
             $exams = [];
             foreach (['ege', 'oge'] as $fileName) {
-                $filePath = \Yii::getAlias("@exams/{$fileName}.json");
+                $filePath = \Yii::getAlias("@examData/{$fileName}.json");
                 if (file_exists($filePath)) {
                     $rawExamsData = file_get_contents($filePath);
                     $jsonExamsData = Json::decode($rawExamsData, true);
@@ -88,7 +88,7 @@ class SpeakingExamManager extends Component implements SpeakingExamManagerInterf
         }, $filtered);
 
         foreach (['ege', 'oge'] as $fileName) {
-            $filePath = \Yii::getAlias("@exams/{$fileName}.json");
+            $filePath = \Yii::getAlias("@examData/{$fileName}.json");
             $examsData = array_filter($arrayExamsData, function(array $exam) use ($fileName) {
                 return $exam['type'] === $fileName;
             });

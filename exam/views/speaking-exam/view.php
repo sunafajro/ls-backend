@@ -51,22 +51,7 @@ $this->params['breadcrumbs'][] = "Вариант {$examModel->num}";
             ],
         ]
     ]) ?>
-    <h3><?= Yii::t('app', 'Tasks')?>:</h3>
-    <?php
-        /** @var SpeakingExamTask $examTask */
-        foreach($examModel->tasks as $examTask) { ?>
-        <div class="card mb-1">
-            <div class="card-body">
-                <h5><b>№<?= $examTask->id ?>.</b> <?= $examTask->title ?></h5>
-                <div><?= $examTask->description ?></div>
-                <?php if ($examTask->images) { ?>
-                    <div>
-                        <?php foreach($examTask->images as $key => $imageName) {
-                            echo Html::img(['site/get-exam-file', 'name' => $imageName], ['alt' => "Exam picture {$key}"]);
-                        } ?>
-                    </div>
-                <?php } ?>
-            </div>
-        </div>
-    <?php } ?>
+    <?= $this->render('_exam_content', [
+            'examTasks' => $examModel->tasks ?? [],
+    ]) ?>
 </div>

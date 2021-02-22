@@ -140,11 +140,11 @@ class SiteController extends Controller
     public function actionGetExamFile(string $name)
     {
         $filePath = null;
-        foreach (scandir(Yii::getAlias("@exams")) as $file) {
+        foreach (scandir(Yii::getAlias("@examData")) as $file) {
             $fileNameArray = explode('.', $file);
             $fileName = reset($fileNameArray);
             if ($fileName === $name) {
-                $filePath = Yii::getAlias("@exams/{$file}");
+                $filePath = Yii::getAlias("@examData/{$file}");
                 break;
             }
         }
