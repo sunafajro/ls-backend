@@ -25,26 +25,31 @@ class Message extends \yii\db\ActiveRecord
 {
     use StudentMergeTrait;
 
+    const DESTINATION_TYPE_ALL      = 1;
+    const DESTINATION_TYPE_CHIEFS   = 2;
+    const DESTINATION_TYPE_MANAGERS = 3;
+    const DESTINATION_TYPE_TEACHERS = 4;
+    const DESTINATION_TYPE_USER     = 5;
+
+    const DESTINATION_TYPE_ALL_STUDENTS = 12;
+    const DESTINATION_TYPE_STUDENT      = 13;
+
     const MESSAGE_ENABLED_TYPES = [1 => 1, 2 => 2, 3 => 3, 4 => 4, 5 => 5, 6 => 12, 7 => 13];
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    public static function tableName()
+    public static function tableName(): string
     {
         return 'calc_message';
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    public function rules()
+    public function rules(): array
     {
         return [
-            [['name', 'calc_messwhomtype', 'refinement_id'], 'required'],
-            [['visible', 'longmess', 'user', 'send', 'calc_messwhomtype', 'refinement_id'], 'integer'],
-            [['name', 'description', 'files', 'refinement'], 'string'],
-            [['data'], 'safe'],
             [['visible'],    'default', 'value' => 1],
             [['data'],       'default', 'value' => date('Y-m-d H:i:s')],
             [['longmess'],   'default', 'value' => 0],
@@ -52,13 +57,30 @@ class Message extends \yii\db\ActiveRecord
             [['user'],       'default', 'value' => Yii::$app->user->identity->id],
             [['files'],      'default', 'value' => ''],
             [['refinement'], 'default', 'value' => ''],
+            ['refinement_id', 'validateRefinementId', 'skipOnEmpty' => false],
+            [['visible', 'longmess', 'user', 'send', 'calc_messwhomtype', 'refinement_id'], 'integer'],
+            [['name', 'description', 'files', 'refinement'], 'string'],
+            [['data'], 'safe'],
+            [['name', 'calc_messwhomtype'], 'required'],
         ];
     }
 
+    public function validateRefinementId($attribute, $params, $validator)
+    {
+        if (in_array($this->calc_messwhomtype, [self::DESTINATION_TYPE_USER, self::DESTINATION_TYPE_STUDENT])) {
+            if (empty($this->$attribute)) {
+                $this->calc_messwhomtype = null;
+                $this->addError('calc_messwhomtype', 'Необходимо выбрать адресата сообщения.');
+            }
+        } else {
+            $this->$attribute = 0;
+        }
+    }
+
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'id' => 'ID',
@@ -71,11 +93,14 @@ class Message extends \yii\db\ActiveRecord
             'send' => 'Send',
             'calc_messwhomtype' => Yii::t('app','For whom'),
             'refinement' => 'Refinement',
-            'refinement_id' => Yii::t('app','Reciever'),
+            'refinement_id' => Yii::t('app','Receiver'),
         ];
     }
 
-    public function delete()
+    /**
+     * {@inheritdoc}
+     */
+    public function delete(): bool
     {
         $t = Yii::$app->db->beginTransaction();
         try {
@@ -93,6 +118,22 @@ class Message extends \yii\db\ActiveRecord
             $t->rollBack();
             return false;
         }
+    }
+
+    /**
+     * @return string[]
+     */
+    public static function getDestinationTypes(): array
+    {
+        return [
+            self::DESTINATION_TYPE_ALL => 'Всем',
+            self::DESTINATION_TYPE_CHIEFS => 'Руководителям',
+            self::DESTINATION_TYPE_MANAGERS => 'Менеджерам',
+            self::DESTINATION_TYPE_TEACHERS => 'Преподавателям',
+            self::DESTINATION_TYPE_USER => 'Одному пользователю',
+            self::DESTINATION_TYPE_ALL_STUDENTS => 'Всем ученикам',
+            self::DESTINATION_TYPE_STUDENT => 'Одному ученику',
+        ];
     }
 
     public static function getMessageById($id)

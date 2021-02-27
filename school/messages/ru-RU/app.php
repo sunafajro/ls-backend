@@ -438,7 +438,7 @@ return array(
     'Reason'  => 'Причина',
     'Receipt' => 'Квитанция',
     'Receipts' => 'Квитанции',
-    'Reciever' => 'Получатель',
+    'Receiver' => 'Получатель',
     'References' => 'Справочники',
     'Refuse discount' => 'Отклонить скидку',
     'Remain' => 'Остаточный',

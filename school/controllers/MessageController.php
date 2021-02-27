@@ -161,8 +161,8 @@ class MessageController extends Controller
             if ($target_id) {
                 $model->refinement_id = $target_id;
                 $receivers = $target_type == 5
-                    ? User::find()->where(['visible' => 1])->all()
-                    : Student::find()->where(['visible' => 1])->all();
+                    ? User::find()->select('name')->active()->indexBy('id')->column()
+                    : Student::find()->select('name')->where(['visible' => 1, 'active' => 1])->indexBy('id')->column();
             }
         }
         if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
@@ -186,17 +186,17 @@ class MessageController extends Controller
                 if (Yii::$app->request->post('send', null)) {
                     return $this->redirect(['message/send', 'id' => $model->id]);
                 }
+                return $this->redirect(['view', 'id' => $model->id]);
             } else {
                 Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to create message!'));
             }
-            return $this->redirect(['view', 'id' => $model->id]);
-        } else {
-            return $this->render('create', [
-                'model'     => $model,
-                'types'     => $types,
-                'receivers' => ArrayHelper::map($receivers ?? [], 'id', 'name'),
-            ]);
         }
+
+        return $this->render('create', [
+            'model'     => $model,
+            'types'     => $types,
+            'receivers' => $receivers ?? [],
+        ]);
     }
 
     /**
@@ -216,8 +216,8 @@ class MessageController extends Controller
             $types = Message::getMessageDirectionsArray(Message::MESSAGE_ENABLED_TYPES);
             if (in_array($model->calc_messwhomtype, [5, 13])) {
                 $receivers = $model->calc_messwhomtype == 5
-                    ? User::find()->where(['visible' => 1])->all()
-                    : Student::find()->where(['visible' => 1])->all();
+                    ? User::find()->select('name')->active()->indexBy('id')->column()
+                    : Student::find()->select('name')->where(['visible' => 1, 'active' => 1])->indexBy('id')->column();
             }
             $files = [];
             $fileString = $model->files;
@@ -244,7 +244,7 @@ class MessageController extends Controller
             } else {
                 return $this->render('update', [
                     'model'     => $model,
-                    'receivers' => ArrayHelper::map($receivers ?? [], 'id', 'name'),
+                    'receivers' => $receivers ?? [],
                     'types'     => $types,
                 ]);
             }
@@ -454,7 +454,7 @@ class MessageController extends Controller
                     ->all();
                 }
 
-                $users = "<label class='control-label' for='message-refinement_id'>" . Yii::t('app','Reciever') . "</label>";
+                $users = "<label class='control-label' for='message-refinement_id'>" . Yii::t('app','Receiver') . "</label>";
                 $users .= "<select id='message-refinement_id' class='form-control' name='Message[refinement_id]'>";
                 $users .= "<option value=''>".Yii::t('app','-select-')."</option>";
                 foreach($susers as $suser){

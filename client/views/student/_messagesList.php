@@ -12,7 +12,7 @@ use yii\web\View;
 ?>
 <div class="panel panel-<?= (int)$model['type'] === 13 ? 'success' : 'info' ?>">
     <div class="panel-heading">
-        <?= date('d.m.Y', strtotime($model['date'])) . ' :: ' . $model['title'] . ' :: ' . ((int)$model['type'] === 13 ? '' : $model['receiver']) ?>
+        <?= date('d.m.Y', strtotime($model['date'])) . ' :: ' . $model['title'] . ((int)$model['type'] === 13 ? '' : (' :: ' . $model['receiver'])) ?>
     </div>
     <div class="panel-body">
         <div class="text-justify">

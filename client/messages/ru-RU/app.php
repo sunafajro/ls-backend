@@ -43,7 +43,7 @@ return [
     'Manager' => 'Менеджер',
     'Message subject' => 'Тема письма',
     'Message text' => 'Тест письма',
-    'Message successfully sended' => 'Сообщение успешно отправлено',
+    'Message successfully sent' => 'Сообщение успешно отправлено',
     'Messages' => 'Сообщения',
     'Office' => 'Офис',
     'Our contacts' => 'Наши контакты',

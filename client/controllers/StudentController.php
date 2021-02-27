@@ -196,8 +196,8 @@ class StudentController extends Controller {
                         'send'         => 1
                     ]
                 )->execute();;
-                $messageForm = new Message();
-                Yii::$app->session->setFlash('success', Yii::t('app', 'Message successfully sended'));
+                Yii::$app->session->setFlash('success', Yii::t('app', 'Message successfully sent'));
+                return $this->redirect(['student/messages']);
             } else {
                 Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to send message'));
             }
