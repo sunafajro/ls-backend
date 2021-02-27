@@ -19,9 +19,10 @@ interface SpeakingExamManagerInterface
 
     /**
      * Возвращает массив экзаменов в активном состоянии (enabled === true).
+     * @param string|null $type
      * @return SpeakingExam[]
      */
-    public function getActiveExams(): array;
+    public function getActiveExams(string $type = null): array;
 
     /**
      * Ищет и возвращает экзамен по его id.

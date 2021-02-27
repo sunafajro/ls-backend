@@ -28,7 +28,7 @@ class SpeakingExamManager extends Component implements SpeakingExamManagerInterf
                 $filePath = \Yii::getAlias("@examData/{$fileName}.json");
                 if (file_exists($filePath)) {
                     $rawExamsData = file_get_contents($filePath);
-                    $jsonExamsData = Json::decode($rawExamsData, true);
+                    $jsonExamsData = Json::decode($rawExamsData);
                     $examModels = array_map(function (array $exam) {
                         $exam['tasks'] = array_map(function(array $task) {
                             if (is_array($task)) {
@@ -49,11 +49,16 @@ class SpeakingExamManager extends Component implements SpeakingExamManagerInterf
     /**
      * {@inheritDoc}
      */
-    public function getActiveExams(): array
+    public function getActiveExams(string $type = null): array
     {
-        return array_filter($this->getExams(), function(SpeakingExam $exam) {
-            return $exam->enabled;
+        $activeExams = array_filter($this->getExams(), function(SpeakingExam $exam) use ($type) {
+            if ($type) {
+                return $type === $exam->type && $exam->enabled;
+            } else {
+                return $exam->enabled;
+            }
         });
+        return array_values($activeExams);
     }
 
     /**
@@ -92,6 +97,7 @@ class SpeakingExamManager extends Component implements SpeakingExamManagerInterf
             $examsData = array_filter($arrayExamsData, function(array $exam) use ($fileName) {
                 return $exam['type'] === $fileName;
             });
+            $examsData = array_values($examsData);
             file_put_contents($filePath, Json::encode($examsData));
         }
         \Yii::$app->cache->delete('speaking_exams_data');

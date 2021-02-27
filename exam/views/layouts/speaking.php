@@ -7,6 +7,7 @@
 
 use yii\helpers\Html;
 use yii\web\View;
+$this->registerLinkTag(['rel' => 'icon', 'type' => 'image/jpg', 'href' => '/favicon-32x32.jpg', 'sizes' => '32x32']);
 ?>
 <?php $this->beginPage() ?>
 <!DOCTYPE html>

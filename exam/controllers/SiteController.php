@@ -121,14 +121,15 @@ class SiteController extends Controller
 
     /**
      * Для js приложений
+     * @param string $type
      * @return mixed
      */
-    public function actionGetExamData()
+    public function actionGetExamData(string $type = null)
     {
         /** @var SpeakingExamManagerInterface $orderManager */
         $speakingExamManager = \Yii::$container->get(SpeakingExamManagerInterface::class);
 
-        return $this->asJson($speakingExamManager->getActiveExams());
+        return $this->asJson($speakingExamManager->getActiveExams($type));
     }
 
     /**
