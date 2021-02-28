@@ -5,7 +5,6 @@
  * @var array $teachers
  */
 
-use Yii;
 use yii\helpers\Html;
 ?>
 <div id="teachers-carousel" class="carousel slide">
@@ -14,9 +13,9 @@ use yii\helpers\Html;
         <?php foreach ($teachers as $key => $teacher) { ?>
             <div class="item <?= $key === $firstItemKey ? 'active' : '' ?>">
                 <?php if ($teacher['photo']) { ?>
-                    <?= Html::img('@web/images/user/' . $teacher['id'] . '/logo/' . $teacher['photo'], ['alt' => $teacher['name'], 'style' => 'margin: 0 auto']) ?>
+                    <?= Html::img('/uploads/user/' . $teacher['id'] . '/logo/' . $teacher['photo'], ['alt' => $teacher['name'], 'style' => 'margin: 0 auto']) ?>
                 <?php } else { ?>
-                    <?= Html::img('@web/images/no-photo.jpg', ['alt' => Yii::t('app', 'No photo'), 'style' => 'margin: 0 auto']) ?>
+                    <?= Html::img('/uploads/no-photo.jpg', ['alt' => Yii::t('app', 'No photo'), 'style' => 'margin: 0 auto']) ?>
                 <?php } ?>
                 <div class="carousel-caption" style="bottom:-30px">
                     <b><?= $teacher['name'] ?></b><br />

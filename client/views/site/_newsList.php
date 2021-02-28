@@ -18,7 +18,7 @@ use yii\helpers\Html;
                 $ext = explode('.', $addr[0]);
                 if ($ext[1] === 'jpg' || $ext[1] === 'png' || $ext[1] === 'bmp' || $ext[1] ==='gif' ) { ?>
                     <?= Html::img(
-                        '@web/uploads/calc_message/' . $model['id'] . '/fls/' . $addr[0],
+                        '/uploads/calc_message/' . $model['id'] . '/fls/' . $addr[0],
                         [
                             'class' => 'img-thumbnail',
                             'style' => 'margin-right: 10px; float: left'
@@ -32,7 +32,7 @@ use yii\helpers\Html;
                     </p>
                     <?= Html::a(
                         count($addr) > 1 ? $addr[1] : '<none>',
-                        '@web/uploads/calc_message/' . $model['id'] . '/fls/' . $addr[0]) ?>
+                        '/uploads/calc_message/' . $model['id'] . '/fls/' . $addr[0]) ?>
                 <?php } ?>
             <?php } ?>
         <?php } else { ?>
