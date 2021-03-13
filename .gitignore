@@ -37,6 +37,3 @@ phpunit.phar
 /client/web/robots.txt
 /exam/web/index.php
 /exam/web/robots.txt
-
-# data files
-/data
