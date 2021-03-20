@@ -310,12 +310,14 @@ if ((int)$tab === 3) {
     <div id="right-sidebar" class="col-sm-2">
         <div class="panel panel-warning">
             <div class="panel-body">
-                <p>
-                <?= isset($model->user->logo) && $model->user->logo != '' ?
-                    Html::img('@web/uploads/user/'.$model->user->id.'/logo/'.$model->user->logo, ['class'=>'thumbnail', 'width'=>'100%']) :
-                    Html::img('@web/images/dream.jpg',['width'=>'100%'])
-                ?>
-                </p>
+                <div>
+                    <?php
+                        $logoPath = $model->user->getImageWebPath();
+                        if ($logoPath) {
+                            echo Html::img($logoPath, ['class' => 'thumbnail', 'style' => 'max-width:100%']);
+                        }
+                    ?>
+                </div>
                 <?php if (!empty($lessonsToCheck)) { ?>
                     <small><span class='inblocktext'>Занятий на проверке:</span> <span class='text-danger'><?= $lessonsToCheck['cnt'] ?></span></small><br />
                 <?php } ?>

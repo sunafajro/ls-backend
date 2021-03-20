@@ -35,6 +35,16 @@ class BaseFileQuery extends ActiveQuery
     }
 
     /**
+     * @param string $entityType
+     * @return BaseFileQuery|ActiveQuery
+     */
+    public function byEntityType(string $entityType)
+    {
+        $tableName = $this->getPrimaryTableName();
+        return $this->andWhere(["{$tableName}.entity_type" => $entityType]);
+    }
+
+    /**
      * @param int $userId
      * @return BaseFileQuery|ActiveQuery
      */

@@ -12,11 +12,7 @@ use yii\helpers\Html;
         <?php $firstItemKey = array_keys($teachers)[0]; ?>
         <?php foreach ($teachers as $key => $teacher) { ?>
             <div class="item <?= $key === $firstItemKey ? 'active' : '' ?>">
-                <?php if ($teacher['photo']) { ?>
-                    <?= Html::img('/uploads/user/' . $teacher['id'] . '/logo/' . $teacher['photo'], ['alt' => $teacher['name'], 'style' => 'margin: 0 auto']) ?>
-                <?php } else { ?>
-                    <?= Html::img('/uploads/no-photo.jpg', ['alt' => Yii::t('app', 'No photo'), 'style' => 'margin: 0 auto']) ?>
-                <?php } ?>
+                <?= Html::img($teacher['photo'] ?? '', ['alt' => $teacher['name'], 'style' => 'margin: 0 auto']) ?>
                 <div class="carousel-caption" style="bottom:-30px">
                     <b><?= $teacher['name'] ?></b><br />
                     <i><?= implode(', ', $teacher['languages']) ?></i>

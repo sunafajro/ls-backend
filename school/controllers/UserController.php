@@ -5,6 +5,7 @@ namespace school\controllers;
 use school\models\Auth;
 use school\models\forms\UserTimeTrackingForm;
 use school\models\searches\UserTimeTrackingSearch;
+use school\models\UserImage;
 use school\models\UserTimeTracking;
 use school\School;
 use Yii;
@@ -17,6 +18,7 @@ use school\models\forms\UploadForm;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\helpers\ArrayHelper;
+use yii\web\BadRequestHttpException;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
@@ -27,9 +29,14 @@ use yii\web\UploadedFile;
  */
 class UserController extends Controller
 {
-    public function behaviors()
+    /** {@inheritDoc} */
+    public function behaviors(): array
     {
-        $rules = ['index','create','update','delete','enable','disable','upload','change-password','app-info','view', 'time-tracking'];
+        $rules = [
+            'index','view','create','update','delete','enable','disable',
+            'download-image','upload-image','delete-image',
+            'change-password','time-tracking','app-info',
+        ];
         return [
             'access' => [
                 'class' => AccessControl::class,
@@ -272,37 +279,85 @@ class UserController extends Controller
      * @throws NotFoundHttpException
      * @throws \yii\base\Exception
      */
-    public function actionUpload(string $id)
+    public function actionUploadImage(string $id)
     {
-        /** @var Auth $user */
-        $user = Yii::$app->user->identity;
+        $user = $this->findModel(intval($id));
 
-        if ($user->roleId !== 3 && $user->id !== 296){
+        /** @var Auth $user */
+        $auth = Yii::$app->user->identity;
+
+        if ($auth->roleId !== 3 && in_array($auth->id, [$user->id, 296])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
-        $user = $this->findModel($id);
-        if ($user !== NULL) {
-            $model = new UploadForm();
-            if (Yii::$app->request->isPost) {
-                $model->file = UploadedFile::getInstance($model, 'file');
-                if ($model->file && $model->validate()) {
-                    $filename = $model->resizeAndSave(Yii::getAlias('@uploads/user'), $id, 'logo');
-                    $user->logo = $filename;
-                    if ($user->save()) {
-                        Yii::$app->session->setFlash('success', 'Изображение пользователя успешно изменено!');
-                    } else {
-                        Yii::$app->session->setFlash('error', 'Не удалось изменить изображение пользователя!');
+        $oldImage = $user->image;
+
+        $model = new UploadForm();
+        $model->file = UploadedFile::getInstance($model, 'file');
+        if ($model->file && $model->validate()) {
+            if ($model->saveFile(UserImage::getTempDirPath(), true)) {
+                $file = new UserImage([
+                    'file_name'     => $model->file_name,
+                    'original_name' => $model->original_name,
+                    'size'          => $model->file->size,
+                ]);
+                if ($file->save()) {
+                    $file->setEntity(UserImage::TYPE_USER_IMAGE, $user->id);
+                    if (!empty($oldImage)) {
+                        $oldImage->delete();
                     }
-                    return $this->redirect(['user/upload','id' => $id]);
                 }
+                Yii::$app->session->setFlash('success', Yii::t('app', 'Image successfully uploaded.'));
+            } else {
+                Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to upload image.'));
             }
-            return $this->render('upload', [
-                'model' => $model,
-                'user'  => $user,
-            ]);
         } else {
-            throw new NotFoundHttpException(Yii::t('yii', 'The requested page does not exist.'));
+            Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to upload image.'));
+        }
+        return $this->redirect(['user/view', 'id' => $user->id]);
+    }
+
+    /**
+     * @param string $id
+     *
+     * @return mixed
+     * @throws NotFoundHttpException
+     */
+    public function actionDownloadImage(string $id)
+    {
+        $user = $this->findModel(intval($id));
+        if (($file = $user->image) !== null) {
+            return Yii::$app->response->sendFile($file->getPath(), $file->original_name, ['inline' => true]);
+        } else {
+            throw new NotFoundHttpException(Yii::t('app', 'File not found.'));
+        }
+    }
+
+    /**
+     * @param string $id
+     *
+     * @return mixed
+     * @throws NotFoundHttpException
+     */
+    public function actionDeleteImage(string $id)
+    {
+        $user = $this->findModel(intval($id));
+
+        /** @var Auth $user */
+        $auth = Yii::$app->user->identity;
+
+        if ($auth->roleId !== 3 && in_array($auth->id, [$user->id, 296])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        }
+        if (($file = $user->image) !== null) {
+            if ($file->delete()) {
+                Yii::$app->session->setFlash('success', Yii::t('app', 'Image successfully deleted.'));
+            } else {
+                Yii::$app->session->setFlash('error', Yii::t('app', 'Failed to delete image.'));
+            }
+            return $this->redirect(['user/view', 'id' => $user->id]);
+        } else {
+            throw new NotFoundHttpException(Yii::t('app', 'File not found.'));
         }
     }
 
@@ -374,6 +429,7 @@ class UserController extends Controller
         }
 
         $userModel = $this->findModel($id);
+        $imageForm = new UploadForm();
 
         return $this->render('view', [
             'can' => [
@@ -381,14 +437,15 @@ class UserController extends Controller
                 'updatePassword'   => $user->roleId === 3 || in_array($user->id, [(int)$id, 296]),
                 'viewTimeTracking' => $user->roleId === 3 || $user->id === 296 || ($user->roleId === 4 && in_array($user->id, [(int)$id])),
             ],
+            'imageForm' => $imageForm,
             'user'  => $userModel,
         ]);
     }
 
     /**
      * @param string $id
-     * @param string $time_tracking_id
-     * @param string $action
+     * @param string|null $time_tracking_id
+     * @param string|null $action
      *
      * @return mixed
      * @throws ForbiddenHttpException
@@ -478,13 +535,11 @@ class UserController extends Controller
     }
 
     /**
-     * Finds the User model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return User the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
+     * @return User
+     * @throws NotFoundHttpException
      */
-    protected function findModel($id)
+    protected function findModel(int $id): ?User
     {
         /** @var User|null $model */
         if (($model = User::find()->andWhere(['id' => $id, 'module_type' => School::MODULE_NAME])->one()) !== null) {

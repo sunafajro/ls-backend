@@ -5,8 +5,10 @@ namespace client\controllers;
 use client\models\File;
 use client\models\Message;
 use client\models\forms\UploadForm;
+use common\models\BaseFile;
 use Yii;
 use yii\base\Exception;
+use yii\db\Query;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
@@ -104,7 +106,7 @@ class FilesController extends Controller
             /** @var Message|null $message */
             $message = Message::find()->andWhere(['id' => $file->entity_id, 'visible' => 1])->one();
             if (!empty($message)) {
-                $receiver = (new \yii\db\Query())->from(['r' => 'calc_messreport'])->andWhere(['r.user' => $uid, 'r.calc_message' => $message->id])->exists();
+                $receiver = (new Query())->from(['r' => 'calc_messreport'])->andWhere(['r.user' => $uid, 'r.calc_message' => $message->id])->exists();
                 if ((int)$message->calc_messwhomtype === 100 && (int)$message->user === $uid) {
                     // лк -> система учета
                     $result = true;
@@ -114,7 +116,7 @@ class FilesController extends Controller
                 }
             }
         } else if ($file->entity_type === File::TYPE_GROUP_FILES) {
-            $checkGroup = (new \yii\db\Query())
+            $checkGroup = (new Query())
                 ->select('*')
                 ->from('calc_studgroup')
                 ->andWhere([
@@ -122,6 +124,25 @@ class FilesController extends Controller
                     'calc_studname' => $uid,
                 ])->exists();
             if ($checkGroup) {
+                $result = true;
+            }
+        } else if ($file->entity_type === BaseFile::TYPE_USER_IMAGE) {
+            $checkUser =  (new Query())
+                ->select('u.id')
+                ->from(['u' => 'users'])
+                ->innerJoin(['tg' => 'calc_teachergroup'],  'u.calc_teacher = tg.calc_teacher')
+                ->innerJoin(['gt' => 'calc_groupteacher'], 'tg.calc_groupteacher = gt.id')
+                ->innerJoin(['sg' => 'calc_studgroup'],  'gt.id = sg.calc_groupteacher')
+                ->where([
+                    'sg.calc_studname' => $uid,
+                    'sg.visible' => 1,
+                    'tg.visible' => 1,
+                    'u.visible' => 1,
+                    'u.id' => $file->entity_id,
+                ])
+                ->exists();
+
+            if ($checkUser) {
                 $result = true;
             }
         } else if ($file->entity_type === File::TYPE_TEMP && (int)$file->user_id === $uid && file_exists($file->getPath())) {

@@ -1,14 +1,16 @@
 <?php
 
 /**
- * @var View                 $this
- * @var User                 $user
+ * @var View $this
+ * @var User $user
  * @var UserTimeTrackingForm $model
- * @var array                $can
+ * @var UploadForm $imageForm
+ * @var array $can
  */
 
 use common\components\helpers\IconHelper;
 use school\assets\UserViewAsset;
+use school\models\forms\UploadForm;
 use school\models\User;
 use school\models\forms\UserTimeTrackingForm;
 use common\widgets\alert\AlertWidget;
@@ -28,13 +30,20 @@ UserViewAsset::register($this);
     <div id="sidebar" class="col-xs-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
         <?= UserInfoWidget::widget() ?>
         <?php if ($can['viewTimeTracking']) { ?>
-            <h4>Действия:</h4>
-            <?= Html::a(
-                IconHelper::icon('clock-o') . ' Учет времени',
-                ['user/time-tracking', 'id' => $user->id],
-                ['class' => 'btn btn-default btn-block']
-            ) ?>
+            <div style="margin-bottom:1rem">
+                <h4>Действия:</h4>
+                <?= Html::a(
+                    IconHelper::icon('clock-o') . ' Учет времени',
+                    ['user/time-tracking', 'id' => $user->id],
+                    ['class' => 'btn btn-default btn-block']
+                ) ?>
+            </div>
         <?php } ?>
+        <div style="margin-bottom:1rem">
+            <ul>
+                <li>У пользователя может быть только одно фото. Новое загруженное фото заменяет старое.</li>
+            </ul>
+        </div>
     </div>
     <div id="content" class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
         <?= AlertWidget::widget() ?>
@@ -128,25 +137,24 @@ UserViewAsset::register($this);
                     'logo' => [
                         'attribute' => 'logo',
                         'format' => 'raw',
-                        'value' => function(User $user) use ($can) {
+                        'value' => function(User $user) use ($can, $imageForm) {
                             $logoPath = $user->getImageWebPath();
                             $html = [];
                             if ($can['updateUser']) {
-                                $html[] = Html::tag(
-                                    'div',
-                                    Html::a(
-                                        IconHelper::icon('picture-o') . ' ' . Yii::t('app', 'Change'),
-                                        ['user/upload', 'id' => $user->id],
-                                        ['class' => 'btn btn-info btn-xs']
-                                    ),
-                                    ['style' => 'margin-bottom: 1rem']
-                                );
+                                $html[] = $this->render('_upload', ['imageForm' => $imageForm, 'user' => $user]);
                             }
 
-                            if ($logoPath) {
-                                $html[] = Html::img($logoPath);
-                            } else {
-                                $html[] = '-';
+                            $html[] = Html::img($logoPath, ['class' => 'thumbnail', 'style' => 'margin-bottom:1rem;max-height:300px']);
+                            if ($can['updateUser']) {
+                                $html[] = Html::a(
+                                    IconHelper::icon('trash') . ' ' . Yii::t('app', 'Delete'),
+                                    ['user/delete-image', 'id' => $user->id],
+                                    [
+                                        'class' => 'btn btn-danger btn-xs',
+                                        'data-method' => 'POST',
+                                        'data-confirm' => Yii::t('app', 'Do you really want to delete the image?'),
+                                    ]
+                                );
                             }
 
                             return join('', $html);

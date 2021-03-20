@@ -24,7 +24,7 @@ use yii\helpers\FileHelper;
 class BaseFile extends ActiveRecord
 {
     const TYPE_TEMP  = 'temp';
-    const TYPE_USERS = 'users';
+    const TYPE_USER_IMAGE = 'user_image';
     const TYPE_MESSAGE_FILES = 'message_files';
     const TYPE_MESSAGE_IMAGE = 'message_image';
     const TYPE_GROUP_FILES = 'group_files';
@@ -33,6 +33,8 @@ class BaseFile extends ActiveRecord
     const DEFAULT_FIND_CLASS = BaseFileQuery::class;
     const DEFAULT_MODULE_TYPE = null;
     const DEFAULT_ENTITY_TYPE = null;
+
+    const MIME_TYPES = [];
 
     /**
      * {@inheritdoc}
@@ -178,5 +180,13 @@ class BaseFile extends ActiveRecord
         } catch (\Exception $e) {
             return false;
         }
+    }
+
+    /**
+     * @return string
+     */
+    public static function getAllowedMimes(): string
+    {
+        return join(',', static::MIME_TYPES);
     }
 }

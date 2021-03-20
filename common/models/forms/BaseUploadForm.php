@@ -20,6 +20,8 @@ use yii\web\UploadedFile;
  */
 class BaseUploadForm extends Model
 {
+    const MAX_RESOLUTION = 800;
+
     /** @var UploadedFile */
     public $file;
     /** @var string */
@@ -39,10 +41,12 @@ class BaseUploadForm extends Model
 
     /**
      * @param string $path
+     * @param bool $resizeImage
+     *
      * @return bool
      * @throws Exception
      */
-    public function saveFile(string $path): bool
+    public function saveFile(string $path, bool $resizeImage = false): bool
     {
         if (!file_exists($path)) {
             FileHelper::createDirectory($path);
@@ -50,7 +54,27 @@ class BaseUploadForm extends Model
         $this->original_name = $this->file->name;
         $this->file_name = uniqid() . '.' . $this->file->extension;
 
-        return $this->file->saveAs("{$path}/{$this->file_name}");
+        $fullFilePath = "{$path}/{$this->file_name}";
+        if ($this->file->saveAs($fullFilePath)) {
+            if ($resizeImage && exif_imagetype($fullFilePath)) {
+                $maxResolutionSize = \Yii::$app->params['upload.image.maxResolution'] ?? self::MAX_RESOLUTION;
+                $imagine = Image::getImagine()->open($fullFilePath);
+                $currentSize = $imagine->getSize();
+                $currentWidth = $currentSize->getWidth();
+                $currentHeight = $currentSize->getHeight();
+                if ($currentWidth > $maxResolutionSize || $currentHeight > $maxResolutionSize) {
+                    if ($currentWidth >= $currentHeight) {
+                        Image::resize($fullFilePath, $maxResolutionSize, NULL)->save($fullFilePath);
+                    } else {
+                        Image::resize($fullFilePath, NULL, $maxResolutionSize)->save($fullFilePath);
+                    }
+                }
+            }
+
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**

@@ -25,10 +25,11 @@ use yii\db\Query;
  * @property string  $logo
  * @property string  $module_type
  *
- * @property City    $city
- * @property Office  $office
- * @property Role    $role
- * @property Teacher $teacher
+ * @property-read City    $city
+ * @property-read Office  $office
+ * @property-read Role    $role
+ * @property-read Teacher $teacher
+ * @property-read UserImage $image
  */
 class User extends BaseUser
 {
@@ -135,7 +136,7 @@ class User extends BaseUser
      * @param int $id
      * @return string|null
      */
-    public static function getUserName(int $id)
+    public static function getUserName(int $id): ?string
     {
         return self::findBy(self::tableName() . '.id', $id)['username'] ?? null;
     }
@@ -143,7 +144,7 @@ class User extends BaseUser
     /**
      * @return ActiveQuery
      */
-    public function getCity()
+    public function getCity(): ActiveQuery
     {
         return $this->hasOne(City::class, ['id' => 'calc_city']);
     }
@@ -151,7 +152,7 @@ class User extends BaseUser
     /**
      * @return ActiveQuery
      */
-    public function getOffice()
+    public function getOffice(): ActiveQuery
     {
         return $this->hasOne(Office::class, ['id' => 'calc_office']);
     }
@@ -159,7 +160,7 @@ class User extends BaseUser
     /**
      * @return ActiveQuery
      */
-    public function getRole()
+    public function getRole(): ActiveQuery
     {
         return $this->hasOne(Role::class, ['id' => 'status']);
     }
@@ -167,7 +168,7 @@ class User extends BaseUser
     /**
      * @return ActiveQuery
      */
-    public function getTeacher()
+    public function getTeacher(): ActiveQuery
     {
         return $this->hasOne(Teacher::class, ['id' => 'calc_teacher']);
     }
@@ -209,16 +210,28 @@ class User extends BaseUser
     }
 
     /**
+     * @return ActiveQuery
+     */
+    public function getImage(): ActiveQuery
+    {
+        return $this->hasOne(UserImage::class, ['entity_id' => 'id'])->andWhere(['entity_type' => UserImage::TYPE_USER_IMAGE]);
+    }
+
+    /**
      * @return string|null
      */
-    public function getImageWebPath()
+    public function getImageWebPath(): ?string
     {
-        $image = Yii::getAlias("@uploads/user/{$this->id}/logo/{$this->logo}");
-        if (file_exists($image)) {
-            return "/uploads/user/{$this->id}/logo/{$this->logo}";
+        if (($image = $this->image) !== null) {
+            return "/user/download-image/{$this->id}";
+        } else {
+            $image = Yii::getAlias("@uploads/user/{$this->id}/logo/{$this->logo}");
+            if (file_exists($image)) {
+                return "/uploads/user/{$this->id}/logo/{$this->logo}";
+            }
         }
 
-        return null;
+        return Yii::getAlias('@web/images/dream.jpg');
     }
 
     /* метод генерирует html блок с информацией о текущем пользователе */

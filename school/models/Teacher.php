@@ -4,6 +4,7 @@ namespace school\models;
 
 use Yii;
 use \yii\data\Pagination;
+use yii\db\ActiveQuery;
 
 /**
  * This is the model class for table "calc_teacher".
@@ -22,13 +23,15 @@ use \yii\data\Pagination;
  * @property integer $old
  * @property string $description
  * @property integer $calc_statusjob
+ *
+ * @property-read User $user
  */
 class Teacher extends \yii\db\ActiveRecord
 {
     /**
      * @inheritdoc
      */
-    public static function tableName()
+    public static function tableName(): string
     {
         return 'calc_teacher';
     }
@@ -36,7 +39,7 @@ class Teacher extends \yii\db\ActiveRecord
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['name', 'calc_statusjob'], 'required'],
@@ -46,14 +49,11 @@ class Teacher extends \yii\db\ActiveRecord
             [['value_corp', 'accrual', 'fund'], 'number']
         ];
     }
-    public function getUser()
-    {
-        return $this->hasOne(User::class, ['calc_teacher' => 'id']);
-    }
+
     /**
      * @inheritdoc
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'id' => 'ID',
@@ -71,6 +71,14 @@ class Teacher extends \yii\db\ActiveRecord
             'description' => Yii::t('app', 'Annotation'),
             'calc_statusjob' => Yii::t('app', 'Job type')
         ];
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getUser(): ActiveQuery
+    {
+        return $this->hasOne(User::class, ['calc_teacher' => 'id']);
     }
 
     public static function getTeachers()
