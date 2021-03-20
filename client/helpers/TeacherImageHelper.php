@@ -23,7 +23,7 @@ class TeacherImageHelper
         $image = BaseFile::find()->byEntityId($id)->byEntityType(BaseFile::TYPE_USER_IMAGE)->one();
         if ($image !== null) {
             return "/files/download/{$image->id}";
-        } else {
+        } else if (!empty($oldPhoto)) {
             $imagePath = "user/{$id}/logo/{$oldPhoto}";
             $image = Yii::getAlias("@uploads/{$imagePath}");
             if (file_exists($image)) {

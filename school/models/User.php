@@ -224,10 +224,11 @@ class User extends BaseUser
     {
         if (($image = $this->image) !== null) {
             return "/user/download-image/{$this->id}";
-        } else {
-            $image = Yii::getAlias("@uploads/user/{$this->id}/logo/{$this->logo}");
+        } else if (!empty($this->logo)) {
+            $imagePath = "user/{$this->id}/logo/{$this->logo}";
+            $image = Yii::getAlias("@uploads/{$imagePath}");
             if (file_exists($image)) {
-                return "/uploads/user/{$this->id}/logo/{$this->logo}";
+                return "/uploads/{$imagePath}";
             }
         }
 

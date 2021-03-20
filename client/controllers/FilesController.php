@@ -137,7 +137,6 @@ class FilesController extends Controller
                     'sg.calc_studname' => $uid,
                     'sg.visible' => 1,
                     'tg.visible' => 1,
-                    'u.visible' => 1,
                     'u.id' => $file->entity_id,
                 ])
                 ->exists();
