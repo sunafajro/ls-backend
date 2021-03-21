@@ -69,7 +69,7 @@ class User extends BaseUser
         return [
             'id'           => 'ID',
             'site'         => 'Site',
-            'visible'      => Yii::t('app','Active'),
+            'visible'      => Yii::t('app','Status'),
             'login'        => Yii::t('app','User login'),
             'pass'         => Yii::t('app','Password'),
             'name'         => Yii::t('app','Full name'),
@@ -90,6 +90,15 @@ class User extends BaseUser
         $this->visible = 0;
 
         return $this->save(true, ['visible']);
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public static function find(): ActiveQuery
+    {
+        $query = parent::find();
+        return $query->andWhere(['users.module_type' => School::MODULE_NAME]);
     }
 
     /**
@@ -114,9 +123,8 @@ class User extends BaseUser
             ->innerJoin(['roles'  => Role::tableName()], "roles.id = users.status")
             ->leftJoin(['offices' => Office::tableName()], "offices.id = users.calc_office")
             ->leftJoin(['cities'  => City::tableName()], "cities.id = offices.calc_city")
-            ->where([
-                'users.visible'     => 1,
-                'users.module_type' => School::MODULE_NAME,
+            ->andWhere([
+                'users.visible' => 1,
             ])
             ->andWhere($condition)
             ->asArray()
@@ -233,63 +241,6 @@ class User extends BaseUser
         }
 
         return Yii::getAlias('@web/images/dream.jpg');
-    }
-
-    /* метод генерирует html блок с информацией о текущем пользователе */
-
-    /**
-     * Метод возвращает список пользователей. Выдача фильтруется
-     * в зависимости от содержимого массива $params.
-     * active: 1 - активные, 2 - неактивные, NULL - все.
-     * role: роль пользователей.
-     * @param array $params
-     * @return array
-     */
-    public static function getUserListFiltered(array $params) : array
-    {
-        $tbl = self::tableName();
-        return self::find()
-	        ->select([
-                'id'      => "{$tbl}.id",
-                'name'    => "{$tbl}.name",
-                'login'   => "{$tbl}.login",
-                'roleId'  => "{$tbl}.status",
-                'role'    => 'r.name',
-                'office'  => 'o.name',
-                'visible' => "{$tbl}.visible"
-            ])
-            ->leftJoin(['r' => Role::tableName()], "{$tbl}.status = r.id")
-            ->leftJoin(['o' => Office::tableName()], "{$tbl}.calc_office = o.id")
-            ->andWhere(["{$tbl}.module_type"   => School::MODULE_NAME])
-	        ->andFilterWhere(["{$tbl}.visible" => $params['active'] ?? null])
-            ->andFilterWhere(["{$tbl}.status"  => $params['role'] ?? null])
-	        ->orderBy(['r.id' => SORT_ASC, "{$tbl}.name" => SORT_ASC])
-            ->asArray()
-	        ->all();
-    }
-
-    /**
-     * Возвращает информацию по одному пользователю.
-     * @param integer $id
-     * @return mixed
-     */
-    public static function getUserInfoById($id)
-    {
-        return (new Query())
-            ->select([
-                'uid'     => 'u.id',
-                'uname'   => 'u.name',
-                'ulogin'  => 'u.login',
-                'vis'     => 'u.visible',
-                'urole'   => 'r.name',
-                'uoffice' => 'o.name',
-                'ulogo'   => 'u.logo'
-            ])
-            ->from(['u' => User::tableName()])
-            ->leftjoin(['r' => Role::tableName()], 'r.id = u.status')
-            ->leftjoin(['o' => Office::tableName()], 'o.id = u.calc_office')
-            ->where(['u.id' => $id])
-            ->one();
     }
 
     /**

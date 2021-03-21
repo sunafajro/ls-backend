@@ -87,7 +87,7 @@ class User extends BaseUser
     }
 
     /**
-     * @return BaseUserQuery | ActiveQuery
+     * @return ActiveQuery
      */
     public static function find() : ActiveQuery
     {

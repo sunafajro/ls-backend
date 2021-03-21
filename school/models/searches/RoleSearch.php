@@ -5,6 +5,10 @@ namespace school\models\searches;
 use school\models\Role;
 use yii\data\ActiveDataProvider;
 
+/**
+ * Class RoleSearch
+ * @package school\models\searches
+ */
 class RoleSearch extends Role
 {
     /**

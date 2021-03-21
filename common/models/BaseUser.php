@@ -12,6 +12,9 @@ use yii\db\ActiveRecord;
  */
 class BaseUser extends ActiveRecord
 {
+    const STATUS_ENABLED = 1;
+    const STATUS_DISABLED = 0;
+
     /**
      * {@inheritdoc}
      */
@@ -49,5 +52,16 @@ class BaseUser extends ActiveRecord
     public static function findBy(string $key, $value, bool $onlyActive = true)
     {
         return static::findUserByCondition([$key => $value], $onlyActive);
+    }
+
+    /**
+     * @return array
+     */
+    public static function getStatusLabels(): array
+    {
+        return [
+            static::STATUS_ENABLED => \Yii::t('app', 'Enabled'),
+            static::STATUS_DISABLED => \Yii::t('app', 'Disabled'),
+        ];
     }
 }

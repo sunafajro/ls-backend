@@ -4,6 +4,7 @@ namespace school\controllers;
 
 use school\models\Auth;
 use school\models\forms\UserTimeTrackingForm;
+use school\models\searches\UserSearch;
 use school\models\searches\UserTimeTrackingSearch;
 use school\models\UserImage;
 use school\models\UserTimeTracking;
@@ -58,14 +59,14 @@ class UserController extends Controller
                 'class' => VerbFilter::class,
                 'actions' => [
                     'change-password' => ['POST'],
+                    'enable' => ['POST'],
+                    'disable' => ['POST'],
                 ],
             ],
         ];
     }
 
     /**
-     * Выводит табличный список пользователей с информацией по ним.
-     * Метод доступен только руководителям (Роль 3) и пользователю 296.
      * @param string $active
      * @param string|null $role
      *
@@ -81,18 +82,15 @@ class UserController extends Controller
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
-        $urlParams = [];
-
-        $urlParams['active'] = $active !== 'all' ? $active : NULL;
-        $urlParams['role']   =  $role && $role !== 'all' ? $role : NULL;;
-
-        $roles = Role::find()->active()->all();
-        $roles = ArrayHelper::map($roles, 'id', 'name');
+        $searchModel = new UserSearch();
+        $dataProvider = $searchModel->search(\Yii::$app->request->get());
 
         return $this->render('index', [
-            'statuses'  => $roles,
-            'urlParams' => $urlParams,
-            'users'     => User::getUserListFiltered($urlParams),
+            'dataProvider' => $dataProvider,
+            'searchModel' => $searchModel,
+            'offices' => Office::find()->select(['name'])->andWhere(['visible' => 1])->indexBy('id')->column(),
+            'roles'  => Role::find()->select(['name'])->active()->indexBy('id')->column(),
+            'statuses' => User::getStatusLabels(),
         ]);
     }
 
@@ -128,13 +126,10 @@ class UserController extends Controller
             }
         }
 
-        $roles = Role::find()->active()->all();
-        $roles = ArrayHelper::map($roles, 'id', 'name');
-
         return $this->render('create', [
             'model'    => $model,
             'teachers' => Teacher::getTeachersInUserListSimple(),
-            'statuses' => $roles,
+            'statuses' => Role::find()->select(['name'])->active()->indexBy('id')->column(),
             'offices'  => Office::getOfficesListSimple(),
             'cities'   => City::getCitiesInUserListSimple(),
         ]);
