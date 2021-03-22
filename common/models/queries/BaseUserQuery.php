@@ -3,7 +3,6 @@
 namespace common\models\queries;
 
 use common\models\BaseUser;
-use yii\db\ActiveQuery;
 
 /**
  * Class BaseUserQuery
@@ -11,35 +10,19 @@ use yii\db\ActiveQuery;
  *
  * @method BaseUser one($db = null)
  * @method BaseUser[] all($db = null)
+ * @method BaseUserQuery byId(int $id)
+ * @method BaseUserQuery byIds(array $ids)
+ * @method BaseUserQuery active()
+ * @method BaseUserQuery deleted()
  */
 
-class BaseUserQuery extends ActiveQuery
+class BaseUserQuery extends BaseActiveQuery
 {
     /**
-     * @param int $id
-     * @return BaseUserQuery|ActiveQuery
-     */
-    public function byId(int $id) : ActiveQuery
-    {
-        $tableName = $this->getPrimaryTableName();
-        return $this->andWhere(["{$tableName}.id" => $id]);
-    }
-
-    /**
      * @param int[] $ids
-     * @return BaseUserQuery|ActiveQuery
+     * @return BaseUserQuery
      */
-    public function byIds(array $ids) : ActiveQuery
-    {
-        $tableName = $this->getPrimaryTableName();
-        return $this->andWhere(['in', "{$tableName}.id", $ids]);
-    }
-
-    /**
-     * @param int[] $ids
-     * @return BaseUserQuery|ActiveQuery
-     */
-    public function byExceptIds($ids)
+    public function byExceptIds(array $ids): BaseUserQuery
     {
         $tableName = $this->getPrimaryTableName();
         return $this->andWhere(['not in', "{$tableName}.id", $ids]);
@@ -47,29 +30,11 @@ class BaseUserQuery extends ActiveQuery
 
     /**
      * @param string $login
-     * @return BaseUserQuery|ActiveQuery
+     * @return BaseUserQuery
      */
-    public function byLogin(string $login) : ActiveQuery
+    public function byLogin(string $login): BaseUserQuery
     {
         $tableName = $this->getPrimaryTableName();
         return $this->andWhere(["{$tableName}.login" => $login]);
-    }
-
-    /**
-     * @return BaseUserQuery|ActiveQuery
-     */
-    public function active() : ActiveQuery
-    {
-        $tableName = $this->getPrimaryTableName();
-        return $this->andWhere(["{$tableName}.visible" => 1]);
-    }
-
-    /**
-     * @return BaseUserQuery|ActiveQuery
-     */
-    public function deleted() : ActiveQuery
-    {
-        $tableName = $this->getPrimaryTableName();
-        return $this->andWhere(["{$tableName}.visible" => 0]);
     }
 }

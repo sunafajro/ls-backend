@@ -6,7 +6,7 @@
  * @var ActiveForm $form
  * @var array      $cities
  * @var array      $offices
- * @var array      $statuses
+ * @var array      $roles
  * @var array      $teachers
  */
 
@@ -21,7 +21,7 @@ UserFormAsset::register($this);
 <div class="user-form">
     <?php $form = ActiveForm::begin(['options' => ['enctype' => 'multipart/form-data']]); ?>
     <?= $form->field($model, 'name')->textInput() ?>
-    <?= $form->field($model, 'status')->dropDownList($statuses,['prompt' => Yii::t('app','-select-')]) ?>
+    <?= $form->field($model, 'status')->dropDownList($roles,['prompt' => Yii::t('app','-select-')]) ?>
     <?php
         if(!$model->isNewRecord && $model->status == 4){
             echo $form->field($model, 'calc_office')->dropDownList($offices,['prompt' => Yii::t('app','-select-')]);

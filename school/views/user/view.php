@@ -140,12 +140,12 @@ UserViewAsset::register($this);
                         'value' => function(User $user) use ($can, $imageForm) {
                             $logoPath = $user->getImageWebPath();
                             $html = [];
-                            if ($can['updateUser']) {
+                            if ($can['updateImage']) {
                                 $html[] = $this->render('_upload', ['imageForm' => $imageForm, 'user' => $user]);
                             }
 
                             $html[] = Html::img($logoPath, ['class' => 'thumbnail', 'style' => 'margin-bottom:1rem;max-height:300px']);
-                            if ($can['updateUser']) {
+                            if ($can['updateImage']) {
                                 $html[] = Html::a(
                                     IconHelper::icon('trash') . ' ' . Yii::t('app', 'Delete'),
                                     ['user/delete-image', 'id' => $user->id],

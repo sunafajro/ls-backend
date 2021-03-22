@@ -42,7 +42,7 @@ class User extends BaseUser
     public function rules() : array
     {
         return [
-            [['visible'],      'default', 'value' => 1],
+            [['visible'], 'default', 'value' => 1],
             [['calc_city', 'calc_office', 'calc_teacher', 'site'], 'default', 'value' => 0],
             [['module_type'],  'default', 'value' => School::MODULE_NAME],
             [['site', 'visible', 'status', 'calc_office', 'calc_teacher', 'calc_city'], 'integer'],

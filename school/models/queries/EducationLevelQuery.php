@@ -2,8 +2,8 @@
 
 namespace school\models\queries;
 
+use common\models\queries\BaseActiveQuery;
 use school\models\EducationLevel;
-use yii\db\ActiveQuery;
 
 /**
  * Class EducationLevelQuery
@@ -11,45 +11,12 @@ use yii\db\ActiveQuery;
  *
  * @method EducationLevel one($db = null)
  * @method EducationLevel[] all($db = null)
+ * @method EducationLevelQuery byId(int $id)
+ * @method EducationLevelQuery byIds(array $ids)
+ * @method EducationLevelQuery active()
+ * @method EducationLevelQuery deleted()
  */
-
-class EducationLevelQuery extends ActiveQuery
+class EducationLevelQuery extends BaseActiveQuery
 {
-    /**
-     * @param int $id
-     * @return EducationLevelQuery|ActiveQuery
-     */
-    public function byId(int $id) : ActiveQuery
-    {
-        $tableName = $this->getPrimaryTableName();
-        return $this->andWhere(["{$tableName}.id" => $id]);
-    }
 
-    /**
-     * @param int[] $ids
-     * @return EducationLevelQuery|ActiveQuery
-     */
-    public function byIds(array $ids) : ActiveQuery
-    {
-        $tableName = $this->getPrimaryTableName();
-        return $this->andWhere(["{$tableName}.id" => $ids]);
-    }
-
-    /**
-     * @return EducationLevelQuery|ActiveQuery
-     */
-    public function active() : ActiveQuery
-    {
-        $tableName = $this->getPrimaryTableName();
-        return $this->andWhere(["{$tableName}.visible" => 1]);
-    }
-
-    /**
-     * @return EducationLevelQuery|ActiveQuery
-     */
-    public function deleted() : ActiveQuery
-    {
-        $tableName = $this->getPrimaryTableName();
-        return $this->andWhere(["{$tableName}.visible" => 0]);
-    }
 }

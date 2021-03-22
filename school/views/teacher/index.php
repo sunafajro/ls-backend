@@ -30,10 +30,6 @@ $sjobstates = ArrayHelper::map($teacherjobstates ?? [], 'fid', 'fname');
         <?php endif; ?>
         <?= $userInfoBlock ?>
         <?php
-            // прячем кнопку добавления преподавателя от всех кроме руководителей
-            if((int)Yii::$app->session->get('user.ustatus') === 3 || (int)Yii::$app->session->get('user.uid') === 296){
-                echo Html::a('<span class="fa fa-plus" aria-hidden="true"></span> ' . Yii::t('app', 'Add'), ['create'], ['class' => 'btn btn-success btn-sm btn-block']);
-            }
             $form = ActiveForm::begin([
                 'method' => 'get',
                 'action' => ['teacher/index'],

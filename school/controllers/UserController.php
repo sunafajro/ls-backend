@@ -2,6 +2,7 @@
 
 namespace school\controllers;
 
+use common\models\queries\BaseActiveQuery;
 use school\models\Auth;
 use school\models\forms\UserTimeTrackingForm;
 use school\models\searches\UserSearch;
@@ -18,8 +19,6 @@ use school\models\User;
 use school\models\forms\UploadForm;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
-use yii\helpers\ArrayHelper;
-use yii\web\BadRequestHttpException;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
@@ -88,17 +87,13 @@ class UserController extends Controller
         return $this->render('index', [
             'dataProvider' => $dataProvider,
             'searchModel' => $searchModel,
-            'offices' => Office::find()->select(['name'])->andWhere(['visible' => 1])->indexBy('id')->column(),
-            'roles'  => Role::find()->select(['name'])->active()->indexBy('id')->column(),
+            'roles' => $this->getEntityItems(Role::class),
+            'offices' => $this->getEntityItems(Office::class),
             'statuses' => User::getStatusLabels(),
         ]);
     }
 
     /**
-     * Метод создает нового пользователя.
-     * В случае успешности переходим на страничку со списком пользователей.
-     * Метод доступен только руководителям (Роль 3) и пользователю 296.
-     *
      * @return mixed
      * @throws ForbiddenHttpException
      */
@@ -114,31 +109,58 @@ class UserController extends Controller
         $model = new User();
         $model->scenario = 'create';
         if (Yii::$app->request->isPost) {
-            if ($model->load(Yii::$app->request->post())) {
-                $model->pass        = md5($model->pass);
-                $model->module_type = School::MODULE_NAME;
-                if ($model->save()) {
-                    Yii::$app->session->setFlash('success', 'Пользователь успешно добавлен!');
-                } else {
-                    Yii::$app->session->setFlash('error', 'Не удалось добавить пользователя!');
+            $t = Yii::$app->db->beginTransaction();
+            try {
+                if ($model->load(Yii::$app->request->post())) {
+                    $isNewTeacher = $model->calc_teacher === '0';
+                    if ($isNewTeacher) {
+                        $model->calc_teacher = null;
+                    }
+                    $model->pass        = md5($model->pass);
+                    $model->module_type = School::MODULE_NAME;
+
+                    if ($model->save()) {
+                        if ($isNewTeacher) {
+                            $teacher = new Teacher();
+                            $teacher->scenario = Teacher::SCENARIO_CREATE_FROM_USER;
+                            $teacher->name = $model->name;
+                            if ($teacher->save()) {
+                                $model->calc_teacher = $teacher->id;
+                                if (!$model->save(true, ['calc_teacher'])) {
+                                    throw new \Exception();
+                                }
+                                $t->commit();
+                                Yii::$app->session->setFlash('success', 'Преподаватель успешно добавлен, необзодимо заполнить дополнительную информацию!');
+                                return $this->redirect(['teacher/update', 'id' => $teacher->id]);
+                            } else {
+                                throw new \Exception();
+                            }
+                        }
+                        $t->commit();
+                        Yii::$app->session->setFlash('success', 'Пользователь успешно добавлен!');
+                        return $this->redirect(['user/index']);
+                    } else {
+                        throw new \Exception();
+                    }
                 }
-                return $this->redirect(['index']);
+            } catch (\Exception $e) {
+                Yii::$app->session->setFlash('error', 'Не удалось добавить пользователя!');
+                $model->pass = '';
+                $model->isNewRecord = false;
+                $t->rollBack();
             }
         }
 
         return $this->render('create', [
-            'model'    => $model,
+            'model' => $model,
             'teachers' => Teacher::getTeachersInUserListSimple(),
-            'statuses' => Role::find()->select(['name'])->active()->indexBy('id')->column(),
-            'offices'  => Office::getOfficesListSimple(),
-            'cities'   => City::getCitiesInUserListSimple(),
+            'roles' => $this->getEntityItems(Role::class),
+            'offices' => $this->getEntityItems(Office::class),
+            'cities' => $this->getEntityItems(City::class),
         ]);
     }
 
     /**
-     * Метод обновляет информацию о пользователе (кроме пароля и фото).
-     * В случае успешности переходим на страницу со списком пользователей.
-     * Метод доступен только руководителям (Роль 3).
      * @param string $id
      *
      * @return mixed
@@ -180,15 +202,12 @@ class UserController extends Controller
             }
         }
 
-        $roles = Role::find()->active()->all();
-        $roles = ArrayHelper::map($roles, 'id', 'name');
-
         return $this->render('update', [
-            'model'    => $model,
+            'model' => $model,
             'teachers' => Teacher::getTeachersInUserListSimple(),
-            'statuses' => $roles,
-            'offices'  => Office::getOfficesListSimple(),
-            'cities'   => City::getCitiesInUserListSimple(),
+            'roles' => $this->getEntityItems(Role::class),
+            'offices' => $this->getEntityItems(Office::class),
+            'cities' => $this->getEntityItems(City::class),
         ]);
     }
 
@@ -281,7 +300,7 @@ class UserController extends Controller
         /** @var Auth $user */
         $auth = Yii::$app->user->identity;
 
-        if ($auth->roleId !== 3 && in_array($auth->id, [$user->id, 296])) {
+        if ($auth->roleId !== 3 && !in_array($auth->id, [$user->id, 296])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
@@ -341,7 +360,7 @@ class UserController extends Controller
         /** @var Auth $user */
         $auth = Yii::$app->user->identity;
 
-        if ($auth->roleId !== 3 && in_array($auth->id, [$user->id, 296])) {
+        if ($auth->roleId !== 3 && !in_array($auth->id, [$user->id, 296])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
         if (($file = $user->image) !== null) {
@@ -428,8 +447,9 @@ class UserController extends Controller
 
         return $this->render('view', [
             'can' => [
-                'updateUser'       => $user->roleId === 3 || in_array($user->id, [296]),
-                'updatePassword'   => $user->roleId === 3 || in_array($user->id, [(int)$id, 296]),
+                'updateUser' => $user->roleId === 3 || in_array($user->id, [296]),
+                'updatePassword' => $user->roleId === 3 || in_array($user->id, [(int)$id, 296]),
+                'updateImage' => $user->roleId === 3 || in_array($user->id, [(int)$id, 296]),
                 'viewTimeTracking' => $user->roleId === 3 || $user->id === 296 || ($user->roleId === 4 && in_array($user->id, [(int)$id])),
             ],
             'imageForm' => $imageForm,
@@ -542,5 +562,16 @@ class UserController extends Controller
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
+    }
+
+    /**
+     * @param $entityClass
+     * @return array
+     */
+    protected function getEntityItems($entityClass): array
+    {
+        /** @var BaseActiveQuery $query */
+        $query = call_user_func([$entityClass, 'find']);
+        return $query->select(['name'])->active()->indexBy('id')->orderBy(['name' => SORT_ASC])->column();
     }
 }

@@ -2,6 +2,7 @@
 
 namespace school\models;
 
+use school\models\queries\OfficeQuery;
 use Yii;
 use yii\db\ActiveRecord;
 
@@ -18,7 +19,7 @@ class City extends ActiveRecord
     /**
      * @inheritdoc
      */
-    public static function tableName()
+    public static function tableName(): string
     {
         return 'calc_city';
     }
@@ -26,7 +27,7 @@ class City extends ActiveRecord
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['visible'], 'default', 'value' => 1],
@@ -39,7 +40,7 @@ class City extends ActiveRecord
     /**
      * @inheritdoc
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'id'      => Yii::t('app', 'ID'),
@@ -48,36 +49,21 @@ class City extends ActiveRecord
         ];
     }
 
+    /**
+     * @inheritdoc
+     */
     public function delete()
     {
         $this->visible = 0;
         return $this->save(true, ['visible']);
     }
 
-    /* Метод возвращает список действующих городов */
-    public static function getCitiesInUserListSimple()
+    /**
+     * @return OfficeQuery
+     */
+    public static function find() : OfficeQuery
     {
-        $cities = [];
-
-        /* получаем список действующих городов */
-        $tmp_cities = (new \yii\db\Query())
-        ->select('cc.id as id, cc.name as name')
-        ->from('calc_city cc')
-        ->where('cc.visible=:vis', [':vis'=>1])
-        ->orderBy(['cc.name'=>SORT_ASC])
-        ->all();
-        /* получаем список действующих городов */
-        
-        /* если массив не пустой, формируем из него простой одномерный */
-        if(!empty($tmp_cities)) {
-            foreach($tmp_cities as $c) {
-                $cities[$c['id']] = $c['name'];
-            }
-            unset($c);
-        }
-        /* если массив не пустой, формируем из него простой одномерный */
-        
-        return $cities;
+        return new OfficeQuery(get_called_class(), []);
     }
 
     public static function getCitiesList()

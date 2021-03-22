@@ -167,6 +167,7 @@ return array(
     'Create invoice' => 'Создать счет',
     'Create lesson' => 'Создать занятие',
     'Create login' => 'Создать логин',
+    'Create new teacher' => 'Создать нового преподавателя',
     'Create payment' => 'Создать оплату',
     'Create receipt' => 'Создать квитанцию',
     'Create request' => 'Создать запрос',

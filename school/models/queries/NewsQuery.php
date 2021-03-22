@@ -2,8 +2,8 @@
 
 namespace school\models\queries;
 
+use common\models\queries\BaseActiveQuery;
 use school\models\News;
-use yii\db\ActiveQuery;
 
 /**
  * Class NewsQuery
@@ -11,45 +11,12 @@ use yii\db\ActiveQuery;
  *
  * @method News one($db = null)
  * @method News[] all($db = null)
+ * @method NewsQuery byId(int $id)
+ * @method NewsQuery byIds(array $ids)
+ * @method NewsQuery active()
+ * @method NewsQuery deleted()
  */
-
-class NewsQuery extends ActiveQuery
+class NewsQuery extends BaseActiveQuery
 {
-    /**
-     * @param int $id
-     * @return NewsQuery|ActiveQuery
-     */
-    public function byId(int $id) : ActiveQuery
-    {
-        $tableName = $this->getPrimaryTableName();
-        return $this->andWhere(["{$tableName}.id" => $id]);
-    }
 
-    /**
-     * @param int[] $ids
-     * @return NewsQuery|ActiveQuery
-     */
-    public function byIds(array $ids) : ActiveQuery
-    {
-        $tableName = $this->getPrimaryTableName();
-        return $this->andWhere(["{$tableName}.id" => $ids]);
-    }
-
-    /**
-     * @return NewsQuery|ActiveQuery
-     */
-    public function active() : ActiveQuery
-    {
-        $tableName = $this->getPrimaryTableName();
-        return $this->andWhere(["{$tableName}.visible" => 1]);
-    }
-
-    /**
-     * @return NewsQuery|ActiveQuery
-     */
-    public function deleted() : ActiveQuery
-    {
-        $tableName = $this->getPrimaryTableName();
-        return $this->andWhere(["{$tableName}.visible" => 0]);
-    }
 }

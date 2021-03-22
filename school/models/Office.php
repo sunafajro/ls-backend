@@ -2,6 +2,7 @@
 
 namespace school\models;
 
+use school\models\queries\OfficeQuery;
 use yii\helpers\ArrayHelper;
 use Yii;
 use yii\db\ActiveRecord;
@@ -20,7 +21,7 @@ class Office extends ActiveRecord
     /**
      * @inheritdoc
      */
-    public static function tableName()
+    public static function tableName(): string
     {
         return 'calc_office';
     }
@@ -28,7 +29,7 @@ class Office extends ActiveRecord
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['visible'], 'default', 'value' => 1],
@@ -42,7 +43,7 @@ class Office extends ActiveRecord
     /**
      * @inheritdoc
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'id'        => Yii::t('app', 'ID'),
@@ -53,10 +54,21 @@ class Office extends ActiveRecord
         ];
     }
 
+    /**
+     * @inheritdoc
+     */
     public function delete()
     {
         $this->visible = 0;
         return $this->save(true, ['visible']);
+    }
+
+    /**
+     * @return OfficeQuery
+     */
+    public static function find() : OfficeQuery
+    {
+        return new OfficeQuery(get_called_class(), []);
     }
 
     // возвращает список офисов по которым есть занятия в расписании

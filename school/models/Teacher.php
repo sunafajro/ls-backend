@@ -28,6 +28,8 @@ use yii\db\ActiveQuery;
  */
 class Teacher extends \yii\db\ActiveRecord
 {
+    const SCENARIO_CREATE_FROM_USER = 'create_from_user';
+
     /**
      * @inheritdoc
      */
@@ -39,14 +41,24 @@ class Teacher extends \yii\db\ActiveRecord
     /**
      * @inheritdoc
      */
+    public function scenarios(): array
+    {
+        $scenarios = parent::scenarios();
+        $scenarios[self::SCENARIO_CREATE_FROM_USER] = ['name'];
+        return $scenarios;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function rules(): array
     {
         return [
-            [['name', 'calc_statusjob'], 'required'],
             [['name', 'phone', 'email', 'address', 'social_link', 'description'], 'string'],
             [['birthdate'],'date','format'=>'yyyy-mm-dd'],
             [['visible', 'old', 'calc_statusjob'], 'integer'],
-            [['value_corp', 'accrual', 'fund'], 'number']
+            [['value_corp', 'accrual', 'fund'], 'number'],
+            [['name', 'calc_statusjob'], 'required'],
         ];
     }
 

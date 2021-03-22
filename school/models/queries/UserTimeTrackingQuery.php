@@ -2,8 +2,8 @@
 
 namespace school\models\queries;
 
+use common\models\queries\BaseActiveQuery;
 use school\models\UserTimeTracking;
-use yii\db\ActiveQuery;
 
 /**
  * Class NewsQuery
@@ -11,55 +11,21 @@ use yii\db\ActiveQuery;
  *
  * @method UserTimeTracking one($db = null)
  * @method UserTimeTracking[] all($db = null)
+ * @method UserTimeTrackingQuery byId(int $id)
+ * @method UserTimeTrackingQuery byIds(array $id)
+ * @method UserTimeTrackingQuery active()
+ * @method UserTimeTrackingQuery deleted()
  */
 
-class UserTimeTrackingQuery extends ActiveQuery
+class UserTimeTrackingQuery extends BaseActiveQuery
 {
     /**
      * @param int $id
-     * @return UserTimeTrackingQuery|ActiveQuery
+     * @return UserTimeTrackingQuery
      */
-    public function byId(int $id) : ActiveQuery
-    {
-        $tableName = $this->getPrimaryTableName();
-        return $this->andWhere(["{$tableName}.id" => $id]);
-    }
-
-    /**
-     * @param int[] $ids
-     * @return UserTimeTrackingQuery|ActiveQuery
-     */
-    public function byIds(array $ids) : ActiveQuery
-    {
-        $tableName = $this->getPrimaryTableName();
-        return $this->andWhere(["{$tableName}.id" => $ids]);
-    }
-
-    /**
-     * @param int $id
-     * @return UserTimeTrackingQuery|ActiveQuery
-     */
-    public function byEntityId(int $id) : ActiveQuery
+    public function byEntityId(int $id): UserTimeTrackingQuery
     {
         $tableName = $this->getPrimaryTableName();
         return $this->andWhere(["{$tableName}.entity_id" => $id]);
-    }
-
-    /**
-     * @return UserTimeTrackingQuery|ActiveQuery
-     */
-    public function active() : ActiveQuery
-    {
-        $tableName = $this->getPrimaryTableName();
-        return $this->andWhere(["{$tableName}.visible" => 1]);
-    }
-
-    /**
-     * @return UserTimeTrackingQuery|ActiveQuery
-     */
-    public function deleted() : ActiveQuery
-    {
-        $tableName = $this->getPrimaryTableName();
-        return $this->andWhere(["{$tableName}.visible" => 0]);
     }
 }

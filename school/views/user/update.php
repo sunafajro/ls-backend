@@ -5,7 +5,7 @@
  * @var User  $model
  * @var array $cities
  * @var array $offices
- * @var array $statuses
+ * @var array $roles
  * @var array $teachers
  */
 
@@ -16,7 +16,7 @@ use yii\web\View;
 
 $this->title = 'Система учета :: ' . Yii::t('app', 'Update user') . ': ' . $model->name;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Users'), 'url' => ['index']];
-$this->params['breadcrumbs'][] = ['label' => $model->name, 'url' => ['user/index', 'id' => $model->id]];
+$this->params['breadcrumbs'][] = ['label' => $model->name, 'url' => ['user/view', 'id' => $model->id]];
 $this->params['breadcrumbs'][] = Yii::t('app','Update');
 ?>
 <div class="row user-update">
@@ -29,11 +29,11 @@ $this->params['breadcrumbs'][] = Yii::t('app','Update');
     <div id="content" class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
         <?= AlertWidget::widget() ?>
         <?= $this->render('_form', [
-            'model'    => $model,
+            'model' => $model,
             'teachers' => $teachers,
-            'statuses' => $statuses,
-            'offices'  => $offices,
-            'cities'   => $cities,
+            'roles' => $roles,
+            'offices' => $offices,
+            'cities' => $cities,
         ]) ?>
     </div>
 </div>

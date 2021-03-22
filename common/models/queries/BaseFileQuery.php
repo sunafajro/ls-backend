@@ -3,7 +3,6 @@
 namespace common\models\queries;
 
 use common\models\BaseFile;
-use yii\db\ActiveQuery;
 
 /**
  * Class BaseFileQuery
@@ -11,24 +10,16 @@ use yii\db\ActiveQuery;
  *
  * @method BaseFile one($db = null)
  * @method BaseFile[] all($db = null)
+ * @method BaseFileQuery byId(int $id)
+ * @method BaseFileQuery byIds(array $id)
  */
-class BaseFileQuery extends ActiveQuery
+class BaseFileQuery extends BaseActiveQuery
 {
     /**
-     * @param int $id
-     * @return BaseFileQuery|ActiveQuery
-     */
-    public function byId(int $id) : ActiveQuery
-    {
-        $tableName = $this->getPrimaryTableName();
-        return $this->andWhere(["{$tableName}.id" => $id]);
-    }
-
-    /**
      * @param int $entityId
-     * @return BaseFileQuery|ActiveQuery
+     * @return BaseFileQuery
      */
-    public function byEntityId(int $entityId)
+    public function byEntityId(int $entityId): BaseFileQuery
     {
         $tableName = $this->getPrimaryTableName();
         return $this->andWhere(["{$tableName}.entity_id" => $entityId]);
@@ -36,9 +27,9 @@ class BaseFileQuery extends ActiveQuery
 
     /**
      * @param string $entityType
-     * @return BaseFileQuery|ActiveQuery
+     * @return BaseFileQuery
      */
-    public function byEntityType(string $entityType)
+    public function byEntityType(string $entityType): BaseFileQuery
     {
         $tableName = $this->getPrimaryTableName();
         return $this->andWhere(["{$tableName}.entity_type" => $entityType]);
@@ -46,9 +37,9 @@ class BaseFileQuery extends ActiveQuery
 
     /**
      * @param int $userId
-     * @return BaseFileQuery|ActiveQuery
+     * @return BaseFileQuery
      */
-    public function byUserId(int $userId)
+    public function byUserId(int $userId): BaseFileQuery
     {
         $tableName = $this->getPrimaryTableName();
         return $this->andWhere(["{$tableName}.user_id" => $userId]);
