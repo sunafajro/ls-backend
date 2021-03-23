@@ -243,7 +243,6 @@ class StudnameController extends Controller
             'tss'           => $tss,
             'state'         => $state,
             'offices'       => (new Office())->getOfficesListSimple(),
-            'userInfoBlock' => User::getUserInfoBlock()
         ]);
     }
 
@@ -442,7 +441,6 @@ class StudnameController extends Controller
             'searchModel'   => $searchModel ?? null,
             'services'      => $services,
             'studsales'     => $studsales,
-            'userInfoBlock' => User::getUserInfoBlock(),
             'years'         => $years,
         ]);
     }
@@ -494,7 +492,6 @@ class StudnameController extends Controller
                 'model' => $model,
                 'sex' => $sex,
                 'way' => $way,
-                'userInfoBlock' => $userInfoBlock
             ]);
         }
     }
@@ -551,7 +548,6 @@ class StudnameController extends Controller
                 'model' => $model,
                 'sex' => $sex,
                 'way' => $way,
-                'userInfoBlock' => $userInfoBlock
             ]);
         }
     }
@@ -656,7 +652,6 @@ class StudnameController extends Controller
             'detailData'    => $detailData,
             'params'        => $params,
             'type'          => $type,
-            'userInfoBlock' => User::getUserInfoBlock(),
         ]);
     }
 
@@ -714,7 +709,6 @@ class StudnameController extends Controller
             'student' => $student,
             'log' => $log,
             'model' => $model,
-            'userInfoBlock' => User::getUserInfoBlock(),
         ]);
     }
 
@@ -849,7 +843,6 @@ class StudnameController extends Controller
         return $this->render('settings', [
             'model'         => $student,
             'services'      => $services,
-            'userInfoBlock' => User::getUserInfoBlock(),
         ]);
     }
 
@@ -884,7 +877,6 @@ class StudnameController extends Controller
             'model'              => $student,
             'spendSuccessesForm' => $spendSuccessesForm,
             'spendedSuccesses'   => $spendedSuccesses,
-            'userInfoBlock'      => User::getUserInfoBlock(),
         ]);
     }
   

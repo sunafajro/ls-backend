@@ -1,13 +1,12 @@
 <?php
 
-use Yii;
-use yii\helpers\Html;
-use yii\web\View;
-
 /**
  * @var View  $this
  * @var array $studsales
  */
+
+use yii\helpers\Html;
+use yii\web\View;
 ?>
 <p class="bg-warning" style="padding: 15px">
     <button type="button" class="btn btn-xs btn-default" data-container="body" data-toggle="popover" data-placement="top" data-content="Все добавленные в этот блок ссылки будут доступны при добавлении счета.">

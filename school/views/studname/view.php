@@ -17,7 +17,6 @@
  * @var array              $years
  * @var array              $invcount
  * @var array              $permsale
- * @var string             $userInfoBlock
  * @var array              $offices
  * @var array              $contracts
  * @var array              $loginStatus
@@ -27,11 +26,12 @@ use school\assets\StudentViewAsset;
 use school\models\searches\LessonSearch;
 use school\models\Student;
 use common\widgets\alert\AlertWidget;
+use school\widgets\sidebarButton\SidebarButtonWidget;
+use school\widgets\userInfo\UserInfoWidget;
 use yii\data\ActiveDataProvider;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
-use yii\widgets\Breadcrumbs;
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Students') . ' :: ' . $model->name;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Clients'), 'url' => ['index']];
@@ -55,12 +55,8 @@ if (Yii::$app->request->get('tab')) {
 }
 ?>
 <div class="row row-offcanvas row-offcanvas-left student-view">
-    <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
-            <div id="main-menu"></div>
-        <?php } ?>
-        <?= $userInfoBlock ?>
-        <!-- Навигация -->
+    <div class="col-xs-6 col-sm-6 col-md-2 col-lg-2 col-xl-2 sidebar-offcanvas">
+        <?= UserInfoWidget::widget() ?>
         <?= $this->render('./view/_sidebar', [
                 'loginStatus' => $loginStatus,
                 'model'       => $model,
@@ -135,16 +131,9 @@ if (Yii::$app->request->get('tab')) {
             <?php ActiveForm::end(); ?>
         <?php } ?>
     </div>
-    <div id="content" class="col-sm-10">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
-            <?= Breadcrumbs::widget([
-                'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
-            ]); ?>
-        <?php } ?>
-		<p class="pull-left visible-xs">
-			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle</button>
-		</p>
+    <div class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
         <?= AlertWidget::widget() ?>
+        <?= SidebarButtonWidget::widget() ?>
         <?php
             $successesCount = $model->getSuccessesCount();
             echo Html::tag(

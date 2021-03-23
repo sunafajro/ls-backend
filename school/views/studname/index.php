@@ -9,11 +9,12 @@
  * @var string     $state
  * @var array      $students
  * @var string     $tss
- * @var string     $userInfoBlock
  */
 
 use school\assets\StudentListAsset;
 use common\widgets\alert\AlertWidget;
+use school\widgets\sidebarButton\SidebarButtonWidget;
+use school\widgets\userInfo\UserInfoWidget;
 use yii\data\Pagination;
 use yii\helpers\Html;
 use yii\web\View;
@@ -28,11 +29,8 @@ StudentListAsset::register($this);
 $roleId = Yii::$app->session->get('user.ustatus');
 ?>
 <div class="row row-offcanvas row-offcanvas-left student-index">
-    <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
-            <div id="main-menu"></div>
-        <?php } ?>
-        <?= $userInfoBlock ?>
+    <div class="col-xs-6 col-sm-6 col-md-2 col-lg-2 col-xl-2 sidebar-offcanvas">
+        <?= UserInfoWidget::widget() ?>
         <?php if (in_array($roleId, [3, 4])) { ?>
             <h4><?= Yii::t('app', 'Actions') ?>:</h4>
             <?= Html::a(
@@ -73,18 +71,9 @@ $roleId = Yii::$app->session->get('user.ustatus');
         <?php ActiveForm::end(); ?>
 
     </div>
-    <div id="content" class="col-sm-10">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
-        <?= Breadcrumbs::widget([
-            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
-        ]); ?>
-        <?php } ?>
-        
-        <p class="pull-left visible-xs">
-            <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
-        </p>
-
+    <div class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
         <?= AlertWidget::widget() ?>
+        <?= SidebarButtonWidget::widget() ?>
 
         <?php
             // первый элемент страницы

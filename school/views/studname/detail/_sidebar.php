@@ -3,12 +3,12 @@
  * @var View    $this
  * @var Student $student
  * @var int     $type
- * @var string  $userInfoBlock
  */
 
 use school\models\Service;
 use school\models\Student;
 use school\widgets\filters\FiltersWidget;
+use school\widgets\userInfo\UserInfoWidget;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\web\View;
@@ -29,10 +29,7 @@ if (in_array($type, [
     }
 }
 
-if (Yii::$app->params['appMode'] === 'bitrix') {
-    echo Html::tag('div', '', ['id' => 'main-menu']);
-}
-echo $userInfoBlock;
+echo UserInfoWidget::widget();
 
 try {
     $items = [

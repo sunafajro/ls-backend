@@ -12,40 +12,28 @@
 use school\models\Student;
 use school\models\forms\StudentMergeForm;
 use common\widgets\alert\AlertWidget;
+use school\widgets\sidebarButton\SidebarButtonWidget;
+use school\widgets\userInfo\UserInfoWidget;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
-use yii\widgets\Breadcrumbs;
 
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Merge account');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Students'), 'url' => ['studname/index']];
 $this->params['breadcrumbs'][] = ['label' => $student->name, 'url' => ['studname/view', 'id' => $student->id]];
 $this->params['breadcrumbs'][] = Yii::t('app', 'Merge account');
 ?>
-
-<div class="row row-offcanvas row-offcanvas-left student_phone-create">
-    <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
-            <div id="main-menu"></div>
-        <?php } ?>
-		<?= $userInfoBlock ?>
+<div class="row row-offcanvas row-offcanvas-left student-merge">
+    <div class="col-xs-6 col-sm-6 col-md-2 col-lg-2 col-xl-2 sidebar-offcanvas">
+        <?= UserInfoWidget::widget() ?>
 		<ul>
 			<li>Укажите студента, данные которого необходимо присвоить текущему студенту и нажмите кнопку Перенос.</li>
 			<li>После переноса данных, вернуть профиль в исходное состояние нельзя!</li>
 		</ul>
 	</div>
-	<div id="content" class="col-sm-6">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
-            <?= Breadcrumbs::widget([
-                'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
-            ]); ?>
-        <?php } ?>
-
-		<p class="pull-left visible-xs">
-			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
-		</p>        
-        
+	<div class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
         <?= AlertWidget::widget() ?>
+        <?= SidebarButtonWidget::widget() ?>
 
 		<?php $form = ActiveForm::begin(); ?>
 

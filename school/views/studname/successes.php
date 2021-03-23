@@ -5,12 +5,13 @@
  * @var Student        $model
  * @var SpendSuccesses $spendSuccessesForm
  * @var array          $spendedSuccesses
- * @var string         $userInfoBlock
  */
 
 use school\models\SpendSuccesses;
 use school\models\Student;
 use common\widgets\alert\AlertWidget;
+use school\widgets\sidebarButton\SidebarButtonWidget;
+use school\widgets\userInfo\UserInfoWidget;
 use yii\grid\GridView;
 use yii\helpers\Html;
 use yii\web\View;
@@ -21,12 +22,9 @@ $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Clients'), 'url' => 
 $this->params['breadcrumbs'][] = ['label' => $model->name, 'url' => ['view', 'id' => $model->id]];;
 $this->params['breadcrumbs'][] = "Списать успешики";
 ?>
-<div class="row row-offcanvas row-offcanvas-left student-settings">
-    <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
-            <div id="main-menu"></div>
-        <?php } ?>
-        <?= $userInfoBlock ?>
+<div class="row row-offcanvas row-offcanvas-left student-successes">
+    <div class="col-xs-6 col-sm-6 col-md-2 col-lg-2 col-xl-2 sidebar-offcanvas">
+        <?= UserInfoWidget::widget() ?>
         <h4>Текущий баланс: <?= Html::tag(
                 'i',
                 '',
@@ -36,8 +34,9 @@ $this->params['breadcrumbs'][] = "Списать успешики";
                     'aria-hidden' => 'true',
                 ]) . $model->getSuccessesCount() ?></h4>
     </div>
-    <div id="content" class="col-sm-10">
+    <div class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
         <?= AlertWidget::widget() ?>
+        <?= SidebarButtonWidget::widget() ?>
         <div>
             <h3>Списание "успешиков"</h3>
             <?php $form = ActiveForm::begin(); ?>

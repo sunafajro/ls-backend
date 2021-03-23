@@ -82,7 +82,6 @@ class TranslatorController extends Controller
         } else {
             return $this->render('create', [
                 'model' => $model,
-                'userInfoBlock' => User::getUserInfoBlock()
             ]);
         }
     }
@@ -118,7 +117,6 @@ class TranslatorController extends Controller
         } else {
             return $this->render('update', [
                 'model' => $model,
-                'userInfoBlock' => User::getUserInfoBlock()
             ]);
         }
     }
