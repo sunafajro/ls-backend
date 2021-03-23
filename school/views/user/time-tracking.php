@@ -16,6 +16,7 @@ use school\models\User;
 use school\models\forms\UserTimeTrackingForm;
 use school\models\UserTimeTracking;
 use common\widgets\alert\AlertWidget;
+use school\widgets\sidebarButton\SidebarButtonWidget;
 use school\widgets\userInfo\UserInfoWidget;
 use yii\data\ActiveDataProvider;
 use yii\grid\ActionColumn;
@@ -31,8 +32,8 @@ $this->params['breadcrumbs'][] = 'Учет времени';
 
 UserViewAsset::register($this);
 ?>
-<div class="row user-view">
-    <div id="sidebar" class="col-xs-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+<div class="row row-offcanvas row-offcanvas-left user-time-tracking">
+    <div class="col-xs-6 col-sm-6 col-md-2 col-lg-2 col-xl-2 sidebar-offcanvas">
         <?= UserInfoWidget::widget() ?>
         <?php if ($can['createTimeTracking']) {
             echo $this->render('time-tracking/_form', [
@@ -41,8 +42,9 @@ UserViewAsset::register($this);
             ]);
         } ?>
     </div>
-    <div id="content" class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+    <div class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
         <?= AlertWidget::widget() ?>
+        <?= SidebarButtonWidget::widget() ?>
         <?= GridView::widget([
                 'dataProvider' => $dataProvider,
                 'filterModel'  => $searchModel,

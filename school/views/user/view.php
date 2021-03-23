@@ -14,6 +14,7 @@ use school\models\forms\UploadForm;
 use school\models\User;
 use school\models\forms\UserTimeTrackingForm;
 use common\widgets\alert\AlertWidget;
+use school\widgets\sidebarButton\SidebarButtonWidget;
 use school\widgets\userInfo\UserInfoWidget;
 use yii\helpers\Html;
 use yii\helpers\Url;
@@ -26,8 +27,8 @@ $this->params['breadcrumbs'][] = $user->name;
 
 UserViewAsset::register($this);
 ?>
-<div class="row user-view">
-    <div id="sidebar" class="col-xs-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+<div class="row row-offcanvas row-offcanvas-left user-view">
+    <div class="col-xs-6 col-sm-6 col-md-2 col-lg-2 col-xl-2 sidebar-offcanvas">
         <?= UserInfoWidget::widget() ?>
         <?php if ($can['viewTimeTracking']) { ?>
             <div style="margin-bottom:1rem">
@@ -45,9 +46,10 @@ UserViewAsset::register($this);
             </ul>
         </div>
     </div>
-    <div id="content" class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+    <div class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
         <?= AlertWidget::widget() ?>
-            <?php if ($can['updateUser']) { ?>
+        <?= SidebarButtonWidget::widget() ?>
+        <?php if ($can['updateUser']) { ?>
             <div style="margin-bottom: 1rem">
                 <?= Html::a(
                     IconHelper::icon('edit') . ' ' . Yii::t('app', 'Update'),

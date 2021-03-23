@@ -114,31 +114,26 @@ class UserController extends Controller
                 if ($model->load(Yii::$app->request->post())) {
                     $isNewTeacher = $model->calc_teacher === '0';
                     if ($isNewTeacher) {
-                        $model->calc_teacher = null;
+                        $teacher = new Teacher();
+                        $teacher->scenario = Teacher::SCENARIO_CREATE_FROM_USER;
+                        $teacher->name = $model->name;
+                        if (!$teacher->save()) {
+                            throw new \Exception();
+                        }
+                        $model->calc_teacher = $teacher->id;
                     }
                     $model->pass        = md5($model->pass);
                     $model->module_type = School::MODULE_NAME;
 
                     if ($model->save()) {
-                        if ($isNewTeacher) {
-                            $teacher = new Teacher();
-                            $teacher->scenario = Teacher::SCENARIO_CREATE_FROM_USER;
-                            $teacher->name = $model->name;
-                            if ($teacher->save()) {
-                                $model->calc_teacher = $teacher->id;
-                                if (!$model->save(true, ['calc_teacher'])) {
-                                    throw new \Exception();
-                                }
-                                $t->commit();
-                                Yii::$app->session->setFlash('success', 'Преподаватель успешно добавлен, необзодимо заполнить дополнительную информацию!');
-                                return $this->redirect(['teacher/update', 'id' => $teacher->id]);
-                            } else {
-                                throw new \Exception();
-                            }
-                        }
                         $t->commit();
-                        Yii::$app->session->setFlash('success', 'Пользователь успешно добавлен!');
-                        return $this->redirect(['user/index']);
+                        if ($isNewTeacher) {
+                            Yii::$app->session->setFlash('success', 'Преподаватель успешно добавлен, но необходимо заполнить дополнительную информацию!');
+                            return $this->redirect(['teacher/update', 'id' => $teacher->id]);
+                        } else {
+                            Yii::$app->session->setFlash('success', 'Пользователь успешно добавлен!');
+                            return $this->redirect(['user/index']);
+                        }
                     } else {
                         throw new \Exception();
                     }
@@ -146,7 +141,6 @@ class UserController extends Controller
             } catch (\Exception $e) {
                 Yii::$app->session->setFlash('error', 'Не удалось добавить пользователя!');
                 $model->pass = '';
-                $model->isNewRecord = false;
                 $t->rollBack();
             }
         }
