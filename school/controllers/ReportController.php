@@ -93,10 +93,9 @@ class ReportController extends Controller
      */
     public function actionAccrual(string $tid = null, string $month = null, string $year = null, string $page = null)
     {
-        /** @var Auth $user */
-        $user = Yii::$app->user->identity;
-        $roleId = $user->roleId;
-        if (!in_array($roleId, [3])) {
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
         
@@ -187,8 +186,9 @@ class ReportController extends Controller
      */
     public function actionMargin()
     {
-        $roleId = (int)Yii::$app->session->get('user.ustatus');
-        if (!in_array($roleId, [3])) {
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
@@ -344,8 +344,9 @@ class ReportController extends Controller
      */
     public function actionPayments (string $start = NULL, string $end = NULL, string $oid = NULL)
     {
-        $roleId = (int)Yii::$app->session->get('user.ustatus');
-        if (!in_array($roleId, [3, 4, 8])) {
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3, 4, 8])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
@@ -377,8 +378,9 @@ class ReportController extends Controller
      */
     public function actionInvoices(string $start = '', string $end = '', string $oid = '')
     {
-        $roleId = (int)Yii::$app->session->get('user.ustatus');
-        if (!in_array($roleId, [3, 4])) {
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3, 4])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
@@ -418,8 +420,9 @@ class ReportController extends Controller
      */
     public function actionPlan()
 	{
-        $roleId = (int)Yii::$app->session->get('user.ustatus');
-        if (!in_array($roleId, [3, 8])) {
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3, 8])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 		
@@ -527,8 +530,9 @@ class ReportController extends Controller
      */
     public function actionSalaries ($end = null, $limit = 10, $offset = 0, $tid = null, $start = null)
     {
-        $roleId = (int)Yii::$app->session->get('user.ustatus');
-        if (!in_array($roleId, [3, 8])) {
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3, 8])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
@@ -561,8 +565,9 @@ class ReportController extends Controller
      */
     public function actionSale()
     {
-        $roleId = (int)Yii::$app->session->get('user.ustatus');
-        if (!in_array($roleId, [3])) {
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
@@ -620,8 +625,9 @@ class ReportController extends Controller
 
     public function actionCommon(string $start = null, string $end = null)
     {
-        $roleId = (int)Yii::$app->session->get('user.ustatus');
-        if (!in_array($roleId, [3, 8])) {
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3, 8])) {
             throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
@@ -888,8 +894,10 @@ class ReportController extends Controller
 
     public function actionDebt()
 	{
-        if ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {            
-            return $this->redirect(Yii::$app->request->referrer);
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3, 4])) {
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
         $req   = Yii::$app->request;
         $oid   = (int)Yii::$app->session->get('user.ustatus') === 4 ? Yii::$app->session->get('user.uoffice_id') : $req->get('OID', NULL);;
@@ -1008,9 +1016,10 @@ class ReportController extends Controller
      */
     public function actionLessons(string $end = '', string $start = '')
     {
-        $roleId = (int)Yii::$app->session->get('user.ustatus');
-        if (!in_array($roleId, [3, 4, 6])) {            
-            throw new ForbiddenHttpException('Доступ ограничен.');
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3, 4, 6])) {
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
         if (!($start && $end)) {
             $start = date("Y-m-d", strtotime('monday this week'));
@@ -1041,9 +1050,10 @@ class ReportController extends Controller
      */
     public function actionCommissions(string $end = '', string $start = '')
     {
-        $roleId = (int)Yii::$app->session->get('user.ustatus');
-        if (!in_array($roleId, [3, 4, 8])) {            
-            throw new ForbiddenHttpException('Доступ ограничен.');
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3, 4, 8])) {
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
         if (!($start && $end)) {
@@ -1054,8 +1064,8 @@ class ReportController extends Controller
         $params = Yii::$app->request->queryParams;
         $params['start'] = $start;
         $params['end']   = $end;
-        if ($roleId === 4) {
-            $params['StudentCommissionSearch']['officeId'] = (int)Yii::$app->session->get('user.uoffice_id');
+        if ($auth->roleId === 4) {
+            $params['StudentCommissionSearch']['officeId'] = $auth->officeId;
         }
 
         return $this->render('commissions', [
@@ -1071,17 +1081,19 @@ class ReportController extends Controller
 
     public function actionIndex()
     {
-        if((int)Yii::$app->session->get('user.ustatus') === 3 ||
-           (int)Yii::$app->session->get('user.ustatus') === 8) {
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+
+        if (in_array($auth->roleId,  [3, 8])) {
             return $this->redirect(['report/common']);
-        } else if((int)Yii::$app->session->get('user.ustatus') === 4) {
+        } else if($auth->roleId === 4) {
             return $this->redirect(['report/journals']);
-        } else if((int)Yii::$app->session->get('user.ustatus') === 6) {
+        } else if($auth->roleId === 6) {
             return $this->redirect(['report/lessons']);
-        } else if ((int)Yii::$app->session->get('user.uid') === 296) {
+        } else if ($auth->id === 296) {
             return $this->redirect(['report/teacher-hours']);
         } else {
-            return $this->redirect(Yii::$app->request->referrer);
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
     }
 
@@ -1098,14 +1110,15 @@ class ReportController extends Controller
     
     public function actionJournals($corp = 0, $oid = NULL, $tid = NULL, $page = NULL) 
     {
-        $roleId = (int)Yii::$app->session->get('user.ustatus');
-        if (!in_array($roleId, [3, 4])) {
-            throw new ForbiddenHttpException('Доступ ограничен.');
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3, 4])) {
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
         // для менеджеров задаем переменную с id офиса
-        if ((int)Yii::$app->session->get('user.ustatus') === 4) {
-            $oid = $oid ?? Yii::$app->session->get('user.uoffice_id');
+        if ($auth->roleId === 4) {
+            $oid = $oid ?? $auth->officeId;
             if ($corp) {
                 $oid = NULL;
             }
@@ -1246,10 +1259,10 @@ class ReportController extends Controller
      */
     public function actionTeacherHours($start = null, $end = null, $tid = null, $limit = 10, $offset = 0)
     {
-        $userId = (int)Yii::$app->session->get('user.uid');
-        $roleId = (int)Yii::$app->session->get('user.ustatus');
-        if (!(in_array($roleId, [3, 4, 6]) || in_array($userId, [296]))) {
-            throw new ForbiddenHttpException('Доступ ограничен.');
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!(in_array($auth->roleId, [3, 4, 6]) || in_array($auth->id, [296]))) {
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
 

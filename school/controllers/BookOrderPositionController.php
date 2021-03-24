@@ -2,6 +2,7 @@
 
 namespace school\controllers;
 
+use school\models\Auth;
 use school\models\Book;
 use school\models\BookCost;
 use school\models\BookOrder;
@@ -25,7 +26,7 @@ use yii\web\Response;
  */
 class BookOrderPositionController extends Controller
 {
-    public function behaviors()
+    public function behaviors(): array
     {
         $rules = ['index', 'autocomplete', 'create', 'update', 'delete', 'change-items'];
         return [
@@ -56,10 +57,17 @@ class BookOrderPositionController extends Controller
         ];
     }
 
+    /**
+     * @param $id
+     * @return string
+     * @throws ForbiddenHttpException
+     */
     public function actionIndex($id)
     {
-        if (!in_array((int)Yii::$app->session->get('user.ustatus'), [3, 4, 7])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3, 4, 7])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Вам не разрешено производить данное действие.'));
         }
 
         /** @var BookOrder $bookOrder */
@@ -69,7 +77,7 @@ class BookOrderPositionController extends Controller
         $officeId     = Yii::$app->request->get('BookOrderPositionSearch', [])['office'] ?? null;
         if (!empty($bookOrder)) {
             $bookOrderCounters = $bookOrder->getOrderCounters($officeId ?: null);
-            $bookOrderCounters['positionCount'] = count($bookOrder->getPositions()->andFilterWhere(['office_id' => $officeId])->all());
+            $bookOrderCounters['positionCount'] = $bookOrder->getPositions()->andFilterWhere(['office_id' => $officeId])->count();
         }
 
         return $this->render('index', [
@@ -85,20 +93,24 @@ class BookOrderPositionController extends Controller
 
     /**
      * @param int $order_id идентификатор заказа
-     * @param int $book_id  идентификатор книги
+     * @param int $book_id идентификатор книги
      * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
      */
     public function actionCreate($order_id, $book_id)
     {
-        if (!in_array((int)Yii::$app->session->get('user.ustatus'), [3, 4, 7])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3, 4, 7])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Вам не разрешено производить данное действие.'));
         }
 
         $bookOrder = BookOrder::find()->andWhere(['id' => $order_id])->one();
         $book = Book::find()->andWhere(['id' => $book_id])->one();
 
         if (empty($bookOrder) && empty($book)) {
-            throw new NotFoundHttpException();
+            throw new NotFoundHttpException('Не удалось найти учебник или заказ.');
         }
 
         $model = new BookOrderPosition();
@@ -108,8 +120,8 @@ class BookOrderPositionController extends Controller
             $model->book_order_id = $order_id;
             $model->purchase_cost_id = $book->purchaseCost->id ?? null;
             $model->selling_cost_id  = $book->sellingCost->id  ?? null;
-            if ((int)Yii::$app->session->get('user.ustatus') === 4) {
-                $model->office_id = (int)Yii::$app->session->get('user.uoffice_id');
+            if ($auth->roleId === 4) {
+                $model->office_id = $auth->officeId;
             }
             /* предотвращает создание нескольких позиций по одному учебнику */
             $position = BookOrderPosition::find()->andWhere([
@@ -145,19 +157,22 @@ class BookOrderPositionController extends Controller
     /**
      * @param int $id идентификатор позиции
      * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
      */
     public function actionUpdate($id)
     {
-        $roleId = (int)Yii::$app->session->get('user.ustatus');
-        if (!in_array($roleId, [3, 4, 7])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3, 4, 7])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Вам не разрешено производить данное действие.'));
         }
 
         $model = $this->findModel($id);
         if (empty($model)) {
             throw new NotFoundHttpException('Позиция заказа не найдена');
         }
-        if ($roleId === 4 && $model->office_id !== (int)Yii::$app->session->get('user.uoffice_id')) {
+        if ($auth->roleId === 4 && $model->office_id !== $auth->officeId) {
             throw new ForbiddenHttpException('Доступ ограничен');
         }
         $bookOrder = BookOrder::find()->andWhere(['id' => $model->book_order_id])->one();
@@ -194,16 +209,17 @@ class BookOrderPositionController extends Controller
      */
     public function actionDelete($id)
     {
-        $roleId = (int)Yii::$app->session->get('user.ustatus');
-        if (!in_array($roleId, [3, 4, 7])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3, 4, 7])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Вам не разрешено производить данное действие.'));
         }
 
         $model = $this->findModel($id);
         if (empty($model)) {
             throw new NotFoundHttpException('Позиция заказа не найдена');
         }
-        if ($roleId === 4 && $model->office_id !== (int)Yii::$app->session->get('user.uoffice_id')) {
+        if ($auth->roleId === 4 && $model->office_id !== $auth->officeId) {
             throw new ForbiddenHttpException('Доступ ограничен');
         }
         if ($model->delete()) {
@@ -225,16 +241,17 @@ class BookOrderPositionController extends Controller
      */
     public function actionChangeItems(int $id, string $action, int $itemId = null)
     {
-        $roleId = (int)Yii::$app->session->get('user.ustatus');
-        if (!in_array($roleId, [3, 4, 7])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3, 4, 7])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Вам не разрешено производить данное действие.'));
         }
 
         $model = $this->findModel($id);
         if (empty($model)) {
             throw new NotFoundHttpException('Позиция заказа не найдена');
         }
-        if ($roleId === 4 && $model->office_id !== (int)Yii::$app->session->get('user.uoffice_id')) {
+        if ($auth->roleId === 4 && $model->office_id !== $auth->officeId) {
             throw new ForbiddenHttpException('Доступ ограничен');
         }
         $itemModel = new BookOrderPositionItem([
@@ -290,11 +307,9 @@ class BookOrderPositionController extends Controller
     }
 
     /**
-     * Finds the BookOrderPosition model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return BookOrderPosition the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
+     * @return BookOrderPosition
+     * @throws NotFoundHttpException
      */
     protected function findModel($id)
     {

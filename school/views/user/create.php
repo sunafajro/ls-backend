@@ -20,14 +20,14 @@ $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Users'), 'url' => ['i
 $this->params['breadcrumbs'][] = Yii::t('app','Add');
 $teachers = array_merge([0 => Yii::t('app', 'Create new teacher')], $teachers);
 ?>
-<div class="row row-offcanvas row-offcanvas-left user-create">
-    <div class="col-xs-6 col-sm-6 col-md-2 col-lg-2 col-xl-2 sidebar-offcanvas">
+<div class="<?= \Yii::$app->params['layout.2-column.main.class'] ?? 'row' ?> user-create">
+    <div class="<?= \Yii::$app->params['layout.2-column.sidebar.class'] ?? 'col-sm-2' ?>">
         <?= UserInfoWidget::widget() ?>
 		<ul>
 			<li>Поля Офис и Город разблокируются автоматически при выборе роли Менеджер Офиса</li>
 		</ul>
     </div>
-    <div class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+    <div class="<?= \Yii::$app->params['layout.2-column.content.class'] ?? 'col-sm-10' ?>">
         <?= AlertWidget::widget() ?>
         <?= SidebarButtonWidget::widget() ?>
         <?= $this->render('_form', [

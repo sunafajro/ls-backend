@@ -2,6 +2,7 @@
 
 namespace school\controllers;
 
+use school\models\Auth;
 use school\models\Lang;
 use school\models\Office;
 use school\models\OfficeBook;
@@ -20,7 +21,7 @@ use yii\web\Response;
  */
 class OfficeBookController extends Controller
 {
-    public function behaviors()
+    public function behaviors(): array
     {
         $rules = ['index', 'create', 'update', 'delete', 'autocomplete'];
         return [
@@ -49,10 +50,16 @@ class OfficeBookController extends Controller
         ];
     }
 
+    /**
+     * @return mixed
+     * @throws ForbiddenHttpException
+     */
     public function actionIndex()
     {
-        if (!in_array((int)Yii::$app->session->get('user.ustatus'), [3, 4, 7])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3, 4, 7])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Вам не разрешено производить данное действие.'));
         }
 
         $searchModel = new OfficeBookSearch();
@@ -68,10 +75,16 @@ class OfficeBookController extends Controller
         ]);
     }
 
+    /**
+     * @return mixed
+     * @throws ForbiddenHttpException
+     */
     public function actionCreate()
     {
-        if (!in_array((int)Yii::$app->session->get('user.ustatus'), [3, 4, 7])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3, 4, 7])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Вам не разрешено производить данное действие.'));
         }
         
         $model = new OfficeBook();
@@ -97,10 +110,18 @@ class OfficeBookController extends Controller
         ]);
     }
 
+    /**
+     * @param $id
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
+     */
     public function actionUpdate($id)
     {
-        if (!in_array((int)Yii::$app->session->get('user.ustatus'), [3, 4, 7])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3, 4, 7])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Вам не разрешено производить данное действие.'));
         }
         $model = $this->findModel($id);
         if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {
@@ -123,10 +144,18 @@ class OfficeBookController extends Controller
         ]);
     }
 
+    /**
+     * @param $id
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
+     */
     public function actionDelete($id)
     {
-        if (!in_array((int)Yii::$app->session->get('user.ustatus'), [3, 4, 7])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3, 4, 7])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Вам не разрешено производить данное действие.'));
         }
         if ($this->findModel($id)->delete()) {
             Yii::$app->session->setFlash('success', 'Учебник успешно удален.');
@@ -136,10 +165,16 @@ class OfficeBookController extends Controller
         return $this->redirect(Yii::$app->request->referrer);
     }
 
+    /**
+     * @return array
+     * @throws ForbiddenHttpException
+     */
     public function actionAutocomplete()
     {
-        if (!in_array((int)Yii::$app->session->get('user.ustatus'), [3, 4, 7])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3, 4, 7])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Вам не разрешено производить данное действие.'));
         }
 
         $students = OfficeBook::getBooksAutocomplete(Yii::$app->request->post('term') ?? NULL);
@@ -149,11 +184,9 @@ class OfficeBookController extends Controller
     }
 
     /**
-     * Finds the OfficeBook model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return OfficeBook the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
+     * @return OfficeBook
+     * @throws NotFoundHttpException
      */
     protected function findModel($id)
     {

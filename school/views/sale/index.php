@@ -1,6 +1,7 @@
     <?php
 
-use school\models\Sale;
+    use school\models\Auth;
+    use school\models\Sale;
 use school\models\searches\DiscountSearch;
 use common\widgets\alert\AlertWidget;
 use yii\helpers\Html;
@@ -19,8 +20,10 @@ use yii\widgets\Breadcrumbs;
 $this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Discounts');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Discounts'), 'url' => ['sale/index']];
 
-$roleId = (int)Yii::$app->session->get('user.ustatus', null);
-$userId = (int)Yii::$app->session->get('user.uid');
+/** @var Auth $auth */
+$auth = Yii::$app->user->identity;
+$roleId = $auth->roleId;
+$userId = $auth->id;
 $dicountTypeLabels = Sale::getTypeLabels();
 ?>
 <div class="row row-offcanvas row-offcanvas-left discount-index">

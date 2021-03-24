@@ -2,6 +2,7 @@
 
 namespace school\controllers;
 
+use school\models\Auth;
 use school\models\City;
 use school\models\Eduage;
 use school\models\Eduform;
@@ -54,13 +55,15 @@ class ServiceController extends Controller
     }
 
     /**
-     * Lists all Service models.
      * @return mixed
+     * @throws ForbiddenHttpException
      */
     public function actionIndex()
     {
-        if (!in_array(Yii::$app->session->get('user.ustatus'), [3, 4])) {
-            throw new ForbiddenHttpException('Access denied');
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3, 4])) {
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
         $url_params = self::getUrlParams();
         $limit = 25;
@@ -142,14 +145,15 @@ class ServiceController extends Controller
     }
 
     /**
-     * Creates a new Service model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
+     * @throws ForbiddenHttpException
      */
     public function actionCreate()
     {
-        if ((int)Yii::$app->session->get('user.ustatus') !== 3) {
-            throw new ForbiddenHttpException('Access denied');
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if ($auth->roleId !== 3) {
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
         $userInfoBlock = User::getUserInfoBlock();
         $model = new Service();
@@ -176,15 +180,17 @@ class ServiceController extends Controller
     }
 
     /**
-     * Updates an existing Service model.
-     * If update is successful, the browser will be redirected to the 'view' page.
      * @param integer $id
      * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
      */
     public function actionUpdate($id)
     {
-        if ((int)Yii::$app->session->get('user.ustatus') !== 3) {
-            throw new ForbiddenHttpException('Access denied');
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if ($auth->roleId !== 3) {
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
         $model = $this->findModel($id);        
         $current_state = Service::getServiceCurrentState($id);
@@ -231,10 +237,20 @@ class ServiceController extends Controller
         ]);
     }
 
+    /**
+     * @param $id
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
+     */
     public function actionDelete($id)
     {
-        if ((int)Yii::$app->session->get('user.ustatus') !== 3) {
-            throw new ForbiddenHttpException('Access denied');
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if ($auth->roleId !== 3) {
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
         $model = $this->findModel($id);
         if ($model->delete()) {
@@ -246,11 +262,9 @@ class ServiceController extends Controller
     }
 
     /**
-     * Finds the Service model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return Service the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
+     * @return Service
+     * @throws NotFoundHttpException
      */
     protected function findModel($id)
     {

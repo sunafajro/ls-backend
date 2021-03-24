@@ -32,8 +32,8 @@ $this->params['breadcrumbs'][] = 'Учет времени';
 
 UserViewAsset::register($this);
 ?>
-<div class="row row-offcanvas row-offcanvas-left user-time-tracking">
-    <div class="col-xs-6 col-sm-6 col-md-2 col-lg-2 col-xl-2 sidebar-offcanvas">
+<div class="<?= \Yii::$app->params['layout.2-column.main.class'] ?? 'row' ?> user-time-tracking">
+    <div class="<?= \Yii::$app->params['layout.2-column.sidebar.class'] ?? 'col-sm-2' ?>">
         <?= UserInfoWidget::widget() ?>
         <?php if ($can['createTimeTracking']) {
             echo $this->render('time-tracking/_form', [
@@ -42,7 +42,7 @@ UserViewAsset::register($this);
             ]);
         } ?>
     </div>
-    <div class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+    <div class="<?= \Yii::$app->params['layout.2-column.content.class'] ?? 'col-sm-10' ?>">
         <?= AlertWidget::widget() ?>
         <?= SidebarButtonWidget::widget() ?>
         <?= GridView::widget([

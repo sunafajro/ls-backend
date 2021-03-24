@@ -1,18 +1,25 @@
 <?php
-    use yii\helpers\Html;
-    use yii\widgets\ActiveForm;
-    use yii\widgets\Breadcrumbs;
-    $this->title = 'Система учета :: '.Yii::t('app','Translation pay norms');
-    $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Translations'), 'url' => ['translate/translations']];
-    $this->params['breadcrumbs'][] = Yii::t('app','Translation pay norms');
-?>
 
+/**
+ * @var View $this
+ * @var array $norms
+ * @var array $url_params
+ */
+
+use common\widgets\alert\AlertWidget;
+use school\widgets\sidebarButton\SidebarButtonWidget;
+use school\widgets\userInfo\UserInfoWidget;
+use yii\helpers\Html;
+use yii\web\View;
+use yii\widgets\ActiveForm;
+
+$this->title = 'Система учета :: '.Yii::t('app','Translation pay norms');
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Translations'), 'url' => ['translate/translations']];
+$this->params['breadcrumbs'][] = Yii::t('app','Translation pay norms');
+?>
 <div class="row row-offcanvas row-offcanvas-left translation-norms">
-    <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
-        <div id="main-menu"></div>
-        <?php endif; ?>
-        <?= $userInfoBlock ?>
+    <div class="col-xs-6 col-sm-6 col-md-2 col-lg-2 col-xl-2 sidebar-offcanvas">
+        <?= UserInfoWidget::widget() ?>
         <h4><?= Yii::t('app', 'Actions') ?>:</h4>
         <div class="form-group">
             <?= Html::a('<span class="fa fa-plus" aria-hidden="true"></span> ' . Yii::t('app', 'Add'), ['translationnorm/create'], ['class' => 'btn btn-success btn-sm btn-block']) ?>
@@ -57,26 +64,9 @@
         </div>
         <?php ActiveForm::end(); ?>
     </div>
-    <div id="content" class="col-sm-10">
-        <?php if (Yii::$app->params['appMode'] === 'bitrix') : ?>
-        <?= Breadcrumbs::widget([
-            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
-        ]); ?>
-        <?php endif; ?>
-        <p class="pull-left visible-xs">
-            <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
-        </p>
-        <?php if(Yii::$app->session->hasFlash('error')): ?>
-        <div class="alert alert-danger" role="alert">
-            <?= Yii::$app->session->getFlash('error') ?>
-        </div>
-        <?php endif; ?>
-   
-        <?php if(Yii::$app->session->hasFlash('success')): ?>
-        <div class="alert alert-success" role="alert">
-            <?= Yii::$app->session->getFlash('success') ?>
-        </div>
-        <?php endif; ?>
+    <div class="col-xs-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+        <?= AlertWidget::widget() ?>
+        <?= SidebarButtonWidget::widget() ?>
         <table class="table table-stripped table-hover table-condensed table-bordered small">
             <thead>
                 <tr>

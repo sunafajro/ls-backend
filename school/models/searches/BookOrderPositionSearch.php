@@ -2,6 +2,7 @@
 
 namespace school\models\searches;
 
+use school\models\Auth;
 use school\models\Book;
 use school\models\BookOrder;
 use school\models\BookOrderPosition;
@@ -59,6 +60,9 @@ class BookOrderPositionSearch extends BookOrderPosition
 
     public function search(BookOrder $bookOrder, array $params = []) : ActiveDataProvider
     {
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+
         $bopt = BookOrderPosition::tableName();
         $bt   = Book::tableName();
         $lt   = Lang::tableName();
@@ -98,11 +102,11 @@ class BookOrderPositionSearch extends BookOrderPosition
             $query->andWhere(new Expression("(0 = 1)"));
         }
 
-        if ((int)Yii::$app->session->get('user.ustatus') === 4) {
-            $query->andWhere(["{$bopt}.office_id" => Yii::$app->session->get('user.uoffice_id')]);
+        if ($auth->roleId === 4) {
+            $query->andWhere(["{$bopt}.office_id" => $auth->officeId]);
         }
 
-        $query->groupBy("{$bt}.id");
+        $query->groupBy(["{$bopt}.id", "{$bt}.id"]);
 
         return new ActiveDataProvider([
             'query' => $query,

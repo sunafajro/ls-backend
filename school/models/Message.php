@@ -324,12 +324,13 @@ class Message extends \yii\db\ActiveRecord
     /* Метод отдает количество непрочитанных сообщений пользователя */
     public static function getMessagesCount() 
     {
-        $id = (int)Yii::$app->session->get('user.uid');
+        /** @var Auth $auth */
+        $auth = \Yii::$app->user->identity;
 
         $mess = (new \yii\db\Query())
         ->select('count(id) as cnt')
         ->from('calc_messreport mr')
-        ->where('send=:send and user=:user and ok=:ok', [':send'=>1, ':user'=>(int)$id, ':ok'=> 0])
+        ->where('send=:send and user=:user and ok=:ok', [':send' => 1, ':user' => $auth->id, ':ok' => 0])
         ->one();
 
         return (!empty($mess)) ? $mess['cnt'] : 0;
@@ -352,7 +353,8 @@ class Message extends \yii\db\ActiveRecord
     /* Метод отдает информацию по последнему непрочитанному сообщению */
     public static function getLastUnreadMessage() 
     {
-        $id = (int)Yii::$app->session->get('user.uid');
+        /** @var Auth $auth */
+        $auth = \Yii::$app->user->identity;
         $mess = [];
 
         $message = (new \yii\db\Query())
@@ -375,7 +377,7 @@ class Message extends \yii\db\ActiveRecord
         ->leftjoin(['mwt' => 'calc_messwhomtype'], 'mwt.id = m.calc_messwhomtype')
         ->where([
             'mr.send' => 1,
-            'mr.user' => $id,
+            'mr.user' => $auth->id,
             'mr.ok' => 0
         ])
         ->one();

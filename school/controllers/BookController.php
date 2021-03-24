@@ -2,6 +2,7 @@
 
 namespace school\controllers;
 
+use school\models\Auth;
 use school\models\Lang;
 use school\models\Book;
 use school\models\BookOrder;
@@ -20,7 +21,7 @@ use yii\web\NotFoundHttpException;
  */
 class BookController extends Controller
 {
-    public function behaviors()
+    public function behaviors(): array
     {
         $rules = ['index', 'create', 'update', 'delete', 'office-index'];
         return [
@@ -51,11 +52,14 @@ class BookController extends Controller
 
     /**
      * @return mixed
+     * @throws ForbiddenHttpException
      */
     public function actionIndex()
     {
-        if (!in_array((int)Yii::$app->session->get('user.ustatus'), [3, 4, 7])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3, 4, 7])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Вам не разрешено производить данное действие.'));
         }
 
         $searchModel = new BookSearch();
@@ -80,11 +84,14 @@ class BookController extends Controller
 
     /**
      * @return mixed
+     * @throws ForbiddenHttpException
      */
     public function actionCreate()
     {
-        if (!in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3, 7])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Вам не разрешено производить данное действие.'));
         }
 
         $model = new BookForm();
@@ -108,11 +115,14 @@ class BookController extends Controller
     /**
      * @param integer $id
      * @return mixed
+     * @throws ForbiddenHttpException
      */
     public function actionUpdate($id)
     {
-        if (!in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3, 7])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Вам не разрешено производить данное действие.'));
         }
 
         $book = $this->findModel($id);
@@ -140,11 +150,15 @@ class BookController extends Controller
     /**
      * @param integer $id
      * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
      */
     public function actionDelete($id)
     {
-        if (!in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!in_array($auth->roleId, [3, 7])) {
+            throw new ForbiddenHttpException(Yii::t('app', 'Вам не разрешено производить данное действие.'));
         }
 
         $this->findModel($id)->delete();
@@ -153,11 +167,9 @@ class BookController extends Controller
     }
 
     /**
-     * Finds the Book model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return Book the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
+     * @return Book
+     * @throws NotFoundHttpException
      */
     protected function findModel($id)
     {

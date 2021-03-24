@@ -17,8 +17,10 @@ class Navigation extends BaseNavigation
      */
     public function getItems()
     {
-        $roleId = (int)Yii::$app->session->get('user.ustatus');
-        $userId = (int)Yii::$app->session->get('user.uid');
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        $roleId = $auth->roleId;
+        $userId = $auth->id;
 
         /* создаем пустые массивы */
         $menu = [];
