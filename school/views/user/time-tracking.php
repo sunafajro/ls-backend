@@ -15,9 +15,6 @@ use school\models\searches\UserTimeTrackingSearch;
 use school\models\User;
 use school\models\forms\UserTimeTrackingForm;
 use school\models\UserTimeTracking;
-use common\widgets\alert\AlertWidget;
-use school\widgets\sidebarButton\SidebarButtonWidget;
-use school\widgets\userInfo\UserInfoWidget;
 use yii\data\ActiveDataProvider;
 use yii\grid\ActionColumn;
 use yii\grid\GridView;
@@ -31,78 +28,69 @@ $this->params['breadcrumbs'][] = ['label' => $user->name, 'url' => ['user/view',
 $this->params['breadcrumbs'][] = 'Учет времени';
 
 UserViewAsset::register($this);
-?>
-<div class="<?= \Yii::$app->params['layout.2-column.main.class'] ?? 'row' ?> user-time-tracking">
-    <div class="<?= \Yii::$app->params['layout.2-column.sidebar.class'] ?? 'col-sm-2' ?>">
-        <?= UserInfoWidget::widget() ?>
-        <?php if ($can['createTimeTracking']) {
-            echo $this->render('time-tracking/_form', [
-                'model'  => $timeTrackingForm,
-                'userId' => $user->id,
-            ]);
-        } ?>
-    </div>
-    <div class="<?= \Yii::$app->params['layout.2-column.content.class'] ?? 'col-sm-10' ?>">
-        <?= AlertWidget::widget() ?>
-        <?= SidebarButtonWidget::widget() ?>
-        <?= GridView::widget([
-                'dataProvider' => $dataProvider,
-                'filterModel'  => $searchModel,
-                'columns' => [
-                    [
-                        'class' => SerialColumn::class,
-                    ],
-                    'type' => [
-                        'attribute' => 'type',
-                        'filter' => UserTimeTracking::getTypeLabels(),
-                        'value' => function ($model) {
-                            return UserTimeTracking::getTypeLabel($model->type);
-                        }
-                    ],
-                    'start' => [
-                        'attribute' => 'start',
-                        'format' => ['date', 'php:d.m.Y H:i'],
-                    ],
-                    'end' => [
-                        'attribute' => 'end',
-                        'format' => ['date', 'php:d.m.Y H:i'],
-                    ],
-                    'comment',
-                    [
-                        'class' => ActionColumn::class,
-                        'header' => Yii::t('app', 'Act.'),
-                        'buttons' => [
-                            'update' => function ($url, UserTimeTracking $model) use ($can, $user) {
-                                return $can['updateTimeTracking']
-                                    ? Html::a(
-                                        IconHelper::icon('pencil'),
-                                        ['user/time-tracking', 'id' => $user->id, 'time_tracking_id' => $model->id],
-                                        [
-                                            'title' => Yii::t('app', 'Update'),
-                                        ]
-                                    )
-                                    : null ;
-                            },
-                            'delete' => function ($url, UserTimeTracking $model) use ($can, $user) {
-                                return $can['deleteTimeTracking']
-                                    ? Html::a(
-                                        IconHelper::icon('trash'),
-                                        ['user/time-tracking', 'id' => $user->id, 'action' => 'delete', 'time_tracking_id' => $model->id],
-                                        [
-                                            'title' => Yii::t('app', 'Delete'),
-                                            'data' => [
-                                                'method' => 'post',
-                                                'confirm' => 'Вы действительно хотите удалить запись?',
-                                            ],
-                                        ]
-                                    )
-                                    : null;
-                            }
-                        ],
-                        'template' => '{update} {delete}',
-                        'visible'  => $can['updateTimeTracking'] || $can['deleteTimeTracking'],
-                    ],
-                ],
-        ]) ?>
-    </div>
-</div>
+
+if ($can['createTimeTracking']) {
+    $this->params['sidebar'] = $this->render('time-tracking/_form', [
+        'model'  => $timeTrackingForm,
+        'userId' => $user->id,
+    ]);
+}
+echo GridView::widget([
+    'dataProvider' => $dataProvider,
+    'filterModel'  => $searchModel,
+    'columns' => [
+        [
+            'class' => SerialColumn::class,
+        ],
+        'type' => [
+            'attribute' => 'type',
+            'filter' => UserTimeTracking::getTypeLabels(),
+            'value' => function ($model) {
+                return UserTimeTracking::getTypeLabel($model->type);
+            }
+        ],
+        'start' => [
+            'attribute' => 'start',
+            'format' => ['date', 'php:d.m.Y H:i'],
+        ],
+        'end' => [
+            'attribute' => 'end',
+            'format' => ['date', 'php:d.m.Y H:i'],
+        ],
+        'comment',
+        [
+            'class' => ActionColumn::class,
+            'header' => Yii::t('app', 'Act.'),
+            'buttons' => [
+                'update' => function ($url, UserTimeTracking $model) use ($can, $user) {
+                    return $can['updateTimeTracking']
+                        ? Html::a(
+                            IconHelper::icon('pencil'),
+                            ['user/time-tracking', 'id' => $user->id, 'time_tracking_id' => $model->id],
+                            [
+                                'title' => Yii::t('app', 'Update'),
+                            ]
+                        )
+                        : null ;
+                },
+                'delete' => function ($url, UserTimeTracking $model) use ($can, $user) {
+                    return $can['deleteTimeTracking']
+                        ? Html::a(
+                            IconHelper::icon('trash'),
+                            ['user/time-tracking', 'id' => $user->id, 'action' => 'delete', 'time_tracking_id' => $model->id],
+                            [
+                                'title' => Yii::t('app', 'Delete'),
+                                'data' => [
+                                    'method' => 'post',
+                                    'confirm' => 'Вы действительно хотите удалить запись?',
+                                ],
+                            ]
+                        )
+                        : null;
+                }
+            ],
+            'template' => '{update} {delete}',
+            'visible'  => $can['updateTimeTracking'] || $can['deleteTimeTracking'],
+        ],
+    ],
+]);

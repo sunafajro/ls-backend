@@ -8,6 +8,7 @@ $params = array_merge(
 
 return [
     'id' => 'app-school',
+    'name' => 'Система учета',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
     'language' => 'ru-RU',

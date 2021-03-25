@@ -56,6 +56,7 @@ return array(
     'Add teacher' => 'Добавить преподавателя',
     'Add teacher to group' => 'Добавить преподавателя в группу',
     'Add to the order' => 'Добавить к заказу',
+    'Add user' => 'Добавить пользователя',
     'Added by' => 'Кем добавлено',
     'Address' => 'Адрес',
     'Adjourn' => 'Отложить',

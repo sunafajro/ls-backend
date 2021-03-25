@@ -66,19 +66,17 @@ class UserController extends Controller
     }
 
     /**
-     * @param string $active
-     * @param string|null $role
-     *
      * @return mixed
      * @throws ForbiddenHttpException
      */
-    public function actionIndex(string $active = '1', string $role = null)
+    public function actionIndex()
     {
+        $this->layout = 'main-2-column';
         /** @var Auth $user */
         $user = Yii::$app->user->identity;
 
         if ($user->roleId !== 3 && $user->id !== 296) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
         $searchModel = new UserSearch();
@@ -99,11 +97,12 @@ class UserController extends Controller
      */
     public function actionCreate()
     {
+        $this->layout = 'main-2-column';
         /** @var Auth $user */
         $user = Yii::$app->user->identity;
 
         if ($user->roleId !== 3 && $user->id !== 296) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
         $model = new User();
@@ -163,11 +162,12 @@ class UserController extends Controller
      */
     public function actionUpdate(string $id)
     {
+        $this->layout = 'main-2-column';
         /** @var Auth $user */
         $user = Yii::$app->user->identity;
 
         if ($user->roleId !== 3 && $user->id !== 296) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
         $model = $this->findModel($id);
@@ -220,7 +220,7 @@ class UserController extends Controller
         $user = Yii::$app->user->identity;
 
         if ($user->roleId !== 3) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
         $this->findModel($id)->delete();
@@ -241,7 +241,7 @@ class UserController extends Controller
         $user = Yii::$app->user->identity;
 
         if ($user->roleId !== 3 && $user->id !== 296){
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
         $model = $this->findModel($id);
@@ -267,7 +267,7 @@ class UserController extends Controller
         $user = Yii::$app->user->identity;
 
         if ($user->roleId !== 3 && $user->id !== 296){
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
         $model = $this->findModel($id);
@@ -295,7 +295,7 @@ class UserController extends Controller
         $auth = Yii::$app->user->identity;
 
         if ($auth->roleId !== 3 && !in_array($auth->id, [$user->id, 296])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
         $oldImage = $user->image;
@@ -355,7 +355,7 @@ class UserController extends Controller
         $auth = Yii::$app->user->identity;
 
         if ($auth->roleId !== 3 && !in_array($auth->id, [$user->id, 296])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
         if (($file = $user->image) !== null) {
             if ($file->delete()) {
@@ -383,7 +383,7 @@ class UserController extends Controller
         $user = Yii::$app->user->identity;
 
         if ($user->roleId !== 3 && !in_array($user->id, [(int)$id, 296])){
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
         $model = $this->findModel($id);
@@ -429,11 +429,12 @@ class UserController extends Controller
      */
     public function actionView(string $id)
     {
+        $this->layout = 'main-2-column';
         /** @var Auth $user */
         $user = Yii::$app->user->identity;
 
         if ($user->roleId !== 3 && !in_array($user->id, [(int)$id, 296])){
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
         $userModel = $this->findModel($id);
@@ -462,11 +463,12 @@ class UserController extends Controller
      */
     public function actionTimeTracking(string $id, string $time_tracking_id = null, string $action = null)
     {
+        $this->layout = 'main-2-column';
         /** @var Auth $user */
         $user = Yii::$app->user->identity;
 
         if ($user->roleId !== 3 && !in_array($user->id, [(int)$id, 296])){
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
         $userModel = $this->findModel($id);
