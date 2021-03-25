@@ -15,7 +15,7 @@ use yii\filters\AccessControl;
  */
 class TranslatorController extends Controller
 {
-    public function behaviors()
+    public function behaviors(): array
     {
         return [
             'access' => [
@@ -37,11 +37,17 @@ class TranslatorController extends Controller
         ];
     }
 
+    /**
+     * @param \yii\base\Action $action
+     * @return bool
+     * @throws ForbiddenHttpException
+     * @throws \yii\web\BadRequestHttpException
+     */
     public function beforeAction($action)
     {
         if(parent::beforeAction($action)) {
             if (User::checkAccess($action->controller->id, $action->id) == false) {
-                throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+                throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
             }
             return true;
         } else {
@@ -50,12 +56,11 @@ class TranslatorController extends Controller
     }
 
     /**
-     * Creates a new Translator model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
     public function actionCreate()
     {
+        $this->layout = 'main-2-column';
         $model = new Translator();
 
         if ($model->load(Yii::$app->request->post())) {
@@ -87,13 +92,13 @@ class TranslatorController extends Controller
     }
 
     /**
-     * Updates an existing Translator model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param integer $id
+     * @param $id
      * @return mixed
+     * @throws NotFoundHttpException
      */
     public function actionUpdate($id)
     {
+        $this->layout = 'main-2-column';
         $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post())) {
@@ -122,9 +127,10 @@ class TranslatorController extends Controller
     }
 
     /**
-    * Метод позволяет руководителям помечать переводчиков как удаленные
-    */
-
+     * @param $id
+     * @return \yii\web\Response
+     * @throws NotFoundHttpException
+     */
     public function actionDisable($id)
     {
         $model = $this->findModel($id);
@@ -143,11 +149,9 @@ class TranslatorController extends Controller
     }
 
     /**
-     * Finds the Translator model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return Translator the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
+     * @return Translator
+     * @throws NotFoundHttpException
      */
     protected function findModel($id)
     {

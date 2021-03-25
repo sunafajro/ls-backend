@@ -82,28 +82,25 @@ class TranslateController extends Controller
     }
     
     /**
-     *  Метод выводит таблицу со списком переводчиков
      *  @return mixed
      */
-     
     public function actionTranslators()
     {
-        $params = [];
-        $url_params = [
+        $this->layout = 'main-2-column';
+        $urlParams = [
             'translate/tranlators',
             'TSS' => NULL,
             'LANG' => NULL,
             'NOTAR' => NULL
         ];
         
-        $params = self::getUrlParams($url_params);
+        $params = self::getUrlParams($urlParams);
         
         return $this->render('translators', [
-            'userInfoBlock' => User::getUserInfoBlock(),
             'languages' => Translationlang::getLanguageListSimple(),
-            'translator_languages' => Langtranslator::getTranslatorLanguageList(),
+            'translatorLanguages' => Langtranslator::getTranslatorLanguageList(),
             'translators'=> Translator::getTranslatorList($params),
-            'url_params' => $params
+            'urlParams' => $params
         ]);
     }
     
@@ -143,21 +140,22 @@ class TranslateController extends Controller
         ]);
     }
 
+    /**
+     * @return mixed
+     */
     public function actionNorms()
     {
-        $params = [];
+        $this->layout = 'main-2-column';
         $url_params = [
             'translate/norms',
             'TSS' => NULL
         ];
 
         $params = self::getUrlParams($url_params);
-        $userInfoBlock = User::getUserInfoBlock();
         
         return $this->render('norms', [
-            'userInfoBlock' => $userInfoBlock,
 			'norms'=> Translationnorm::getNormList($params),
-            'url_params' => $params
+            'urlParams' => $params
         ]);
     }
     

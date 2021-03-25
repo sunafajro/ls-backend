@@ -22,10 +22,10 @@ use yii\grid\SerialColumn;
 use yii\helpers\Html;
 use yii\web\View;
 
-$this->title = Yii::$app->params['appTitle'] . Yii::t('app','Profile') . ": {$user->name}";
+$this->title = Yii::$app->name . ' :: Учет рабочего времени';
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Users'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $user->name, 'url' => ['user/view', 'id' => $user->id]];
-$this->params['breadcrumbs'][] = 'Учет времени';
+$this->params['breadcrumbs'][] = 'Учет рабочего времени';
 
 UserViewAsset::register($this);
 

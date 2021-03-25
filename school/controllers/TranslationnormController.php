@@ -15,7 +15,7 @@ use yii\filters\AccessControl;
  */
 class TranslationnormController extends Controller
 {
-    public function behaviors()
+    public function behaviors(): array
     {
         return [
             'access' => [
@@ -37,6 +37,12 @@ class TranslationnormController extends Controller
         ];
     }
 
+    /**
+     * @param \yii\base\Action $action
+     * @return bool
+     * @throws ForbiddenHttpException
+     * @throws \yii\web\BadRequestHttpException
+     */
     public function beforeAction($action)
     {
         if(parent::beforeAction($action)) {
@@ -50,10 +56,12 @@ class TranslationnormController extends Controller
     }
 
     /**
-     * Метод позволяет рукоаодителям добавлять нормы оплаты по переводам
+     * @return string|\yii\web\Response
+     * @throws \Exception
      */
     public function actionCreate()
     {
+        $this->layout = 'main-2-column';
         $model = new Translationnorm();
 
         if ($model->load(Yii::$app->request->post())) {
@@ -69,19 +77,18 @@ class TranslationnormController extends Controller
         } else {
             return $this->render('create', [
                 'model' => $model,
-                'userInfoBlock' => User::getUserInfoBlock()
             ]);
         }
     }
 
     /**
-     * Updates an existing Translationnorm model.
-     * If update is successful, the browser will be redirected to the 'view' page.
      * @param integer $id
      * @return mixed
+     * @throws NotFoundHttpException
      */
     public function actionUpdate($id)
     {
+        $this->layout = 'main-2-column';
         $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post())) {
@@ -94,16 +101,14 @@ class TranslationnormController extends Controller
         } else {
             return $this->render('update', [
                 'model' => $model,
-                'userInfoBlock' => User::getUserInfoBlock()
             ]);
         }
     }
 
     /**
-     * Deletes an existing Translationnorm model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param integer $id
      * @return mixed
+     * @throws NotFoundHttpException
      */
     public function actionDelete($id)
     {
@@ -122,11 +127,9 @@ class TranslationnormController extends Controller
     }
 
     /**
-     * Finds the Translationnorm model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return Translationnorm the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
+     * @return Translationnorm
+     * @throws NotFoundHttpException
      */
     protected function findModel($id)
     {
