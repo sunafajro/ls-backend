@@ -21,7 +21,7 @@ class NewsController extends Controller
     /**
      * @inheritdoc
      */
-    public function behaviors()
+    public function behaviors(): array
     {
         return [
 		    'access' => [
@@ -59,7 +59,7 @@ class NewsController extends Controller
     {
         if (parent::beforeAction($action)) {
             if (AccessRule::checkAccess($action->controller->id, $action->id) === false) {
-                throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+                throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
             }
             return true;
         } else {
@@ -72,6 +72,7 @@ class NewsController extends Controller
      */
     public function actionCreate()
     {
+        $this->layout = 'main-2-column';
         $model = new News();
 
         if ($model->load(Yii::$app->request->post())) {
@@ -91,9 +92,11 @@ class NewsController extends Controller
     /**
      * @param integer $id
      * @return mixed
+     * @throws NotFoundHttpException
      */
     public function actionUpdate($id)
     {
+        $this->layout = 'main-2-column';
         $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post())) {
@@ -129,11 +132,9 @@ class NewsController extends Controller
     }
 
     /**
-     * Finds the News model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return News the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
+     * @return News
+     * @throws NotFoundHttpException
      */
     protected function findModel($id)
     {

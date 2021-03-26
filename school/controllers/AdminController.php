@@ -52,7 +52,7 @@ class AdminController extends Controller
     {
         if (parent::beforeAction($action)) {
             if (AccessRule::checkAccess($action->controller->id, $action->id) === false) {
-                throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+                throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
             }
             return true;
         } else {
@@ -73,6 +73,7 @@ class AdminController extends Controller
      */
     public function actionRoles()
     {
+        $this->layout = 'main-2-column';
         $searchModel = new RoleSearch();
         $dataProvider = $searchModel->search(\Yii::$app->request->get());
 
@@ -88,6 +89,7 @@ class AdminController extends Controller
      */
     public function actionEducationLevels()
     {
+        $this->layout = 'main-2-column';
         $searchModel = new EducationLevelSearch();
         $dataProvider = $searchModel->search(\Yii::$app->request->get());
 

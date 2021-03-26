@@ -65,6 +65,7 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
+        $this->layout = 'main-2-column';
         $params = ['month' => date('m'), 'year' => date('Y')];
         $urlParams = self::getUrlParams($params);
 

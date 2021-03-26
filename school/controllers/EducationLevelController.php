@@ -55,7 +55,7 @@ class EducationLevelController extends Controller
      */
     public function beforeAction($action): bool
     {
-        if(parent::beforeAction($action)) {
+        if (parent::beforeAction($action)) {
             if (AccessRule::checkAccess($action->controller->id, $action->id) === false) {
                 throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
             }
@@ -66,22 +66,11 @@ class EducationLevelController extends Controller
     }
 
     /**
-     * @param string $id
-     * @return mixed
-     * @throws NotFoundHttpException
-     */
-    public function actionView(string $id)
-    {
-        return $this->render('view', [
-            'model' => $this->findModel(intval($id)),
-        ]);
-    }
-
-    /**
      * @return mixed
      */
     public function actionCreate()
     {
+        $this->layout = 'main-2-column';
         $model = new EducationLevel();
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
@@ -100,6 +89,7 @@ class EducationLevelController extends Controller
      */
     public function actionUpdate(string $id)
     {
+        $this->layout = 'main-2-column';
         $model = $this->findModel(intval($id));
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {

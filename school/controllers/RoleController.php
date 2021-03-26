@@ -48,9 +48,9 @@ class RoleController extends Controller
      */
     public function beforeAction($action): bool
     {
-        if(parent::beforeAction($action)) {
+        if (parent::beforeAction($action)) {
             if (AccessRule::checkAccess($action->controller->id, $action->id) === false) {
-                throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+                throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
             }
             return true;
         } else {
@@ -64,6 +64,7 @@ class RoleController extends Controller
      */
     public function actionCreate()
     {
+        $this->layout = 'main-2-column';
         $model = new Role();
 
         if ($model->load(Yii::$app->request->post())) {
@@ -87,6 +88,7 @@ class RoleController extends Controller
      */
     public function actionUpdate(string $id)
     {
+        $this->layout = 'main-2-column';
         $model = $this->findModel(intval($id));
 
         if ($model->load(Yii::$app->request->post())) {
