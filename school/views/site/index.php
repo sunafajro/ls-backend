@@ -20,7 +20,7 @@ $user   = Yii::$app->user->identity;
 $roleId = $user->roleId;
 $userId = $user->id;
 
-$this->params['sidebar'] = $this->render('sidebars/_news', ['roleId' => $roleId, 'urlParams' => $urlParams]);
+$this->params['sidebar'] = ['viewFile' => '//site/sidebars/_news', 'params' => ['roleId' => $roleId, 'urlParams' => $urlParams]];
 foreach ($news as $n) { ?>
     <div class="panel panel-primary">
         <div class="panel-heading">

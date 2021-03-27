@@ -16,3 +16,6 @@ use yii\web\View;
         ['class' => 'btn btn-success btn-sm btn-block']
     ) ?>
 </div>
+<ul>
+    <li>Для просмотра удаленных пользователей, поменйте фильтр стратуса "Отключенные".</li>
+</ul>

@@ -16,7 +16,10 @@ $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Translations'), 'url
 $this->params['breadcrumbs'][] = Yii::t('app','Languages');
 /** @var Auth $auth */
 $auth = \Yii::$app->user->identity;
-$this->params['sidebar'] = $this->render('sidebars/_languages', ['urlParams' => $urlParams, 'canCreate' => in_array($auth->roleId, [3, 9])]);
+$this->params['sidebar'] = [
+    'viewFile' => '//translate/sidebars/_languages',
+    'params' => ['urlParams' => $urlParams, 'canCreate' => in_array($auth->roleId, [3, 9])],
+];
 ?>
 <table class="table table-stripped table-hover table-condensed table-bordered small">
     <thead>

@@ -30,10 +30,13 @@ $this->params['breadcrumbs'][] = 'Учет рабочего времени';
 UserViewAsset::register($this);
 
 if ($can['createTimeTracking']) {
-    $this->params['sidebar'] = $this->render('time-tracking/_form', [
-        'model'  => $timeTrackingForm,
-        'userId' => $user->id,
-    ]);
+    $this->params['sidebar'] = [
+        'viewFile' => '//user/time-tracking/_form',
+        'params' => [
+            'model'  => $timeTrackingForm,
+            'userId' => $user->id,
+        ]
+    ];
 }
 echo GridView::widget([
     'dataProvider' => $dataProvider,

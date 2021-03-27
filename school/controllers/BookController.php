@@ -17,10 +17,12 @@ use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 
 /**
- * BookController implements the CRUD actions for Book model.
+ * Class BookController
+ * @package school\controllers
  */
 class BookController extends Controller
 {
+    /** {@inheritDoc} */
     public function behaviors(): array
     {
         $rules = ['index', 'create', 'update', 'delete', 'office-index'];
@@ -56,10 +58,11 @@ class BookController extends Controller
      */
     public function actionIndex()
     {
+        $this->layout = 'main-2-column';
         /** @var Auth $auth */
         $auth = Yii::$app->user->identity;
         if (!in_array($auth->roleId, [3, 4, 7])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Вам не разрешено производить данное действие.'));
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
         $searchModel = new BookSearch();
@@ -78,7 +81,6 @@ class BookController extends Controller
             'dataProvider'      => $dataProvider,
             'languages'         => Lang::getLanguagesSimple(),
             'searchModel'       => $searchModel,
-            'userInfoBlock'     => User::getUserInfoBlock(),
         ]);
     }
 
@@ -88,10 +90,11 @@ class BookController extends Controller
      */
     public function actionCreate()
     {
+        $this->layout = 'main-2-column';
         /** @var Auth $auth */
         $auth = Yii::$app->user->identity;
         if (!in_array($auth->roleId, [3, 7])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Вам не разрешено производить данное действие.'));
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
         $model = new BookForm();
@@ -108,7 +111,6 @@ class BookController extends Controller
         return $this->render('create', [
             'model'         => $model,
             'languages'     => Lang::getLanguagesSimple(),
-            'userInfoBlock' => User::getUserInfoBlock(),
         ]);
     }
 
@@ -119,10 +121,11 @@ class BookController extends Controller
      */
     public function actionUpdate($id)
     {
+        $this->layout = 'main-2-column';
         /** @var Auth $auth */
         $auth = Yii::$app->user->identity;
         if (!in_array($auth->roleId, [3, 7])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Вам не разрешено производить данное действие.'));
+            throw new ForbiddenHttpException( 'Вам не разрешено производить данное действие.');
         }
 
         $book = $this->findModel($id);
@@ -143,7 +146,6 @@ class BookController extends Controller
         return $this->render('update', [
             'model'         => $model,
             'languages'     => Lang::getLanguagesSimple(),
-            'userInfoBlock' => User::getUserInfoBlock(),
         ]);
     }
 

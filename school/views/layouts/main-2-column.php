@@ -50,7 +50,13 @@ $tag = "{$controllerId}-{$actionId}";
         <div class="<?= \Yii::$app->params['layout.2-column.main.class'] ?? 'row' ?> <?= $tag ?? '' ?>">
             <div class="<?= \Yii::$app->params['layout.2-column.sidebar.class'] ?? 'col-sm-2' ?>">
                 <?= UserInfoWidget::widget() ?>
-                <?= $this->params['sidebar'] ?? '' ?>
+                <?php if (!empty($this->params['sidebar'])) {
+                    if (is_string($this->params['sidebar'])) {
+                        echo $this->params['sidebar'];
+                    } else if (is_array($this->params['sidebar'])) {
+                        echo $this->render($this->params['sidebar']['viewFile'], $this->params['sidebar']['params']);
+                    }
+                } ?>
             </div>
             <div class="<?= \Yii::$app->params['layout.2-column.content.class'] ?? 'col-sm-10' ?>">
                 <?= AlertWidget::widget() ?>

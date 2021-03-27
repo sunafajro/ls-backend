@@ -14,7 +14,7 @@ use yii\web\View;
     <div style="margin-bottom:1rem">
         <h4>Действия:</h4>
         <?= Html::a(
-            IconHelper::icon('clock-o') . ' Учет времени',
+            IconHelper::icon('clock-o', 'Учет времени'),
             ['user/time-tracking', 'id' => $user->id],
             ['class' => 'btn btn-default btn-block']
         ) ?>

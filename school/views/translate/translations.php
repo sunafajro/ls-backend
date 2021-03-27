@@ -17,7 +17,10 @@ $this->title = Yii::$app->name . ' :: ' . Yii::t('app','Translations');
 $this->params['breadcrumbs'][] = Yii::t('app','Translations');
 /** @var Auth $auth */
 $auth = \Yii::$app->user->identity;
-$this->params['sidebar'] = $this->render('sidebars/_translations', ['languages' => $languages, 'years' => $years, 'urlParams' => $urlParams, 'canCreate' => in_array($auth->roleId, [3, 9])]);
+$this->params['sidebar'] = [
+    'viewFile' => '//translate/sidebars/_translations',
+    'params' => ['languages' => $languages, 'years' => $years, 'urlParams' => $urlParams, 'canCreate' => in_array($auth->roleId, [3, 9])],
+];
 ?>
 <?php $sum = 0; ?>
 <table class="table table-stripped table-bordered table-hover table-condensed small">

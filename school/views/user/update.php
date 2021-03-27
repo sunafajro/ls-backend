@@ -18,7 +18,7 @@ $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Users'), 'url' => ['i
 $this->params['breadcrumbs'][] = ['label' => $model->name, 'url' => ['user/view', 'id' => $model->id]];
 $this->params['breadcrumbs'][] = Yii::t('app','Update');
 
-$this->params['sidebar'] = Html::tag('ul', Html::tag('li', 'Поля Офис и Город разблокируются автоматически при выборе роли Менеджер Офиса'));
+$this->params['sidebar'] = Html::tag('ul', 'Поля Офис и Город разблокируются автоматически при выборе роли Менеджер Офиса');
 
 echo $this->render('_form', [
     'model' => $model,

@@ -20,7 +20,7 @@ $this->title = Yii::$app->name . ' :: ' .  Yii::t('app','Roles');
 $this->params['breadcrumbs'][] = [ 'url' => ['admin/index'], 'label' => Yii::t('app','Administration')];
 $this->params['breadcrumbs'][] = Yii::t('app','Roles');
 
-$this->params['sidebar'] = $this->render('sidebars/_roles', ['menuLinks' => $menuLinks]);
+$this->params['sidebar'] = ['viewFile' => '//admin/sidebars/_roles', 'params' => ['menuLinks' => $menuLinks]];
 echo  GridView::widget([
     'dataProvider' => $dataProvider,
     'filterModel' => $searchModel,

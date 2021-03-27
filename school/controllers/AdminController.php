@@ -16,9 +16,7 @@ use yii\web\ForbiddenHttpException;
  */
 class AdminController extends Controller
 {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public function behaviors(): array
     {
         $rules = ['index', 'roles', 'education-levels'];
