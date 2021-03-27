@@ -15,13 +15,14 @@ use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\filters\AccessControl;
 
-/** 
- *  Выполняет функцию обработки всех запросов к разделу Переводы
+/**
+ * Class TranslateController
+ * @package school\controllers
  */
-
 class TranslateController extends Controller
 {
-    public function behaviors()
+    /** {@inheritDoc} */
+    public function behaviors(): array
     {
         return [
             'access' => [
@@ -42,12 +43,13 @@ class TranslateController extends Controller
             ],
         ];
     }
-	
+
+    /** {@inheritDoc} */
 	public function beforeAction($action)
 	{
 		if(parent::beforeAction($action)) {
 			if (User::checkAccess($action->controller->id, $action->id) == false) {
-				throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+				throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
 			}
 			return true;
 		} else {
@@ -56,28 +58,24 @@ class TranslateController extends Controller
 	}
 	
     /**
-     *  Метод выводит таблицу со списком переводов
      *  @return mixed
      */
-     
     public function actionTranslations()
     {
-        $params = [];
-        $url_params = [
+        $this->layout = 'main-2-column';
+        $params = self::getUrlParams([
             'translate/tranlations',
             'TSS' => NULL,
             'LANG' => NULL,
             'MONTH' => date('m'),
             'YEAR' => date('Y'),
-        ];
-        
-        $params = self::getUrlParams($url_params);
+        ]);
         
         return $this->render('translations', [
             'languages' => Translationlang::getLanguageListSimple(),
             'years' => Tool::getYearsSimple(),
             'translations'=> Translation::getTranslationList($params),
-            'url_params' => $params
+            'urlParams' => $params
         ]);
     }
     
@@ -87,14 +85,12 @@ class TranslateController extends Controller
     public function actionTranslators()
     {
         $this->layout = 'main-2-column';
-        $urlParams = [
+        $params = self::getUrlParams([
             'translate/tranlators',
             'TSS' => NULL,
             'LANG' => NULL,
             'NOTAR' => NULL
-        ];
-        
-        $params = self::getUrlParams($urlParams);
+        ]);
         
         return $this->render('translators', [
             'languages' => Translationlang::getLanguageListSimple(),
@@ -103,40 +99,39 @@ class TranslateController extends Controller
             'urlParams' => $params
         ]);
     }
-    
+
+    /**
+     *  @return mixed
+     */
     public function actionClients()
     {
-        $params = [];
-        $url_params = [
+        $this->layout = 'main-2-column';
+        $params = self::getUrlParams([
             'translate/clients',
             'TSS' => NULL,
             'LANG' => NULL
-        ];
-        
-        $params = self::getUrlParams($url_params);
+        ]);
 
         return $this->render('clients', [
-            'userInfoBlock' => User::getUserInfoBlock(),
             'clients'=> Translationclient::getClientList($params),
-            'url_params' => $params
+            'urlParams' => $params
         ]);
     }
-    
+
+    /**
+     *  @return mixed
+     */
     public function actionLanguages()
     {
-        $params = [];
-        $url_params = [
+        $this->layout = 'main-2-column';
+        $params = self::getUrlParams([
             'translate/languages',
             'TSS' => NULL
-        ];
-
-        $params = self::getUrlParams($url_params);
-        $userInfoBlock = User::getUserInfoBlock();
+        ]);
         
         return $this->render('languages', [
-            'userInfoBlock' => $userInfoBlock,
 			'languages'=> Translationlang::getLanguageList($params),
-            'url_params' => $params
+            'urlParams' => $params
         ]);
     }
 
@@ -146,27 +141,26 @@ class TranslateController extends Controller
     public function actionNorms()
     {
         $this->layout = 'main-2-column';
-        $url_params = [
+        $params = self::getUrlParams([
             'translate/norms',
             'TSS' => NULL
-        ];
-
-        $params = self::getUrlParams($url_params);
+        ]);
         
         return $this->render('norms', [
 			'norms'=> Translationnorm::getNormList($params),
             'urlParams' => $params
         ]);
     }
-    
+
     /**
-     *  Метод заполняет массив значениями из GET запроса
-     *  @return mixed
+     * Метод заполняет массив значениями из GET запроса
+     * @param array $urlParams
+     * @return array
      */
-    protected static function getUrlParams($url_params)
+    protected static function getUrlParams(array $urlParams): array
     {
-        $params = $url_params;
-        foreach($url_params as $key => $value) {
+        $params = $urlParams;
+        foreach($urlParams as $key => $value) {
             if(Yii::$app->request->get($key) != 'all' && Yii::$app->request->get($key) != '') {
                 $params[$key] = Yii::$app->request->get($key);
             }

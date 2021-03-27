@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @var View $this
  * @var array $urlParams
@@ -13,14 +14,14 @@ use yii\widgets\ActiveForm;
 <?php if ($canCreate) { ?>
     <h4><?= Yii::t('app', 'Actions') ?>:</h4>
     <div class="form-group">
-        <?= Html::a(IconHelper::icon('plus', Yii::t('app', 'Add')), ['translationnorm/create'], ['class' => 'btn btn-success btn-sm btn-block']) ?>
+        <?= Html::a(IconHelper::icon('plus', Yii::t('app', 'Add')), ['translationclient/create'], ['class' => 'btn btn-success btn-sm btn-block']) ?>
     </div>
 <?php } ?>
-<?= $this->render('_menu', ['activeItem' => 'payNorms']) ?>
+<?= $this->render('_menu', ['activeItem' => 'clients']) ?>
 <h4><?= Yii::t('app', 'Filters') ?>:</h4>
 <?php $form = ActiveForm::begin([
     'method' => 'get',
-    'action' => ['translate/norms'],
+    'action' => ['translate/clients'],
 ]);
 ?>
     <div class="form-group">
@@ -29,4 +30,4 @@ use yii\widgets\ActiveForm;
     <div class="form-group">
         <?= Html::submitButton(IconHelper::icon('filter', Yii::t('app', 'Apply')), ['class' => 'btn btn-info btn-sm btn-block']) ?>
     </div>
-<?php ActiveForm::end(); ?>
+<?php ActiveForm::end();

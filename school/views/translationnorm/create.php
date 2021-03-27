@@ -14,7 +14,7 @@ $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Translations'), 'url
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Translation pay norms'), 'url' => ['translate/norms']];
 $this->params['breadcrumbs'][] = Yii::t('app', 'Add');
 
-$this->params['sidebar'] = Html::tag('ul', Html::tag('li', 'Заполните данные новой нормы оплаты и нажмите кнопку Добавить.'));
+$this->params['sidebar'] = Html::tag('ul', Html::tag('li', 'Заполните данные новой нормы оплаты и нажмите кнопку "Добавить".'));
 
 echo $this->render('_form', [
     'model' => $model,

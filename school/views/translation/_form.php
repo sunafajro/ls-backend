@@ -1,19 +1,26 @@
 <?php
 
+/**
+ * @var View $this
+ * @var Translation $model
+ * @var ActiveForm $form
+ * @var array $clients
+ * @var array $translators
+ * @var array $languages
+ * @var array $norms
+ */
+
+use school\models\Translation;
 use yii\helpers\Html;
+use yii\web\View;
 use yii\widgets\ActiveForm;
 use kartik\datetime\DateTimePicker;
-
-/* @var $this yii\web\View */
-/* @var $model school\models\Translation */
-/* @var $form yii\widgets\ActiveForm */
 ?>
-
 <div class="translation-form">
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'data')->widget(DateTimePicker::className(), [
+    <?= $form->field($model, 'data')->widget(DateTimePicker::class, [
                     'pluginOptions' => [
                         'language' => 'ru',
                             'format' => 'yyyy-mm-dd',
@@ -26,18 +33,17 @@ use kartik\datetime\DateTimePicker;
              ]);
     ?>
 
+    <?= $form->field($model, 'calc_translationclient')->dropDownList($clients, ['prompt'=>Yii::t('app', '-select-')]) ?>
 
-    <?= $form->field($model, 'calc_translationclient')->dropDownList($items=$client, ['prompt'=>Yii::t('app', '-select-')]) ?>
+    <?= $form->field($model, 'calc_translator')->dropDownList($translators, ['prompt'=>Yii::t('app', '-select-')]) ?>
 
-    <?= $form->field($model, 'calc_translator')->dropDownList($items=$translator, ['prompt'=>Yii::t('app', '-select-')]) ?>
+    <?= $form->field($model, 'from_language')->dropDownList($languages, ['prompt'=>Yii::t('app', '-select-')]) ?>
 
-    <?= $form->field($model, 'from_language')->dropDownList($items=$language, ['prompt'=>Yii::t('app', '-select-')]) ?>
-
-    <?= $form->field($model, 'to_language')->dropDownList($items=$language, ['prompt'=>Yii::t('app', '-select-')]) ?>
+    <?= $form->field($model, 'to_language')->dropDownList($languages, ['prompt'=>Yii::t('app', '-select-')]) ?>
 
     <?= $form->field($model, 'nomination')->textInput(['maxlength' => true]) ?>
 
-    <?= $form->field($model, 'calc_translationnorm')->dropDownList($items=$norm, ['prompt'=>Yii::t('app', '-select-')]) ?>
+    <?= $form->field($model, 'calc_translationnorm')->dropDownList($norms, ['prompt'=>Yii::t('app', '-select-')]) ?>
 
     <?php
     if($model->isNewRecord){
@@ -48,7 +54,7 @@ use kartik\datetime\DateTimePicker;
         echo $form->field($model, 'printsymbcount')->textInput();
         echo $form->field($model, 'accunitcount')->textInput();
         echo $form->field($model, 'value_correction')->textInput();
-        echo $form->field($model, 'data_end')->widget(DateTimePicker::className(), [
+        echo $form->field($model, 'data_end')->widget(DateTimePicker::class, [
             'pluginOptions' => [
                 'language' => 'ru',
                     'format' => 'yyyy-mm-dd',

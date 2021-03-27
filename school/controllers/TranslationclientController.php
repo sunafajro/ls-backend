@@ -11,11 +11,13 @@ use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
 
 /**
- * TranslationclientController implements the CRUD actions for Translationclient model.
+ * Class TranslationclientController
+ * @package school\controllers
  */
 class TranslationclientController extends Controller
 {
-    public function behaviors()
+    /** {@inheritDoc} */
+    public function behaviors(): array
     {
         return [
             'access' => [
@@ -37,11 +39,12 @@ class TranslationclientController extends Controller
         ];
     }
 
+    /** {@inheritDoc} */
 	public function beforeAction($action)
 	{
-		if(parent::beforeAction($action)) {
+		if (parent::beforeAction($action)) {
 			if (User::checkAccess($action->controller->id, $action->id) == false) {
-				throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+				throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
 			}
 			return true;
 		} else {
@@ -50,12 +53,11 @@ class TranslationclientController extends Controller
 	}
 	
     /**
-     * Creates a new Translationclient model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
     public function actionCreate()
     {
+        $this->layout = 'main-2-column';
         $model = new Translationclient();
 
         if ($model->load(Yii::$app->request->post())) {
@@ -71,19 +73,18 @@ class TranslationclientController extends Controller
         } else {
             return $this->render('create', [
                 'model' => $model,
-                'userInfoBlock' => User::getUserInfoBlock(),
             ]);
         }
     }
 
     /**
-     * Updates an existing Translationclient model.
-     * If update is successful, the browser will be redirected to the 'view' page.
      * @param integer $id
      * @return mixed
+     * @throws NotFoundHttpException
      */
     public function actionUpdate($id)
     {
+        $this->layout = 'main-2-column';
         $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post())) {
@@ -96,15 +97,15 @@ class TranslationclientController extends Controller
         } else {
             return $this->render('update', [
                 'model' => $model,
-                'userInfoBlock' => User::getUserInfoBlock(),
             ]);
         }
     }
 
     /**
-    * Метод позволяет руководителям помечать клиентов как удаленные
-    */
-
+     * @param $id
+     * @return mixed
+     * @throws NotFoundHttpException
+     */
     public function actionDisable($id)
     {
         $model = $this->findModel($id);
@@ -123,11 +124,9 @@ class TranslationclientController extends Controller
     }
 
     /**
-     * Finds the Translationclient model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return Translationclient the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
+     * @return Translationclient
+     * @throws NotFoundHttpException
      */
     protected function findModel($id)
     {

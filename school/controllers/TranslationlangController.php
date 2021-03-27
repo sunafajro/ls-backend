@@ -11,14 +11,13 @@ use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
 
 /**
- * TranslationlangController implements the CRUD actions for Translationlang model.
+ * Class TranslationlangController
+ * @package school\controllers
  */
 class TranslationlangController extends Controller
 {
-    /**
-     * @inheritdoc
-     */
-    public function behaviors()
+    /** {@inheritdoc} */
+    public function behaviors(): array
     {
         return [
             'access' => [
@@ -40,11 +39,12 @@ class TranslationlangController extends Controller
         ];
     }
 
+    /** {@inheritdoc} */
     public function beforeAction($action)
     {
         if(parent::beforeAction($action)) {
             if (User::checkAccess($action->controller->id, $action->id) == false) {
-                throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+                throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
             }
             return true;
         } else {
@@ -53,14 +53,14 @@ class TranslationlangController extends Controller
     }
 
     /**
-     * Creates a new Translationlang model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
+     * @throws \Exception
      */
     public function actionCreate()
     {
-        $model = new Translationlang();
+        $this->layout = 'main-2-column';
 
+        $model = new Translationlang();
         if ($model->load(Yii::$app->request->post())) {
             $model->visible = 1;
             $model->data = date('Y-m-d');
@@ -74,21 +74,20 @@ class TranslationlangController extends Controller
         } else {
             return $this->render('create', [
                 'model' => $model,
-                'userInfoBlock' => User::getUserInfoBlock()
             ]);
         }
     }
 
     /**
-     * Updates an existing Translationlang model.
-     * If update is successful, the browser will be redirected to the 'view' page.
      * @param integer $id
      * @return mixed
+     * @throws NotFoundHttpException
      */
     public function actionUpdate($id)
     {
-        $model = $this->findModel($id);
+        $this->layout = 'main-2-column';
 
+        $model = $this->findModel($id);
         if ($model->load(Yii::$app->request->post())) {
             if($model->save()) {
                 Yii::$app->session->setFlash('success', 'Язык успешно изменен!');
@@ -99,16 +98,14 @@ class TranslationlangController extends Controller
         } else {
             return $this->render('update', [
                 'model' => $model,
-                'userInfoBlock' => User::getUserInfoBlock()
             ]);
         }
     }
 
     /**
-     * Deletes an existing Translationlang model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param integer $id
      * @return mixed
+     * @throws NotFoundHttpException
      */
     public function actionDelete($id)
     {
@@ -129,11 +126,9 @@ class TranslationlangController extends Controller
     }
 
     /**
-     * Finds the Translationlang model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return Translationlang the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
+     * @return Translationlang
+     * @throws NotFoundHttpException
      */
     protected function findModel($id)
     {

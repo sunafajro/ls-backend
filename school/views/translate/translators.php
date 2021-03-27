@@ -16,10 +16,9 @@ use yii\web\View;
 $this->title = Yii::$app->name . ' :: ' . Yii::t('app','Translators');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Translations'), 'url' => ['translate/translations']];
 $this->params['breadcrumbs'][] = Yii::t('app','Translators');
-
-$this->params['sidebar'] = $this->render('sidebars/_translators', ['languages' => $languages, 'urlParams' => $urlParams]);
 /** @var Auth $auth */
 $auth = \Yii::$app->user->identity;
+$this->params['sidebar'] = $this->render('sidebars/_translators', ['languages' => $languages, 'urlParams' => $urlParams, 'canCreate' => in_array($auth->roleId, [3, 9])]);
 ?>
 <table class="table table-stripped table-bordered table-hover table-condensed small">
     <thead>
@@ -34,7 +33,7 @@ $auth = \Yii::$app->user->identity;
             <th>Скайп</th>
             <th>Комментарии</th>
             <?php if (in_array($auth->roleId, [3, 9])) { ?>
-                <th>Действия</th>
+                <th><?= Yii::t('app','Act.') ?></th>
             <?php } ?>
         </tr>
     </thead>

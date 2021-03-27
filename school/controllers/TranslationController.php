@@ -15,11 +15,13 @@ use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
 
 /**
- * TranslationController implements the CRUD actions for Translation model.
+ * Class TranslationController
+ * @package school\controllers
  */
 class TranslationController extends Controller
 {
-    public function behaviors()
+    /** {@inheritDoc} */
+    public function behaviors(): array
     {
         return [
             'access' => [
@@ -40,34 +42,38 @@ class TranslationController extends Controller
             ],
         ];
     }
-	
+
+    /** {@inheritDoc} */
 	public function beforeAction($action)
 	{
 		if(parent::beforeAction($action)) {
 			if (User::checkAccess($action->controller->id, $action->id) == false) {
-				throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+				throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
 			}
 			return true;
 		} else {
 			return false;
 		}
 	}
-	
+
     /**
-     * Метод позволяет руководителям внести в таблицу запись о переводе
+     * @return mixed
+     * @throws \Exception
      */
     public function actionCreate()
     {
+        $this->layout = 'main-2-column';
+
         $model = new Translation();
         $model->data = date('Y-m-d');
         if ($model->load(Yii::$app->request->post())) {
             $model->visible = 1;
             $model->user = Yii::$app->session->get('user.uid');            
-            if(($n = Translationnorm::findOne($model->calc_translationnorm)) !== null) {
+            if (($n = Translationnorm::findOne($model->calc_translationnorm)) !== null) {
                 $model->value = $model->accunitcount * $n->value;
             }
             $model->value = $model->value + $model->value_correction;
-            if($model->save()) {
+            if ($model->save()) {
                 Yii::$app->session->setFlash('success', 'Новый перевод успешно добавлен!');
             } else {
                 Yii::$app->session->setFlash('error', 'Не удалось добавить новый перевод!');
@@ -75,24 +81,24 @@ class TranslationController extends Controller
             return $this->redirect(['translate/translations']);
         } else {
             return $this->render('create', [
-                'userInfoBlock' => User::getUserInfoBlock(),
                 'model' => $model,
-                'language' => Translationlang::getLanguageListSimple(),
-                'client' => Translationclient::getClientListSimple(),
-                'translator' => Translator::getTranslatorListSimple(),
-                'norm' => Translationnorm::getNormListSimple(),
+                'languages' => Translationlang::getLanguageListSimple(),
+                'clients' => Translationclient::getClientListSimple(),
+                'translators' => Translator::getTranslatorListSimple(),
+                'norms' => Translationnorm::getNormListSimple(),
             ]);
         }
     }
 
     /**
-     * Updates an existing Translation model.
-     * If update is successful, the browser will be redirected to the 'view' page.
      * @param integer $id
      * @return mixed
+     * @throws NotFoundHttpException
      */
     public function actionUpdate($id)
     {
+        $this->layout = 'main-2-column';
+
         $model = $this->findModel($id);
         if ($model->data_end === '0000-00-00') {
             $model->data_end = date('Y-m-d');
@@ -110,20 +116,20 @@ class TranslationController extends Controller
             return $this->redirect(['translate/translations']);
         } else {
             return $this->render('update', [
-                'userInfoBlock' => User::getUserInfoBlock(),
                 'model' => $model,
-                'language' => Translationlang::getLanguageListSimple(),
-                'client' => Translationclient::getClientListSimple(),
-                'translator' => Translator::getTranslatorListSimple(),
-                'norm' => Translationnorm::getNormListSimple(),
+                'languages' => Translationlang::getLanguageListSimple(),
+                'clients' => Translationclient::getClientListSimple(),
+                'translators' => Translator::getTranslatorListSimple(),
+                'norms' => Translationnorm::getNormListSimple(),
             ]);
         }
     }
 
     /**
-    * Метод позволяет руководителям помечать переводы как удаленные
-    */
-
+     * @param $id
+     * @return mixed
+     * @throws NotFoundHttpException
+     */
     public function actionDisable($id)
     {
 		$model = $this->findModel($id);
@@ -142,11 +148,9 @@ class TranslationController extends Controller
     }
 
     /**
-     * Finds the Translation model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return Translation the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
+     * @return Translation
+     * @throws NotFoundHttpException
      */
     protected function findModel($id)
     {

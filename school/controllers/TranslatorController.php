@@ -11,7 +11,8 @@ use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
 
 /**
- * TranslatorController implements the CRUD actions for Translator model.
+ * Class TranslatorController
+ * @package school\controllers
  */
 class TranslatorController extends Controller
 {
@@ -61,8 +62,8 @@ class TranslatorController extends Controller
     public function actionCreate()
     {
         $this->layout = 'main-2-column';
-        $model = new Translator();
 
+        $model = new Translator();
         if ($model->load(Yii::$app->request->post())) {
             $model->lname = trim($model->lname);
             $model->fname = trim($model->fname);
@@ -99,8 +100,8 @@ class TranslatorController extends Controller
     public function actionUpdate($id)
     {
         $this->layout = 'main-2-column';
-        $model = $this->findModel($id);
 
+        $model = $this->findModel($id);
         if ($model->load(Yii::$app->request->post())) {
             $model->lname = trim($model->lname);
             $model->fname = trim($model->fname);

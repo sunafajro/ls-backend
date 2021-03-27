@@ -11,7 +11,8 @@ use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
 
 /**
- * TranslationnormController implements the CRUD actions for Translationnorm model.
+ * Class TranslationnormController
+ * @package school\controllers
  */
 class TranslationnormController extends Controller
 {
@@ -62,8 +63,8 @@ class TranslationnormController extends Controller
     public function actionCreate()
     {
         $this->layout = 'main-2-column';
-        $model = new Translationnorm();
 
+        $model = new Translationnorm();
         if ($model->load(Yii::$app->request->post())) {
             $model->user = Yii::$app->session->get('user.uid');
             $model->data = date('Y-m-d'); 
@@ -89,8 +90,8 @@ class TranslationnormController extends Controller
     public function actionUpdate($id)
     {
         $this->layout = 'main-2-column';
-        $model = $this->findModel($id);
 
+        $model = $this->findModel($id);
         if ($model->load(Yii::$app->request->post())) {
             if($model->save()) {
                 Yii::$app->session->setFlash('success', 'Норма оплаты успешно изменена!');

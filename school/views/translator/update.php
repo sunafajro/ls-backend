@@ -21,5 +21,5 @@ $this->params['sidebar'] = Html::tag('ul', join('', [
 ]));
 
 echo $this->render('_form', [
-'model' => $model,
+    'model' => $model,
 ]);
