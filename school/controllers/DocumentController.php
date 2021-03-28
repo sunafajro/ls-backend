@@ -64,9 +64,9 @@ class DocumentController extends Controller
      */
     public function beforeAction($action): bool
     {
-		if(parent::beforeAction($action)) {
+		if (parent::beforeAction($action)) {
 			if (AccessRule::checkAccess($action->controller->id, $action->id) === false) {
-				throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+				throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
 			}
 			return true;
 		} else {
@@ -79,6 +79,7 @@ class DocumentController extends Controller
      */
     public function actionIndex()
     {
+        $this->layout = 'main-2-column';
         $searchModel = new DocumentSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->get());
 
@@ -127,7 +128,7 @@ class DocumentController extends Controller
             }
             return $this->redirect(['document/index']);
         }
-        throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+        throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
     }
 
     /**
@@ -147,7 +148,7 @@ class DocumentController extends Controller
         $errorMessage = Yii::t('app', 'Failed to delete file!');
         try {
             if (!in_array($roleId, [3]) && $file->user_id !== $userId) {
-                throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+                throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
             }
             if ($file->delete()) {
                 Yii::$app->session->setFlash('success', Yii::t('app', 'File successfully deleted!'));
