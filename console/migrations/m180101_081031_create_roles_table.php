@@ -14,8 +14,8 @@ class m180101_081031_create_roles_table extends Migration
     {
         $this->createTable('{{%roles}}', [
             'id'           => $this->primaryKey(),
-            'visible'      => $this->tinyInteger(),
-            'name'         => $this->string(),
+            'visible'      => $this->tinyInteger()->notNull()->defaultValue(1),
+            'name'         => $this->string()->notNull(),
             'description'  => $this->string(),
         ]);
     }
