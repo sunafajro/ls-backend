@@ -53,7 +53,7 @@ foreach ($news as $n) { ?>
             <p><?= $n->body ?></p>
         </div>
         <div class="panel-footer small">
-            <i><?= $n->user->name ?> <?= date('d.m.Y', strtotime($n->date)) ?> в <?= date('H:m', strtotime($n->date)) ?></i>
+            <i><?= $n->user->name ?> <?= date('d.m.Y', strtotime($n->date)) ?> в <?= date('H:i', strtotime($n->date)) ?></i>
         </div>
     </div>
 <?php }
