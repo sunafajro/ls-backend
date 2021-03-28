@@ -12,7 +12,7 @@ class m201027_183715_add_column_module_type_to_users_table extends Migration
      */
     public function safeUp()
     {
-        $this->addColumn('{{%users}}', 'module_type', $this->string());
+        $this->addColumn('{{%users}}', 'module_type', $this->string()->notNull());
     }
 
     /**

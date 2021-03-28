@@ -12,7 +12,7 @@ class m201027_183815_add_column_module_type_to_roles_table extends Migration
      */
     public function safeUp()
     {
-        $this->addColumn('{{%roles}}', 'module_type', $this->string());
+        $this->addColumn('{{%roles}}', 'module_type', $this->string()->notNull());
     }
 
     /**

@@ -14,12 +14,12 @@ class m180101_081030_create_users_table extends Migration
     {
         $this->createTable('{{%users}}', [
             'id'           => $this->primaryKey(),
-            'site'         => $this->tinyInteger(),
-            'visible'      => $this->tinyInteger(),
-            'login'        => $this->string(),
-            'pass'         => $this->string(),
-            'name'         => $this->string(),
-            'status'       => $this->integer(),
+            'site'         => $this->tinyInteger()->defaultValue(0),
+            'visible'      => $this->tinyInteger()->notNull()->defaultValue(1),
+            'login'        => $this->string()->notNull(),
+            'pass'         => $this->string()->notNull(),
+            'name'         => $this->string()->notNull(),
+            'status'       => $this->integer()->notNull(),
             'calc_office'  => $this->integer(),
             'calc_teacher' => $this->integer(),
             'calc_city'    => $this->integer(),
