@@ -169,8 +169,8 @@ class Navigation extends BaseNavigation
                 'cnt' => false
             ];
         }        
-        if (in_array($roleId, [3, 4])) {
-            /* ссылка на раздел Скидки */
+        if (in_array($roleId, [3, 4, 5, 6, 8])) {
+            /* ссылка на раздел Документы */
             $menu[] = [
                 'id' => 'documents',
                 'url' => Url::to(['document/index']),
