@@ -16,7 +16,7 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Create');
 
 $this->params['sidebar'] = '';
 
-$this->render('_form', [
+echo $this->render('_form', [
     'model'      => $model ?? null,
     'languages'  => $languages ?? [],
 ]);

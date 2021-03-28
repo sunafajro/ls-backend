@@ -28,7 +28,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Documents');
 $user   = Yii::$app->user->identity;
 $roleId = $user->roleId;
 $userId = $user->id;
-$this->params['sidebar'] = ['viewFile' => '//document/sidebars/_index', 'params' => ['uploadForm' => $uploadForm, 'roleId' => $roleId]];
+$this->params['sidebar'] = ['uploadForm' => $uploadForm, 'roleId' => $roleId];
 
 echo Tabs::widget([
     'items' => [

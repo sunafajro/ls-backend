@@ -6,6 +6,7 @@ use school\traits\StudentMergeTrait;
 use Yii;
 
 use yii\data\ActiveDataProvider;
+use yii\db\ActiveRecord;
 
 /**
  * This is the model class for table "receipts".
@@ -22,14 +23,14 @@ use yii\data\ActiveDataProvider;
  * @property string  $qrdata
  */
 
-class Receipt extends \yii\db\ActiveRecord
+class Receipt extends ActiveRecord
 {
     use StudentMergeTrait;
     
     /**
      * @inheritdoc
      */
-    public static function tableName()
+    public static function tableName(): string
     {
         return 'receipts';
     }
@@ -37,9 +38,10 @@ class Receipt extends \yii\db\ActiveRecord
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         return [
+            [['purpose', 'name', 'payer', 'sum'], 'trim'],
             [['student_id', 'purpose', 'name', 'sum', 'qrdata'], 'required'],
             [['student_id', 'user_id', 'visible'], 'integer'],
             [['created_at', 'sum'], 'safe'],
@@ -53,7 +55,7 @@ class Receipt extends \yii\db\ActiveRecord
         /**
      * @inheritdoc
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'name'       => Yii::t('app', 'Full name'),
@@ -106,7 +108,7 @@ class Receipt extends \yii\db\ActiveRecord
         'value' => '213001001',
     ];
 
-    public static function receiptFormParams()
+    public static function receiptFormParams(): array
     {
         return [
             self::RECEIPT_COMPANY,
@@ -119,7 +121,7 @@ class Receipt extends \yii\db\ActiveRecord
         ];
     }
 
-    public static function receiptParamsStringified()
+    public static function receiptParamsStringified(): string
     {
         $params = [
             self::RECEIPT_CODE,
@@ -136,7 +138,10 @@ class Receipt extends \yii\db\ActiveRecord
         return implode('|', $params);
     }
 
-    public function delete()
+    /**
+     * @return bool
+     */
+    public function delete(): bool
     {
         $this->visible = 0;
         
@@ -144,7 +149,8 @@ class Receipt extends \yii\db\ActiveRecord
     }
 
     /**
-     *  метод возвращает одну квитанцию по id
+     * @param int $id
+     * @return array
      */
     public function getReceipt(int $id) : array
     {
@@ -172,7 +178,8 @@ class Receipt extends \yii\db\ActiveRecord
     }
 
     /**
-     *  метод возвращает список квитанций
+     * @param int $sid
+     * @return ActiveDataProvider
      */
     public function getReceipts(int $sid) : ActiveDataProvider
     {

@@ -6,7 +6,6 @@ use Yii;
 use school\models\AccessRule;
 use school\models\Receipt;
 use school\models\Student;
-use school\models\User;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
@@ -14,11 +13,13 @@ use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 
 /**
- * ReceiptController implements the CRUD actions for receipt model.
+ * Class ReceiptController
+ * @package school\controllers
  */
 class ReceiptController extends Controller
 {
-    public function behaviors()
+    /** {@inheritDoc} */
+    public function behaviors(): array
     {
         $actions = ['index', 'common', 'create', 'delete', 'download-receipt'];
         return [
@@ -49,11 +50,12 @@ class ReceiptController extends Controller
         ];
     }
 
+    /** {@inheritDoc} */
     public function beforeAction($action)
 	{
 		if(parent::beforeAction($action)) {
 			if (AccessRule::checkAccess($action->controller->id, $action->id) === false) {
-				throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+				throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
 			}
 			return true;
 		} else {
@@ -62,11 +64,12 @@ class ReceiptController extends Controller
     }
 
     /**
-     * Lists all Receipt models.
+     * @param $sid
      * @return mixed
      */
     public function actionIndex($sid)
     {
+        $this->layout = 'main-2-column';
         $student = Student::findOne($sid);
         $receipt = new Receipt();
         $receipt->name = $student->name;
@@ -78,19 +81,22 @@ class ReceiptController extends Controller
             'receipts'        => $receipt->getReceipts(intval($sid)),
             'student'         => $student,
             'contract'        => array_pop($contracts),
-            'userInfoBlock'   => User::getUserInfoBlock(),
         ]);
     }
 
+    /**
+     * @param $sid
+     * @return mixed
+     */
     public function actionCreate($sid)
     {
         $receipt = new Receipt();
         if ($receipt->load(Yii::$app->request->post())) {
-            $sum = str_replace(',', '.', $receipt->sum);
-            $receipt->sum = $sum * 100;
+            $oldSum = $receipt->sum;
+            $receipt->sum = $receipt->sum * 100;
             $receipt->student_id = $sid;
             // добавляем id клиента для идентификации
-            $receipt->purpose = $receipt->purpose . '. Клиент №' . $sid . '.';
+            $receipt->purpose = "{$receipt->purpose}. Клиент №{$sid}.";
             $receipt->qrdata = Receipt::receiptParamsStringified() . '|';
             $receipt->qrdata .= Receipt::RECEIPT_LASTNAME . '=' . mb_strtoupper($receipt->name)    . '|';
             $receipt->qrdata .= Receipt::RECEIPT_PURPOSE  . '=' . mb_strtoupper($receipt->purpose) . '|';
@@ -98,35 +104,39 @@ class ReceiptController extends Controller
             if ($receipt->save()) {
                 Yii::$app->session->setFlash('success', "Квитанция успешно добавлена!");
             } else {
+                $receipt->sum = $oldSum;
                 Yii::$app->session->setFlash('error', "Не удалось добавить квитанцию!");
             }
         }
         return $this->redirect(['receipt/index', 'sid' => $sid]);
     }
 
+    /**
+     * @return mixed
+     */
     public function actionCommon()
     {
+        $this->layout = 'main-2-column';
         $model = new Receipt();
 
         return $this->render('common', [
-            'model'         => $model,
-            'userInfoBlock' => User::getUserInfoBlock(),
+            'model' => $model,
         ]);
     }
 
+    /**
+     * @param $id
+     * @return mixed
+     * @throws NotFoundHttpException
+     */
     public function actionDelete($id)
     {
         $receipt = Receipt::findOne(intval($id));
         if ($receipt !== NULL) {
-            if ((int)$receipt->visible === 1) {
-                $receipt->visible = 0;
-                if ($receipt->save()) {
-                    Yii::$app->session->setFlash('success', "Квитанция успешно удалена!");
-                } else {
-                    Yii::$app->session->setFlash('error', "Ошибка удаления квитанции!");
-                }
+            if ($receipt->delete()) {
+                Yii::$app->session->setFlash('success', "Квитанция успешно удалена!");
             } else {
-                Yii::$app->session->setFlash('error', "Квитанция не является действующей!");
+                Yii::$app->session->setFlash('error', "Ошибка удаления квитанции!");
             }
             return $this->redirect(['receipt/index', 'sid' => $receipt->student_id]);
         } else {
@@ -134,7 +144,11 @@ class ReceiptController extends Controller
         }
     }
 
-    public function actionDownloadReceipt($id = null)
+    /**
+     * @param string|null $id
+     * @return mixed
+     */
+    public function actionDownloadReceipt(string $id = null)
     {
         $this->layout = 'print';
         $model = new Receipt();
@@ -145,7 +159,7 @@ class ReceiptController extends Controller
         } else {
             $model->load(Yii::$app->request->get());
             $receipt['payer']   = $model->payer ?? '';
-            $receipt['sum']     = str_replace(',', '.', $model->sum ?? '');
+            $receipt['sum']     = $model->sum ?? 0;
             $receipt['purpose'] = $model->purpose ?? '';
             $receipt['qrdata']  = join('|', [
                 Receipt::receiptParamsStringified(),

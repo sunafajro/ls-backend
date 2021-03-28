@@ -2,6 +2,7 @@
 
 namespace school\controllers;
 
+use school\models\Auth;
 use school\models\SpendSuccesses;
 use Yii;
 use school\models\Contract;
@@ -32,12 +33,13 @@ use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
 use yii\web\BadRequestHttpException;
 
-/*
- * StudnameController implements the CRUD actions for Student model.
+/**
+ * Class StudnameController
+ * @package school\controllers
  */
 class StudnameController extends Controller
 {
-    public function behaviors()
+    public function behaviors(): array
     {
         $rules = [
             'index', 'view', 'create', 'update', 'delete',
@@ -83,7 +85,7 @@ class StudnameController extends Controller
 	{
 		if(parent::beforeAction($action)) {
 			if (User::checkAccess($action->controller->id, $action->id) === false) {
-				throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+				throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
 			}
 			return true;
 		} else {
@@ -96,8 +98,11 @@ class StudnameController extends Controller
      */
     public function actionIndex()
     {
+        $this->layout = 'main-2-column';
         $request = Yii::$app->request;
-        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        /** @var Auth $user */
+        $user   = Yii::$app->user->identity;
+        $roleId = $user->roleId;
 
         // по умолчанию поиск по имени
         $tss = $request->get('TSS') ? $request->get('TSS') : NULL;
@@ -256,7 +261,9 @@ class StudnameController extends Controller
     {
         /** @var Student $student */
         $student = $this->findModel($id);
-        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        /** @var Auth $user */
+        $user   = Yii::$app->user->identity;
+        $roleId = $user->roleId;
         // проверяем какие данные выводить в карочку преподавателя: 1 - активные группы, 2 - завершенные группы, 3 - счета; 4 - оплаты
         if (Yii::$app->request->get('tab')) {
             switch(Yii::$app->request->get('tab')){

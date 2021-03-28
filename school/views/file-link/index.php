@@ -28,7 +28,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Внешние ресурсы');
 $user   = Yii::$app->user->identity;
 $roleId = $user->roleId;
 $userId = $user->id;
-$this->params['sidebar'] = ['viewFile' => '//file-link/sidebars/_index', 'params' => ['model' => $model, 'roleId' => $roleId]];
+$this->params['sidebar'] = ['model' => $model, 'roleId' => $roleId];
 
 echo Tabs::widget([
     'items' => [

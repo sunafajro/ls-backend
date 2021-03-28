@@ -22,7 +22,7 @@ use yii\web\View;
 
 $this->title = Yii::$app->name . ' :: ' . Yii::t('app','Users');
 $this->params['breadcrumbs'][] = Yii::t('app','Users');
-$this->params['sidebar'] = ['viewFile' => '//user/sidebars/_index', 'params' => []];
+$this->params['sidebar'] = [];
 
 echo GridView::widget([
     'dataProvider' => $dataProvider,

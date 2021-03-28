@@ -16,10 +16,7 @@ $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Translations'), 'url
 $this->params['breadcrumbs'][] = Yii::t('app','Translation pay norms');
 /** @var Auth $auth */
 $auth = \Yii::$app->user->identity;
-$this->params['sidebar'] = [
-    'viewFile' => '//translate/sidebars/_norms',
-    'params' => ['urlParams' => $urlParams, 'canCreate' => in_array($auth->roleId, [3, 9])],
-];
+$this->params['sidebar'] = ['urlParams' => $urlParams, 'canCreate' => in_array($auth->roleId, [3, 9])];
 ?>
 <table class="table table-stripped table-hover table-condensed table-bordered small">
     <thead>

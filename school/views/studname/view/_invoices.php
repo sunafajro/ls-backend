@@ -29,7 +29,7 @@ function calculateSales(array $invoice): string
 }
 
 for ($i = 1; $i <= 3; $i++) { ?>
-    <?php if ($invcount[$i] > 0) { ?>
+    <?php if (!empty($invcount[$i]) && $invcount[$i] > 0) { ?>
         <div class="panel panel-default">
 			<div class="panel-heading" role="tab" id="collapseInvoiceGroupHeading<?= $i ?>">
 			    <h4 id="-collapsible-list-group-" class="panel-title">

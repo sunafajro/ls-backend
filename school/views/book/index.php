@@ -24,10 +24,7 @@ $this->params['breadcrumbs'][] = Yii::t('app','Books');
 
 /** @var Auth $auth */
 $auth = \Yii::$app->user->identity;
-$this->params['sidebar'] = [
-    'viewFile' => '//book/sidebars/_index',
-    'params' => ['bookOrder' => $bookOrder, 'bookOrderCounters' => $bookOrderCounters, 'roleId' => $auth->roleId],
-];
+$this->params['sidebar'] = ['bookOrder' => $bookOrder, 'bookOrderCounters' => $bookOrderCounters, 'roleId' => $auth->roleId];
 
 $columns = [];
 $columns['id']          = ['attribute' => 'id'];
@@ -44,7 +41,7 @@ $columns['language']    = [
     }
 ];
 
-if (in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7])) {
+if (in_array($auth->roleId, [3, 7])) {
     $columns['purchase_cost'] = [
         'attribute' => 'purchase_cost',
         'value'     => function (array $book) {
@@ -55,7 +52,7 @@ if (in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7])) {
 }
 $columns['selling_cost'] = [
     'attribute' => 'selling_cost',
-    'label'     => in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7]) ? 'Цена продажи' : 'Цена',
+    'label'     => in_array($auth->roleId, [3, 7]) ? 'Цена продажи' : 'Цена',
     'value'     => function (array $book) {
         $bookCost = BookCost::find()->andWhere(['book_id' => $book['id'], 'type' => BookCost::TYPE_SELLING, 'visible' => 1])->one();
         return $bookCost->cost ?? null;
@@ -65,7 +62,7 @@ $columns['actions'] = [
     'attribute' => 'actions',
     'format'    => 'raw',
     'label'     => Yii::t('app', 'Act.'),
-    'value'     => function (array $book) use ($bookOrder) {
+    'value'     => function (array $book) use ($bookOrder, $auth) {
         $actions = [];
         $bookCost = BookCost::find()->andWhere(['book_id' => $book['id'], 'type' => BookCost::TYPE_PURCHASE, 'visible' => 1])->one();
         if (!empty($bookOrder) && !empty($bookCost)) {
@@ -75,7 +72,7 @@ $columns['actions'] = [
                 ['title' => Yii::t('app', 'Add to the order')]
             );
         }
-        if (in_array((int)Yii::$app->session->get('user.ustatus'), [3, 7])) {
+        if (in_array($auth->roleId, [3, 7])) {
             $actions[] = Html::a(
                 Html::tag('i', '', ['class' => 'fa fa-edit', 'aria-hidden' => 'true']),
                 ['book/update', 'id' => $book['id']],

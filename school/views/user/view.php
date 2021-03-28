@@ -24,7 +24,7 @@ $this->params['breadcrumbs'][] = $user->name;
 
 UserViewAsset::register($this);
 
-$this->params['sidebar'] = ['viewFile' => '//user/sidebars/_view', 'params' => ['can' => $can, 'user' => $user]];
+$this->params['sidebar'] = ['can' => $can, 'user' => $user];
 
 if ($can['updateUser']) { ?>
     <div style="margin-bottom: 1rem">

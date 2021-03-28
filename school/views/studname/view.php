@@ -22,7 +22,9 @@
  * @var array              $loginStatus
  */
 
+use common\components\helpers\IconHelper;
 use school\assets\StudentViewAsset;
+use school\models\Auth;
 use school\models\searches\LessonSearch;
 use school\models\Student;
 use common\widgets\alert\AlertWidget;
@@ -33,13 +35,15 @@ use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
 
-$this->title = Yii::$app->params['appTitle'] . Yii::t('app', 'Students') . ' :: ' . $model->name;
+$this->title = Yii::$app->name . ' :: ' . $model->name;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Clients'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $model->name;
 
 StudentViewAsset::register($this);
 
-$roleId = (int)Yii::$app->session->get('user.ustatus');
+/** @var Auth $user */
+$user   = Yii::$app->user->identity;
+$roleId = $user->roleId;
 
 // проверяем какие данные выводить в карочку преподавателя: 1 - активные группы, 2 - завершенные группы, 3 - счета; 4 - оплаты
 if (Yii::$app->request->get('tab')) {
@@ -68,14 +72,9 @@ if (Yii::$app->request->get('tab')) {
             <ul class="list-group" style="margin-bottom: 10px">
             <?php foreach ($offices['added'] as $o) { ?>
                 <li class="list-group-item list-group-item-warning">
-                    <?php if (
-                        (
-                            (int)Yii::$app->session->get('user.ustatus') === 3 ||
-                            (int)Yii::$app->session->get('user.ustatus') === 4
-                        ) && (int)$model->active === 1
-                    ) {
+                    <?php if (in_array($roleId, [3, 4]) && (int)$model->active === 1) {
                         echo Html::a(
-                            Html::tag('i', '', ['class' => 'fa fa-trash', 'aria-hidden' => true]),
+                            IconHelper::icon('trash'),
                             ['studname/change-office', 'sid' => $model->id, 'action' => 'delete'],
                             [
                                 'data' => [
@@ -88,7 +87,7 @@ if (Yii::$app->request->get('tab')) {
                             ]);
                         if ($o['isMain'] !== '1') {
                             echo ' ' . Html::a(
-                                Html::tag('i', '', ['class' => 'fa fa-star-o', 'aria-hidden' => true]),
+                                IconHelper::icon('star-o'),
                                 ['studname/change-office', 'sid' => $model->id, 'action' => 'set-main'],
                                 [
                                     'data' => [
@@ -127,7 +126,7 @@ if (Yii::$app->request->get('tab')) {
                 <?php } ?>
                 </select>
             </div>
-            <?= Html::submitButton('<i class="fa fa-plus" aria-hidden="true"></i> ' . Yii::t('app', 'Add'), ['class' => 'btn btn-success btn-sm btn-block']) ?>
+            <?= Html::submitButton(IconHelper::icon('plus',  Yii::t('app', 'Add')), ['class' => 'btn btn-success btn-sm btn-block']) ?>
             <?php ActiveForm::end(); ?>
         <?php } ?>
     </div>
@@ -157,13 +156,13 @@ if (Yii::$app->request->get('tab')) {
         <?php
             $userInfo = [];
             if (isset($model->birthdate) && $model->birthdate !== '' && $model->birthdate !== '0000-00-00') {
-                $userInfo[] = Html::tag('i', '', ['class' => 'fa fa-birthday-cake', 'aria-hidden' => true]) . ' ' . date('d.m.y', strtotime($model->birthdate));
+                $userInfo[] = IconHelper::icon('birthday-cake', date('d.m.y', strtotime($model->birthdate)));
             }
             if (isset($model->phone) && $model->phone !== '') {
-                $userInfo[] = Html::tag('i', '', ['class' => 'fa fa-phone', 'aria-hidden' => true]) . ' ' . Html::encode($model->phone);
+                $userInfo[] = IconHelper::icon('phone', Html::encode($model->phone));
             }
             if (preg_match('/.+@.+/', $model->email ?? '')) {
-                $userInfo[] = Html::tag('i', '', ['class' => 'fa fa-envelope', 'aria-hidden' => true]) . ' ' . Html::encode($model->email);
+                $userInfo[] = IconHelper::icon('envelope', Html::encode($model->email));
             }
         ?>
 		<?= Html::tag('h4', implode(' :: ', $userInfo)) ?>
@@ -244,7 +243,7 @@ if (Yii::$app->request->get('tab')) {
                 </b> р.
                 <?php if (in_array($roleId, [3, 4])) {
                     echo Html::a(
-                            Html::tag('i', '', ['class' => 'fa fa-refresh', 'aria-hidden' => 'true']),
+                            IconHelper::icon('refresh'),
                             ['studname/update-debt', 'sid' => $model->id],
                             [
                                 'class' => 'btn btn-default btn-xs',
