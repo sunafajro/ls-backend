@@ -5,7 +5,9 @@ namespace school\controllers;
 use school\models\forms\LoginForm;
 use school\models\LoginLog;
 use school\models\News;
+use school\models\searches\NewsSearch;
 use Yii;
+use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
@@ -61,21 +63,24 @@ class SiteController extends Controller
     }
 
     /**
+     * @param string|null $startDate
+     * @param string|null $endDate
      * @return mixed
      */
-    public function actionIndex()
+    public function actionIndex(string $startDate = null, string $endDate = null)
     {
         $this->layout = 'main-2-column';
-        $params = ['month' => date('m'), 'year' => date('Y')];
-        $urlParams = self::getUrlParams($params);
 
-        return $this->render('index',[
-            'urlParams' => $urlParams,
-			'news'      => News::find()
-                ->active()
-                ->andFilterWhere(['MONTH(date)' => $urlParams['month']])
-                ->andFilterWhere(['YEAR(date)'  => $urlParams['year']])
-                ->all(),
+        $searchModel = new NewsSearch();
+        $dataProvider = $searchModel->search(\Yii::$app->request->get());
+
+        return $this->render('index', [
+            'urlParams' => [
+                'startDate' => $startDate,
+                'endDate' => $endDate,
+            ],
+			'dataProvider' => $dataProvider,
+            'searchModel' => $searchModel,
 	    ]);
     }
 
@@ -147,23 +152,6 @@ class SiteController extends Controller
         return [
             Yii::$app->request->csrfParam => Yii::$app->request->getCsrfToken()
         ];
-    }
-
-    /**
-     * @param array $params
-     *
-     * @return array
-     */
-    private static function getUrlParams(array $params)
-    {
-        if(!empty(Yii::$app->request->get())) {
-            foreach(Yii::$app->request->get() as $key => $value) {
-                if(array_key_exists($key, $params)) {
-                    $params[$key] = $value;
-                }
-            }
-        }
-        return $params;
     }
 
     /**

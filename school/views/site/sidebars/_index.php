@@ -2,50 +2,45 @@
 /**
  * @var View $this
  * @var ActiveForm $form
- * @var integer $roleId
- * @var array $urlParams
+ * @var NewsSearch $searchModel
  */
-?>
-<?php use common\components\helpers\DateHelper;
+
 use common\components\helpers\IconHelper;
+use school\models\Auth;
+use school\models\searches\NewsSearch;
+use school\widgets\filters\FiltersWidget;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
 
-if (in_array($roleId, [3])) { ?>
-    <h4><?= Yii::t('app', 'Actions') ?>:</h4>
-    <?= Html::a(
+/** @var Auth $auth */
+$auth = Yii::$app->user->identity;
+
+if (in_array($auth->roleId, [3])) {
+    echo Html::tag('h4', Yii::t('app', 'Actions') . ':');
+    echo Html::a(
         IconHelper::icon('plus') . ' ' . Yii::t('app', 'News'),
         ['news/create'],
         ['class' => 'btn btn-success btn-sm btn-block']
-    ) ?>
-<?php } ?>
-<h4><?= Yii::t('app', 'Filters') ?>:</h4>
-<?php
-$form = ActiveForm::begin([
-    'method' => 'get',
-    'action' => ['site/index'],
+    );
+}
+
+echo FiltersWidget::widget([
+    'actionUrl' => ['site/index'],
+    'items' => [
+        [
+            'type' => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+            'name' => 'NewsSearch[startDate]',
+            'title' => 'Начало периода',
+            'format' => 'dd.mm.yyyy',
+            'value' => $searchModel->startDate,
+        ],
+        [
+            'type' => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+            'name' => 'NewsSearch[endDate]',
+            'title' => 'Конец периода',
+            'format' => 'dd.mm.yyyy',
+            'value' => $searchModel->endDate,
+        ],
+    ],
 ]);
-?>
-<div class="form-group">
-    <select class="form-control input-sm" name="month">
-        <option value="all"><?= Yii::t('app', '-all months-') ?></option>
-        <?php foreach(DateHelper::getMonths() as $key => $value): ?>
-            <option	value="<?= $key ?>"<?= ($key==$urlParams['month']) ? ' selected' : '' ?>><?= $value ?></option>
-        <?php endforeach; ?>
-    </select>
-</div>
-<div class="form-group">
-    <select class="form-control input-sm" name="year">
-        <?php for($i = date('Y'); $i >= \Yii::$app->params['startYear']; $i--) { ?>
-            <option value="<?= $i ?>"<?= ($i==$urlParams['year']) ? ' selected' : '' ?>><?= $i ?></option>
-        <?php } ?>
-    </select>
-</div>
-<div class="form-group">
-    <?= Html::submitButton(
-        IconHelper::icon('filter') . ' ' . Yii::t('app', 'Apply'),
-        ['class' => 'btn btn-info btn-sm btn-block']
-    ) ?>
-</div>
-<?php ActiveForm::end(); ?>

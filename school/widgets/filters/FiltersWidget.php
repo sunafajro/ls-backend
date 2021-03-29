@@ -1,10 +1,13 @@
 <?php
 
-
 namespace school\widgets\filters;
 
 use yii\base\Widget;
 
+/**
+ * Class FiltersWidget
+ * @package school\widgets\filters
+ */
 class FiltersWidget extends Widget
 {
     const FIELD_TYPE_TEXT_INPUT   = 'textInput';
@@ -13,11 +16,14 @@ class FiltersWidget extends Widget
     const ADDITIONAL_DATE_BUTTONS = 'dateButtons';
 
     /** @var array  */
-    public $actionUrl = '';
+    public $actionUrl = [];
     /** @var array */
     public $items = [];
 
-    protected static function getFilterTypes()
+    /**
+     * @return string[]
+     */
+    protected static function getFilterTypes(): array
     {
         return [
             self::FIELD_TYPE_TEXT_INPUT   => '_input',
@@ -27,6 +33,9 @@ class FiltersWidget extends Widget
         ];
     }
 
+    /**
+     * @return string
+     */
     public function run() {
         return $this->render('filters', [
             'actionUrl'   => $this->actionUrl,

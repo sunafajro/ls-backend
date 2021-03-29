@@ -16,7 +16,6 @@ use yii\web\View;
 use yii\widgets\ActiveForm;
 ?>
 <div>
-    <?= AlertWidget::widget() ?>
     <?php
         $form = ActiveForm::begin([
             'action' => ['user/upload-image', 'id' => $user->id],

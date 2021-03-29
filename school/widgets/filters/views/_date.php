@@ -21,7 +21,7 @@ use kartik\datetime\DateTimePicker;
             ],
             'pluginOptions' => [
                 'language'       => 'ru',
-                'format'         => 'yyyy-mm-dd',
+                'format'         => $item['format'] ?: 'yyyy-mm-dd',
                 'todayHighlight' => true,
                 'minView'        => 2,
                 'maxView'        => 4,
