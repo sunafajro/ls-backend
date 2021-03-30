@@ -3,12 +3,14 @@
 namespace school\controllers;
 
 use common\components\helpers\DateHelper;
+use school\models\Groupteacher;
 use school\models\Invoicestud;
 use school\models\Journalgroup;
 use school\models\Moneystud;
 use school\models\Office;
 use school\models\Sale;
 use school\models\Schedule;
+use school\models\Service;
 use school\models\Student;
 use school\models\searches\StudentCommissionSearch;
 use school\models\Teacher;
@@ -22,11 +24,16 @@ use DateTime;
 use Yii;
 use yii\db\Query;
 use yii\filters\AccessControl;
+use yii\helpers\ArrayHelper;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 use yii\data\Pagination;
 
+/**
+ * Class ReportController
+ * @package school\controllers
+ */
 class ReportController extends Controller
 {
     /**
@@ -65,18 +72,6 @@ class ReportController extends Controller
                         'roles' => ['@'],
                     ],
                 ],
-            ],
-        ];
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function actions() : array
-    {
-        return [
-            'error' => [
-                'class' => 'yii\web\ErrorAction',
             ],
         ];
     }
@@ -181,130 +176,113 @@ class ReportController extends Controller
     }
 
     /**
+     * @param string|null $start
+     * @param string|null $end
      * @return mixed
      * @throws ForbiddenHttpException
      */
-    public function actionMargin()
+    public function actionMargin(string $start = null, string $end = null)
     {
+        $this->layout = 'main-2-column';
         /** @var Auth $auth */
         $auth = Yii::$app->user->identity;
         if (!in_array($auth->roleId, [3])) {
             throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
         }
 
-        if(Yii::$app->request->get('month')) {
-            $month = Yii::$app->request->get('month');
-        } else {
-            $month = date('n');
-        }
-		
-        if(Yii::$app->request->get('year')) {
-            $year = Yii::$app->request->get('year');
-        } else {
-            $year = date('Y');
-        }
-		
+        list($start, $end) = $this->prepareMonthlyReportIntervalDates($start, $end);
+
 		$teachers = (new Query())
-        ->select('t.id as tid, t.name as teacher_name')
-        ->distinct()
-        ->from('calc_teacher t')
-        ->innerJoin('calc_accrualteacher at', 't.id=at.calc_teacher')
-		->innerJoin('calc_journalgroup jg', 'jg.calc_accrual=at.id and jg.calc_teacher=t.id')
-        ->where('at.visible=:one and jg.visible=:one and t.visible=:one', [':one'=>1])
-		->andFilterWhere(['MONTH(jg.data)' => $month])
-		->andFilterWhere(['YEAR(jg.data)' => $year])
-        ->orderby(['t.name' => SORT_ASC, 't.id' => SORT_ASC])
-        ->all();
+            ->select('t.id as tid, t.name as teacher_name')
+            ->distinct()
+            ->from(['t' => Teacher::tableName()])
+            ->innerJoin('calc_accrualteacher at', 't.id=at.calc_teacher')
+            ->innerJoin(['jg' => Journalgroup::tableName()], 'jg.calc_accrual=at.id and jg.calc_teacher=t.id')
+            ->where('at.visible=:one and jg.visible=:one and t.visible=:one', [':one'=>1])
+            ->andWhere(['>=', 'jg.data', $start])
+            ->andWhere(['<=', 'jg.data', $end])
+            ->orderby(['t.name' => SORT_ASC, 't.id' => SORT_ASC])
+            ->all();
 		
-		if(!empty($teachers)) {
+		if (!empty($teachers)) {
 			$lessons = (new Query())
-			->select('t.id as tid, COUNT(jg.id) as count')
-			->from('calc_teacher t')
-			->innerJoin('calc_accrualteacher at', 't.id=at.calc_teacher')
-			->innerJoin('calc_journalgroup jg', 'jg.calc_accrual=at.id and jg.calc_teacher=t.id')
-			->where('at.visible=:one and jg.visible=:one and t.visible=:one', [':one'=>1])
-			->andFilterWhere(['MONTH(jg.data)' => $month])
-			->andFilterWhere(['YEAR(jg.data)' => $year])
-			->groupby(['t.id'])
-			->all();
+                ->select('t.id as tid, COUNT(jg.id) as count')
+                ->from(['t' => Teacher::tableName()])
+                ->innerJoin('calc_accrualteacher at', 't.id=at.calc_teacher')
+                ->innerJoin(['jg' => Journalgroup::tableName()], 'jg.calc_accrual=at.id and jg.calc_teacher=t.id')
+                ->where('at.visible=:one and jg.visible=:one and t.visible=:one', [':one'=>1])
+                ->andWhere(['>=', 'jg.data', $start])
+                ->andWhere(['<=', 'jg.data', $end])
+                ->groupby(['t.id'])
+                ->all();
+            $lessons = ArrayHelper::map($lessons, 'tid', 'count');
 		
 			$accruals = (new Query())
-			->select('t.id as tid, at.id as aid, at.value as value')
-			->distinct()
-			->from('calc_teacher t')
-			->innerJoin('calc_accrualteacher at', 't.id=at.calc_teacher')
-			->innerJoin('calc_journalgroup jg', 'jg.calc_accrual=at.id and jg.calc_teacher=t.id')
-			->where('at.visible=:one and jg.visible=:one and t.visible=:one', [':one'=>1])
-			->andFilterWhere(['MONTH(jg.data)' => $month])
-			->andFilterWhere(['YEAR(jg.data)' => $year])
-			->all();
+                ->select('t.id as tid, at.id as aid, at.value as value')
+                ->distinct()
+                ->from(['t' => Teacher::tableName()])
+                ->innerJoin('calc_accrualteacher at', 't.id=at.calc_teacher')
+                ->innerJoin(['jg' => Journalgroup::tableName()], 'jg.calc_accrual=at.id and jg.calc_teacher=t.id')
+                ->where('at.visible=:one and jg.visible=:one and t.visible=:one', [':one'=>1])
+                ->andWhere(['>=', 'jg.data', $start])
+                ->andWhere(['<=', 'jg.data', $end])
+                ->all();
 		
 			$subQuery = (new Query())
-			->select('COUNT(sjg.id)')
-			->from('calc_studjournalgroup sjg')
-			->where('sjg.calc_journalgroup=jg.id and sjg.calc_statusjournal!=:two');
+                ->select('COUNT(sjg.id)')
+                ->from('calc_studjournalgroup sjg')
+                ->where('sjg.calc_journalgroup=jg.id and sjg.calc_statusjournal!=:two');
 		
 			$income = (new Query())
-			->select('t.id as tid, jg.id as jid, gt.calc_service as sid, jg.data as date')
-			->addSelect(['count' => $subQuery])
-			->from('calc_teacher t')
-			->innerJoin('calc_accrualteacher at', 't.id=at.calc_teacher')
-			->innerJoin('calc_journalgroup jg', 'jg.calc_accrual=at.id and jg.calc_teacher=t.id')
-			->innerJoin('calc_groupteacher gt', 'jg.calc_groupteacher=gt.id')
-			->where('at.visible=:one and jg.visible=:one and t.visible=:one', [':one' => 1, ':two' => 2])
-			->andFilterWhere(['MONTH(jg.data)' => $month])
-			->andFilterWhere(['YEAR(jg.data)' => $year])
-			->all();
-		
-			if(!empty($income)) {
-				$i = 0;
-				foreach($income as $in) {
-				$cost = 0;
-				
-				$servhist = (new Query())
-				->select('date as date, value as value')
-				->from('calc_servicehistory')
-				->where('calc_service=:sid', [':sid'=>$in['sid']])
-				->all();
-				
-				if(!empty($servhist)) {
-					if(count($servhist) > 1) {
-						foreach($servhist as $sh) {
-							if($in['date'] < date('Y-m-d', strtotime($sh['date']))) {
-								$cost = $sh['value'];
-							} 
-						}
-					} else {
-						if($in['date'] < date('Y-m-d', strtotime($servhist[0]['date']))) {
-							$cost = $servhist[0]['value'];
-						}
-					}
+                ->select('t.id as tid, jg.id as jid, gt.calc_service as sid, at.data as date')
+                ->addSelect(['count' => $subQuery])
+                ->from(['t' => Teacher::tableName()])
+                ->innerJoin('calc_accrualteacher at', 't.id=at.calc_teacher')
+                ->innerJoin(['jg' => Journalgroup::tableName()], 'jg.calc_accrual=at.id and jg.calc_teacher=t.id')
+                ->innerJoin(['gt' => Groupteacher::tableName()], 'jg.calc_groupteacher=gt.id')
+                ->where('at.visible=:one and jg.visible=:one and t.visible=:one', [':one' => 1, ':two' => 2])
+                ->andWhere(['>=', 'jg.data', $start])
+                ->andWhere(['<=', 'jg.data', $end])
+                ->all();
+
+			$serviceIds = ArrayHelper::getColumn($income, 'sid');
+            $serviceIds = array_unique($serviceIds);
+            $serviceIds = array_values($serviceIds);
+
+            $serviceHistory = (new Query())
+                ->select('calc_service as sid, date as date, value as value')
+                ->from('calc_servicehistory')
+                ->where(['calc_service' => $serviceIds])
+                ->orderBy(['calc_service' => SORT_ASC, 'id' => SORT_ASC])
+                ->all();
+
+            $lessonCost = (new Query())
+                ->select('sn.value')
+                ->from(['s' => Service::tableName()])
+                ->leftJoin('calc_studnorm sn', 'sn.id=s.calc_studnorm')
+                ->where(['s.id' => $serviceIds])
+                ->indexBy('s.id')
+                ->column();
+
+			if (!empty($income)) {
+				foreach($income as $i => $in) {
+                    $cost = null;
+                    foreach($serviceHistory as $sh) {
+                        if ((int)$in['sid'] === (int)$sh['sid'] && $in['date'] < date('Y-m-d', strtotime($sh['date']))) {
+                            $cost = $sh['value'];
+                        }
+                    }
+
+                    if (is_null($cost)) {
+                        $cost = $lessonCost[$in['sid']] ?? 0;
+                    }
+
+                    $income[$i]['cost'] = $cost;
 				}
-				
-				if($cost == 0) {
-					$lesson_cost = (new Query())
-					->select('sn.value as value')
-					->from('calc_service s')
-					->leftJoin('calc_studnorm sn', 'sn.id=s.calc_studnorm')
-					->where('s.id=:sid', [':sid'=>$in['sid']])
-					->one();
-					
-					$cost = $lesson_cost['value'];
-				}
-				
-				$income[$i]['cost'] = $cost;
-				$i++;
-				}
-				unset($in);
 			}
-			
-			$i = 0;
-			foreach($teachers as $t) {
-				foreach($lessons as $l) {
-					if($l['tid'] == $t['tid']) {
-						$teachers[$i]['lesson_count'] = $l['count'];
-					}				
-				}
+
+			foreach($teachers as $i => $t) {
+                $teachers[$i]['lesson_count'] = $lessons[$t['tid']];
 				
 				$teachers[$i]['sum_accrual'] = 0;
 				foreach($accruals as $a) {
@@ -318,19 +296,14 @@ class ReportController extends Controller
 						$teachers[$i]['sum_income'] += $in['count'] * $in['cost'];
 					}
 				}
-				$i++;			
 			}
 		}
 		
-        /* выводим данные в вьюз */      
         return $this->render('margin',[
-            'month'      => $month,
-            'year'       => $year,
-			'teachers'   => $teachers,
-            'reportlist' => Report::getReportTypeList(),
+            'marginReport'  => $teachers,
+            'end'           => date('d.m.Y', strtotime($end)),
+            'start'         => date('d.m.Y', strtotime($start)),
         ]);
-        /* выводим данные в вьюз */
-
     }
 
     /**
@@ -613,7 +586,7 @@ class ReportController extends Controller
 		]);
 		/* выводим данные в вьюз */
     }
-    
+
     /**
      * Общий отчет
      * @param string|null $start
@@ -625,97 +598,95 @@ class ReportController extends Controller
 
     public function actionCommon(string $start = null, string $end = null)
     {
+        $this->layout = 'main-2-column';
         /** @var Auth $auth */
         $auth = Yii::$app->user->identity;
         if (!in_array($auth->roleId, [3, 8])) {
             throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
-        if (!($start && $end)) {
-            $start = date("Y-m-d", strtotime('monday this week'));
-            $end   = date("Y-m-d", strtotime('sunday this week'));
-        }
+        list($start, $end) = $this->prepareWeeklyReportIntervalDates($start, $end);
 
         #region офисы
         $offices = (new Query())
-        ->select('id as oid, name as oname')
-        ->from('calc_office')
-        ->where('visible=1')
-        ->andWhere(['not in','id',['20','17','15','14','13']])
-        ->orderBy(['name' => SORT_ASC])
-        ->all();
+            ->select('id as oid, name as oname')
+            ->from('calc_office')
+            ->where('visible=1')
+            ->andWhere(['not in','id',['20','17','15','14','13']])
+            ->orderBy(['name' => SORT_ASC])
+            ->all();
         #endregion
             
         #region оплаты
         $common_payments = (new Query())
-        ->select('ms.calc_office as oid, SUM(value_card) as card, SUM(value_cash) as cash, SUM(value_bank) as bank, SUM(ms.value) as money')
-        ->from('calc_moneystud ms')
-        ->where('ms.visible=1 and ms.remain=0')
-        ->andFilterWhere(['>=', 'ms.data', $start])
-        ->andFilterWhere(['<=', 'ms.data', $end])
-        ->groupby(['ms.calc_office'])
-        ->all();
+            ->select('ms.calc_office as oid, SUM(value_card) as card, SUM(value_cash) as cash, SUM(value_bank) as bank, SUM(ms.value) as money')
+            ->from('calc_moneystud ms')
+            ->where('ms.visible=1 and ms.remain=0')
+            ->andFilterWhere(['>=', 'ms.data', $start])
+            ->andFilterWhere(['<=', 'ms.data', $end])
+            ->groupby(['ms.calc_office'])
+            ->all();
         #endregion
 
         #region счета
         $common_invoices = (new Query())
-        ->select('is.calc_office as oid, SUM(is.value) as money, SUM(is.value_discount) as discount')
-        ->from('calc_invoicestud is')
-        ->where('is.visible=1')
-        ->andFilterWhere(['>=', 'is.data', $start])
-        ->andFilterWhere(['<=', 'is.data', $end])
-        ->groupby(['is.calc_office'])
-        ->all();
+            ->select('is.calc_office as oid, SUM(is.value) as money, SUM(is.value_discount) as discount')
+            ->from('calc_invoicestud is')
+            ->where('is.visible=1')
+            ->andFilterWhere(['>=', 'is.data', $start])
+            ->andFilterWhere(['<=', 'is.data', $end])
+            ->groupby(['is.calc_office'])
+            ->all();
         #endregion
 
         #region начисления
         $common_accruals = (new Query())
-        ->select('gt.calc_office as oid, SUM(at.value) as money')
-        ->from('calc_accrualteacher at')
-        ->leftjoin('calc_groupteacher gt', 'gt.id=at.calc_groupteacher')
-        ->andFilterWhere(['>=', 'at.data', $start])
-        ->andFilterWhere(['<=', 'at.data', $end])
-        ->groupby(['gt.calc_office'])
-        ->all();
+            ->select('gt.calc_office as oid, SUM(at.value) as money')
+            ->from('calc_accrualteacher at')
+            ->leftjoin('calc_groupteacher gt', 'gt.id=at.calc_groupteacher')
+            ->andFilterWhere(['>=', 'at.data', $start])
+            ->andFilterWhere(['<=', 'at.data', $end])
+            ->groupby(['gt.calc_office'])
+            ->all();
         #endregion
 
         #region часы
         $online = Journalgroup::TYPE_ONLINE;
         $office = Journalgroup::TYPE_OFFICE;
         $common_hours = (new Query())
-        ->select([
-            'oid'          => 'gt.calc_office',
-            'hours_online' => "SUM(CASE WHEN jg.type = '{$online}' THEN tn.value ELSE 0 END)",
-            'hours_office' => "SUM(CASE WHEN jg.type = '{$office}' THEN tn.value ELSE 0 END)",
-        ])
-        ->from('calc_journalgroup jg')
-        ->leftjoin('calc_groupteacher gt', 'gt.id=jg.calc_groupteacher')
-        ->leftjoin('calc_service s', 's.id=gt.calc_service')
-        ->leftjoin('calc_timenorm tn', 'tn.id=s.calc_timenorm')
-        ->where(['jg.visible' => 1])
-        ->andFilterWhere(['>=', 'jg.data', $start])
-        ->andFilterWhere(['<=', 'jg.data', $end])
-        ->groupby(['gt.calc_office'])
-        ->all();
+            ->select([
+                'oid'          => 'gt.calc_office',
+                'hours_online' => "SUM(CASE WHEN jg.type = '{$online}' THEN tn.value ELSE 0 END)",
+                'hours_office' => "SUM(CASE WHEN jg.type = '{$office}' THEN tn.value ELSE 0 END)",
+            ])
+            ->from('calc_journalgroup jg')
+            ->leftjoin('calc_groupteacher gt', 'gt.id=jg.calc_groupteacher')
+            ->leftjoin('calc_service s', 's.id=gt.calc_service')
+            ->leftjoin('calc_timenorm tn', 'tn.id=s.calc_timenorm')
+            ->where(['jg.visible' => 1])
+            ->andFilterWhere(['>=', 'jg.data', $start])
+            ->andFilterWhere(['<=', 'jg.data', $end])
+            ->groupby(['gt.calc_office'])
+            ->all();
         #endregion
 
         #region студентов
         $subQuery = (new Query())
-        ->select('count(DISTINCT sjg.calc_studname) as students')
-        ->from('calc_studjournalgroup sjg')
-        ->leftJoin('calc_journalgroup jg', 'jg.id=sjg.calc_journalgroup')
-        ->leftJoin('calc_groupteacher gt', 'gt.id=jg.calc_groupteacher')
-        ->where('gt.calc_office=o.id and jg.view=:vis and sjg.calc_statusjournal=:vis', [':vis'=>1])
-        ->andFilterWhere(['>=', 'jg.data', $start])
-        ->andFilterWhere(['<=', 'jg.data', $end]);
+            ->select('count(DISTINCT sjg.calc_studname) as students')
+            ->from('calc_studjournalgroup sjg')
+            ->leftJoin('calc_journalgroup jg', 'jg.id=sjg.calc_journalgroup')
+            ->leftJoin('calc_groupteacher gt', 'gt.id=jg.calc_groupteacher')
+            ->where('gt.calc_office=o.id and jg.view=:vis and sjg.calc_statusjournal=:vis', [':vis'=>1])
+            ->andFilterWhere(['>=', 'jg.data', $start])
+            ->andFilterWhere(['<=', 'jg.data', $end]);
         
         $common_students = (new Query())
-        ->select('o.id as oid')
-        ->addSelect(['students'=>$subQuery])
-        ->from('calc_office o')
-        ->where('o.visible=:vis', [':vis'=>1])
-        ->andWhere(['not in','o.id',['20','17','15','14','13']])
-        ->all();
+            ->select('o.id as oid')
+            ->addSelect(['students'=>$subQuery])
+            ->from('calc_office o')
+            ->where('o.visible=:vis', [':vis'=>1])
+            ->andWhere(['not in','o.id',['20','17','15','14','13']])
+            ->all();
         #endregion
 
         /* получаем долги */
@@ -882,12 +853,10 @@ class ReportController extends Controller
         /* задаем итоговую сумму по долгам */
         $common_report[999]['debts'] = $dbts;
 
-        return $this->render('common',[
-            'actionUrl'     => ['report/common'],
+        return $this->render('common', [
             'commonReport'  => $common_report,
-            'end'           => $end,
-            'start'         => $start,
-            'reportList'    => Report::getReportTypeList(),
+            'end'           => date('d.m.Y', strtotime($end)),
+            'start'         => date('d.m.Y', strtotime($start)),
         ]);
 
     }
@@ -1442,6 +1411,42 @@ class ReportController extends Controller
         }
 
         return array($teachers, $lessons, $groups, $pages, $tchrs);
+    }
+
+    /**
+     * @param string|null $start
+     * @param string|null $end
+     * @return array
+     */
+    private function prepareWeeklyReportIntervalDates(string $start = null, string $end = null): array
+    {
+        $start = \DateTime::createFromFormat('d.m.Y', $start);
+        $end = \DateTime::createFromFormat('d.m.Y', $end);
+
+        if (!$start || !$end) {
+            $start = DateHelper::getStartOfWeek(null, false);
+            $end   = DateHelper::getEndOfWeek(null, false);
+        }
+
+        return [$start->format('Y-m-d'), $end->format('Y-m-d')];
+    }
+
+    /**
+     * @param string|null $start
+     * @param string|null $end
+     * @return array
+     */
+    private function prepareMonthlyReportIntervalDates(string $start = null, string $end = null): array
+    {
+        $start = \DateTime::createFromFormat('d.m.Y', $start);
+        $end = \DateTime::createFromFormat('d.m.Y', $end);
+
+        if (!$start || !$end) {
+            $start = DateHelper::getStartOfMonth(false);
+            $end   = DateHelper::getEndOfMonth(false);
+        }
+
+        return [$start->format('Y-m-d'), $end->format('Y-m-d')];
     }
 
  /*  

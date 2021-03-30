@@ -5,6 +5,7 @@
  * @var string $content
  */
 
+use common\components\helpers\AlertHelper;
 use common\widgets\alert\AlertWidget;
 use school\models\Navigation;
 use school\widgets\sidebarButton\SidebarButtonWidget;
@@ -36,20 +37,34 @@ $tag = "{$controllerId}-{$actionId}";
 <?php
     $this->beginBody();
     if (Yii::$app->params['appMode'] !== 'bitrix' && !Yii::$app->user->isGuest) {
-        echo NavigationWidget::widget([
+        try {
+            echo NavigationWidget::widget([
                 'model' => new Navigation(),
                 'hideModal' => $hideModal,
-        ]);
+            ]);
+        } catch (Exception $e) {
+            echo AlertHelper::alert($e->getMessage());
+        }
     } ?>
     <div class="container-fluid">
-        <?php if (Yii::$app->params['appMode'] !== 'bitrix' && !Yii::$app->user->isGuest) { ?>
-            <?= Breadcrumbs::widget([
-                'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
-            ]) ?>
-        <?php } ?>
+        <?php if (Yii::$app->params['appMode'] !== 'bitrix' && !Yii::$app->user->isGuest) {
+            try {
+                echo Breadcrumbs::widget([
+                    'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
+                ]);
+            } catch (Exception $e) {
+                echo AlertHelper::alert($e->getMessage());
+            }
+        } ?>
         <div class="<?= \Yii::$app->params['layout.2-column.main.class'] ?? 'row' ?> <?= $tag ?? '' ?>">
             <div class="<?= \Yii::$app->params['layout.2-column.sidebar.class'] ?? 'col-sm-2' ?>">
-                <?= UserInfoWidget::widget() ?>
+                <?php
+                    try {
+                        UserInfoWidget::widget();
+                    } catch (Exception $e) {
+                        echo AlertHelper::alert($e->getMessage());
+                    }
+                ?>
                 <?php if (isset($this->params['sidebar'])) {
                     if (is_string($this->params['sidebar'])) {
                         echo $this->params['sidebar'];
@@ -64,8 +79,20 @@ $tag = "{$controllerId}-{$actionId}";
                 } ?>
             </div>
             <div class="<?= \Yii::$app->params['layout.2-column.content.class'] ?? 'col-sm-10' ?>">
-                <?= AlertWidget::widget() ?>
-                <?= SidebarButtonWidget::widget() ?>
+                <?php
+                    try {
+                        echo AlertWidget::widget();
+                    } catch (Exception $e) {
+                        echo AlertHelper::alert($e->getMessage());
+                    }
+                ?>
+                <?php
+                    try {
+                        echo SidebarButtonWidget::widget();
+                    } catch (Exception $e) {
+                        echo AlertHelper::alert($e->getMessage());
+                    }
+                ?>
                 <?= $content ?>
             </div>
         </div>

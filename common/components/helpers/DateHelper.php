@@ -69,7 +69,7 @@ class DateHelper {
      */
     public static function getWeekDateByDayName(string $name, int $weekNum = null, bool $toString = true)
     {
-        $date = (new \DateTime())->modify("{$name} this week");
+        $date = new \DateTime("{$name} this week");
         if ($weekNum) {
             if ($weekNum > 0) {
                 $weekNum = "+{$weekNum}";
@@ -107,6 +107,32 @@ class DateHelper {
     public static function getEndOfWeek(int $weekNum = null, bool $toString = true)
     {
         $date = self::getWeekDateByDayName('sunday', $weekNum, false);     
+
+        return $toString ? $date->format('Y-m-d') : $date;
+    }
+
+    /**
+     * Возвращает дату первого дня текущего месяца
+     * @param bool $toString
+     *
+     * @return string|DateTime
+     */
+    public static function getStartOfMonth(bool $toString = true)
+    {
+        $date = (new \DateTime('first day of this month'));
+
+        return $toString ? $date->format('Y-m-d') : $date;
+    }
+
+    /**
+     * Возвращает дату последнего дня текущего месяца
+     * @param bool $toString
+     *
+     * @return string|DateTime
+     */
+    public static function getEndOfMonth(bool $toString = true)
+    {
+        $date = (new \DateTime('last day of this month'));
 
         return $toString ? $date->format('Y-m-d') : $date;
     }

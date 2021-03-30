@@ -29,7 +29,9 @@ class Report extends Model
      */
     public static function getReportTypes() : array
     {
-        $roleId = (int)Yii::$app->session->get('user.ustatus');
+        /** @var Auth $auth */
+        $auth = \Yii::$app->user->identity;
+        $roleId = $auth->roleId;
         $items = [];
         if (in_array($roleId, [3, 8])) {
             $items[] = [
