@@ -2,7 +2,7 @@
 
 /**
  * @var View $this
- * @var array $marginReport
+ * @var array $margins
  * @var string|null $end
  * @var string|null $start
  */
@@ -42,7 +42,7 @@ $this->params['sidebar'] = [
     ]
 ];
 
-if (!empty($marginReport)) { ?>
+if (!empty($margins)) { ?>
 		<table class="table table-hover table-striped table-condensed table-bordered small">
 			<thead>
 				<tr>
@@ -57,7 +57,7 @@ if (!empty($marginReport)) { ?>
 				</tr>
 			</thead>
 			<tbody>
-				<?php foreach($marginReport as $key => $t) { ?>
+				<?php foreach($margins as $key => $t) { ?>
                     <tr>
                         <td><?= $key + 1 ?></td>
                         <td><?= $t['teacher_name'] ?></td>

@@ -139,84 +139,6 @@ class Report extends Model
     }
 
     /**
-     * @param null $start
-     * @param null $end
-     * @param null $office
-     *
-     * @return array
-     */
-    public static function getPayments($start = null, $end = null, $office = null) : array
-    {
-        $result = [];
-        $payments = Moneystud::getPayments($start, $end, $office);
-        foreach($payments as $p) {
-            if (!isset($result[$p['officeId']])) {
-                $result[$p['officeId']] = [
-                    'name' => $p['office'],
-                    'counts' => [
-                        Moneystud::PAYMENT_TYPE_CASH => 0,
-                        Moneystud::PAYMENT_TYPE_CARD => 0,
-                        Moneystud::PAYMENT_TYPE_BANK => 0,
-                        'all' => 0
-                    ]
-                ];
-            }
-            if (!isset($result[$p['officeId']][$p['date']])) {
-                $result[$p['officeId']][$p['date']] = [
-                    'counts' => [
-                        Moneystud::PAYMENT_TYPE_CASH => 0,
-                        Moneystud::PAYMENT_TYPE_CARD => 0,
-                        Moneystud::PAYMENT_TYPE_BANK => 0,
-                        'all' => 0
-                    ],
-                    'rows' => []
-                ];
-            }
-            $type = '';
-            if ($p['card'] != '0.00') {
-                $type = Moneystud::PAYMENT_TYPE_CARD;
-                if ($p['active'] && !$p['remain']) {
-                    $result[$p['officeId']]['counts'][$type] += $p[$type];
-                    $result[$p['officeId']][$p['date']]['counts'][$type] += $p[$type];
-                }
-            }
-            if ($p['cash'] != '0.00') {
-                $type = Moneystud::PAYMENT_TYPE_CASH;
-                if ($p['active'] && !$p['remain']) {
-                    $result[$p['officeId']]['counts'][$type] += $p[$type];
-                    $result[$p['officeId']][$p['date']]['counts'][$type] += $p[$type];
-                }
-            }
-            if ($p['bank'] != '0.00') {
-                $type = Moneystud::PAYMENT_TYPE_BANK;
-                if ($p['active'] && !$p['remain']) {
-                    $result[$p['officeId']]['counts'][$type] += $p[$type];
-                    $result[$p['officeId']][$p['date']]['counts'][$type] += $p[$type];
-                }
-            }
-            if ($p['active'] && !$p['remain']) {
-                $result[$p['officeId']]['counts']['all'] += $p['sum'];
-                $result[$p['officeId']][$p['date']]['counts']['all'] += $p['sum'];
-            }
-            $result[$p['officeId']][$p['date']]['rows'][] = [
-                'id'                 => $p['id'],
-                'studentId'          => $p['studentId'],
-                'student'            => $p['student'],
-                'manager'            => $p['manager'],
-                'receipt'            => $p['receipt'],
-                'type'               => $type,
-                'sum'                => $p['sum'],
-                'active'             => $p['active'],
-                'remain'             => $p['remain'],
-                'notificationId'     => $p['notificationId'],
-                'notification'       => $p['notification'],
-            ];
-        }
-
-        return $result;
-    }
-
-    /**
      * возвращает заголовки таблицы отчета по оплатам
      *
      * @return array[]
@@ -408,5 +330,13 @@ class Report extends Model
             'teachers' => ArrayHelper::map($teachers, 'id', 'name'),
             'hours' => $result
         ];
+    }
+
+    /**
+     * @return array
+     */
+    public function prepareReportData(): array
+    {
+        return [];
     }
 }

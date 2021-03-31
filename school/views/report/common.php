@@ -1,15 +1,15 @@
 <?php
 
-use school\widgets\filters\FiltersWidget;
-use yii\helpers\Html;
-use yii\web\View;
-
 /**
  * @var View        $this
- * @var array       $commonReport
+ * @var array       $offices
  * @var string|null $end
  * @var string|null $start
  */
+
+use school\widgets\filters\FiltersWidget;
+use yii\helpers\Html;
+use yii\web\View;
 
 $this->title = Yii::$app->name . ' :: ' . Yii::t('app','Common report');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
@@ -61,7 +61,7 @@ $this->params['sidebar'] = [
         <tr>
     </thead>
     <tbody>
-        <?php foreach($commonReport as $report) {?>
+        <?php foreach($offices as $report) {?>
             <tr>
                 <td><?= isset($report['name']) ? $report['name'] : '' ?></td>
                 <td class="text-right">

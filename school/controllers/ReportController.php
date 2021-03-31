@@ -3,14 +3,15 @@
 namespace school\controllers;
 
 use common\components\helpers\DateHelper;
-use school\models\Groupteacher;
 use school\models\Invoicestud;
-use school\models\Journalgroup;
 use school\models\Moneystud;
 use school\models\Office;
+use school\models\reports\CommonReport;
+use school\models\reports\InvoicesReport;
+use school\models\reports\MarginReport;
+use school\models\reports\PaymentsReport;
 use school\models\Sale;
 use school\models\Schedule;
-use school\models\Service;
 use school\models\Student;
 use school\models\searches\StudentCommissionSearch;
 use school\models\Teacher;
@@ -24,7 +25,6 @@ use DateTime;
 use Yii;
 use yii\db\Query;
 use yii\filters\AccessControl;
-use yii\helpers\ArrayHelper;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\Response;
@@ -187,122 +187,18 @@ class ReportController extends Controller
         /** @var Auth $auth */
         $auth = Yii::$app->user->identity;
         if (!in_array($auth->roleId, [3])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
-        list($start, $end) = $this->prepareMonthlyReportIntervalDates($start, $end);
-
-		$teachers = (new Query())
-            ->select('t.id as tid, t.name as teacher_name')
-            ->distinct()
-            ->from(['t' => Teacher::tableName()])
-            ->innerJoin('calc_accrualteacher at', 't.id=at.calc_teacher')
-            ->innerJoin(['jg' => Journalgroup::tableName()], 'jg.calc_accrual=at.id and jg.calc_teacher=t.id')
-            ->where('at.visible=:one and jg.visible=:one and t.visible=:one', [':one'=>1])
-            ->andWhere(['>=', 'jg.data', $start])
-            ->andWhere(['<=', 'jg.data', $end])
-            ->orderby(['t.name' => SORT_ASC, 't.id' => SORT_ASC])
-            ->all();
-		
-		if (!empty($teachers)) {
-			$lessons = (new Query())
-                ->select('t.id as tid, COUNT(jg.id) as count')
-                ->from(['t' => Teacher::tableName()])
-                ->innerJoin('calc_accrualteacher at', 't.id=at.calc_teacher')
-                ->innerJoin(['jg' => Journalgroup::tableName()], 'jg.calc_accrual=at.id and jg.calc_teacher=t.id')
-                ->where('at.visible=:one and jg.visible=:one and t.visible=:one', [':one'=>1])
-                ->andWhere(['>=', 'jg.data', $start])
-                ->andWhere(['<=', 'jg.data', $end])
-                ->groupby(['t.id'])
-                ->all();
-            $lessons = ArrayHelper::map($lessons, 'tid', 'count');
-		
-			$accruals = (new Query())
-                ->select('t.id as tid, at.id as aid, at.value as value')
-                ->distinct()
-                ->from(['t' => Teacher::tableName()])
-                ->innerJoin('calc_accrualteacher at', 't.id=at.calc_teacher')
-                ->innerJoin(['jg' => Journalgroup::tableName()], 'jg.calc_accrual=at.id and jg.calc_teacher=t.id')
-                ->where('at.visible=:one and jg.visible=:one and t.visible=:one', [':one'=>1])
-                ->andWhere(['>=', 'jg.data', $start])
-                ->andWhere(['<=', 'jg.data', $end])
-                ->all();
-		
-			$subQuery = (new Query())
-                ->select('COUNT(sjg.id)')
-                ->from('calc_studjournalgroup sjg')
-                ->where('sjg.calc_journalgroup=jg.id and sjg.calc_statusjournal!=:two');
-		
-			$income = (new Query())
-                ->select('t.id as tid, jg.id as jid, gt.calc_service as sid, at.data as date')
-                ->addSelect(['count' => $subQuery])
-                ->from(['t' => Teacher::tableName()])
-                ->innerJoin('calc_accrualteacher at', 't.id=at.calc_teacher')
-                ->innerJoin(['jg' => Journalgroup::tableName()], 'jg.calc_accrual=at.id and jg.calc_teacher=t.id')
-                ->innerJoin(['gt' => Groupteacher::tableName()], 'jg.calc_groupteacher=gt.id')
-                ->where('at.visible=:one and jg.visible=:one and t.visible=:one', [':one' => 1, ':two' => 2])
-                ->andWhere(['>=', 'jg.data', $start])
-                ->andWhere(['<=', 'jg.data', $end])
-                ->all();
-
-			$serviceIds = ArrayHelper::getColumn($income, 'sid');
-            $serviceIds = array_unique($serviceIds);
-            $serviceIds = array_values($serviceIds);
-
-            $serviceHistory = (new Query())
-                ->select('calc_service as sid, date as date, value as value')
-                ->from('calc_servicehistory')
-                ->where(['calc_service' => $serviceIds])
-                ->orderBy(['calc_service' => SORT_ASC, 'id' => SORT_ASC])
-                ->all();
-
-            $lessonCost = (new Query())
-                ->select('sn.value')
-                ->from(['s' => Service::tableName()])
-                ->leftJoin('calc_studnorm sn', 'sn.id=s.calc_studnorm')
-                ->where(['s.id' => $serviceIds])
-                ->indexBy('s.id')
-                ->column();
-
-			if (!empty($income)) {
-				foreach($income as $i => $in) {
-                    $cost = null;
-                    foreach($serviceHistory as $sh) {
-                        if ((int)$in['sid'] === (int)$sh['sid'] && $in['date'] < date('Y-m-d', strtotime($sh['date']))) {
-                            $cost = $sh['value'];
-                        }
-                    }
-
-                    if (is_null($cost)) {
-                        $cost = $lessonCost[$in['sid']] ?? 0;
-                    }
-
-                    $income[$i]['cost'] = $cost;
-				}
-			}
-
-			foreach($teachers as $i => $t) {
-                $teachers[$i]['lesson_count'] = $lessons[$t['tid']];
-				
-				$teachers[$i]['sum_accrual'] = 0;
-				foreach($accruals as $a) {
-					if($a['tid'] == $t['tid']) {
-						$teachers[$i]['sum_accrual'] += $a['value'];
-					}
-				}
-				$teachers[$i]['sum_income'] = 0;
-				foreach($income as $in) {
-					if($in['tid'] == $t['tid']) {
-						$teachers[$i]['sum_income'] += $in['count'] * $in['cost'];
-					}
-				}
-			}
-		}
+        $report = new MarginReport([
+            'startDate' => $start,
+            'endDate' => $end,
+        ]);
 		
         return $this->render('margin',[
-            'marginReport'  => $teachers,
-            'end'           => date('d.m.Y', strtotime($end)),
-            'start'         => date('d.m.Y', strtotime($start)),
+            'margins'  => $report->prepareReportData(),
+            'end'      => date('d.m.Y', strtotime($report->endDate)),
+            'start'    => date('d.m.Y', strtotime($report->startDate)),
         ]);
     }
 
@@ -310,33 +206,31 @@ class ReportController extends Controller
      * Отчет по оплатам
      * @param string|null $start
      * @param string|null $end
-     * @param string|null $oid
+     * @param string|null $officeId
      *
      * @return mixed
      * @throws ForbiddenHttpException
      */
-    public function actionPayments (string $start = NULL, string $end = NULL, string $oid = NULL)
+    public function actionPayments (string $start = NULL, string $end = NULL, string $officeId = NULL)
     {
+        $this->layout = 'main-2-column';
         /** @var Auth $auth */
         $auth = Yii::$app->user->identity;
         if (!in_array($auth->roleId, [3, 4, 8])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
-        if (!($start && $end)) {
-            $start = date("Y-m-d", strtotime('monday this week'));
-            $end = date("Y-m-d", strtotime('sunday this week'));
-        }
-        $oid = (int)Yii::$app->session->get('user.ustatus') === 4 ? (int)Yii::$app->session->get('user.uoffice_id') : $oid;
-        $report = new Report();
-        $payments = $report->getPayments($start, $end, $oid);
+        $report = new PaymentsReport([
+            'startDate' => $start,
+            'endDate' => $end,
+            'officeId' => $officeId
+        ]);
+
         return $this->render('payments', [
-            'end'           => $end,
-            'offices'       => Office::getOfficesListSimple(),
-            'oid'           => $oid,
-            'payments'      => $payments,
-            'reportList'    => Report::getReportTypeList(),
-            'start'         => $start,
+            'payments'      => $report->prepareReportData(),
+            'end'           => date('d.m.Y', strtotime($report->endDate)),
+            'start'         => date('d.m.Y', strtotime($report->startDate)),
+            'officeId'      => $officeId,
         ]);
     }
 
@@ -344,45 +238,33 @@ class ReportController extends Controller
      * Отчет по счетам
      * @param string $start
      * @param string $end
-     * @param string $oid
+     * @param string $officeId
      *
      * @return mixed
      * @throws ForbiddenHttpException
      */
-    public function actionInvoices(string $start = '', string $end = '', string $oid = '')
+    public function actionInvoices(string $start = '', string $end = '', string $officeId = '')
     {
+        $this->layout = 'main-2-column';
         /** @var Auth $auth */
         $auth = Yii::$app->user->identity;
         if (!in_array($auth->roleId, [3, 4])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
-        if (!($start && $end)) {
-            $start = date("Y-m-d", strtotime('monday this week'));
-            $end = date("Y-m-d", strtotime('sunday this week'));
-        }
-        $oid = (int)Yii::$app->session->get('user.ustatus') === 4 ? (int)Yii::$app->session->get('user.uoffice_id') : $oid;
-        $invoice = new Invoicestud();
-        $invoices = $invoice->getInvoices([
-            'start'  => $start,
-            'end'    => $end,
-            'office' => $oid,
+        $report = new InvoicesReport([
+            'startDate' => $start,
+            'endDate' => $end,
+            'officeId' => $officeId
         ]);
-        $dates = [];
-        foreach ($invoices as $inv){
-            $dates[] = $inv['date'];
-        }
-        if (!empty($dates)) {
-            $dates = array_unique($dates);
-        }
+        list($dates, $invoices) = $report->prepareReportData();
+
         return $this->render('invoices', [
-            'dates'         => $dates,
-            'end'           => $end,
-            'invoices'      => $invoices,
-            'offices'       => Office::getOfficesListSimple(),
-            'oid'           => $oid,
-            'reportList'    => Report::getReportTypeList(),
-            'start'         => $start,
+            'dates'    => $dates,
+            'invoices' => $invoices,
+            'end'      => date('d.m.Y', strtotime($report->endDate)),
+            'start'    => date('d.m.Y', strtotime($report->startDate)),
+            'officeId' => $officeId,
         ]);
     }
 
@@ -605,258 +487,15 @@ class ReportController extends Controller
             throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
-        list($start, $end) = $this->prepareWeeklyReportIntervalDates($start, $end);
-
-        #region офисы
-        $offices = (new Query())
-            ->select('id as oid, name as oname')
-            ->from('calc_office')
-            ->where('visible=1')
-            ->andWhere(['not in','id',['20','17','15','14','13']])
-            ->orderBy(['name' => SORT_ASC])
-            ->all();
-        #endregion
-            
-        #region оплаты
-        $common_payments = (new Query())
-            ->select('ms.calc_office as oid, SUM(value_card) as card, SUM(value_cash) as cash, SUM(value_bank) as bank, SUM(ms.value) as money')
-            ->from('calc_moneystud ms')
-            ->where('ms.visible=1 and ms.remain=0')
-            ->andFilterWhere(['>=', 'ms.data', $start])
-            ->andFilterWhere(['<=', 'ms.data', $end])
-            ->groupby(['ms.calc_office'])
-            ->all();
-        #endregion
-
-        #region счета
-        $common_invoices = (new Query())
-            ->select('is.calc_office as oid, SUM(is.value) as money, SUM(is.value_discount) as discount')
-            ->from('calc_invoicestud is')
-            ->where('is.visible=1')
-            ->andFilterWhere(['>=', 'is.data', $start])
-            ->andFilterWhere(['<=', 'is.data', $end])
-            ->groupby(['is.calc_office'])
-            ->all();
-        #endregion
-
-        #region начисления
-        $common_accruals = (new Query())
-            ->select('gt.calc_office as oid, SUM(at.value) as money')
-            ->from('calc_accrualteacher at')
-            ->leftjoin('calc_groupteacher gt', 'gt.id=at.calc_groupteacher')
-            ->andFilterWhere(['>=', 'at.data', $start])
-            ->andFilterWhere(['<=', 'at.data', $end])
-            ->groupby(['gt.calc_office'])
-            ->all();
-        #endregion
-
-        #region часы
-        $online = Journalgroup::TYPE_ONLINE;
-        $office = Journalgroup::TYPE_OFFICE;
-        $common_hours = (new Query())
-            ->select([
-                'oid'          => 'gt.calc_office',
-                'hours_online' => "SUM(CASE WHEN jg.type = '{$online}' THEN tn.value ELSE 0 END)",
-                'hours_office' => "SUM(CASE WHEN jg.type = '{$office}' THEN tn.value ELSE 0 END)",
-            ])
-            ->from('calc_journalgroup jg')
-            ->leftjoin('calc_groupteacher gt', 'gt.id=jg.calc_groupteacher')
-            ->leftjoin('calc_service s', 's.id=gt.calc_service')
-            ->leftjoin('calc_timenorm tn', 'tn.id=s.calc_timenorm')
-            ->where(['jg.visible' => 1])
-            ->andFilterWhere(['>=', 'jg.data', $start])
-            ->andFilterWhere(['<=', 'jg.data', $end])
-            ->groupby(['gt.calc_office'])
-            ->all();
-        #endregion
-
-        #region студентов
-        $subQuery = (new Query())
-            ->select('count(DISTINCT sjg.calc_studname) as students')
-            ->from('calc_studjournalgroup sjg')
-            ->leftJoin('calc_journalgroup jg', 'jg.id=sjg.calc_journalgroup')
-            ->leftJoin('calc_groupteacher gt', 'gt.id=jg.calc_groupteacher')
-            ->where('gt.calc_office=o.id and jg.view=:vis and sjg.calc_statusjournal=:vis', [':vis'=>1])
-            ->andFilterWhere(['>=', 'jg.data', $start])
-            ->andFilterWhere(['<=', 'jg.data', $end]);
-        
-        $common_students = (new Query())
-            ->select('o.id as oid')
-            ->addSelect(['students'=>$subQuery])
-            ->from('calc_office o')
-            ->where('o.visible=:vis', [':vis'=>1])
-            ->andWhere(['not in','o.id',['20','17','15','14','13']])
-            ->all();
-        #endregion
-
-        /* получаем долги */
-        $common_debts = [];
-        $i = 0;
-        foreach($offices as $o) {
-            $tmp_debts = (new Query())
-            ->select('s.debt as debts')
-            ->from('calc_studname s')
-            ->leftjoin('calc_studgroup sg', 's.id=sg.calc_studname')
-            ->leftjoin('calc_groupteacher gt', 'gt.id=sg.calc_groupteacher')
-            ->where('sg.visible=:vis and s.debt<=:minus and gt.calc_office=:oid', [':vis'=>1, ':minus'=>0, ':oid'=>$o['oid']])
-            ->groupby(['s.id'])
-            ->all();
-            if($o['oid']!=6) {
-                $tmp = 0.001;
-                foreach($tmp_debts as $td) {
-                    $tmp += $td['debts'];
-                }
-                unset($td);
-                $common_debts[$i]['oid'] = $o['oid'];
-                $common_debts[$i]['debts'] = $tmp;
-            }
-            $i++;
-        }
-        unset($o);
-        unset($tmp_debts);
-
-        /* задаем начальные переменные для формирования многомерного массива с данными для таблицы */
-        $i = 0;
-        /* оплаты */
-        $pmnts = ['cash' => 0, 'card' => 0, 'bank' => 0, 'money' => 0];
-        /* счета */
-        $nvcs = 0;
-        /* скидки */
-        $dscnt = 0;
-        /* начисления */
-        $ccrls = 0;
-        /* часы */
-        $hrs = [
-            'hours_online' => 0,
-            'hours_office' => 0,
-        ];
-        /* долги */
-        $dbts = 0;
-        /* долги */
-        $sts = 0;
-        /* задаем начальные переменные для формирования многомерного массива с данными для таблицы */
-            
-        /* формируем основной массив с данными для отчета */
-        foreach($offices as $o) {
-            // создаем вложенный массив и задаем id офиса
-            $common_report[$i]['oid'] = $o['oid'];
-            // задаем имя офиса
-            $common_report[$i]['name'] = $o['oname'];
-            // задаем дефолтное значение оплат по офису
-            $common_report[$i]['payments'] = [];
-            // задаем дефолтное значение счетов по офису
-            $common_report[$i]['invoices'] = 0;
-            // задаем дефолтное значение скидок по офису
-            $common_report[$i]['discounts'] = 0;
-            // задаем дефолтное значение начислений по офису
-            $common_report[$i]['accruals'] = 0;
-            // задаем дефолтное значение часов по офису
-            $common_report[$i]['hours_online'] = 0;
-            $common_report[$i]['hours_office'] = 0;
-            // задаем дефолтное значение долгов по офису
-            $common_report[$i]['debts'] = 0;
-            // распечатываем массив с оплатами
-            foreach($common_payments as $pay) {
-                // выбираем оплаты по id офиса
-                if($common_report[$i]['oid'] == $pay['oid']) {
-                    // вносим сумму оплат по офису в массив
-                    $common_report[$i]['payments'] = ['cash' => $pay['cash'], 'card' => $pay['card'], 'bank' => $pay['bank'], 'money' => $pay['money']];
-                    // суммируем оплаты для поледущего получения итогового значения
-                    $pmnts['cash'] += $pay['cash'];
-                    $pmnts['card'] += $pay['card'];
-                    $pmnts['bank'] += $pay['bank'];
-                    $pmnts['money'] += $pay['money'];
-                }
-            }
-            // распечатываем массив со счетами
-            foreach($common_invoices as $inv) {
-                // выбираем счета по id офиса
-                if($common_report[$i]['oid'] == $inv['oid']) {
-                    // вносим сумму счетов по офису в массив
-                    $common_report[$i]['invoices'] = $inv['money'];
-                    // вносим сумму скидок счетов по офису в массив
-                    $common_report[$i]['discounts'] = $inv['discount'];
-                    // суммируем счета для последующего получения итогового значения
-                    $nvcs = $nvcs + $inv['money'];
-                    // суммируем скидки для последующего получения итогового значения 
-                    $dscnt = $dscnt + $inv['discount'];
-                }
-            }
-            // распечатываем массив с начислениями
-            foreach($common_accruals as $acr) {
-                // выбираем начисления по id офиса
-                if($common_report[$i]['oid'] == $acr['oid']) {
-                    // вносим сумму начислений по офису в массив
-                    $common_report[$i]['accruals'] = $acr['money'];
-                    // суммируем начисления для поледущего получения итогового значения
-                    $ccrls = $ccrls + $acr['money'];
-                }
-            }
-            // распечатываем массив с часами
-            foreach($common_hours as $hr) {
-                // выбираем часы по id офиса
-                if($common_report[$i]['oid'] == $hr['oid']) {
-                    // вносим сумму часов по офису в массив
-                    $common_report[$i]['hours_online'] = $hr['hours_online'];
-                    $common_report[$i]['hours_office'] = $hr['hours_office'];
-                    // суммируем часы для последущего получения итогового значения
-                    $hrs['hours_online'] = $hrs['hours_online'] + $hr['hours_online'];
-                    $hrs['hours_office'] = $hrs['hours_office'] + $hr['hours_office'];
-                }
-            }
-            // распечатываем массив со студентами
-            foreach($common_students as $st) {
-                // выбираем студентов по id офиса
-                if($common_report[$i]['oid'] == $st['oid']) {
-                    // вносим сумму студентов по офису в массив
-                    $common_report[$i]['students'] = $st['students'];
-                    // суммируем студентов для последущего получения итогового значения
-                    $sts = $sts + $st['students'];
-                }
-            }
-            // распечатываем массив с долгами
-            foreach($common_debts as $db) {
-                // выбираем часы по id офиса
-                if($common_report[$i]['oid'] == $db['oid']) {
-                    // вносим сумму часов по офису в массив
-                    $common_report[$i]['debts'] = $db['debts'];
-                    // суммируем долги для последущего получения итогового значения
-                    $dbts = $dbts + $db['debts'];
-                }
-            }
-            // увеличиваем номер
-            $i++;  
-        }
-        /* формируем основной массив с данными для отчета */
-
-        /* ставим число побольше чтобы точно не совпадало с id офисов */
-        $i = 999;
-        /* добавляем последний вложенный массив в котором будут итоговые суммарные значения по столбцам
-        *  задаем id офиса - в данном случае совпадает с номером массива
-        */
-        $common_report[$i]['oid'] = $i;
-        /* задаем имя массива */
-        $common_report[$i]['name'] = 'Итого:';
-        /* задаем итоговую сумму по оплатам */
-        $common_report[999]['payments'] = $pmnts;
-        /* задаем итоговвую сумму по счетам */
-        $common_report[999]['invoices'] = $nvcs;
-        /* задаем итоговую сумму по скидкам */
-        $common_report[999]['discounts'] = $dscnt;
-        /* задаем итоговую сумму по начислениям */
-        $common_report[999]['accruals'] = $ccrls;
-        /* задаем итоговую сумму по часам */
-        $common_report[999]['hours_online'] = $hrs['hours_online'];
-        $common_report[999]['hours_office'] = $hrs['hours_office'];
-        /* задаем итоговую сумму по студентам */
-        $common_report[999]['students'] = $sts;
-        /* задаем итоговую сумму по долгам */
-        $common_report[999]['debts'] = $dbts;
+        $report = new CommonReport([
+            'startDate' => $start,
+            'endDate' => $end,
+        ]);
 
         return $this->render('common', [
-            'commonReport'  => $common_report,
-            'end'           => date('d.m.Y', strtotime($end)),
-            'start'         => date('d.m.Y', strtotime($start)),
+            'offices'  => $report->prepareReportData(),
+            'end'      => date('d.m.Y', strtotime($report->endDate)),
+            'start'    => date('d.m.Y', strtotime($report->startDate)),
         ]);
 
     }
@@ -1411,42 +1050,6 @@ class ReportController extends Controller
         }
 
         return array($teachers, $lessons, $groups, $pages, $tchrs);
-    }
-
-    /**
-     * @param string|null $start
-     * @param string|null $end
-     * @return array
-     */
-    private function prepareWeeklyReportIntervalDates(string $start = null, string $end = null): array
-    {
-        $start = \DateTime::createFromFormat('d.m.Y', $start);
-        $end = \DateTime::createFromFormat('d.m.Y', $end);
-
-        if (!$start || !$end) {
-            $start = DateHelper::getStartOfWeek(null, false);
-            $end   = DateHelper::getEndOfWeek(null, false);
-        }
-
-        return [$start->format('Y-m-d'), $end->format('Y-m-d')];
-    }
-
-    /**
-     * @param string|null $start
-     * @param string|null $end
-     * @return array
-     */
-    private function prepareMonthlyReportIntervalDates(string $start = null, string $end = null): array
-    {
-        $start = \DateTime::createFromFormat('d.m.Y', $start);
-        $end = \DateTime::createFromFormat('d.m.Y', $end);
-
-        if (!$start || !$end) {
-            $start = DateHelper::getStartOfMonth(false);
-            $end   = DateHelper::getEndOfMonth(false);
-        }
-
-        return [$start->format('Y-m-d'), $end->format('Y-m-d')];
     }
 
  /*  

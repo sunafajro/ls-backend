@@ -325,4 +325,48 @@ class DateHelper {
 
         return 0;
     }
+
+    /**
+     * @param string|null $start
+     * @param string|null $end
+     * @param bool $toString
+     * @return array
+     */
+    public static function prepareWeeklyIntervalDates(string $start = null, string $end = null, bool $toString = true): array
+    {
+        $start = \DateTime::createFromFormat('d.m.Y', $start);
+        $end = \DateTime::createFromFormat('d.m.Y', $end);
+
+        if (!$start || !$end || ($end < $start)) {
+            $start = DateHelper::getStartOfWeek(null, false);
+            $end   = DateHelper::getEndOfWeek(null, false);
+        }
+
+        return [
+            $toString ? $start->format('Y-m-d') : $start,
+            $toString ? $end->format('Y-m-d') : $end,
+        ];
+    }
+
+    /**
+     * @param string|null $start
+     * @param string|null $end
+     * @param bool $toString
+     * @return array
+     */
+    public static function prepareMonthlyIntervalDates(string $start = null, string $end = null, bool $toString = true): array
+    {
+        $start = \DateTime::createFromFormat('d.m.Y', $start);
+        $end = \DateTime::createFromFormat('d.m.Y', $end);
+
+        if (!$start || !$end || ($end < $start)) {
+            $start = DateHelper::getStartOfMonth(false);
+            $end   = DateHelper::getEndOfMonth(false);
+        }
+
+        return [
+            $toString ? $start->format('Y-m-d') : $start,
+            $toString ? $end->format('Y-m-d') : $end,
+        ];
+    }
 }

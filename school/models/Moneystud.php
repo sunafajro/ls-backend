@@ -127,42 +127,6 @@ class Moneystud extends \yii\db\ActiveRecord
         return $result;
     }
 
-    /* возвращает список оплат в рамках указанных диапазона времени и офиса */
-    public static function getPayments($start = null, $end = null, $office = null)
-    {
-        $payments = (new \yii\db\Query())
-        ->select([
-            'id'                 => 'ms.id',
-            'studentId'          => 'sn.id',
-            'student'            => 'sn.name', 
-            'manager'            => 'u.name',
-            'sum'                => 'ms.value',
-            'card'               => 'ms.value_card',
-            'cash'               => 'ms.value_cash', 
-            'bank'               => 'ms.value_bank',
-            'date'               => 'ms.data',
-            'receipt'            => 'ms.receipt', 
-            'active'             => 'ms.visible',
-            'remain'             => 'ms.remain',
-            'officeId'           => 'ms.calc_office',
-            'office'             => 'o.name',
-            'notificationId'     => 'n.id',
-            'notification'       => 'n.status',
-        ])
-        ->from(['ms' => static::tableName()])
-        ->innerjoin(['sn' => 'calc_studname'], 'sn.id = ms.calc_studname')
-        ->innerJoin(['u' => User::tableName()], 'u.id = ms.user')
-        ->innerJoin(['o' => 'calc_office'], 'o.id = ms.calc_office')
-        ->leftJoin(['n' => 'notifications'], 'n.entity_id = ms.id')
-        ->andFilterWhere(['ms.calc_office' => $office])
-        ->andFilterWhere(['>=', 'ms.data', $start])
-        ->andFilterWhere(['<=', 'ms.data', $end])
-        ->orderby(['ms.data'=>SORT_DESC, 'ms.id'=>SORT_DESC])
-        ->all();
-
-        return $payments;
-    }
-
     /**
      *  метод возвращает массив с оплатами студента по его id
      */
