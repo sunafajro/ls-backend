@@ -2,6 +2,7 @@
 
 namespace school\controllers;
 
+use school\models\Auth;
 use Yii;
 use school\models\Groupteacher;
 use school\models\LanguagePremium;
@@ -21,47 +22,31 @@ use yii\web\ServerErrorHttpException;
  */
 class TeacherController extends Controller
 {
-    public function behaviors()
+    /** {@inheritDoc} */
+    public function behaviors(): array
     {
+        $rules = [
+            'index',
+            'view',
+            'create',
+            'update',
+            'delete',
+            'enable',
+            'language-premiums',
+            'delete-language-premium',
+        ];
         return [
 	    'access' => [
                 'class' => AccessControl::class,
-                'only' => [
-					'index',
-					'view',
-					'create',
-					'update',
-					'delete',
-					'enable',
-					'language-premiums',
-					'delete-language-premium',
-			    ],
+                'only' => $rules,
                 'rules' => [
                     [
-                        'actions' => [
-							'index',
-							'view',
-							'create',
-							'update',
-							'delete',
-							'enable',
-							'language-premiums',
-							'delete-language-premium',
-						],
+                        'actions' => $rules,
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => [
-							'index',
-							'view',
-							'create',
-							'update',
-							'delete',
-							'enable',
-							'language-premiums',
-							'delete-language-premium',
-						],
+                        'actions' => $rules,
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -71,25 +56,30 @@ class TeacherController extends Controller
     }
 
     /**
-     * Выводит список преподавателей школы.
      * @return mixed
+     * @throws \Exception
      */
     public function actionIndex()
     {
-	// пользователей с ролью преподавателя
-        if((int)Yii::$app->session->get('user.ustatus') === 5 && (int)Yii::$app->session->get('user.uid') !== 296){
-	    // редиректим в их собственные карточки карточку
-            return $this->redirect(['view','id'=>Yii::$app->session->get('user.uteacher')]);
+        $this->layout = 'main-2-column';
+        /** @var Auth $auth */
+        $auth = \Yii::$app->user->identity;
+        if ($auth->roleId === 5 && $auth->id !== 296){
+            return $this->redirect(['view','id' => $auth->teacherId]);
         }
-	/* собираем массив параметров из url запроса */
-	$arr = ['TOID' => NULL, 'TJID' => NULL, /* 'JPID' => NULL, */ 'TLID' => NULL, 'TSS' => NULL, 'STATE' => 0, 'BD' => NULL];
-	$params = $this->getUrlParams($arr);
+        /* собираем массив параметров из url запроса */
+        $arr = ['TOID' => NULL, 'TJID' => NULL, 'TLID' => NULL, 'TSS' => NULL, 'STATE' => 0, 'BD' => NULL];
+        $params = $this->getUrlParams($arr);
 
-	if($params['BD']){
-	    $sorting = ['MONTH(tch.birthdate)'=>SORT_ASC, 'DAY(tch.birthdate)'=>SORT_ASC, 'YEAR(tch.birthdate)'=>SORT_ASC, 'tch.name'=>SORT_ASC];
-	} else {
-	    $sorting = ['tch.name'=>SORT_ASC];
-	}
+        if (is_null($params['TOID']) && $auth->roleId === 4) {
+            $params['TOID'] = $auth->officeId;
+        }
+
+        if ($params['BD']){
+            $sorting = ['MONTH(tch.birthdate)'=>SORT_ASC, 'DAY(tch.birthdate)'=>SORT_ASC, 'YEAR(tch.birthdate)'=>SORT_ASC, 'tch.name'=>SORT_ASC];
+        } else {
+            $sorting = ['tch.name'=>SORT_ASC];
+        }
 
         // создаем запрос на выборку преподавателей
         $teachers = (new \yii\db\Query())
@@ -112,10 +102,6 @@ class TeacherController extends Controller
 			->leftJoin('calc_teachergroup tg', 'tg.calc_teacher=tch.id')
 			->leftJoin('calc_groupteacher gt', 'gt.id=tg.calc_groupteacher');
 		}
-	    // если задан фильтр по типу оформления, подключаем таблицу calc_statusjob
-	    //if($statusjob||Yii::$app->session->get('user.ustatus')==3){
-        //    $teachers = $teachers->leftJoin('calc_statusjob cstj','cstj.id=tch.calc_statusjob');
-	    //}
 	    // если задан фильтр по языку, подключаем табличку calc_langteacher
         if($params['TLID']){
             $teachers = $teachers->leftJoin('calc_langteacher clt', 'tch.id=clt.calc_teacher');
@@ -273,8 +259,7 @@ class TeacherController extends Controller
 	        'groups' => $groups,
 	        'unviewedlessons' => $unviewedlessons,
 			'params' => $params,
-			'userInfoBlock' => User::getUserInfoBlock(),
-			'jobPlace' => [ 1 => 'ШИЯ', 2 => 'СРР' ]
+			'jobPlace' => [1 => 'ШИЯ', 2 => 'СРР' ]
 		]);
     }
 
@@ -722,53 +707,33 @@ class TeacherController extends Controller
 
 	protected function getUrlParams($params)
 	{
-		/* проверяем GET запрос на наличие переменной TOID (фильтр по офису) */
-		if(Yii::$app->request->get('TOID')){
-		    $params['TOID'] = Yii::$app->request->get('TOID');
-	    } else {
-			if ((int)Yii::$app->session->get('user.ustatus') === 4) {
-				$params['TOID'] = (int)Yii::$app->session->get('user.uoffice_id');
-			}
+	    $get = Yii::$app->request->get();
+
+		if (isset($get['TOID']) && $get['TOID'] !== '') {
+            $params['TOID'] = $get['TOID'];
+	    }
+
+		if (isset($get['TJID']) && $get['TJID'] !== '') {
+		    $params['TJID'] = $get['TJID'];
 		}
 
-		/* проверяем GET запрос на наличие переменной TJID (фильтр по типу договора) */
-		if(Yii::$app->request->get('TJID')&&Yii::$app->request->get('TJID')!='all'){
-		    $params['TJID'] = Yii::$app->request->get('TJID');
+		if (isset($get['TLID']) && $get['TLID'] !== '') {
+		    $params['TLID'] = $get['TLID'];
 		}
 
-		// /* проверяем GET запрос на наличие переменной TJID (фильтр по месту работы) */
-		// if(Yii::$app->request->get('JPID')&&Yii::$app->request->get('JPID')!='all'){
-		//     $params['JPID'] = Yii::$app->request->get('JPID');
-		// }
-
-		/* проверяем GET запрос на наличие переменной TLID (фильтр по языку) */
-		if(Yii::$app->request->get('TLID')&&Yii::$app->request->get('TLID')!='all'){
-		    $params['TLID'] = Yii::$app->request->get('TLID');
+		if (isset($get['TSS']) && $get['TSS'] !== '') {
+		    $params['TSS'] = $get['TSS'];
 		}
 
-		/* проверяем GET запрос на наличие переменной TSS (фильтр по имени) */
-		if(Yii::$app->request->get('TSS')&&Yii::$app->request->get('TSS')!=''){
-		    $params['TSS'] = Yii::$app->request->get('TSS');
-		}
-
-		/* проверяем GET запрос на наличие переменной STATE (фильтр по состоянию) */
-		if(Yii::$app->request->get('STATE') || Yii::$app->request->get('STATE') == 0){
-			// если нужно вывести все записи
-			if(Yii::$app->request->get('STATE') == 'all'){
-				// выставляем переменную в NULL
-			    $params['STATE'] = NULL;	
+		if (isset($get['STATE'])) {
+			if ($get['STATE'] === '') {
+			    $params['STATE'] = NULL;
 			} else {
-		        switch(Yii::$app->request->get('STATE')){
-				    // преподаватель со статусом "С НАМИ"
+		        switch ($get['STATE']) {
 				    case 0: $params['STATE'] = 0; break;
-				    // преподаватель со статусом "НЕ С НАМИ"
 				    case 1: $params['STATE'] = 1; break;
-                    // преподаватель со статусом "В отпуске"
 					case 2: $params['STATE'] = 2; break;
-					// преподаватель со статусом "В декрете"
 					case 3: $params['STATE'] = 3; break;
-					// по умолчанию 0 (С НАМИ)
-                    default: $params['STATE'] = 0;				
 			    }
 			}
 		}
