@@ -7,8 +7,9 @@ use school\models\Invoicestud;
 use school\models\Moneystud;
 use school\models\Office;
 use school\models\reports\CommonReport;
+use school\models\reports\DebtsReport;
 use school\models\reports\InvoicesReport;
-use school\models\reports\MarginReport;
+use school\models\reports\MarginsReport;
 use school\models\reports\PaymentsReport;
 use school\models\Sale;
 use school\models\Schedule;
@@ -190,7 +191,7 @@ class ReportController extends Controller
             throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
-        $report = new MarginReport([
+        $report = new MarginsReport([
             'startDate' => $start,
             'endDate' => $end,
         ]);
@@ -211,7 +212,7 @@ class ReportController extends Controller
      * @return mixed
      * @throws ForbiddenHttpException
      */
-    public function actionPayments (string $start = NULL, string $end = NULL, string $officeId = NULL)
+    public function actionPayments (string $start = null, string $end = null, string $officeId = null)
     {
         $this->layout = 'main-2-column';
         /** @var Auth $auth */
@@ -236,14 +237,14 @@ class ReportController extends Controller
 
     /**
      * Отчет по счетам
-     * @param string $start
-     * @param string $end
-     * @param string $officeId
+     * @param string|null $start
+     * @param string|null $end
+     * @param string|null $officeId
      *
      * @return mixed
      * @throws ForbiddenHttpException
      */
-    public function actionInvoices(string $start = '', string $end = '', string $officeId = '')
+    public function actionInvoices(string $start = null, string $end = null, string $officeId = null)
     {
         $this->layout = 'main-2-column';
         /** @var Auth $auth */
@@ -500,117 +501,43 @@ class ReportController extends Controller
 
     }
 
-    public function actionDebt()
+    /**
+     * @param string|null $name
+     * @param string $state
+     * @param string $type
+     * @param string|null $officeId
+     * @param string|null $page
+     * @return mixed
+     * @throws ForbiddenHttpException
+     */
+    public function actionDebt(string $name = null, string $state = '1', string $type = '0', string $officeId = null, string $page = null)
 	{
+        $this->layout = 'main-2-column';
         /** @var Auth $auth */
         $auth = Yii::$app->user->identity;
         if (!in_array($auth->roleId, [3, 4])) {
             throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
-        $req   = Yii::$app->request;
-        $oid   = (int)Yii::$app->session->get('user.ustatus') === 4 ? Yii::$app->session->get('user.uoffice_id') : $req->get('OID', NULL);;
-        $page  = $req->get('page', NULL);
-        $sign  = $req->get('SIGN', '0');
-        $state = $req->get('STATE', '1');
-        $tss   = $req->get('TSS', NULL);
 
-        // запрашиваем список студентов
-        $stds = (new Query())
-        ->select(['id' => 'sn.id', 'name' => 'sn.name', 'debt' => 'sn.debt'])
-        ->from(['sn' => Student::tableName()]);
-        if ($oid) {
-            $stds = $stds->innerJoin(['so' => 'student_office'], 'sn.id = so.student_id');
-        }
-        $stds = $stds
-        ->where([
-            'sn.visible' => 1
-        ])
-        ->andFilterWhere([
-            $sign === '1' ? '>' : '<',
-            'sn.debt',
-            $sign === '' ? NULL: 0
-        ])
-        ->andFilterWhere(['sn.active'    => $state === '' ? NULL : $state])
-        ->andFilterWhere(['so.office_id' => $oid ===   '' ? NULL : $oid])
-        ->andFilterWhere(['like', 'sn.name', $tss]);
-            
-        // делаем клон запроса
-        $countQuery = clone $stds;
-        // получаем данные для паджинации
-        $pages = new Pagination(['totalCount' => $countQuery->count()]);
+        $report = new DebtsReport([
+            'name' => $name,
+            'state' => $state,
+            'type' => $type,
+            'officeId' => $officeId,
+            'page' => $page,
+        ]);
 
-        // задаем параметры для паджинации
-        $limit = 20;
-        $offset = 0;
-        if ($page > 1 && $page <= $pages->totalCount) {
-            $offset = 20 * ($page - 1);
-        }
-        
-        // доделываем запрос и выполняем
-        $stds = $stds->orderby(['sn.name'=>SORT_ASC])->limit($limit)->offset($offset)->all();
-        $i = 0;
-        $stids = [];
-        // формируем массив для последующей группировки услуг по студенту
-        foreach($stds as $s) {
-            //$tmp_stdnts[$s['stid']] = $s['stname']; 
-            $stids[$i] = $s['id'];
-            $i++;
-        }
-        $students = [];
-        if(!empty($stids)) {
-            // запрашиваем услуги назначенные студенту
-            $students = (new Query())
-            ->select('s.id as sid, s.name as sname, is.calc_studname as stid, SUM(is.num) as num')
-            ->distinct()
-            ->from('calc_service s')
-            ->leftjoin(['is' => Invoicestud::tableName()], 'is.calc_service = s.id')
-            ->where([
-                'is.remain' => [Invoicestud::TYPE_NORMAL, Invoicestud::TYPE_NETTING],
-                'is.visible' => 1
-            ])               
-            ->andWhere(['in', 'is.calc_studname', $stids])
-            ->groupby(['is.calc_studname', 's.id'])
-            ->orderby(['s.id' => SORT_ASC])
-            ->all();
-            // запрашиваем услуги назначенные студенту
-            
-            // проверяем что у студента есть назначенные услуги
-            if(!empty($students)){
-                $i = 0;
-                // распечатываем массив
-                foreach($students as $service){
-                    $schedule = new Schedule();
-                    $studentSchedule = $schedule->getStudentSchedule($service['stid']);
-                    // запрашиваем из базы колич пройденных уроков
-                    $lssns = (new Query())
-                    ->select('COUNT(sjg.id) AS cnt')
-                    ->from('calc_studjournalgroup sjg')
-                    ->leftjoin('calc_groupteacher gt', 'sjg.calc_groupteacher=gt.id')
-                    ->leftjoin('calc_journalgroup jg', 'sjg.calc_journalgroup=jg.id')
-                    ->where('jg.view=:vis and jg.visible=:vis and (sjg.calc_statusjournal=:vis or sjg.calc_statusjournal=:stat) and gt.calc_service=:sid and sjg.calc_studname=:stid', [':vis'=>1, 'stat'=>3, ':sid'=>$service['sid'], ':stid'=>$service['stid']])
-                    ->one();
-                    // считаем остаток уроков
-                    $cnt = $students[$i]['num'] - $lssns['cnt'];
-                    $students[$i]['num'] = $cnt;
-                    $students[$i]['npd'] = Moneystud::getNextPaymentDay($studentSchedule, $service['sid'], $cnt);
-                    $i++;
-                }                 
-            }
-            // проверяем что у студента есть назначенные услуги
-        }
+        list($studentList, $students, $pages) = $report->prepareReportData();
 
-        return $this->render('debt',[
-            'offices'       => Office::getOfficeInScheduleListSimple(),
-            'oid'           => $oid,
-            'pages'         => $pages,
-            'reportlist'    => Report::getReportTypeList(),
-            'sign'          => $sign,
-            'state'         => $state,
-            'stds'          => $stds,
-            'students'      => $students,
-            'totalDebt'     => Student::getDebtsTotalSum($oid),
-            'tss'           => $tss,
-			'userInfoBlock' => User::getUserInfoBlock(),
+        return $this->render('debt', [
+            'pages'       => $pages,
+            'studentList' => $studentList,
+            'students'    => $students,
+            'totalDebt'   => Student::getDebtsTotalSum($officeId),
+            'name'        => $name,
+            'state'       => $state,
+            'type'        => $type,
+            'officeId'    => $officeId,
         ]);
     }
 

@@ -14,13 +14,13 @@ use yii\db\Query;
 use yii\helpers\ArrayHelper;
 
 /**
- * Class MarginReport
+ * Class MarginsReport
  * @package school\models\reports
  *
  * @property string $startDate
  * @property string $endDate
  */
-class MarginReport extends Report
+class MarginsReport extends Report
 {
     /** @var string */
     public $startDate;
