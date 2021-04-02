@@ -62,7 +62,7 @@ $canWrite  = in_array($user->roleId, [3, 4]) || in_array($user->teacherId, $grou
             <?= $form->field($uploadForm, 'file')->fileInput()->label(Yii::t('app','File')) ?>
             <div class="form-group">
                 <?= Html::submitButton(
-                    IconHelper::icon('upload') . ' ' . Yii::t('app','Upload'),
+                    IconHelper::icon('upload', Yii::t('app','Upload')),
                     ['class' => 'btn btn-success btn-block']
                 ) ?>
             </div>

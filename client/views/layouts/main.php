@@ -56,7 +56,7 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/jpg', 'href' => '/favi
                     : Html::tag(
                             'li',
                             Html::a(
-                                    IconHelper::icon('sign-out-alt', Yii::t('app', 'Logout'), 'fa5'),
+                                    IconHelper::icon('sign-out-alt', Yii::t('app', 'Logout'), null, 'fa5'),
                                     ['site/logout'],
                                     RequestHelper::createLinkPostOptions()
                             ),

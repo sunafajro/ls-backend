@@ -29,12 +29,12 @@ $this->params['sidebar'] = ['can' => $can, 'user' => $user];
 if ($can['updateUser']) { ?>
     <div style="margin-bottom: 1rem">
         <?= Html::a(
-            IconHelper::icon('edit') . ' ' . Yii::t('app', 'Update'),
+            IconHelper::icon('edit', Yii::t('app', 'Update')),
             ['user/update', 'id' => $user->id],
             ['class' => 'btn btn-info']
         ) ?>
         <?= Html::a(
-            IconHelper::icon($user->visible ? 'times' : 'check') . ' ' . Yii::t('app', $user->visible ? 'Disable' : 'Enable'),
+            IconHelper::icon($user->visible ? 'times' : 'check', Yii::t('app', $user->visible ? 'Disable' : 'Enable')),
             ['user/' . ($user->visible ? 'disable' : 'enable'), 'id' => $user->id],
             ['class' => 'btn btn-' . ($user->visible ? 'danger' : 'success')]
         ) ?>
@@ -59,7 +59,7 @@ if ($can['updateUser']) { ?>
                     $html = [];
                     if ($can['updatePassword']) {
                         $html[] = Html::button(
-                            IconHelper::icon('edit') . ' ' . Yii::t('app', 'Change'),
+                            IconHelper::icon('edit', Yii::t('app', 'Change')),
                             ['class' => 'btn btn-info btn-xs js--change-user-password']
                         );
                         $html[] = Html::beginTag('div', ['class' => 'form-group', 'style' => 'margin-bottom: 0']);
@@ -126,7 +126,7 @@ if ($can['updateUser']) { ?>
                     $html[] = Html::img($logoPath, ['class' => 'thumbnail', 'style' => 'margin-bottom:1rem;max-height:300px']);
                     if ($can['updateImage']) {
                         $html[] = Html::a(
-                            IconHelper::icon('trash') . ' ' . Yii::t('app', 'Delete'),
+                            IconHelper::icon('trash', Yii::t('app', 'Delete')),
                             ['user/delete-image', 'id' => $user->id],
                             [
                                 'class' => 'btn btn-danger btn-xs',

@@ -24,7 +24,7 @@ use yii\widgets\ActiveForm;
     ?>
     <?= $form->field($imageForm, 'file')->fileInput(['accept' => UserImage::getAllowedMimes()])->label(Yii::t('app','Image'))->label(false) ?>
     <div class="form-group">
-        <?= Html::submitButton(IconHelper::icon('picture-o') . ' ' . Yii::t('app', 'Change'), ['class' => 'btn btn-success btn-xs']) ?>
+        <?= Html::submitButton(IconHelper::icon('picture-o', Yii::t('app', 'Change')), ['class' => 'btn btn-success btn-xs']) ?>
     </div>
     <?php ActiveForm::end(); ?>
 </div>

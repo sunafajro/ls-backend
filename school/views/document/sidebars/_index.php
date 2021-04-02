@@ -22,7 +22,7 @@ if (in_array($roleId, [3, 4])) { ?>
     <?= $form->field($uploadForm, 'file')->fileInput()->label(Yii::t('app','File')) ?>
     <div class="form-group">
         <?= Html::submitButton(
-            IconHelper::icon('upload') . ' ' . Yii::t('app','Upload'),
+            IconHelper::icon('upload', Yii::t('app','Upload')),
             ['class' => 'btn btn-success btn-block']
         ) ?>
     </div>

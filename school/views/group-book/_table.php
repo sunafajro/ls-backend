@@ -1,5 +1,6 @@
 <?php
 
+use common\components\helpers\IconHelper;
 use yii\helpers\Html;
 use yii\web\View;
 
@@ -29,13 +30,13 @@ $roleId = (int)Yii::$app->session->get('user.ustatus');
                 <?php if (in_array($roleId, [3, 4])) { ?>
                     <td class="text-center">
                         <?= Html::a(
-                                Html::tag('span', null, ['class' => 'fa fa-trash']),
+                                IconHelper::icon('trash'),
                                 ['group-book/delete', 'id' => $book['id']],
                                 ['data-method' => 'post', 'title' => Yii::t('app', 'Delete')]
                             ) ?>
                         <?= !$book['primary']
                                 ? Html::a(
-                                    Html::tag('span', null, ['class' => 'fa fa-check']),
+                                    IconHelper::icon('check'),
                                     ['group-book/primary', 'id' => $book['id']],
                                     ['data-method' => 'post', 'title' => Yii::t('app', 'Make primary')]
                                 )

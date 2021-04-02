@@ -22,7 +22,7 @@ if (in_array($roleId, [3, 4])) { ?>
     <?= $form->field($model, 'original_name')->textInput() ?>
     <div class="form-group">
         <?= Html::submitButton(
-            IconHelper::icon('upload') . ' ' . Yii::t('app','Create'),
+            IconHelper::icon('upload', Yii::t('app','Create')),
             ['class' => 'btn btn-success btn-block']
         ) ?>
     </div>

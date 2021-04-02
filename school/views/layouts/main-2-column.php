@@ -60,7 +60,7 @@ $tag = "{$controllerId}-{$actionId}";
             <div class="<?= \Yii::$app->params['layout.2-column.sidebar.class'] ?? 'col-sm-2' ?>">
                 <?php
                     try {
-                        UserInfoWidget::widget();
+                        echo UserInfoWidget::widget();
                     } catch (Exception $e) {
                         echo AlertHelper::alert($e->getMessage());
                     }

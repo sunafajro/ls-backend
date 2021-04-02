@@ -35,7 +35,7 @@ $auth = Yii::$app->user->identity;
         <select class='form-control input-sm' name='TOID'>";
             <option value=""><?= Yii::t('app', '-all offices-') ?></option>
             <?php foreach ($offices as $key => $value) { ?>
-                <option value="<?= $key ?>"<?= (string)$key === $urlParams['TOID'] ? ' selected' : '' ?>><?= mb_substr($value,0,13,'UTF-8') ?></option>
+                <option value="<?= $key ?>"<?= $key == $urlParams['TOID'] ? ' selected' : '' ?>><?= mb_substr($value,0,13,'UTF-8') ?></option>
             <?php } ?>
         </select>
     </div>
@@ -43,7 +43,7 @@ $auth = Yii::$app->user->identity;
         <select class="form-control input-sm" name="TLID">
             <option value=""><?= Yii::t('app', '-all languages-') ?></option>
             <?php foreach($languages as $key => $value) { ?>
-                <option value="<?= $key ?>"<?= (string)$key === $urlParams['TLID'] ? ' selected' : '' ?>><?= mb_substr($value,0,13,'UTF-8') ?></option>
+                <option value="<?= $key ?>"<?= $key == $urlParams['TLID'] ? ' selected' : '' ?>><?= mb_substr($value,0,13,'UTF-8') ?></option>
             <?php } ?>
         </select>
     </div>
@@ -52,7 +52,7 @@ $auth = Yii::$app->user->identity;
             <select class="form-control input-sm" name="TJID">
                 <option value=""><?= Yii::t('app', '-all forms-') ?></option>
                 <?php foreach($jobStates as $key => $value): ?>
-                    <option value="<?= $key ?>"<?= (string)$key === $urlParams['TJID'] ? ' selected' : '' ?>><?= mb_substr($value,0,13,'UTF-8') ?></option>
+                    <option value="<?= $key ?>"<?= (string)$key == $urlParams['TJID'] ? ' selected' : '' ?>><?= mb_substr($value,0,13,'UTF-8') ?></option>
                 <?php endforeach; ?>
             </select>
         </div>

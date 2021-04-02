@@ -25,20 +25,20 @@ class Navigation extends BaseNavigation
 
         $menu[] = [
             'url'      => Url::to(['speaking-exam/index']),
-            'label'    => IconHelper::icon('microphone-alt', Yii::t('app', 'Speaking'), 'fa5'),
+            'label'    => IconHelper::icon('microphone-alt', Yii::t('app', 'Speaking'), null, 'fa5'),
             'encode'   => false,
         ];
 
         $menu[] = [
             'url'      => Url::to(['user/index']),
-            'label'    => IconHelper::icon('users', Yii::t('app', 'Users'), 'fa5'),
+            'label'    => IconHelper::icon('users', Yii::t('app', 'Users'), null, 'fa5'),
             'encode'   => false,
         ];
 
         /* ссылка на метод выхода */
         $menu[] = [
             'url'         => Url::to(['site/logout']),
-            'label'       => IconHelper::icon('sign-out-alt', Yii::t('app', 'Logout'), 'fa5'),
+            'label'       => IconHelper::icon('sign-out-alt', Yii::t('app', 'Logout'), null, 'fa5'),
             'linkOptions' => RequestHelper::createLinkPostOptions(),
             'encode'      => false,
         ];

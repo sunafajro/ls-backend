@@ -12,13 +12,22 @@ class IconHelper {
     /**
      * @param string $name
      * @param string|null $label
+     * @param string|null $title
      * @param string|null $version
      *
      * @return string
      */
-    public static function icon(string $name, string $label = null, string $version = null) : string
+    public static function icon(string $name, string $label = null, string $title = null, string $version = null) : string
     {
         $className = $version === 'fa5' ? "fas fa-{$name}" : "fa fa-{$name}";
-        return Html::tag('i', '', ['class' => $className, 'aria-hidden' => 'true']) . ($label ? " {$label}" : '');
+        return Html::tag(
+            'i',
+            '',
+            [
+                'class' => $className,
+                'aria-hidden' => 'true',
+                'title' => $title,
+            ]
+        ) . ($label ? " {$label}" : '');
     }
 }

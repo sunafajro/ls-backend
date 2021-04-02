@@ -67,13 +67,8 @@ class TeacherController extends Controller
         if ($auth->roleId === 5 && $auth->id !== 296){
             return $this->redirect(['view','id' => $auth->teacherId]);
         }
-        /* собираем массив параметров из url запроса */
-        $arr = ['TOID' => NULL, 'TJID' => NULL, 'TLID' => NULL, 'TSS' => NULL, 'STATE' => 0, 'BD' => NULL];
-        $params = $this->getUrlParams($arr);
 
-        if (is_null($params['TOID']) && $auth->roleId === 4) {
-            $params['TOID'] = $auth->officeId;
-        }
+        $params = $this->getUrlParams($auth);
 
         if ($params['BD']){
             $sorting = ['MONTH(tch.birthdate)'=>SORT_ASC, 'DAY(tch.birthdate)'=>SORT_ASC, 'YEAR(tch.birthdate)'=>SORT_ASC, 'tch.name'=>SORT_ASC];
@@ -85,7 +80,7 @@ class TeacherController extends Controller
         $teachers = (new \yii\db\Query())
         ->select('tch.id as tid, tch.name as tname, tch.email as temail, tch.phone as tphone, tch.birthdate as bd, tch.social_link as url, tch.value_corp as corp');
 		// добавляем доп столбец в выборку для руководителей
-		if($params['TJID']||Yii::$app->session->get('user.ustatus')==3){
+		if($params['TJID'] || $auth->roleId === 3){
 		    $teachers = $teachers->addSelect(['tstjob'=>'tch.calc_statusjob']);
 		}
 		// если задан офис есть вероятность выдачи нескольких одинаковых записей
@@ -106,7 +101,7 @@ class TeacherController extends Controller
         if($params['TLID']){
             $teachers = $teachers->leftJoin('calc_langteacher clt', 'tch.id=clt.calc_teacher');
         }
-        if ((int)Yii::$app->session->get('user.ustatus') === 10) {
+        if ($auth->roleId === 10) {
             $teachers = $teachers->innerJoin('calc_edunormteacher ent', 'tch.id=ent.calc_teacher');
         }
 		// добавляем условие на выборку действующих преподавателей
@@ -125,7 +120,7 @@ class TeacherController extends Controller
         }
 		// если задан фильтр по месту работы, добавляем условие выборки
         // if($params['JPID']){
-        if ((int)Yii::$app->session->get('user.ustatus') === 10) {
+        if ($auth->roleId === 10) {
             $teachers = $teachers->andFilterWhere(['ent.company' => 2]);
             $teachers = $teachers->andFilterWhere(['ent.active' => 1]);
         }
@@ -705,13 +700,22 @@ class TeacherController extends Controller
         }
     }
 
-	protected function getUrlParams($params)
-	{
+    /**
+     * @param Auth $auth
+     * @return array
+     */
+	protected function getUrlParams(Auth $auth): array
+    {
+        $params = ['TOID' => NULL, 'TJID' => NULL, 'TLID' => NULL, 'TSS' => NULL, 'STATE' => 0, 'BD' => NULL];
 	    $get = Yii::$app->request->get();
 
 		if (isset($get['TOID']) && $get['TOID'] !== '') {
             $params['TOID'] = $get['TOID'];
-	    }
+	    } else {
+            if (!isset($get['TOID']) && $auth->roleId === 4) {
+                $params['TOID'] = $auth->officeId;
+            }
+        }
 
 		if (isset($get['TJID']) && $get['TJID'] !== '') {
 		    $params['TJID'] = $get['TJID'];

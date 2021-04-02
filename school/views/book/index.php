@@ -10,6 +10,7 @@
  * @var string             $userInfoBlock
  */
 
+use common\components\helpers\IconHelper;
 use school\models\Auth;
 use school\models\BookCost;
 use school\models\BookOrder;
@@ -67,19 +68,19 @@ $columns['actions'] = [
         $bookCost = BookCost::find()->andWhere(['book_id' => $book['id'], 'type' => BookCost::TYPE_PURCHASE, 'visible' => 1])->one();
         if (!empty($bookOrder) && !empty($bookCost)) {
             $actions[] = Html::a(
-                Html::tag('i', '', ['class' => 'fa fa-plus', 'aria-hidden' => 'true']),
+                IconHelper::icon('plus'),
                 ['book-order-position/create', 'order_id' => $bookOrder->id, 'book_id' => $book['id']],
                 ['title' => Yii::t('app', 'Add to the order')]
             );
         }
         if (in_array($auth->roleId, [3, 7])) {
             $actions[] = Html::a(
-                Html::tag('i', '', ['class' => 'fa fa-edit', 'aria-hidden' => 'true']),
+                IconHelper::icon('edit'),
                 ['book/update', 'id' => $book['id']],
                 ['title' => Yii::t('app', 'Edit book')]
             );
             $actions[] = Html::a(
-                Html::tag('i', '', ['class' => 'fa fa-trash', 'aria-hidden' => 'true']),
+                IconHelper::icon('trash'),
                 ['book/delete', 'id' => $book['id']],
                 ['data-method' => 'POST', 'title' => Yii::t('app', 'Delete book')]
             );

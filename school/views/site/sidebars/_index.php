@@ -19,7 +19,7 @@ $auth = Yii::$app->user->identity;
 if (in_array($auth->roleId, [3])) {
     echo Html::tag('h4', Yii::t('app', 'Actions') . ':');
     echo Html::a(
-        IconHelper::icon('plus') . ' ' . Yii::t('app', 'News'),
+        IconHelper::icon('plus', Yii::t('app', 'News')),
         ['news/create'],
         ['class' => 'btn btn-success btn-sm btn-block']
     );

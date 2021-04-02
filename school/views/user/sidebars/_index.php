@@ -11,7 +11,7 @@ use yii\web\View;
 <h4><?= Yii::t('app', 'Actions') ?>:</h4>
 <div class="form-group">
     <?= Html::a(
-        IconHelper::icon('plus') . ' ' . Yii::t('app', 'Add'),
+        IconHelper::icon('plus', Yii::t('app', 'Add')),
         ['user/create'],
         ['class' => 'btn btn-success btn-sm btn-block']
     ) ?>
