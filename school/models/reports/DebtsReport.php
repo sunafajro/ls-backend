@@ -39,7 +39,7 @@ class DebtsReport extends Report
     public $page;
 
     /**
-     * MarginReport constructor.
+     * DebtsReport constructor.
      * @param array $config
      */
     public function __construct($config = [])

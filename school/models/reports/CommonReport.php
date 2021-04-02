@@ -32,7 +32,7 @@ class CommonReport extends Report
     public $endDate;
 
     /**
-     * MarginReport constructor.
+     * CommonReport constructor.
      * @param array $config
      */
     public function __construct($config = [])

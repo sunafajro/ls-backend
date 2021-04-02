@@ -29,7 +29,7 @@ class InvoicesReport extends Report
     public $officeId;
 
     /**
-     * MarginReport constructor.
+     * InvoicesReport constructor.
      * @param array $config
      */
     public function __construct($config = [])

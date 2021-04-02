@@ -3,16 +3,14 @@
 namespace school\controllers;
 
 use common\components\helpers\DateHelper;
-use school\models\Invoicestud;
-use school\models\Moneystud;
 use school\models\Office;
 use school\models\reports\CommonReport;
 use school\models\reports\DebtsReport;
 use school\models\reports\InvoicesReport;
 use school\models\reports\MarginsReport;
 use school\models\reports\PaymentsReport;
+use school\models\reports\TeacherHoursReport;
 use school\models\Sale;
-use school\models\Schedule;
 use school\models\Student;
 use school\models\searches\StudentCommissionSearch;
 use school\models\Teacher;
@@ -75,6 +73,28 @@ class ReportController extends Controller
                 ],
             ],
         ];
+    }
+
+    /**
+     * @return mixed
+     * @throws ForbiddenHttpException
+     */
+    public function actionIndex()
+    {
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+
+        if (in_array($auth->roleId,  [3, 8])) {
+            return $this->redirect(['report/common']);
+        } else if($auth->roleId === 4) {
+            return $this->redirect(['report/journals']);
+        } else if($auth->roleId === 6) {
+            return $this->redirect(['report/lessons']);
+        } else if ($auth->id === 296) {
+            return $this->redirect(['report/teacher-hours']);
+        } else {
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
+        }
     }
 
     /**
@@ -549,30 +569,27 @@ class ReportController extends Controller
      * @return mixed
      * @throws ForbiddenHttpException
      */
-    public function actionLessons(string $end = '', string $start = '')
+    public function actionLessons(string $end = null, string $start = null)
     {
+        $this->layout = 'main-2-column';
         /** @var Auth $auth */
         $auth = Yii::$app->user->identity;
         if (!in_array($auth->roleId, [3, 4, 6])) {
             throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
-        if (!($start && $end)) {
-            $start = date("Y-m-d", strtotime('monday this week'));
-            $end   = date("Y-m-d", strtotime('sunday this week'));
-        }
+
+        list($start, $end) = DateHelper::prepareWeeklyIntervalDates($start, $end);
         $searchModel = new LessonSearch();
         $params = Yii::$app->request->queryParams;
         $params['start'] = $start;
         $params['end']   = $end;
 
         return $this->render('lessons', [
-            'actionUrl'     => array_merge(['report/lessons'], $params),
-            'dataProvider'  => $searchModel->search($params),
-            'end'           => $end,
-            'offices'       => Office::getOfficeInScheduleListSimple(),
-            'reportList'    => Report::getReportTypeList(),
-            'searchModel'   => $searchModel,
-            'start'         => $start,
+            'actionUrl'    => array_merge(['report/lessons'], $params),
+            'dataProvider' => $searchModel->search($params),
+            'searchModel'  => $searchModel,
+            'end'          => date('d.m.Y', strtotime($end)),
+            'start'        => date('d.m.Y', strtotime($start)),
         ]);
     }
 
@@ -583,18 +600,16 @@ class ReportController extends Controller
      * @return mixed
      * @throws ForbiddenHttpException
      */
-    public function actionCommissions(string $end = '', string $start = '')
+    public function actionCommissions(string $end = null, string $start = null)
     {
+        $this->layout = 'main-2-column';
         /** @var Auth $auth */
         $auth = Yii::$app->user->identity;
         if (!in_array($auth->roleId, [3, 4, 8])) {
             throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
-        if (!($start && $end)) {
-            $start = date("Y-m-d", strtotime('monday this week'));
-            $end   = date("Y-m-d", strtotime('sunday this week'));
-        }
+        list($start, $end) = DateHelper::prepareWeeklyIntervalDates($start, $end);
         $searchModel = new StudentCommissionSearch();
         $params = Yii::$app->request->queryParams;
         $params['start'] = $start;
@@ -604,32 +619,12 @@ class ReportController extends Controller
         }
 
         return $this->render('commissions', [
-            'actionUrl'     => array_merge(['report/commissions'], $params),
-            'dataProvider'  => $searchModel->search($params),
-            'end'           => $end,
-            'offices'       => Office::getOfficeInScheduleListSimple(),
-            'reportList'    => Report::getReportTypeList(),
-            'searchModel'   => $searchModel,
-            'start'         => $start,
+            'actionUrl'    => array_merge(['report/commissions'], $params),
+            'dataProvider' => $searchModel->search($params),
+            'searchModel'  => $searchModel,
+            'end'          => date('d.m.Y', strtotime($end)),
+            'start'        => date('d.m.Y', strtotime($start)),
         ]);
-    }
-
-    public function actionIndex()
-    {
-        /** @var Auth $auth */
-        $auth = Yii::$app->user->identity;
-
-        if (in_array($auth->roleId,  [3, 8])) {
-            return $this->redirect(['report/common']);
-        } else if($auth->roleId === 4) {
-            return $this->redirect(['report/journals']);
-        } else if($auth->roleId === 6) {
-            return $this->redirect(['report/lessons']);
-        } else if ($auth->id === 296) {
-            return $this->redirect(['report/teacher-hours']);
-        } else {
-            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-        }
     }
 
     /**
@@ -785,41 +780,35 @@ class ReportController extends Controller
      * Отчет по почасовке преподавателей
      * @param null $start
      * @param null $end
-     * @param null $tid
+     * @param null $teacherId
      * @param int $limit
      * @param int $offset
      *
      * @return mixed
      * @throws ForbiddenHttpException
      */
-    public function actionTeacherHours($start = null, $end = null, $tid = null, $limit = 10, $offset = 0)
+    public function actionTeacherHours($start = null, $end = null, $teacherId = null, $limit = 10, $offset = 0)
     {
+        $this->layout = 'main-2-column';
         /** @var Auth $auth */
         $auth = Yii::$app->user->identity;
         if (!(in_array($auth->roleId, [3, 4, 6]) || in_array($auth->id, [296]))) {
             throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
-
-        if (!($start && $end)) {
-            $start = date("Y-m-d", strtotime('monday last week'));
-            $end = date("Y-m-d", strtotime('sunday last week'));
-        }
-        $report = new Report();
-        $data = $report->getTeacherHours([
-            'end'    => $end,
-            'start'  => $start,
-            'tid'    => $tid,
-            'limit'  => $limit,
-            'offset' => $offset,
+        $report = new TeacherHoursReport([
+            'startDate' => $start,
+            'endDate'   => $end,
+            'teacherId' => $teacherId,
+            'limit'     => $limit,
+            'offset'    => $offset,
         ]);
+
         return $this->render('teacher-hours', [
-            'data'          => $data,
-            'end'           => $end,
-            'reportList'    => Report::getReportTypeList(),
-            'start'         => $start,
-            'teachers'      => Teacher::getTeachersInUserListSimple(),
-            'tid'           => $tid,
+            'teacherHours' => $report->prepareReportData(),
+            'end'          => date('d.m.Y', strtotime($report->endDate)),
+            'start'        => date('d.m.Y', strtotime($report->startDate)),
+            'teacherId'    => $teacherId,
         ]);
     }
     
