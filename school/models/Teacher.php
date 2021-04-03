@@ -127,47 +127,6 @@ class Teacher extends \yii\db\ActiveRecord
         return $teachers;
     }
 
-    public static function getTeachersByAccruals($params = null)
-    {
-        $teachers = (new \yii\db\Query())
-        ->select([
-            'id' => 't.id',
-            'name' => 't.name'
-        ])
-        ->distinct()
-        ->from(['t' => 'calc_teacher'])
-        ->innerJoin(['acc' => 'calc_accrualteacher'], 'acc.calc_teacher = t.id')
-        ->where([
-            'acc.visible' => 1,
-            't.visible' => 1,
-            't.old' => 0
-        ])
-        ->andFilterWhere(['<=', 'acc.data', isset($params['end']) ? $params['end'] : null])
-        ->andFilterWhere(['>=', 'acc.data', isset($params['start']) ? $params['start'] : null])
-        ->andFilterWhere(['t.id' => isset($params['id']) ? $params['id'] : null]);
-
-        // делаем клон запроса
-        $countQuery = clone $teachers;
-        // получаем данные для паджинации
-        $pages = new Pagination(['totalCount' => $countQuery->count()]);
-
-        if (isset($params['limit'])) {
-            $teachers = $teachers->limit($params['limit']);
-        }
-
-        if (isset($params['offset'])) {
-            $teachers = $teachers->offset($params['offset']);
-        }
-
-        $teachers = $teachers->orderBy(['t.name' => SORT_ASC])
-        ->all();
-
-        return [
-            'total' => $pages->totalCount,
-            'rows' => $teachers
-        ];
-    }
-
     /* возвращает список преподавателей имеющих активные группы */
     public function getTeachersWithActiveGroups($tid = null)
     {

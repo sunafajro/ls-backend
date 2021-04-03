@@ -189,26 +189,27 @@ class DateHelper {
     /**
      * Возвращает массив с датами начала и конца месяца.
      * Если не заданы месяц или год, используются значения месяца/года от текущей даты.
-     * @var int|null $month
-     * @var int|null $year
      *
+     * @param int|null $month
+     * @param int|null $year
+     * @param bool $toString
      * @return array
      */
-    public static function getDateRangeByMonth(int $month = null, int $year = null) : array
+    public static function getDateRangeByMonth(int $month = null, int $year = null, bool $toString = true) : array
     {
         if (!$month) {
             $month = (int)date('m');
         }
         if (!$year) {
-            $year = (int)date('m');
+            $year = (int)date('Y');
         }
 
         $date = new DateTime();
         $date->setDate($year, $month, 1);
         $dateRange = [];
-        $dateRange[] = $date->format('Y-m-d');
+        $dateRange[] = $toString ? $date->format('Y-m-d') : clone($date);
         $date->modify('last day of this month');
-        $dateRange[] = $date->format('Y-m-d');
+        $dateRange[] = $toString ? $date->format('Y-m-d') : $date;
 
         return $dateRange;
     }

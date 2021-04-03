@@ -11,6 +11,7 @@ use school\models\reports\JournalReport;
 use school\models\reports\MarginsReport;
 use school\models\reports\OfficePlanReport;
 use school\models\reports\PaymentsReport;
+use school\models\reports\SalariesReport;
 use school\models\reports\SalesReport;
 use school\models\reports\TeacherHoursReport;
 use school\models\Sale;
@@ -340,35 +341,29 @@ class ReportController extends Controller
      * @return mixed
      * @throws ForbiddenHttpException
      */
-    public function actionSalaries ($end = null, $limit = 10, $offset = 0, $tid = null, $start = null)
+    public function actionSalaries (string $month = null, string $year = null, string $teacherId = null)
     {
+        $this->layout = 'main-2-column';
         /** @var Auth $auth */
         $auth = Yii::$app->user->identity;
         if (!in_array($auth->roleId, [3, 8])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
-        if (Yii::$app->request->isPost) {
-            Yii::$app->response->format = Response::FORMAT_JSON;
-            $salaries = Report::getSalariesReportRows([
-                'end' => $end,
-                'id' => $tid,
-                'limit' => $limit,
-                'offset' => $offset,
-                'start' => $start,
-            ]);
-            return [
-                'status' => true,
-                'menuData' => Report::getReportTypes(),
-                'salariesData' => [
-                    'columns' => Report::getSalariesReportColumns(),
-                    'rows' => $salaries['rows'],
-                    'total' => $salaries['total']
-                ]
-            ];
-        } else {
-            return $this->render('salaries');
-        }
+        $report = new SalariesReport([
+            'month' => $month,
+            'year' => $year,
+            'teacherId' => $teacherId,
+        ]);
+
+        list($salaries, $month, $year, $teacherId) = $report->prepareReportData();
+
+        return $this->render('salaries', [
+            'salaries' => $salaries,
+            'month' => $month,
+            'year' => $year,
+            'teacherId' => $teacherId,
+        ]);
     }
 
     /**

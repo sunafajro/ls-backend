@@ -474,6 +474,7 @@ return array(
     'Ruble sale (manual)' => 'Рублевая скидка (произв.)',
     'Rules' => 'Правила',
     'Salaries' => 'Зарплаты',
+    'Salaries report' => 'Отчет по зарплатам',
     'Sale' => 'Скидка',
     'Sale date' => 'Дата назначения',
     'Sale name' => 'Название',
