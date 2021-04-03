@@ -23,9 +23,6 @@ use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
 
-unset($actionUrl['start']);
-unset($actionUrl['end']);
-
 $reportList = Report::getReportTypes();
 if (!empty($reportList)) { ?>
     <div class="dropdown">
@@ -48,13 +45,17 @@ if (!empty($reportList)) { ?>
         </ul>
     </div>
 <?php }
-try {
-    echo FiltersWidget::widget([
+if (!empty($actionUrl)) {
+    unset($actionUrl['start']);
+    unset($actionUrl['end']);
+    try {
+        echo FiltersWidget::widget([
             'actionUrl' => $actionUrl,
             'items'     => $items,
-    ]);
-} catch (Exception $e) {
-    echo AlertHelper::alert($e->getMessage());
+        ]);
+    } catch (Exception $e) {
+        echo AlertHelper::alert($e->getMessage());
+    }
 }
 if (!empty($hints)) { ?>
     <h4><?= Yii::t('app', 'Подсказки') ?></h4>

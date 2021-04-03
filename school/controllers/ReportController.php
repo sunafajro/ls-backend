@@ -7,9 +7,11 @@ use school\models\Office;
 use school\models\reports\CommonReport;
 use school\models\reports\DebtsReport;
 use school\models\reports\InvoicesReport;
+use school\models\reports\JournalReport;
 use school\models\reports\MarginsReport;
 use school\models\reports\OfficePlanReport;
 use school\models\reports\PaymentsReport;
+use school\models\reports\SalesReport;
 use school\models\reports\TeacherHoursReport;
 use school\models\Sale;
 use school\models\Student;
@@ -250,7 +252,7 @@ class ReportController extends Controller
             'payments'      => $report->prepareReportData(),
             'end'           => date('d.m.Y', strtotime($report->endDate)),
             'start'         => date('d.m.Y', strtotime($report->startDate)),
-            'officeId'      => $officeId,
+            'officeId'      => $report->officeId,
         ]);
     }
 
@@ -284,7 +286,7 @@ class ReportController extends Controller
             'invoices' => $invoices,
             'end'      => date('d.m.Y', strtotime($report->endDate)),
             'start'    => date('d.m.Y', strtotime($report->startDate)),
-            'officeId' => $officeId,
+            'officeId' => $report->officeId,
         ]);
     }
 
@@ -322,12 +324,13 @@ class ReportController extends Controller
 			'moneyPlan'  => $moneyPlan,
 			'office'     => $office,
 			'monthName'  => $monthName,
-			'nextMonth'  => $nextMonth,
-            'officeId'   => $officeId,
+			'nextMonth'  => $report->nextMonth,
+            'officeId'   => $report->officeId,
 		]);
 	}
 
     /**
+     * Отчет по зарплатам
      * @param null $end
      * @param int $limit
      * @param int $offset
@@ -369,69 +372,40 @@ class ReportController extends Controller
     }
 
     /**
+     * Отчет по скидкам
+     * @param string|null $page
      * @return mixed
      * @throws ForbiddenHttpException
      */
-    public function actionSale()
+    public function actionSale(string $page = null)
     {
+        $this->layout = 'main-2-column';
         /** @var Auth $auth */
         $auth = Yii::$app->user->identity;
         if (!in_array($auth->roleId, [3])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
-        $params = [
-		    'page' => 1,
-            'limit' => 20,
-            'offset' => 0,
-            'page_count' => 0,
-            'el_count' => 0
-        ];
-		
-		$params['page_count'] = ceil(Sale::getAssignedSaleCount()/$params['limit']);
+        $report = new SalesReport([
+            'page' => $page,
+        ]);
+        list($sales, $clients, $params) = $report->prepareReportData();
 
-        /* высчитываем смещение относительно начала массива */
-        if(Yii::$app->request->get('page') && (int)Yii::$app->request->get('page') > 1  && (int)Yii::$app->request->get('page') <= $params['page_count']){
-            $params['offset'] = $params['limit'] * ((int)Yii::$app->request->get('page') - 1);
-            $params['page'] = (int)Yii::$app->request->get('page');
-        }
-        
-        $sales = Sale::getAssignedSaleList($params);
-        $clients = [];
-
-        if(!empty($sales)) {
-
-            $params['el_count'] = count($sales);
-
-	        $sale_ids = [];        
-	        foreach($sales as $s) {
-	            $sale_ids[] = $s['sale_id'];
-	        }
-        
-            $clients = Sale::getClientListById($sale_ids);
-        
-        }
-
-        /* выводим данные в вьюз */		
 		return $this->render('sale',[
-		    'params' => $params,
-            'sales' => $sales,
+		    'params'  => $params,
+            'sales'   => $sales,
             'clients' => $clients,
-            'reportlist' => Report::getReportTypeList(),
-			'userInfoBlock' => User::getUserInfoBlock(),
 		]);
-		/* выводим данные в вьюз */
     }
 
     /**
-     * Общий отчет
+     * Общий отчет по офисам
      * @param string|null $start
      * @param string|null $end
      *
      * @return mixed
      * @throws ForbiddenHttpException
-     */ 
-
+     */
     public function actionCommon(string $start = null, string $end = null)
     {
         $this->layout = 'main-2-column';
@@ -455,6 +429,8 @@ class ReportController extends Controller
     }
 
     /**
+     * Отчет по долгам
+     *
      * @param string|null $name
      * @param string $state
      * @param string $type
@@ -483,19 +459,21 @@ class ReportController extends Controller
         list($studentList, $students, $pages) = $report->prepareReportData();
 
         return $this->render('debt', [
+            'page'        => $page,
             'pages'       => $pages,
             'studentList' => $studentList,
             'students'    => $students,
             'totalDebt'   => Student::getDebtsTotalSum($officeId),
-            'name'        => $name,
-            'state'       => $state,
-            'type'        => $type,
-            'officeId'    => $officeId,
+            'name'        => $report->name,
+            'state'       => $report->state,
+            'type'        => $report->type,
+            'officeId'    => $report->officeId,
         ]);
     }
 
     /**
      * Отчет по занятиям
+     *
      * @param string|null $start
      * @param string|null $end
      *
@@ -527,6 +505,8 @@ class ReportController extends Controller
     }
 
     /**
+     * Отчет по комиссиям
+     *
      * @param string $end
      * @param string $start
      *
@@ -561,151 +541,43 @@ class ReportController extends Controller
     }
 
     /**
-     * метод выборки данных для построения отчета по Журналам
-     * @param int $corp
-     * @param null $oid
-     * @param null $tid
-     * @param null $page
+     * Отчет по Журналам
      *
+     * @param string|null $corporate
+     * @param string|null $officeId
+     * @param string|null $teacherId
+     * @param string|null $page
      * @return mixed
      * @throws ForbiddenHttpException
      */
     
-    public function actionJournals($corp = 0, $oid = NULL, $tid = NULL, $page = NULL) 
+    public function actionJournals(string $corporate = null, string $officeId = null, string $teacherId = null, string $page = null)
     {
+        $this->layout = 'main-2-column';
         /** @var Auth $auth */
         $auth = Yii::$app->user->identity;
         if (!in_array($auth->roleId, [3, 4])) {
             throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
-        // для менеджеров задаем переменную с id офиса
-        if ($auth->roleId === 4) {
-            $oid = $oid ?? $auth->officeId;
-            if ($corp) {
-                $oid = NULL;
-            }
-        }
-        // получим массив преподавателей у которых его активные группы
-        $teachers = (new Query())
-        ->select('t.id as tid, t.name as tname')
-        ->distinct()
-        ->from('calc_teachergroup tg')
-        ->innerJoin('calc_teacher t', 't.id=tg.calc_teacher')
-        ->innerJoin('calc_groupteacher gt', 'gt.id=tg.calc_groupteacher')
-        ->where([
-            'gt.visible' => 1,
-            'tg.visible' => 1
-        ])
-        ->andFilterWhere(['t.id' => $tid ?? NULL])
-        ->andFilterWhere(['gt.calc_office' => $oid ?? NULL])
-        ->andFilterWhere(['gt.corp' => $corp ?? NULL]);
-        // делаем клон запроса
-        $countQuery = clone $teachers;
-        // получаем данные для паджинации
-        $pages = new Pagination(['totalCount' => $countQuery->count()]);
-        $limit = 10;
-        $offset = 0;
-        if ($page) {
-            if ($page > 1 && $page <= $pages->totalCount) {
-                $offset = 10 * ($page - 1);
-            }
-        }
-        // доделываем запрос и выполняем
-        $teachers = $teachers->orderBy(['t.name'=>SORT_ASC])->limit($limit)->offset($offset)->all();
-        $teachersall = $countQuery->orderBy(['t.name'=>SORT_ASC])->all();
-
-        // зададим пустое значение, оно будет использоваться если фильтр по преподавателю не задан
-        $tids = NULL;
-        $teacher_names = NULL;
-        $lcount = [];
-        // формируем массив с id преподавателей, для ситуации когда фильтр по преподавателю не задан
-        if (!$tid) {
-            $i = 0;
-            foreach($teachers as $t) {
-                // массив id-шников для запроса занятий
-                $tids[$i] = $t['tid'];
-                // массив преподавателей для вьюза
-                $teacher_names[$t['tid']] = $t['tname'];
-                // массив занятий преподавателя
-                $lcount[$t['tid']]['totalCount'] = 0;
-                $i++;
-            }
-        } else {
-            foreach($teachersall as $t) {
-                if($t['tid']==$tid) {
-                    // массив преподавателей для вьюза
-                    $teacher_names[$t['tid']] = $t['tname'];
-                    // массив занятий преподавателя
-                    $lcount[$t['tid']]['totalCount'] = 0;
-                }
-            }
-        }
-
-        if(!empty($teacher_names)) {
-            // получаем данные по занятиям
-            $lessons = (new Query())
-            ->select('jg.id as lid, jg.type as type, jg.calc_groupteacher as gid, jg.data as date, jg.done as done, jg.calc_teacher as tid, t.name as tname, jg.description as desc, jg.visible as visible')
-            ->from('calc_journalgroup jg')
-            ->leftJoin('calc_teacher t', 't.id=jg.calc_teacher')
-            ->leftJoin('calc_groupteacher gt', 'gt.id=jg.calc_groupteacher')
-            ->where([
-                'jg.view' => 0,
-                'jg.visible' => 1
-            ])
-            ->andWhere(['>', 'jg.user', 0])
-            ->andFilterWhere(['gt.calc_office' => $oid ?? NULL])
-            ->andFilterWhere(['jg.calc_teacher' => $tid ?? NULL])
-            ->andFilterWhere(['in', 'jg.calc_teacher', $tids])
-            ->andFilterWhere(['gt.corp' => $corp ?? NULL])
-            ->orderby(['t.name' => SORT_ASC, 'jg.data' => SORT_DESC])
-            ->all();
-
-            // выбираем группы преподавателей
-            $groups = (new Query())
-            ->select('tg.calc_groupteacher as gid, tg.calc_teacher as tid, s.id as sid, s.name as service, el.name as ename, tn.value as hours')
-            ->from('calc_teachergroup tg')
-            ->leftJoin('calc_groupteacher gt', 'gt.id=tg.calc_groupteacher')
-            ->leftJoin('calc_service s', 's.id=gt.calc_service')
-            ->leftJoin('calc_timenorm tn', 'tn.id=s.calc_timenorm')
-            ->leftJoin('calc_edulevel el', 'el.id=gt.calc_edulevel')
-            ->where(['gt.visible' => 1])
-            ->andFilterWhere(['gt.calc_office' => $oid ?? NULL])
-            ->andFilterWhere(['tg.calc_teacher' => $tid ?? NULL])
-            ->andFilterWhere(['in', 'tg.calc_teacher', $tids])
-            ->andFilterWhere(['gt.corp' => $corp ?? NULL])
-            ->orderby(['tg.id' => SORT_ASC])
-            ->all();
-            
-            foreach($groups as $g) {
-                $t = 0;
-                foreach($lessons as $l){
-                    if($l['tid']==$g['tid']&&$l['gid']==$g['gid']) {
-                        $t++;
-                    }
-                }
-                unset($l);
-                $lcount[$g['tid']][$g['gid']]['totalCount'] = $t;
-                $lcount[$g['tid']]['totalCount'] += $t;
-            }
-        } else {
-            $lessons = [];
-            $groups = [];
-        }
+        $report = new JournalReport([
+            'corporate' => $corporate,
+            'officeId'  => $officeId,
+            'teacherId' => $teacherId,
+            'page'      => $page,
+        ]);
+        list($groups, $lessons, $teacherNames, $teacherLessonsCount, $pages) = $report->prepareReportData();
 
         return $this->render('journals', [
-            'corp'          => $corp,
-            'groups'        => $groups,
-            'lcount'        => $lcount,
-            'lessons'       => $lessons,
-            'offices'       => Office::getOfficeInScheduleListSimple(),
-            'oid'           => $oid,
-            'pages'         => $pages,
-            'reportlist'    => Report::getReportTypeList(),
-            'teachers'      => Teacher::getTeachersInUserListSimple(),
-            'teacher_names' => $teacher_names,
-            'tid'           => $tid,
-			'userInfoBlock' => User::getUserInfoBlock(),
+            'groups'              => $groups,
+            'lessons'             => $lessons,
+            'teacherNames'        => $teacherNames,
+            'teacherLessonsCount' => $teacherLessonsCount,
+            'corporate'           => $report->corporate,
+            'officeId'            => $report->officeId,
+            'teacherId'           => $report->teacherId,
+            'page'                => $report->page,
+            'pages'               => $pages,
         ]);
     }
 
@@ -741,7 +613,7 @@ class ReportController extends Controller
             'teacherHours' => $report->prepareReportData(),
             'end'          => date('d.m.Y', strtotime($report->endDate)),
             'start'        => date('d.m.Y', strtotime($report->startDate)),
-            'teacherId'    => $teacherId,
+            'teacherId'    => $report->teacherId,
         ]);
     }
 }

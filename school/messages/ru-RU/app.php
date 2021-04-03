@@ -152,6 +152,7 @@ return array(
     'Contract number' => 'Номер договора',
     'Contract signer' => 'На кого оформлен',
     'Corp value' => 'Корпоративная надбавка',
+    'Corporate lessons' => 'Корпоративные занятия',
     'Correction' => 'Корректировка',
     'Cost' => 'Стоимость',
     'Cost for one account unit' => 'Стоимость за 1 учетную единицу',

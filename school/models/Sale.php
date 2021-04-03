@@ -24,7 +24,7 @@ class Sale extends \yii\db\ActiveRecord
     /**
      * @inheritdoc
      */
-    public static function tableName()
+    public static function tableName(): string
     {
         return 'calc_sale';
     }
@@ -32,7 +32,7 @@ class Sale extends \yii\db\ActiveRecord
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['name', 'procent', 'value'], 'required'],
@@ -49,7 +49,7 @@ class Sale extends \yii\db\ActiveRecord
     /**
      * @inheritdoc
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'id' => '№',
@@ -62,7 +62,7 @@ class Sale extends \yii\db\ActiveRecord
         ];
     }
 
-    public static function getTypeLabels()
+    public static function getTypeLabels(): array
     {
         return [
             self::TYPE_RUB       => Yii::t('app', 'Ruble sale'),
@@ -81,53 +81,6 @@ class Sale extends \yii\db\ActiveRecord
     {
         $this->visible = 0;
         return $this->save(true, ['visible']);
-    }
-    
-    /* возвращает список назначнных скидок по пользователям с паджинацией */
-    public static function getAssignedSaleList($params)
-    {
-        $sales = (new \yii\db\Query())
-        ->select('s.id as sale_id, s.name as sale, s.value as value, s.procent as type')
-        ->distinct()
-        ->from('calc_sale s')
-        ->innerJoin('calc_salestud ss', 'ss.calc_sale=s.id')
-        ->innerJoin('calc_studname sn', 'sn.id=ss.calc_studname')
-        ->where('s.visible=:one AND ss.visible=:one AND sn.active=:one', [':one'=> 1])
-        ->orderBy(['s.procent'=>SORT_DESC,'s.name'=>SORT_ASC])
-        ->limit($params['limit'])
-        ->offset($params['offset'])
-        ->all();      
-        
-        return $sales;
-    }
-	
-    /* возвращает количество назначенных скидок пользователям */
-    public static function getAssignedSaleCount()
-    {
-        $cnt = (new \yii\db\Query())
-        ->select('COUNT(DISTINCT s.id) as cnt')
-        ->from('calc_sale s')
-        ->innerJoin('calc_salestud ss', 'ss.calc_sale=s.id')
-        ->innerJoin('calc_studname sn', 'sn.id=ss.calc_studname')
-        ->where('s.visible=:one AND ss.visible=:one AND sn.active=:one', [':one'=> 1])
-        ->one();      
-        
-        return $cnt['cnt'];
-    }
-    
-    /* Возвращает список клиентов которым назначены скидки по идентификаторам скидок */
-    public static function getClientListById($ids)
-    {
-        $clients = (new \yii\db\Query())
-        ->select('sn.id as id, sn.name as name, ss.calc_sale as sale_id')
-        ->from('calc_studname sn')
-        ->innerJoin('calc_salestud ss', 'ss.calc_studname=sn.id')
-        ->where('ss.visible=:one AND sn.active=:one', [':one' => 1])
-        ->andWhere(['in', 'calc_sale', $ids])
-        ->orderby(['sn.name' => SORT_ASC])
-        ->all();
-        
-        return $clients;
     }
 
     public static function getSalesTableHeader()

@@ -11,7 +11,7 @@ use yii\web\View;
     <div class="checkbox">
         <label>
             <input type="checkbox" name="<?= $item->name ?? '' ?>"<?= $item->value ? 'checked' : ''; ?>>
-            <?= $item->title ?? '' ?>:
+            <?= $item->title ?? '' ?>
         </label>
     </div>
 </div>

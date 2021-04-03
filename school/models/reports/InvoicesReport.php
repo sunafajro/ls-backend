@@ -36,7 +36,6 @@ class InvoicesReport extends Report
     {
         /** @var Auth $auth */
         $auth = \Yii::$app->user->identity;
-
         $config['officeId'] = $auth->roleId === 4 ? $auth->officeId : ($config['officeId'] ?? null);
         list($start, $end) = DateHelper::prepareMonthlyIntervalDates($config['startDate'] ?? null, $config['endDate'] ?? null);
         $config['startDate'] = $start;
