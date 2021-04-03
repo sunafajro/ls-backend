@@ -5,6 +5,7 @@
  * @var ActiveForm $form
  * @var array      $actionUrl
  * @var string     $activeReport
+ * @var string     $additionalInfo
  * @var array      $hints
  * @var array      $items
  * @var array      $offices
@@ -63,3 +64,4 @@ if (!empty($hints)) { ?>
         <?php } ?>
     </div>
 <?php }
+echo $additionalInfo ?? '';

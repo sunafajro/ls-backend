@@ -5,10 +5,12 @@
  * @var NewsSearch $searchModel
  */
 
+use common\components\helpers\AlertHelper;
 use common\components\helpers\IconHelper;
 use school\models\Auth;
 use school\models\searches\NewsSearch;
 use school\widgets\filters\FiltersWidget;
+use school\widgets\filters\models\FilterDateInput;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
@@ -24,23 +26,24 @@ if (in_array($auth->roleId, [3])) {
         ['class' => 'btn btn-success btn-sm btn-block']
     );
 }
-
-echo FiltersWidget::widget([
-    'actionUrl' => ['site/index'],
-    'items' => [
-        [
-            'type' => FiltersWidget::FIELD_TYPE_DATE_INPUT,
-            'name' => 'NewsSearch[startDate]',
-            'title' => 'Начало периода',
-            'format' => 'dd.mm.yyyy',
-            'value' => $searchModel->startDate,
+try {
+    echo FiltersWidget::widget([
+        'actionUrl' => ['site/index'],
+        'items' => [
+            new FilterDateInput([
+                'name' => 'NewsSearch[startDate]',
+                'title' => Yii::t('app', 'Period start'),
+                'format' => 'dd.mm.yyyy',
+                'value' => $searchModel->startDate ?? '',
+            ]),
+            new FilterDateInput([
+                'name' => 'NewsSearch[endDate]',
+                'title' => Yii::t('app', 'Period end'),
+                'format' => 'dd.mm.yyyy',
+                'value' => $searchModel->endDate ?? '',
+            ]),
         ],
-        [
-            'type' => FiltersWidget::FIELD_TYPE_DATE_INPUT,
-            'name' => 'NewsSearch[endDate]',
-            'title' => 'Конец периода',
-            'format' => 'dd.mm.yyyy',
-            'value' => $searchModel->endDate,
-        ],
-    ],
-]);
+    ]);
+} catch (Exception $e) {
+    echo AlertHelper::alert($e->getMessage());
+}

@@ -12,12 +12,10 @@
  * @var string              $officeId
  */
 
-use common\widgets\alert\AlertWidget;
 use school\models\Office;
-use school\widgets\filters\FiltersWidget;
+use school\widgets\filters\models\FilterDropDown;
+use school\widgets\filters\models\FilterTextInput;
 use yii\helpers\Html;
-use yii\widgets\ActiveForm;
-use yii\widgets\Breadcrumbs;
 
 $this->title = Yii::$app->name . ' :: '.Yii::t('app','Debt report');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
@@ -28,36 +26,32 @@ $this->params['sidebar'] = [
     'params' => [
         'actionUrl' => ['report/debt'],
         'items' => [
-            [
+            new FilterTextInput([
                 'name'  => 'name',
-                'title' => 'Имя студента',
-                'type'  => FiltersWidget::FIELD_TYPE_TEXT_INPUT,
+                'title' => Yii::t('app', 'Student name'),
                 'value' => $name ?? '',
-            ],
-            [
-                'name'    => 'state',
+            ]),
+            new FilterDropDown([
+                'name'  => 'state',
+                'title' => Yii::t('app', 'Status'),
                 'options' => ['1' => 'С нами', '0' => 'Не с нами'],
                 'prompt'  => Yii::t('app', '-all states-'),
-                'title'   => 'Состояние',
-                'type'    => FiltersWidget::FIELD_TYPE_DROPDOWN,
-                'value'   => $state ?? '',
-            ],
-            [
+                'value' => $state ?? '',
+            ]),
+            new FilterDropDown([
                 'name'    => 'type',
+                'title'   => Yii::t('app', 'Debt type'),
                 'options' => ['0' => 'Нам должны', '1' => 'Мы должны'],
                 'prompt'  => Yii::t('app', '-all debts-'),
-                'title'   => 'Тип долга',
-                'type'    => FiltersWidget::FIELD_TYPE_DROPDOWN,
                 'value'   => $type ?? '',
-            ],
-            [
+            ]),
+            new FilterDropDown([
                 'name'    => 'officeId',
+                'title'   => Yii::t('app', 'Offices'),
                 'options' => Office::find()->select(['name'])->active()->indexBy('id')->orderBy(['name' => SORT_ASC])->column(),
                 'prompt'  => Yii::t('app', '-all offices-'),
-                'title'   => 'Офисы',
-                'type'    => FiltersWidget::FIELD_TYPE_DROPDOWN,
                 'value'   => $officeId ?? '',
-            ],
+            ]),
         ],
         'hints' => [],
         'activeReport' => 'debt',

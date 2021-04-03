@@ -21,7 +21,6 @@ class m180102_083055_create_access_rules_table extends Migration
         ]);
 
         $this->createIndex('access_rules-role_id-idx', '{{%access_rules}}', 'role_id');
-        // $this->addForeignKey('fk-access_rules-role_id', 'access_rules', 'role_id', 'status', 'id', 'CASCADE');
     }
 
     /**

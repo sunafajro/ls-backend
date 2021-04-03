@@ -1,15 +1,5 @@
 <?php
 
-use school\models\Office;
-use school\models\StudentCommission;
-use common\widgets\alert\AlertWidget;
-use school\widgets\filters\FiltersWidget;
-use yii\data\ActiveDataProvider;
-use yii\grid\GridView;
-use yii\helpers\Html;
-use yii\web\View;
-use yii\widgets\Breadcrumbs;
-
 /**
  * @var View               $this
  * @var StudentCommission  $searchModel
@@ -22,6 +12,14 @@ use yii\widgets\Breadcrumbs;
  * @var string             $userInfoBlock
  */
 
+use school\models\Office;
+use school\models\StudentCommission;
+use school\widgets\filters\models\FilterDateInput;
+use yii\data\ActiveDataProvider;
+use yii\grid\GridView;
+use yii\helpers\Html;
+use yii\web\View;
+
 $this->title = Yii::$app->name . ' :: ' . Yii::t('app','Reports');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
 $this->params['breadcrumbs'][] = Yii::t('app','Commissions');
@@ -31,20 +29,18 @@ $this->params['sidebar'] = [
     'params' => [
         'actionUrl' => $actionUrl,
         'items' => [
-            [
+            new FilterDateInput([
                 'name'  => 'start',
-                'title' => 'Начало периода',
-                'type'  => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+                'title' => Yii::t('app', 'Period start'),
                 'format' => 'dd.mm.yyyy',
                 'value' => $start ?? '',
-            ],
-            [
+            ]),
+            new FilterDateInput([
                 'name'  => 'end',
-                'title' => 'Конец периода',
-                'type'  => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+                'title' => Yii::t('app', 'Period end'),
                 'format' => 'dd.mm.yyyy',
                 'value' => $end ?? '',
-            ],
+            ]),
         ],
         'hints'     => [
             'При фильтрации по столбцу Дата, фильтр по периоду игнорируется.',

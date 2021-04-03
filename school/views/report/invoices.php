@@ -1,13 +1,5 @@
 <?php
 
-use school\models\Invoicestud;
-use common\widgets\alert\AlertWidget;
-use school\models\Office;
-use school\widgets\filters\FiltersWidget;
-use yii\helpers\Html;
-use yii\web\View;
-use yii\widgets\Breadcrumbs;
-
 /**
  * @var View        $this
  * @var array       $dates
@@ -16,6 +8,13 @@ use yii\widgets\Breadcrumbs;
  * @var string|null $end
  * @var string|null $officeId
  */
+
+use school\models\Invoicestud;
+use school\models\Office;
+use school\widgets\filters\models\FilterDateInput;
+use school\widgets\filters\models\FilterDropDown;
+use yii\helpers\Html;
+use yii\web\View;
 
 $this->title = Yii::$app->name . ' :: ' . Yii::t('app','Reports');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
@@ -26,28 +25,25 @@ $this->params['sidebar'] = [
     'params' => [
         'actionUrl'     => ['report/invoices'],
         'items'         => [
-            [
+            new FilterDateInput([
                 'name'  => 'start',
-                'title' => 'Начало периода',
-                'type'  => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+                'title' => Yii::t('app', 'Period start'),
                 'format' => 'dd.mm.yyyy',
                 'value' => $start ?? '',
-            ],
-            [
+            ]),
+            new FilterDateInput([
                 'name'  => 'end',
-                'title' => 'Конец периода',
-                'type'  => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+                'title' => Yii::t('app', 'Period end'),
                 'format' => 'dd.mm.yyyy',
                 'value' => $end ?? '',
-            ],
-            [
+            ]),
+            new FilterDropDown([
                 'name'    => 'officeId',
+                'title'   => Yii::t('app', 'Offices'),
                 'options' => Office::find()->select(['name'])->active()->indexBy('id')->orderBy(['name' => SORT_ASC])->column(),
                 'prompt'  => Yii::t('app', '-all offices-'),
-                'title'   => 'Офисы',
-                'type'    => FiltersWidget::FIELD_TYPE_DROPDOWN,
                 'value'   => $officeId ?? '',
-            ],
+            ]),
         ],
         'hints' => [],
         'activeReport' => 'invoices',

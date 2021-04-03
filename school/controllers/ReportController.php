@@ -8,19 +8,18 @@ use school\models\reports\CommonReport;
 use school\models\reports\DebtsReport;
 use school\models\reports\InvoicesReport;
 use school\models\reports\MarginsReport;
+use school\models\reports\OfficePlanReport;
 use school\models\reports\PaymentsReport;
 use school\models\reports\TeacherHoursReport;
 use school\models\Sale;
 use school\models\Student;
 use school\models\searches\StudentCommissionSearch;
 use school\models\Teacher;
-use school\models\Tool;
 use school\models\AccrualTeacher;
 use school\models\Auth;
 use school\models\User;
 use school\models\searches\LessonSearch;
 use school\models\Report;
-use DateTime;
 use Yii;
 use yii\db\Query;
 use yii\filters\AccessControl;
@@ -49,7 +48,7 @@ class ReportController extends Controller
             'journals',
             'margin',
             'payments',
-            'plan',
+            'office-plan',
             'sale',
             'salaries',
             'teacher-hours',
@@ -290,108 +289,42 @@ class ReportController extends Controller
     }
 
     /**
+     * @param string|null $officeId
+     * @param string|null $nextMonth
      * @return mixed
      * @throws ForbiddenHttpException
-     * @throws \Exception
      */
-    public function actionPlan()
+    public function actionOfficePlan(string $officeId = null, string $nextMonth = null)
 	{
+        $this->layout = 'main-2-column';
         /** @var Auth $auth */
         $auth = Yii::$app->user->identity;
         if (!in_array($auth->roleId, [3, 8])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
-		
-		$month = date('n');
-		$year = date('Y');
-		$monthname = date('F');
-		
-		// проверяем передан ли id офиса в get
-		if(Yii::$app->request->get('oid')) {
-			$oid = Yii::$app->request->get('oid');
-		} else {
-			// если офис явно не указан, то задаем центральный
-			$oid = 16;
-		}
-		// проверяем передан ли id офиса в get
-		
-		// проверяем передан ли параметр данных отчета (тек. или след. месяц)
-		if(Yii::$app->request->get('next')) {
-			$next = Yii::$app->request->get('next');
-		} else {
-			// если параметр явно не указан, то задаем null
-			$next = NULL;
-		}
-		// проверяем передан ли параметр данных отчета (тек. или след. месяц)
-		
-		// находим информацию по офису
-		$office = Office::findOne($oid);
-		// находим информацию по офису
-		
-		// формируем субзапрос для получения колич учеников в группе
-		$subQuery = (new Query())
-		->select('COUNT(sg.calc_studname) as cnt')
-		->from('calc_studgroup sg')
-		->where('sg.calc_groupteacher=gt.id and sg.visible=:one', [':one' => 1]);
-		// формируем субзапрос для получения колич учеников в группе
-		
-		// получаем данные для таблицы
-		$schedule = (new Query())
-		->select('gt.id as group, sn.value as cost, sch.calc_denned as day, COUNT(sch.id) as cnt')
-		->addSelect(['pupils' => $subQuery])
-		->from('calc_schedule sch')
-		->leftJoin('calc_groupteacher gt', 'gt.id=sch.calc_groupteacher')
-		->leftJoin('calc_service s', 's.id=gt.calc_service')
-		->leftJoin('calc_studnorm sn', 'sn.id=s.calc_studnorm')
-		->where('sch.visible=1 and gt.visible=1 and sch.calc_office=:oid', [':oid' => $oid])
-		->groupby(['gt.id', 'sn.value', 'sch.calc_denned'])
-		->all();
-		// получаем данные для таблицы
-		
-		$i = 0;
-		$lessonplan = 0;
-		$moneyplan = 0;
-		
-		// если массив не пустой, считаем колич занятий и сумму по плану и дописываем в массив
-		if(!empty($schedule)) {
-			foreach($schedule as $s) {
-				// если необходима инфармация по следующему месяцу, опрелеляем след месяц и год
-				if($next) {
-					$dt = new DateTime(date('Y-m-d'));
-					$dt->modify('next month');
-					$month = $dt->format('n');
-					$year = $dt->format('Y');
-					$monthname = $dt->format('F');
-				}
-				// если необходима инфармация по следующему месяцу, опрелеляем след месяц и год
-				
-				// обращаемся к внешней функции для рассчета колич дней
-				$totalCount = $s['cnt'] *  DateHelper::countDaysInMonth($s['day'], $month, $year);
-				$lessonplan += $totalCount;
-				$moneyplan += $totalCount * $s['cost'] * $s['pupils'];
-				$schedule[$i]['totalcnt'] = $totalCount;
-				$schedule[$i]['totalcost'] = $totalCount * $s['cost'];
-				$i++;
-			}
-			unset($s);
-		}
-		// если массив не пустой, считаем колич занятий и сумму по плану и дописываем в массив
-		
-        /* выводим данные в вьюз */		
-		return $this->render('plan',[
-			'grouplist' => $schedule,
-			'lessonplan' => $lessonplan,
-			'moneyplan' => $moneyplan,
-			'daynames' => Tool::getDayOfWeekSimple(),
-			'oid' => $oid,
-			'office' => $office,
-			'offices' => Office::getOfficeInScheduleListSimple(),
-			'monthname' => $monthname,
-			'next' => $next,
-            'reportlist' => Report::getReportTypeList(),
-			'userInfoBlock' => User::getUserInfoBlock(),
+
+		$office = $officeId ? Office::find()->byId($officeId)->active()->one() : null;
+		if (empty($office)) {
+            $office = Office::find()->active()->orderBy('name')->one();
+        }
+		$officeId = $office->id;
+
+		$report = new OfficePlanReport([
+		    'nextMonth' => $nextMonth,
+            'officeId' => $officeId,
+        ]);
+
+		list($schedule, $lessonPlan, $moneyPlan, $monthName) = $report->prepareReportData();
+
+		return $this->render('office-plan',[
+			'groupList'  => $schedule,
+			'lessonPlan' => $lessonPlan,
+			'moneyPlan'  => $moneyPlan,
+			'office'     => $office,
+			'monthName'  => $monthName,
+			'nextMonth'  => $nextMonth,
+            'officeId'   => $officeId,
 		]);
-		/* выводим данные в вьюз */
 	}
 
     /**

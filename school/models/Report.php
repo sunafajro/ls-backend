@@ -98,9 +98,9 @@ class Report extends Model
         }
         if (in_array($roleId, [3])) {
             $items[] = [
-                'id' => 'plan',
+                'id' => 'office-plan',
                 'label' => Yii::t('app','Office plan'),
-                'url' => Url::to(['report/plan']),
+                'url' => Url::to(['report/office-plan']),
             ];
         }
         if (in_array($roleId, [3, 4, 6])) {

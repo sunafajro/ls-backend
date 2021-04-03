@@ -22,6 +22,15 @@ class DateHelper {
     }
 
     /**
+     * @param int $dayId
+     * @return string
+     */
+    public static function getDayName(int $dayId): string
+    {
+        return self::getWeekDays()[$dayId] ?? '';
+    }
+
+    /**
      * @return string[]
      */
     public static function getMonths() : array
@@ -40,6 +49,15 @@ class DateHelper {
             11 => 'Ноябрь',
             12 => 'Декабрь',
         ];
+    }
+
+    /**
+     * @param int $monthId
+     * @return string
+     */
+    public static function getMonthName(int $monthId): string
+    {
+        return self::getMonths()[$monthId] ?? '';
     }
 
     /**

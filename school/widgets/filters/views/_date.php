@@ -2,26 +2,27 @@
 
 /**
  * @var View  $this
- * @var array $item
+ * @var FilterDateInput $item
  */
 
-use yii\helpers\Html;
+use common\components\helpers\AlertHelper;
+use school\widgets\filters\models\FilterDateInput;
 use yii\web\View;
 use kartik\datetime\DateTimePicker;
 ?>
 <div class="form-group">
-    <label><?= $item['title'] ?? '' ?>:</label>
+    <label><?= $item->title ?? '' ?>:</label>
     <?php
     try {
         echo DateTimePicker::widget([
-            'name' => $item['name'] ?? '',
+            'name' => $item->name ?? '',
             'options' => [
                 'autocomplete' => 'off',
-                'class'        => 'form-control ' . join(' ', $item['addClasses'] ?? []),
+                'class'        => 'form-control ' . join(' ', $item->addClasses ?? []),
             ],
             'pluginOptions' => [
                 'language'       => 'ru',
-                'format'         => $item['format'] ?: 'yyyy-mm-dd',
+                'format'         => $item->format ?? '',
                 'todayHighlight' => true,
                 'minView'        => 2,
                 'maxView'        => 4,
@@ -29,9 +30,9 @@ use kartik\datetime\DateTimePicker;
                 'autoclose'      => true,
             ],
             'type' => DateTimePicker::TYPE_INPUT,
-            'value' => $item['value'] ?? '',
+            'value' => $item->value ?? '',
         ]);
     } catch (Exception $e) {
-        echo Html::tag('div', 'Не удалось отобразить виджет. ' . $e->getMessage(), ['class' => 'alert alert-danger']);
+        echo AlertHelper::alert('Не удалось отобразить виджет. ' . $e->getMessage());
     } ?>
 </div>

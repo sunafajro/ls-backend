@@ -19,7 +19,7 @@ use common\components\helpers\DateHelper;
 use common\components\helpers\IconHelper;
 use school\assets\ReportAccrualsAsset;
 use common\widgets\alert\AlertWidget;
-use school\widgets\filters\FiltersWidget;
+use school\widgets\filters\models\FilterDropDown;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
@@ -34,27 +34,24 @@ ReportAccrualsAsset::register($this);
     <?= $this->render('_sidebar', [
         'actionUrl' => $actionUrl,
         'items'     => [
-            [
+            new FilterDropDown([
                 'name'    => 'month',
                 'options' => DateHelper::getMonths(),
                 'title'   => Yii::t('app', 'Month'),
-                'type'    => FiltersWidget::FIELD_TYPE_DROPDOWN,
                 'value'   => $params['month'] ?? date('m'),
-            ],
-            [
+            ]),
+            new FilterDropDown([
                 'name'    => 'year',
                 'options' => DateHelper::getYears(),
                 'title'   => Yii::t('app', 'Year'),
-                'type'    => FiltersWidget::FIELD_TYPE_DROPDOWN,
                 'value'   => $params['year'] ?? date('Y'),
-            ],
-            [
+            ]),
+            new FilterDropDown([
                 'name'    => 'tid',
                 'options' => $teachersList,
                 'title'   => Yii::t('app', 'Teacher'),
-                'type'    => FiltersWidget::FIELD_TYPE_DROPDOWN,
                 'value'   => $params['tid'] ?? null,
-            ]
+            ]),
         ],
         'hints'      => [],
         'reportList' => $reportList ?? [],

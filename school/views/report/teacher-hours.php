@@ -8,7 +8,9 @@
  * @var string|null  $teacherId
  */
 
-use school\models\Teacher;use school\widgets\filters\FiltersWidget;
+use school\models\Teacher;
+use school\widgets\filters\models\FilterDateInput;
+use school\widgets\filters\models\FilterDropDown;
 use yii\helpers\Html;
 
 $this->title = Yii::$app->name . ' :: ' . Yii::t('app','Reports');
@@ -20,28 +22,25 @@ $this->params['sidebar'] = [
     'params' => [
         'actionUrl'     => ['report/teacher-hours'],
         'items'         => [
-            [
+            new FilterDateInput([
                 'name'  => 'start',
-                'title' => 'Начало периода',
-                'type'  => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+                'title' => Yii::t('app', 'Period start'),
                 'format' => 'dd.mm.yyyy',
                 'value' => $start ?? '',
-            ],
-            [
+            ]),
+            new FilterDateInput([
                 'name'  => 'end',
-                'title' => 'Конец периода',
-                'type'  => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+                'title' => Yii::t('app', 'Period end'),
                 'format' => 'dd.mm.yyyy',
                 'value' => $end ?? '',
-            ],
-            [
+            ]),
+            new FilterDropDown([
                 'name'    => 'teacherId',
+                'title'   => Yii::t('app', 'Преподаватели'),
                 'options' => Teacher::find()->select('name')->where(['visible' => 1, 'old' => 0])->indexBy('id')->orderBy(['name' => SORT_ASC])->column(),
                 'prompt'  => Yii::t('app', '-all teachers-'),
-                'title'   => 'Преподаватели',
-                'type'    => FiltersWidget::FIELD_TYPE_DROPDOWN,
                 'value'   => $teacherId ?? '',
-            ],
+            ]),
         ],
         'hints'         => [
             'При установке интервала более недели, отчет будет ограничен выборкой в 7 дней от даты начала периода.'

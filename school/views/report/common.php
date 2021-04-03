@@ -7,7 +7,8 @@
  * @var string|null $start
  */
 
-use school\widgets\filters\FiltersWidget;
+use school\widgets\filters\models\FilterDateAdditionalButtons;
+use school\widgets\filters\models\FilterDateInput;
 use yii\helpers\Html;
 use yii\web\View;
 
@@ -20,27 +21,25 @@ $this->params['sidebar'] = [
     'params' => [
         'actionUrl' => ['report/common'],
         'items' => [
-            [
+            new FilterDateInput([
                 'addClasses' => ['js--filter-start-date'],
                 'name'       => 'start',
-                'title'      => 'Начало периода',
-                'type'       => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+                'title'      => Yii::t('app', 'Period start'),
                 'format'     => 'dd.mm.yyyy',
                 'value'      => $start ?? '',
-            ],
-            [
+            ]),
+            new FilterDateInput([
                 'addClasses' => ['js--filter-end-date'],
                 'name'       => 'end',
-                'title'      => 'Конец периода',
-                'type'       => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+                'title'      => Yii::t('app', 'Period end'),
                 'format'     => 'dd.mm.yyyy',
                 'value'      => $end ?? '',
-            ],
-            [
+            ]),
+            new FilterDateAdditionalButtons([
                 'dateStartClass' => 'js--filter-start-date',
                 'dateEndClass'   => 'js--filter-end-date',
-                'type'           => FiltersWidget::ADDITIONAL_DATE_BUTTONS,
-            ]
+                'format'         => 'dd.mm.yyyy',
+            ]),
         ],
         'hints' => [],
         'activeReport' => 'common',

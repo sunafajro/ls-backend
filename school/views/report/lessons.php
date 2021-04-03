@@ -1,16 +1,5 @@
 <?php
 
-use school\models\Journalgroup;
-use school\models\Office;
-use school\models\searches\LessonSearch;
-use common\widgets\alert\AlertWidget;
-use school\widgets\filters\FiltersWidget;
-use yii\data\ActiveDataProvider;
-use yii\grid\GridView;
-use yii\helpers\Html;
-use yii\web\View;
-use yii\widgets\Breadcrumbs;
-
 /**
  * @var View               $this
  * @var LessonSearch       $searchModel
@@ -19,6 +8,15 @@ use yii\widgets\Breadcrumbs;
  * @var string|null        $end
  * @var string|null        $start
  */
+
+use school\models\Journalgroup;
+use school\models\Office;
+use school\models\searches\LessonSearch;
+use school\widgets\filters\models\FilterDateInput;
+use yii\data\ActiveDataProvider;
+use yii\grid\GridView;
+use yii\helpers\Html;
+use yii\web\View;
 
 $this->title = Yii::$app->name . ' :: ' . Yii::t('app', 'Lessons report');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Reports'), 'url' => ['report/index']];
@@ -29,20 +27,18 @@ $this->params['sidebar'] = [
         'params' => [
             'actionUrl' => $actionUrl,
             'items' => [
-                [
+                new FilterDateInput([
                     'name'  => 'start',
-                    'title' => 'Начало периода',
-                    'type'  => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+                    'title' => Yii::t('app', 'Period start'),
                     'format' => 'dd.mm.yyyy',
                     'value' => $start ?? '',
-                ],
-                [
+                ]),
+                new FilterDateInput([
                     'name'  => 'end',
-                    'title' => 'Конец периода',
-                    'type'  => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+                    'title' => Yii::t('app', 'Period end'),
                     'format' => 'dd.mm.yyyy',
                     'value' => $end ?? '',
-                ],
+                ]),
             ],
             'hints'         => [
                 'Столбец Группа поддерживает фильтрацию как по названию группы так и по её номеру.',

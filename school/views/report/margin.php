@@ -8,7 +8,7 @@
  */
 
 use common\components\helpers\AlertHelper;
-use school\widgets\filters\FiltersWidget;
+use school\widgets\filters\models\FilterDateInput;
 use yii\web\View;
 
 $this->title = \Yii::$app->name . ' :: ' . Yii::t('app','Margin report');
@@ -20,22 +20,18 @@ $this->params['sidebar'] = [
     'params' => [
         'actionUrl' => ['report/margin'],
         'items' => [
-            [
-                'addClasses' => ['js--filter-start-date'],
-                'name'       => 'start',
-                'title'      => 'Начало периода',
-                'type'       => FiltersWidget::FIELD_TYPE_DATE_INPUT,
-                'format'     => 'dd.mm.yyyy',
-                'value'      => $start ?? '',
-            ],
-            [
-                'addClasses' => ['js--filter-end-date'],
-                'name'       => 'end',
-                'title'      => 'Конец периода',
-                'type'       => FiltersWidget::FIELD_TYPE_DATE_INPUT,
-                'format'     => 'dd.mm.yyyy',
-                'value'      => $end ?? '',
-            ],
+            new FilterDateInput([
+                'name'  => 'start',
+                'title' => Yii::t('app', 'Period start'),
+                'format' => 'dd.mm.yyyy',
+                'value' => $start ?? '',
+            ]),
+            new FilterDateInput([
+                'name'  => 'end',
+                'title' => Yii::t('app', 'Period end'),
+                'format' => 'dd.mm.yyyy',
+                'value' => $end ?? '',
+            ]),
         ],
         'hints' => [],
         'activeReport' => 'margin',

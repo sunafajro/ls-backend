@@ -11,7 +11,8 @@
 use school\models\Moneystud;
 use school\models\Notification;
 use school\models\Office;
-use school\widgets\filters\FiltersWidget;
+use school\widgets\filters\models\FilterDateInput;
+use school\widgets\filters\models\FilterDropDown;
 use yii\helpers\Html;
 
 $this->title = Yii::$app->name . ' :: ' . Yii::t('app','Reports');
@@ -30,28 +31,25 @@ $this->params['sidebar'] = [
     'params' => [
         'actionUrl'     => ['report/payments'],
         'items'         => [
-            [
-                'name'   => 'start',
-                'title'  => 'Начало периода',
-                'type'   => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+            new FilterDateInput([
+                'name'  => 'start',
+                'title' => Yii::t('app', 'Period start'),
                 'format' => 'dd.mm.yyyy',
-                'value'  => $start ?? '',
-            ],
-            [
-                'name'   => 'end',
-                'title'  => 'Конец периода',
-                'type'   => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+                'value' => $start ?? '',
+            ]),
+            new FilterDateInput([
+                'name'  => 'end',
+                'title' => Yii::t('app', 'Period end'),
                 'format' => 'dd.mm.yyyy',
-                'value'  => $end ?? '',
-            ],
-            [
+                'value' => $end ?? '',
+            ]),
+            new FilterDropDown([
                 'name'    => 'officeId',
                 'options' => Office::find()->select(['name'])->active()->indexBy('id')->orderBy(['name' => SORT_ASC])->column(),
                 'prompt'  => Yii::t('app', '-all offices-'),
-                'title'   => 'Офисы',
-                'type'    => FiltersWidget::FIELD_TYPE_DROPDOWN,
+                'title'   => Yii::t('app', 'Offices'),
                 'value'   => $officeId ?? '',
-            ],
+            ]),
         ],
         'hints' => [],
         'activeReport' => 'payments',

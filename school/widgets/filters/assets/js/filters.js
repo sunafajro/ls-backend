@@ -1,13 +1,19 @@
 /* global moment */
+/* global fieldDateFormat */
 $(function () {
     'use strict';
+
+    if (fieldDateFormat === undefined) {
+        const fieldDateFormat = 'YYYY-MM-DD';
+    }
+
     var dateChangeBtnBlock = $('.js--change-dates-btn-block').eq(0);
     var dateStartInput     = dateChangeBtnBlock ? dateChangeBtnBlock.data('start-date') : undefined;
     var dateEndInput       = dateChangeBtnBlock ? dateChangeBtnBlock.data('end-date') : undefined;
 
     function setDates(currentDate, $dateStartInput, $dateEndInput, type) {
-        $dateStartInput.val(currentDate.startOf(type).format('YYYY-MM-DD')).trigger('change');
-        $dateEndInput.val(currentDate.endOf(type).format('YYYY-MM-DD')).trigger('change');
+        $dateStartInput.val(currentDate.startOf(type).format(fieldDateFormat)).trigger('change');
+        $dateEndInput.val(currentDate.endOf(type).format(fieldDateFormat)).trigger('change');
     }
 
     function changeDates(type) {
@@ -20,15 +26,15 @@ $(function () {
                 setDates(currentDate, $dateStartInput, $dateEndInput, 'week');
                 break;
             case 'previousWeek':
-                if (moment(startDateValue).isValid()) {
-                    currentDate = moment(startDateValue);
+                if (moment(startDateValue, fieldDateFormat).isValid()) {
+                    currentDate = moment(startDateValue, fieldDateFormat);
                 }
                 currentDate.subtract(1, 'weeks');
                 setDates(currentDate, $dateStartInput, $dateEndInput, 'week');
                 break;
             case 'nextWeek':
-                if (moment(startDateValue).isValid()) {
-                    currentDate = moment(startDateValue);
+                if (moment(startDateValue, fieldDateFormat).isValid()) {
+                    currentDate = moment(startDateValue, fieldDateFormat);
                 }
                 currentDate.add(1, 'weeks');
                 setDates(currentDate, $dateStartInput, $dateEndInput, 'week');
@@ -37,15 +43,15 @@ $(function () {
                 setDates(currentDate, $dateStartInput, $dateEndInput, 'month');
                 break;
             case 'previousMonth':
-                if (moment(startDateValue).isValid()) {
-                    currentDate = moment(startDateValue);
+                if (moment(startDateValue, fieldDateFormat).isValid()) {
+                    currentDate = moment(startDateValue, fieldDateFormat);
                 }
                 currentDate.subtract(1, 'months');
                 setDates(currentDate, $dateStartInput, $dateEndInput, 'month');
                 break;
             case 'nextMonth':
-                if (moment(startDateValue).isValid()) {
-                    currentDate = moment(startDateValue);
+                if (moment(startDateValue, fieldDateFormat).isValid()) {
+                    currentDate = moment(startDateValue, fieldDateFormat);
                 }
                 currentDate.add(1, 'months');
                 setDates(currentDate, $dateStartInput, $dateEndInput, 'month');

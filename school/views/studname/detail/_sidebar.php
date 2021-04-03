@@ -5,11 +5,13 @@
  * @var int     $type
  */
 
+use common\components\helpers\AlertHelper;
 use school\models\Service;
 use school\models\Student;
 use school\widgets\filters\FiltersWidget;
+use school\widgets\filters\models\FilterDateInput;
+use school\widgets\filters\models\FilterDropDown;
 use school\widgets\userInfo\UserInfoWidget;
-use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\web\View;
 
@@ -29,39 +31,36 @@ if (in_array($type, [
     }
 }
 
-echo UserInfoWidget::widget();
-
 try {
+    echo UserInfoWidget::widget();
+
     $items = [
-        [
+        new FilterDateInput([
             'name'  => 'start',
-            'title' => 'Начало периода',
-            'type'  => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+            'title' => Yii::t('app', 'Period start'),
             'value' => $params['start'] ?? '',
-        ],
-        [
+        ]),
+        new FilterDateInput([
             'name'  => 'end',
-            'title' => 'Конец периода',
-            'type'  => FiltersWidget::FIELD_TYPE_DATE_INPUT,
+            'title' => Yii::t('app', 'Period end'),
             'value' => $params['end'] ?? '',
-        ],
+        ]),
     ];
     if (!empty($services)) {
-        $items[] = [
+        $items[] = new FilterDropDown([
             'name'  => 'service',
+            'title' => Yii::t('app', 'Services'),
             'options' => $services ?? [],
             'prompt'  => Yii::t('app', '-all services-'),
-            'title' => 'Услуги',
-            'type'  => FiltersWidget::FIELD_TYPE_DROPDOWN,
             'value' => $params['service'] ?? '',
-        ];
+        ]);
     }
     echo FiltersWidget::widget([
         'actionUrl' => Url::to(['studname/detail', 'id' => $student->id, 'type' => $type]),
         'items'     => $items,
     ]);
 } catch (Exception $e) {
-    echo Html::tag('div', 'Не удалось отобразить виджет. ' . $e->getMessage(), ['class' => 'alert alert-danger']);
+    echo AlertHelper::alert('Не удалось отобразить виджет. ' . $e->getMessage());
 }
 ?>
 <h4><?= Yii::t('app', 'Hints') ?></h4>
