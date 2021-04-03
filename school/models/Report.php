@@ -2,19 +2,8 @@
 
 namespace school\models;
 
-use common\components\helpers\DateHelper;
-use school\models\Edunormteacher;
-use school\models\Groupteacher;
-use school\models\Journalgroup;
-use school\models\Moneystud;
-use school\models\Service;
-use school\models\Teacher;
-use school\models\Timenorm;
-use DateTime;
 use Yii;
 use yii\base\Model;
-use yii\db\Expression;
-use yii\db\Query;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
 

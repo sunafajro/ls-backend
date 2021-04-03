@@ -3,7 +3,6 @@
 namespace school\models;
 
 use Yii;
-use \yii\data\Pagination;
 use yii\db\ActiveQuery;
 
 /**

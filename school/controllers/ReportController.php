@@ -14,22 +14,16 @@ use school\models\reports\PaymentsReport;
 use school\models\reports\SalariesReport;
 use school\models\reports\SalesReport;
 use school\models\reports\TeacherHoursReport;
-use school\models\Sale;
 use school\models\Student;
 use school\models\searches\StudentCommissionSearch;
-use school\models\Teacher;
 use school\models\AccrualTeacher;
 use school\models\Auth;
-use school\models\User;
 use school\models\searches\LessonSearch;
 use school\models\Report;
 use Yii;
-use yii\db\Query;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
-use yii\web\Response;
-use yii\data\Pagination;
 
 /**
  * Class ReportController
