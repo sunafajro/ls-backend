@@ -7,7 +7,7 @@ use yii\data\ActiveDataProvider;
 
 class DiscountSearch extends Sale
 {
-    public function rules()
+    public function rules(): array
     {
         return [
             [['id', 'procent'], 'integer'],
@@ -16,7 +16,7 @@ class DiscountSearch extends Sale
         ];
     }
 
-    public function search(array $params = [])
+    public function search(array $params = []): ActiveDataProvider
     {
         $dt = Sale::tableName();
 

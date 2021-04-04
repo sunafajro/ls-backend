@@ -67,7 +67,9 @@ class Auth extends \yii\base\BaseObject implements \yii\web\IdentityInterface
      */
     public function getAuthKey()
     {
-        return $this->authKey;
+        // TODO реализовать генерацию и использование ключа
+        // $this->authKey;
+        return null;
     }
 
     /**

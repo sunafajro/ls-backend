@@ -319,6 +319,7 @@ class Student extends ActiveRecord
             ])
             ->andFilterWhere(['s.id' => $id])
             ->groupBy(['s.id'])
+            // TODO переписать, так как не совместимо с режимом sql_mode=only_full_group_by
             ->orderBy(['g.data' => SORT_ASC, 's.id' => SORT_DESC, 'g.id' => SORT_DESC])
             ->cache(10 * 60)
             ->all();

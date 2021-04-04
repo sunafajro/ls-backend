@@ -69,7 +69,9 @@ class BaseAuth extends BaseObject implements IdentityInterface
      */
     public function getAuthKey()
     {
-        return $this->authKey;
+        // TODO реализовать генерацию и использование ключа
+        // $this->authKey;
+        return null;
     }
 
     /**
@@ -77,7 +79,9 @@ class BaseAuth extends BaseObject implements IdentityInterface
      */
     public function validateAuthKey($authKey)
     {
-        return $this->authKey === $authKey;
+        // TODO написать механизм создания и хранения ключа
+        // return $this->authKey === $authKey;
+        return false;
     }
 
     /**
