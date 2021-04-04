@@ -34,6 +34,14 @@ class MarginsReport extends Report
     public function __construct($config = [])
     {
         list($start, $end) = DateHelper::prepareMonthlyIntervalDates($config['startDate'] ?? null, $config['endDate'] ?? null);
+        if (empty($config['startDate']) || empty($config['endDate'])) {
+            $start = \DateTime::createFromFormat('Y-m-d', $start);
+            $start->modify('-1 months');
+            $end = clone($start);
+            $end->modify('last day of this month');
+            $start = $start->format('Y-m-d');
+            $end = $end->format('Y-m-d');
+        }
         $config['startDate'] = $start;
         $config['endDate'] = $end;
         parent::__construct($config);

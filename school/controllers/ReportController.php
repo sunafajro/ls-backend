@@ -336,7 +336,7 @@ class ReportController extends Controller
      * @return mixed
      * @throws ForbiddenHttpException
      */
-    public function actionSalaries (string $month = null, string $year = null, string $teacherId = null)
+    public function actionSalaries (string $start = null, string $end = null, string $teacherId = null)
     {
         $this->layout = 'main-2-column';
         /** @var Auth $auth */
@@ -346,17 +346,17 @@ class ReportController extends Controller
         }
 
         $report = new SalariesReport([
-            'month' => $month,
-            'year' => $year,
+            'startDate' => $start,
+            'endDate' => $end,
             'teacherId' => $teacherId,
         ]);
 
-        list($salaries, $month, $year, $teacherId) = $report->prepareReportData();
+        list($salaries, $teacherId) = $report->prepareReportData();
 
         return $this->render('salaries', [
             'salaries' => $salaries,
-            'month' => $month,
-            'year' => $year,
+            'end'      => date('d.m.Y', strtotime($report->endDate)),
+            'start'    => date('d.m.Y', strtotime($report->startDate)),
             'teacherId' => $teacherId,
         ]);
     }

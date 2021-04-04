@@ -2,14 +2,14 @@
 /**
  * @var View $this
  * @var array $salaries
- * @var int $month
- * @var int $year
+ * @var string|null $end
+ * @var string|null $start
  * @var int|null $teacherId
  */
 
-use common\components\helpers\DateHelper;
 use common\components\helpers\IconHelper;
 use school\models\Teacher;
+use school\widgets\filters\models\FilterDateInput;
 use school\widgets\filters\models\FilterDropDown;
 use yii\web\View;
 
@@ -23,19 +23,17 @@ $this->params['sidebar'] = [
     'params' => [
         'actionUrl'     => ['report/salaries'],
         'items'         => [
-            new FilterDropDown([
-                'name'  => 'month',
-                'title' => Yii::t('app', 'Month'),
-                'options' => DateHelper::getMonths(),
-                'prompt' => false,
-                'value' => $month ?? $date->format('m'),
+            new FilterDateInput([
+                'name'  => 'start',
+                'title' => Yii::t('app', 'Period start'),
+                'format' => 'dd.mm.yyyy',
+                'value' => $start ?? '',
             ]),
-            new FilterDropDown([
-                'name'    => 'year',
-                'title'   => Yii::t('app', 'Year'),
-                'options' => DateHelper::getYears(),
-                'prompt'  => false,
-                'value'   => $year ?? $date->format('Y'),
+            new FilterDateInput([
+                'name'  => 'end',
+                'title' => Yii::t('app', 'Period end'),
+                'format' => 'dd.mm.yyyy',
+                'value' => $end ?? '',
             ]),
             new FilterDropDown([
                 'name'    => 'teacherId',

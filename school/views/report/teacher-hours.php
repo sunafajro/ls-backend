@@ -71,7 +71,7 @@ $this->params['sidebar'] = [
                     <td>
                         <?php foreach ($teacherHours['hours'][$date][$id] ?? [] as $lesson) { ?>
                             <div>
-                                <?= $lesson['period'] ?> <?= "({$lesson['periodHours']} ч.)" ?>
+                                <?= $lesson['period'] ?> (<?= round($lesson['periodHours'], 2) ?>) ч. ?>
                             </div>
                             <?php
                                 $totalHours += $lesson['periodHours'] ?? 0;
@@ -80,11 +80,11 @@ $this->params['sidebar'] = [
                         <?php } ?>
                         <?php if (count($teacherHours['hours'][$date][$id] ?? []) > 1) { ?>
                             <hr style="margin: 0" />
-                            <div class="text-center"><?= $totalHoursByDay ?> ч.</div>
+                            <div class="text-center"><?= round($totalHoursByDay, 2) ?> ч.</div>
                         <?php } ?>
                     </td>
                 <?php } ?>
-                <td><?= $totalHours ?> ч.</td>
+                <td><?= round($totalHours, 2) ?> ч.</td>
             </tr>
             <?php $i++; ?>
         <?php } ?>
