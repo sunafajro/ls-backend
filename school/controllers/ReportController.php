@@ -105,6 +105,7 @@ class ReportController extends Controller
      */
     public function actionAccrual(string $tid = null, string $month = null, string $year = null, string $page = null)
     {
+        $this->layout = 'main-2-column';
         /** @var Auth $auth */
         $auth = Yii::$app->user->identity;
         if (!in_array($auth->roleId, [3])) {
