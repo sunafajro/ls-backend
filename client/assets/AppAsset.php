@@ -7,7 +7,7 @@
 
 namespace client\assets;
 
-use yidas\yii\fontawesome\FontawesomeAsset;
+use common\assets\FontawesomeAsset;
 use yii\bootstrap\BootstrapAsset;
 use yii\web\AssetBundle;
 use yii\web\YiiAsset;

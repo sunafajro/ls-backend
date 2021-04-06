@@ -6,6 +6,7 @@
  */
 
 use client\models\File;
+use common\components\helpers\IconHelper;
 use yii\helpers\Html;
 use yii\web\View;
 
@@ -26,7 +27,7 @@ use yii\web\View;
                     echo Html::beginTag('div');
                     $list = [];
                     foreach ($files as $file) {
-                        $list[] = Html::tag('i', null, ['class' => 'fa fa-paperclip', 'aria-hidden' => 'true']) . ' ' .
+                        $list[] = IconHelper::icon('paperclip', null, null, 'fa5') . ' ' .
                             Html::tag(
                                 'span',
                                 Html::a($file->original_name, ['files/download', 'id' => $file->id], ['target' => '_blank']),

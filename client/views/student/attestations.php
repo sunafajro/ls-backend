@@ -7,7 +7,7 @@
  * @var array        $exams
  */
 
-use Yii;
+use common\components\helpers\IconHelper;
 use yii\helpers\Html;
 use yii\grid\GridView;
 
@@ -79,12 +79,7 @@ $this->title = Yii::$app->params['siteTitle'];
                     'buttons' => [
                         'pdf' => function ($url, $grade) {
                             return Html::a(
-                                Html::tag('i',
-                                '',
-                                [
-                                    'class' => 'glyphicon glyphicon-print',
-                                    'aria-hidden' => true,
-                                ]),
+                                IconHelper::icon('print', null, null, 'fa5'),
                                 ['student/download-attestation', 'id' => $grade['id']],
                                 [
                                     'class' => 'btn btn-default btn-xs',

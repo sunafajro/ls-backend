@@ -21,7 +21,7 @@ use yii\web\View;
                 'i',
                 '',
                 [
-                    'class' => 'fa fa-user',
+                    'class' => 'fas fa-user',
                     'data-toggle' => 'tooltip',
                     'data-placement' => 'left',
                     'aria-hidden' => 'true',
@@ -35,7 +35,7 @@ use yii\web\View;
                     'i',
                     '',
                     [
-                        'class' => 'fa fa-mobile-alt',
+                        'class' => 'fas fa-mobile-alt',
                         'data-toggle' => 'tooltip',
                         'data-placement' => 'left',
                         'aria-hidden' => 'true',
@@ -50,7 +50,7 @@ use yii\web\View;
                     'i',
                     '',
                     [
-                        'class' => 'fa fa-envelope',
+                        'class' => 'fas fa-envelope',
                         'data-toggle' => 'tooltip',
                         'data-placement' => 'left',
                         'aria-hidden' => 'true',
@@ -64,7 +64,7 @@ use yii\web\View;
                     'i',
                     '',
                     [
-                        'class' => 'fa fa-ruble-sign',
+                        'class' => 'fas fa-ruble-sign',
                         'data-toggle' => 'tooltip',
                         'data-placement' => 'left',
                         'aria-hidden' => 'true',
@@ -79,7 +79,7 @@ use yii\web\View;
                 'i',
                 '',
                 [
-                    'class' => 'fa fa-ticket-alt',
+                    'class' => 'fas fa-ticket-alt',
                     'data-toggle' => 'tooltip',
                     'data-placement' => 'left',
                     'aria-hidden' => 'true',

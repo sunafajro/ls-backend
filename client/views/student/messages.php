@@ -11,6 +11,7 @@ use client\assets\MessageFormAsset;
 use client\models\Message;
 use client\models\MessageFile;
 use client\models\TempFile;
+use common\components\helpers\IconHelper;
 use yii\helpers\Html;
 use common\widgets\alert\AlertWidget;
 use yii\helpers\Url;
@@ -49,7 +50,7 @@ MessageFormAsset::register($this);
                     <div class="form-group js--files-block">
                         <div class="js--file-ids" data-delete-url="<?= Url::to(['files/delete']) ?>">
                             <?= Html::button(
-                                Html::tag('i', null, ['class' => 'fa fa-paperclip', 'aria-hidden' => 'true'])
+                                IconHelper::icon('paperclip', null, null, 'fa5')
                                 . ' '
                                 . Yii::t('app', 'Attach file'), ['class' => 'btn btn-default btn-xs js--upload-file-btn', 'style' => 'margin-right: 5px']) ?>
                             <?php

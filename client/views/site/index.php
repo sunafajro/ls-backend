@@ -7,6 +7,7 @@
  */
 
 use client\models\Student;
+use common\components\helpers\IconHelper;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ListView;
@@ -34,7 +35,7 @@ $this->title = Yii::$app->params['siteTitle'];
         <div class="col-xs-12 col-sm-3">
             <div class="panel panel-info">
                 <div class="panel-heading">
-                    <i class="fa fa-comment" aria-hidden="true"></i>
+                    <?= IconHelper::icon('comments', null, null, 'fa5') ?>
                     <b><?= Yii::t('app', 'Last comments') ?></b>
                 </div>
                 <div class="panel-body" style="font-size: 12px">
@@ -56,7 +57,7 @@ $this->title = Yii::$app->params['siteTitle'];
 	        </div>
             <div class="panel panel-warning">
                 <div class="panel-heading">
-                    <i class="fa fa-building" aria-hidden="true"></i>
+                    <?= IconHelper::icon('building', null, null, 'fa5') ?>
                     <b><?= Yii::t('app', 'Our contacts') ?></b>
                 </div>
                 <div class="panel-body" style="font-size: 12px">

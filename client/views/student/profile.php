@@ -82,7 +82,7 @@ $this->title = Yii::$app->params['siteTitle'];
                                     'i',
                                     '',
                                     [
-                                        'class' => 'fa fa-info-circle',
+                                        'class' => 'fas fa-info-circle',
                                         'data-toggle' => 'tooltip',
                                         'data-placement' => 'top',
                                         'aria-hidden' => 'true',

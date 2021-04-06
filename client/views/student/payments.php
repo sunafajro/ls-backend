@@ -5,8 +5,6 @@
  * @var array $payments
  */
 
-use Yii;
-
 $this->title = Yii::$app->params['siteTitle'];
 ?>
 <div class="content-block">
