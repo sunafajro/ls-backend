@@ -17,10 +17,11 @@ class m180102_083055_create_access_rules_table extends Migration
             'controller' => $this->string(),
             'action'     => $this->string(),
             'role_id'    => $this->integer(),
-            'visible'    => $this->tinyInteger(),
+            'user_id'    => $this->integer(),
         ]);
 
         $this->createIndex('access_rules-role_id-idx', '{{%access_rules}}', 'role_id');
+        $this->createIndex('access_rules-user_id-idx', '{{%access_rules}}', 'user_id');
     }
 
     /**

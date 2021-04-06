@@ -3,16 +3,20 @@
 namespace school\models;
 
 use Yii;
+use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
 
 /**
  * This is the model class for table "access_rules".
  *
  * @property integer $id
- * @property string  $action
  * @property string  $controller
+ * @property string  $action
  * @property integer $role_id
- * @property integer $visible
+ * @property integer $user_id
+ *
+ * @property-read Role $role
+ * @property-read User $user
  */
 class AccessRule extends ActiveRecord
 {
@@ -21,7 +25,7 @@ class AccessRule extends ActiveRecord
      */
     public static function tableName(): string
     {
-        return 'access_rules';
+        return '{{%access_rules}}';
     }
 
     /**
@@ -30,10 +34,9 @@ class AccessRule extends ActiveRecord
     public function rules(): array
     {
         return [
-            [['visible'], 'default', 'value' => 1],
             [['action', 'controller'], 'string'],
-            [['role_id',   'visible'], 'integer'],
-            [['action', 'controller', 'role_id', 'visible'], 'required'],
+            [['role_id', 'user_id'], 'integer'],
+            [['action', 'controller'], 'required'],
         ];
     }
 
@@ -44,68 +47,10 @@ class AccessRule extends ActiveRecord
     {
         return [
             'id'         => 'ID',
-            'action'     => Yii::t('app', 'Action'),
             'controller' => Yii::t('app', 'Controller'),
+            'action'     => Yii::t('app', 'Action'),
             'role_id'    => Yii::t('app', 'Role'),
-        ];
-    }
-
-    /**
-     * Метод возвращает список доступных ролей пользователей в виде многомерного массива.
-     * 
-     * @return array
-     */
-    public static function getRulesList()
-    {
-        $rules = (new \yii\db\Query())
-        ->select([
-            'id'         => 'r.id',
-            'action'     => 'r.action',
-            'controller' => 'r.controller',
-            'role_id'    => 'r.role_id',
-            'role'       => 's.name',
-            'moduleType' => 'r.module_type',
-        ])
-        ->from(['r' => self::tableName()])
-        ->innerJoin(['s' => Role::tableName()], 's.id = r.role_id')
-        ->where(['r.visible' => 1])
-        ->orderby(['r.id' => SORT_ASC])
-        ->all();
-
-        return [
-            'columns' => [
-                [
-                    'id'   => 'id',
-                    'name' => '№',
-                    'show' => true
-                ],
-                [
-                    'id'   => 'action',
-                    'name' => Yii::t('app', 'Action'),
-                    'show' => true
-                ],
-                [
-                    'id'   => 'controller',
-                    'name' => Yii::t('app', 'Controller'),
-                    'show' => true
-                ],
-                [
-                    'id'   => 'role_id',
-                    'name' => Yii::t('app', 'Role ID'),
-                    'show' => false
-                ],
-                [
-                    'id'   => 'role',
-                    'name' => Yii::t('app', 'Role'),
-                    'show' => true
-                ],
-                [
-                    'id'   => 'moduleType',
-                    'name' => Yii::t('app', 'Module'),
-                    'show' => true
-                ],
-            ],
-            'data'    => $rules
+            'user_id'    => Yii::t('app', 'User'),
         ];
     }
 
@@ -132,15 +77,27 @@ class AccessRule extends ActiveRecord
         /** @var Auth $auth */
         $auth = Yii::$app->user->identity;
 
-        $result = NULL;
-        if ($controller && $action) {
-            $result = self::find()->where([
+        return self::find()->where([
                 'action'     => $action,
                 'controller' => $controller,
-                'role_id'    => $auth->roleId,
             ])
-            ->one();
-        }
-        return $result ? true : false;
+            ->andWhere(['or', ['role_id' => $auth->roleId], ['user_id' => $auth->id]])
+            ->exists();
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getRole(): ActiveQuery
+    {
+        return $this->hasOne(Role::class, ['id' => 'role_id']);
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getUser(): ActiveQuery
+    {
+        return $this->hasOne(User::class, ['id' => 'user_id']);
     }
 }

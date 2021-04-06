@@ -3,6 +3,7 @@
 namespace school\controllers;
 
 use school\models\AccessRule;
+use school\models\searches\AccessRuleSearch;
 use school\models\searches\EducationLevelSearch;
 use school\models\searches\RoleSearch;
 use Yii;
@@ -19,7 +20,7 @@ class AdminController extends Controller
     /** {@inheritDoc} */
     public function behaviors(): array
     {
-        $rules = ['index', 'roles', 'education-levels'];
+        $rules = ['index', 'roles', 'education-levels', 'access-rules'];
         return [
             'access' => [
                 'class' => AccessControl::class,
@@ -99,6 +100,22 @@ class AdminController extends Controller
     }
 
     /**
+     * @return mixed
+     */
+    public function actionAccessRules()
+    {
+        $this->layout = 'main-2-column';
+        $searchModel = new AccessRuleSearch();
+        $dataProvider = $searchModel->search(\Yii::$app->request->get());
+
+        return $this->render('access-rules', [
+            'dataProvider' => $dataProvider,
+            'searchModel' => $searchModel,
+            'menuLinks' => self::getMenuLinks('roles'),
+        ]);
+    }
+
+    /**
      * @param $key
      * @return array[]
      */
@@ -116,6 +133,12 @@ class AdminController extends Controller
                 'name'    => Yii::t('app','Education levels'),
                 'classes' => true,
                 'active'  => $key === 'education-levels'
+            ],
+            [
+                'url'     => 'admin/access-rules',
+                'name'    => Yii::t('app','Access rules'),
+                'classes' => true,
+                'active'  => $key === 'access-rules'
             ]
         ];
     }
