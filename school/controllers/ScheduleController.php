@@ -1,5 +1,7 @@
 <?php
+
 namespace school\controllers;
+use school\controllers\base\BaseController;
 use Yii;
 use school\models\Eduage;
 use school\models\Eduform;
@@ -10,15 +12,13 @@ use school\models\Schedule;
 use school\models\Teacher;
 use school\models\Tool;
 use school\models\User;
-use yii\web\Controller;
-use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 use yii\filters\AccessControl;
 /**
  * ScheduleController implements the CRUD actions for Schedule model.
  */
-class ScheduleController extends Controller
+class ScheduleController extends BaseController
 {
     /**
      * @inheritDoc
@@ -49,21 +49,6 @@ class ScheduleController extends Controller
                 ],
             ],
         ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function beforeAction($action) : bool
-    {
-        if(parent::beforeAction($action)) {
-            if (User::checkAccess($action->controller->id, $action->id) == false) {
-                throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
-            }
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /**

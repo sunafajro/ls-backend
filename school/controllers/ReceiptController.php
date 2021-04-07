@@ -2,12 +2,10 @@
 
 namespace school\controllers;
 
+use school\controllers\base\BaseController;
 use Yii;
-use school\models\AccessRule;
 use school\models\Receipt;
 use school\models\Student;
-use yii\web\Controller;
-use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
@@ -16,7 +14,7 @@ use yii\filters\AccessControl;
  * Class ReceiptController
  * @package school\controllers
  */
-class ReceiptController extends Controller
+class ReceiptController extends BaseController
 {
     /** {@inheritDoc} */
     public function behaviors(): array
@@ -48,19 +46,6 @@ class ReceiptController extends Controller
                 ],
             ],
         ];
-    }
-
-    /** {@inheritDoc} */
-    public function beforeAction($action)
-	{
-		if(parent::beforeAction($action)) {
-			if (AccessRule::checkAccess($action->controller->id, $action->id) === false) {
-				throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-			}
-			return true;
-		} else {
-			return false;
-		}
     }
 
     /**

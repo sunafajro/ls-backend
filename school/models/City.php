@@ -2,7 +2,7 @@
 
 namespace school\models;
 
-use school\models\queries\OfficeQuery;
+use school\models\queries\CityQuery;
 use Yii;
 use yii\db\ActiveRecord;
 
@@ -59,11 +59,11 @@ class City extends ActiveRecord
     }
 
     /**
-     * @return OfficeQuery
+     * @return CityQuery
      */
-    public static function find() : OfficeQuery
+    public static function find() : CityQuery
     {
-        return new OfficeQuery(get_called_class(), []);
+        return new CityQuery(get_called_class(), []);
     }
 
     public static function getCitiesList()

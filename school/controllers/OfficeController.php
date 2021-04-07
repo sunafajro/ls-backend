@@ -2,23 +2,21 @@
 
 namespace school\controllers;
 
+use school\controllers\base\BaseController;
 use Yii;
-use school\models\AccessRule;
 use school\models\Office;
-use yii\web\Controller;
-use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 use yii\filters\AccessControl;
 
 /**
  * OfficeController implements the CRUD actions for Office model.
  */
-class OfficeController extends Controller
+class OfficeController extends BaseController
 {
     /**
      * @inheritdoc
      */
-    public function behaviors()
+    public function behaviors(): array
     {
         $actions = ['index'];
         return [
@@ -39,18 +37,6 @@ class OfficeController extends Controller
                 ],
             ],
         ];
-    }
-
-    public function beforeAction($action)
-    {
-        if (parent::beforeAction($action)) {
-            if (AccessRule::checkAccess($action->controller->id, $action->id) === false) {
-                throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
-            }
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /**

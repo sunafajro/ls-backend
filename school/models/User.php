@@ -380,12 +380,9 @@ class User extends BaseUser
 
             #region Переводы
             case 'langtranslator':
-            case 'translate':
             case 'translation':
-			case 'translationclient':
             case 'translationlang':
             case 'translationnorm':
-            case 'translator':
                 switch($roleId) {
                     case 3:
                     case 9: $result = true; break;

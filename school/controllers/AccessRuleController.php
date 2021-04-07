@@ -2,17 +2,16 @@
 
 namespace school\controllers;
 
+use school\controllers\base\BaseController;
 use school\models\AccessRule;
-use school\models\Role;
 use yii\filters\AccessControl;
-use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 
 /**
  * Class AccessRuleController
  * @package school\controllers
  */
-class AccessRuleController extends \yii\web\Controller
+class AccessRuleController extends BaseController
 {
     /**
      * {@inheritDoc}
@@ -38,23 +37,6 @@ class AccessRuleController extends \yii\web\Controller
                 ],
             ],
         ];
-    }
-
-    /**
-     * {@inheritDoc}
-     * @throws \yii\web\BadRequestHttpException
-     * @throws ForbiddenHttpException
-     */
-    public function beforeAction($action): bool
-    {
-        if (parent::beforeAction($action)) {
-            if (AccessRule::checkAccess($action->controller->id, $action->id) === false) {
-                throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-            }
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /**
@@ -127,7 +109,7 @@ class AccessRuleController extends \yii\web\Controller
      */
     protected function findModel(int $id): AccessRule
     {
-        if (($model = AccessRule::find()->byId($id)->active()->one()) !== null) {
+        if (($model = AccessRule::find()->byId($id)->one()) !== null) {
             return $model;
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');

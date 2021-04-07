@@ -2,16 +2,13 @@
 
 namespace school\controllers;
 
-use school\models\AccessRule;
+use school\controllers\base\BaseController;
 use school\models\Auth;
 use school\models\FileLink;
 use school\models\searches\FileLinkSearch;
 use \Yii;
-use yii\base\Action;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
-use yii\web\BadRequestHttpException;
-use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 
@@ -19,7 +16,7 @@ use yii\web\NotFoundHttpException;
  * Class FileLinkController
  * @package school\controllers
  */
-class FileLinkController extends Controller
+class FileLinkController extends BaseController
 {
     /**
      * {@inheritDoc}
@@ -52,24 +49,6 @@ class FileLinkController extends Controller
                 ],
             ],
         ];
-    }
-
-    /**
-     * @param Action $action
-     * @return bool
-     * @throws ForbiddenHttpException
-     * @throws BadRequestHttpException
-     */
-    public function beforeAction($action): bool
-    {
-        if (parent::beforeAction($action)) {
-            if (AccessRule::checkAccess($action->controller->id, $action->id) === false) {
-                throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-            }
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /**

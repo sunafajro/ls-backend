@@ -2,11 +2,9 @@
 
 namespace school\controllers;
 
+use school\controllers\base\BaseController;
 use Yii;
 use school\models\Translator;
-use school\models\User;
-use yii\web\Controller;
-use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
 
@@ -14,46 +12,29 @@ use yii\filters\AccessControl;
  * Class TranslatorController
  * @package school\controllers
  */
-class TranslatorController extends Controller
+class TranslatorController extends BaseController
 {
     public function behaviors(): array
     {
+        $rules = ['create','update','delete'];
         return [
             'access' => [
                 'class' => AccessControl::class,
-                'only' => ['create','update','disable'],
+                'only' => $rules,
                 'rules' => [
                     [
-                        'actions' => ['create','update','disable'],
+                        'actions' => $rules,
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['create','update','disable'],
+                        'actions' => $rules,
                         'allow' => true,
                         'roles' => ['@'],
                     ],
                 ],
             ],
         ];
-    }
-
-    /**
-     * @param \yii\base\Action $action
-     * @return bool
-     * @throws ForbiddenHttpException
-     * @throws \yii\web\BadRequestHttpException
-     */
-    public function beforeAction($action)
-    {
-        if(parent::beforeAction($action)) {
-            if (User::checkAccess($action->controller->id, $action->id) == false) {
-                throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-            }
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /**
@@ -132,7 +113,7 @@ class TranslatorController extends Controller
      * @return \yii\web\Response
      * @throws NotFoundHttpException
      */
-    public function actionDisable($id)
+    public function actionDelete($id)
     {
         $model = $this->findModel($id);
 

@@ -2,13 +2,9 @@
 
 namespace school\controllers;
 
-use school\models\AccessRule;
+use school\controllers\base\BaseController;
 use Yii;
 use school\models\News;
-use yii\base\Action;
-use yii\web\BadRequestHttpException;
-use yii\web\Controller;
-use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -16,7 +12,7 @@ use yii\filters\VerbFilter;
 /**
  * NewsController implements the CRUD actions for News model.
  */
-class NewsController extends Controller
+class NewsController extends BaseController
 {
     /**
      * @inheritdoc
@@ -47,24 +43,6 @@ class NewsController extends Controller
                 ],
             ],
         ];
-    }
-
-    /**
-     * @param Action $action
-     * @return bool
-     * @throws ForbiddenHttpException
-     * @throws BadRequestHttpException
-     */
-    public function beforeAction($action)
-    {
-        if (parent::beforeAction($action)) {
-            if (AccessRule::checkAccess($action->controller->id, $action->id) === false) {
-                throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-            }
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /**

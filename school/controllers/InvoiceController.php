@@ -2,6 +2,7 @@
 
 namespace school\controllers;
 
+use school\controllers\base\BaseController;
 use Yii;
 use school\models\Invoicestud;
 use school\models\Office;
@@ -9,8 +10,6 @@ use school\models\Student;
 use school\models\Salestud;
 use school\models\Service;
 use school\models\User;
-use yii\web\Controller;
-use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 use yii\filters\AccessControl;
@@ -20,9 +19,9 @@ use yii\web\ServerErrorHttpException;
 /**
  * InvoiceController implements the CRUD actions for CalcInvoicestud model.
  */
-class InvoiceController extends Controller
+class InvoiceController extends BaseController
 {
-    public function behaviors()
+    public function behaviors(): array
     {
         return [
             'access' => [
@@ -68,23 +67,6 @@ class InvoiceController extends Controller
             ],
         ];
     }
-
-    /**
-     * метод контролирует доступ к экшенам контроллера
-     * @param array $action
-     * @return boolean
-     */
-    public function beforeAction($action)
-	{
-		if(parent::beforeAction($action)) {
-			if (User::checkAccess($action->controller->id, $action->id) == false) {
-				throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
-			}
-			return true;
-		} else {
-			return false;
-		}
-	}
 
     /**
      * метод возвращает страницу с формой добавления счета

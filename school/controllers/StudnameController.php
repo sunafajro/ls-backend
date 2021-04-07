@@ -2,6 +2,7 @@
 
 namespace school\controllers;
 
+use school\controllers\base\BaseController;
 use school\models\Auth;
 use school\models\SpendSuccesses;
 use Yii;
@@ -20,9 +21,6 @@ use school\models\StudentCommission;
 use school\models\Studjournalgroup;
 use school\models\forms\StudentMergeForm;
 use school\models\User;
-use yii\base\Action;
-use yii\web\Controller;
-use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 use yii\filters\VerbFilter;
@@ -37,7 +35,7 @@ use yii\web\BadRequestHttpException;
  * Class StudnameController
  * @package school\controllers
  */
-class StudnameController extends Controller
+class StudnameController extends BaseController
 {
     public function behaviors(): array
     {
@@ -74,24 +72,6 @@ class StudnameController extends Controller
             ],
         ];
     }
-
-    /**
-     * @param Action $action
-     * @return bool
-     * @throws BadRequestHttpException
-     * @throws ForbiddenHttpException
-     */
-    public function beforeAction($action)
-	{
-		if(parent::beforeAction($action)) {
-			if (User::checkAccess($action->controller->id, $action->id) === false) {
-				throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-			}
-			return true;
-		} else {
-			return false;
-		}
-	}
 
     /**
      * @return mixed

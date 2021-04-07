@@ -2,6 +2,7 @@
 
 namespace school\models;
 
+use school\models\queries\AccessRuleQuery;
 use Yii;
 use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
@@ -52,6 +53,14 @@ class AccessRule extends ActiveRecord
             'role_id'    => Yii::t('app', 'Role'),
             'user_id'    => Yii::t('app', 'User'),
         ];
+    }
+
+    /**
+     * @return AccessRuleQuery
+     */
+    public static function find() : AccessRuleQuery
+    {
+        return new AccessRuleQuery(get_called_class(), []);
     }
 
     /**

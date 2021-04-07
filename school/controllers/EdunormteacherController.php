@@ -2,23 +2,22 @@
 
 namespace school\controllers;
 
+use school\controllers\base\BaseController;
 use Yii;
 use yii\filters\AccessControl;
 use school\models\Edunormteacher;
 use school\models\Teacher;
 use school\models\User;
-use yii\web\Controller;
-use yii\web\ForbiddenHttpException;
 
 /**
  * EdunormteacherController implements the CRUD actions for Edunormteacher model.
  */
-class EdunormteacherController extends Controller
+class EdunormteacherController extends BaseController
 {
     /**
      * @inheritdoc
      */
-    public function behaviors()
+    public function behaviors(): array
     {
         return [
             'access' => [
@@ -39,19 +38,6 @@ class EdunormteacherController extends Controller
             ],
         ];
     }
-
-    public function beforeAction($action)
-    {
-        if(parent::beforeAction($action)) {
-            if (User::checkAccess($action->controller->id, $action->id) == false) {
-                throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
-            }
-            return true;
-        } else {
-            return false;
-        }
-    }
-    
 
     /**
      * Метод позволяет руководителю

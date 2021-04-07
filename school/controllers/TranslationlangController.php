@@ -2,11 +2,9 @@
 
 namespace school\controllers;
 
+use school\controllers\base\BaseController;
 use Yii;
 use school\models\Translationlang;
-use school\models\User;
-use yii\web\Controller;
-use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
 
@@ -14,7 +12,7 @@ use yii\filters\AccessControl;
  * Class TranslationlangController
  * @package school\controllers
  */
-class TranslationlangController extends Controller
+class TranslationlangController extends BaseController
 {
     /** {@inheritdoc} */
     public function behaviors(): array
@@ -37,19 +35,6 @@ class TranslationlangController extends Controller
                 ],
             ],
         ];
-    }
-
-    /** {@inheritdoc} */
-    public function beforeAction($action)
-    {
-        if(parent::beforeAction($action)) {
-            if (User::checkAccess($action->controller->id, $action->id) == false) {
-                throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-            }
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /**

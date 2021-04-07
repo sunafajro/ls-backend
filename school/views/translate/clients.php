@@ -45,7 +45,7 @@ $this->params['sidebar'] = ['urlParams' => $urlParams, 'canCreate' => in_array($
             <?php if (in_array($auth->roleId, [3, 9])) { ?>
                 <td class="text-center">
                 <?= Html::a(IconHelper::icon('pencil'), ['translationclient/update', 'id'=>$c['id']], ['title'=>Yii::t('app','Edit')]) ?>
-                <?= Html::a(IconHelper::icon('trash'), ['translationclient/disable', 'id'=>$c['id']], ['title'=>Yii::t('app','Delete')]) ?>
+                <?= Html::a(IconHelper::icon('trash'), ['translationclient/delete', 'id'=>$c['id']], ['title'=>Yii::t('app','Delete')]) ?>
                 </td>
             <?php } ?>
         </tr>

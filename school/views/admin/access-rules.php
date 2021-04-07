@@ -47,13 +47,13 @@ echo  GridView::widget([
                 'update' => function ($url, $model) {
                     return Html::a(
                         IconHelper::icon('edit'),
-                        Url::to(['role/update', 'id' => $model->id])
+                        Url::to(['access-rule/update', 'id' => $model->id])
                     );
                 },
                 'delete' => function ($url, $model) {
                     return Html::a(
                         IconHelper::icon('trash'),
-                        Url::to(['role/delete', 'id' => $model->id]),
+                        Url::to(['access-rule/delete', 'id' => $model->id]),
                         ['data-method' => 'post', 'data-confirm' => 'Вы действительно хотите удалить роль?']
                     );
                 },

@@ -2,19 +2,17 @@
 
 namespace school\controllers;
 
+use school\controllers\base\BaseController;
 use school\models\EducationLevel;
-use school\models\AccessRule;
 use Yii;
 use yii\filters\AccessControl;
-use yii\web\Controller;
-use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 
 /**
  * EducationLevelController implements the CRUD actions for EducationLevel model.
  */
-class EducationLevelController extends Controller
+class EducationLevelController extends BaseController
 {
     /**
      * @inheritdoc
@@ -46,23 +44,6 @@ class EducationLevelController extends Controller
                 ],
             ],
         ];
-    }
-
-    /**
-     * {@inheritDoc}
-     * @throws \yii\web\BadRequestHttpException
-     * @throws ForbiddenHttpException
-     */
-    public function beforeAction($action): bool
-    {
-        if (parent::beforeAction($action)) {
-            if (AccessRule::checkAccess($action->controller->id, $action->id) === false) {
-                throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
-            }
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /**

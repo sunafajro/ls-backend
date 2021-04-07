@@ -2,6 +2,7 @@
 
 namespace school\controllers;
 
+use school\controllers\base\BaseController;
 use school\models\Salestud;
 use school\models\searches\StudentDiscountSearch;
 use school\models\Student;
@@ -9,17 +10,15 @@ use school\models\User;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
-use yii\web\Controller;
-use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
 /**
  * SalestudController implements the CRUD actions for Salestud model.
  */
-class SalestudController extends Controller
+class SalestudController extends BaseController
 {
-    public function behaviors()
+    public function behaviors(): array
     {
         $rules = ['approve', 'autocomplete', 'create', 'disable', 'disable-all', 'enable', 'index'];
         return [
@@ -49,21 +48,6 @@ class SalestudController extends Controller
                 ],
             ],
         ];
-    }
-
-    public function beforeAction($action)
-	{
-		if(parent::beforeAction($action)) {
-            if ((int)Yii::$app->session->get('user.uid') === 389 && in_array($action->id, ['approve', 'index'])) {
-                return true;
-            }
-			if (User::checkAccess($action->controller->id, $action->id) == false) {
-				throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
-			}
-			return true;
-		} else {
-			return false;
-		}
     }
     
     public function actionIndex()

@@ -2,25 +2,23 @@
 
 namespace school\controllers;
 
+use school\controllers\base\BaseController;
 use Yii;
-use school\models\AccessRule;
 use school\models\Contract;
 use school\models\Student;
 use school\models\User;
-use yii\web\Controller;
-use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
 
 /**
  * CintractController implements the CRUD actions for Contract model.
  */
-class ContractController extends Controller
+class ContractController extends BaseController
 {
     /**
      * @inheritdoc
      */
-    public function behaviors()
+    public function behaviors(): array
     {
         return [
             'access' => [
@@ -40,18 +38,6 @@ class ContractController extends Controller
                 ],
             ],
         ];
-    }
-
-    public function beforeAction($action)
-    {
-        if(parent::beforeAction($action)) {
-            if (AccessRule::checkAccess($action->controller->id, $action->id) === false) {
-                throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
-            }
-            return true;
-        } else {
-            return false;
-        }
     }
 
     public function actionCreate($sid)

@@ -2,22 +2,21 @@
 
 namespace school\controllers;
 
+use school\controllers\base\BaseController;
 use Yii;
 use school\models\Sale;
 use school\models\searches\DiscountSearch;
 use school\models\User;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
-use yii\web\Controller;
 use yii\web\NotFoundHttpException;
-use yii\web\ForbiddenHttpException;
 
 /**
  * SaleController implements the CRUD actions for CalcSale model.
  */
-class SaleController extends Controller
+class SaleController extends BaseController
 {
-    public function behaviors()
+    public function behaviors(): array
     {
         return [
 	    'access' => [
@@ -44,21 +43,6 @@ class SaleController extends Controller
                 ],
             ],
         ];
-    }
-
-    public function beforeAction($action)
-    {
-        if(parent::beforeAction($action)) {
-            if ((int)Yii::$app->session->get('user.uid') === 389 && $action->id === 'index') {
-                return true;
-            }
-            if (User::checkAccess($action->controller->id, $action->id) == false) {
-                throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
-            }
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /**

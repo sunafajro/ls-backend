@@ -2,14 +2,11 @@
 
 namespace school\controllers;
 
-use school\models\AccessRule;
+use school\controllers\base\BaseController;
 use school\models\Auth;
 use school\models\Document;
 use school\models\searches\DocumentSearch;
 use Yii;
-use yii\base\Action;
-use yii\web\BadRequestHttpException;
-use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\UploadedFile;
@@ -21,7 +18,7 @@ use yii\filters\VerbFilter;
  * Class DocumentController
  * @package school\controllers
  */
-class DocumentController extends Controller
+class DocumentController extends BaseController
 {
     /**
      * {@inheritDoc}
@@ -54,24 +51,6 @@ class DocumentController extends Controller
                 ],
             ],
         ];
-    }
-
-    /**
-     * @param Action $action
-     * @return bool
-     * @throws ForbiddenHttpException
-     * @throws BadRequestHttpException
-     */
-    public function beforeAction($action): bool
-    {
-		if (parent::beforeAction($action)) {
-			if (AccessRule::checkAccess($action->controller->id, $action->id) === false) {
-				throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-			}
-			return true;
-		} else {
-			return false;
-		}
     }
 
     /**

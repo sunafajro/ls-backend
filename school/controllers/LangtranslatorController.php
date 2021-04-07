@@ -2,20 +2,19 @@
 
 namespace school\controllers;
 
+use school\controllers\base\BaseController;
 use Yii;
 use school\models\Langtranslator;
 use school\models\Translationlang;
 use school\models\Translator;
 use school\models\User;
-use yii\web\Controller;
-use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
 
 /**
  * LangtranslatorController implements the CRUD actions for Langtranslator model.
  */
-class LangtranslatorController extends Controller
+class LangtranslatorController extends BaseController
 {
     public function behaviors()
     {
@@ -38,18 +37,6 @@ class LangtranslatorController extends Controller
             ],
         ];
     }
-	
-	public function beforeAction($action)
-	{
-		if(parent::beforeAction($action)) {
-			if (User::checkAccess($action->controller->id, $action->id) == false) {
-				throw new ForbiddenHttpException('Access denied');
-			}
-			return true;
-		} else {
-			return false;
-		}
-	}
 	
     /**
      * Метод позволяет руководителю добавить языки для переводчика.

@@ -2,11 +2,9 @@
 
 namespace school\controllers;
 
+use school\controllers\base\BaseController;
 use Yii;
 use school\models\Translationnorm;
-use school\models\User;
-use yii\web\Controller;
-use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
 
@@ -14,7 +12,7 @@ use yii\filters\AccessControl;
  * Class TranslationnormController
  * @package school\controllers
  */
-class TranslationnormController extends Controller
+class TranslationnormController extends BaseController
 {
     public function behaviors(): array
     {
@@ -36,24 +34,6 @@ class TranslationnormController extends Controller
                 ],
             ],
         ];
-    }
-
-    /**
-     * @param \yii\base\Action $action
-     * @return bool
-     * @throws ForbiddenHttpException
-     * @throws \yii\web\BadRequestHttpException
-     */
-    public function beforeAction($action)
-    {
-        if(parent::beforeAction($action)) {
-            if (User::checkAccess($action->controller->id, $action->id) == false) {
-                throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
-            }
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /**

@@ -2,18 +2,16 @@
 
 namespace school\controllers;
 
-use school\models\AccessRule;
+use school\controllers\base\BaseController;
 use Yii;
 use school\models\Role;
-use yii\web\Controller;
-use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
 
 /**
  * RoleController implements the CRUD actions for Status model.
  */
-class RoleController extends Controller
+class RoleController extends BaseController
 {
     /**
      * {@inheritDoc}
@@ -39,23 +37,6 @@ class RoleController extends Controller
                 ],
             ],
         ];
-    }
-
-    /**
-     * {@inheritDoc}
-     * @throws \yii\web\BadRequestHttpException
-     * @throws ForbiddenHttpException
-     */
-    public function beforeAction($action): bool
-    {
-        if (parent::beforeAction($action)) {
-            if (AccessRule::checkAccess($action->controller->id, $action->id) === false) {
-                throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-            }
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /**

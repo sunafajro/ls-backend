@@ -2,6 +2,7 @@
 
 namespace school\controllers;
 
+use school\controllers\base\BaseController;
 use Yii;
 use school\models\Langtranslator;
 use school\models\Translation;
@@ -10,32 +11,30 @@ use school\models\Translationlang;
 use school\models\Translationnorm;
 use school\models\Translator;
 use school\models\Tool;
-use school\models\User;
-use yii\web\Controller;
-use yii\web\ForbiddenHttpException;
 use yii\filters\AccessControl;
 
 /**
  * Class TranslateController
  * @package school\controllers
  */
-class TranslateController extends Controller
+class TranslateController extends BaseController
 {
     /** {@inheritDoc} */
     public function behaviors(): array
     {
+        $rules = ['translations', 'translators', 'clients', 'languages', 'norms'];
         return [
             'access' => [
                 'class' => AccessControl::class,
-                'only' => ['translationlist','translatorlist','clientlist', 'languagelist', 'normlist'],
+                'only' => $rules,
                 'rules' => [
                     [
-                        'actions' => ['translations','translators','clients', 'languages', 'norms'],
+                        'actions' => $rules,
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['translations','translators','clients', 'languages', 'norms'],
+                        'actions' => $rules,
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -43,19 +42,6 @@ class TranslateController extends Controller
             ],
         ];
     }
-
-    /** {@inheritDoc} */
-	public function beforeAction($action)
-	{
-		if(parent::beforeAction($action)) {
-			if (User::checkAccess($action->controller->id, $action->id) == false) {
-				throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-			}
-			return true;
-		} else {
-			return false;
-		}
-	}
 	
     /**
      *  @return mixed

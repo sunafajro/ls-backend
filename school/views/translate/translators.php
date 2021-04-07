@@ -61,7 +61,7 @@ $this->params['sidebar'] = ['languages' => $languages, 'urlParams' => $urlParams
                 <td class="text-center">
                 <?= Html::a(IconHelper::icon('language'), ['langtranslator/create', 'tid' => $t['id']], ['title' => Yii::t('app','Add')]) ?>
                 <?= Html::a(IconHelper::icon('pencil'), ['translator/update', 'id' => $t['id']], ['title' => Yii::t('app','Edit')]) ?>
-                <?= Html::a(IconHelper::icon('trash'), ['translator/disable', 'id' => $t['id']], ['title' => Yii::t('app','Delete')]) ?>
+                <?= Html::a(IconHelper::icon('trash'), ['translator/delete', 'id' => $t['id']], ['title' => Yii::t('app','Delete')]) ?>
                 </td>
             <?php } ?>
         </tr>

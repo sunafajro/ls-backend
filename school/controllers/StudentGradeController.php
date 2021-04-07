@@ -2,21 +2,19 @@
 
 namespace school\controllers;
 
+use school\controllers\base\BaseController;
 use Yii;
-use school\models\AccessRule;
 use school\models\Student;
 use school\models\StudentGrade;
 use school\models\User;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
-use yii\web\Controller;
-use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
-class StudentGradeController extends Controller
+class StudentGradeController extends BaseController
 {
-    public function behaviors()
+    public function behaviors(): array
     {
         $rules = ['index', 'create', 'update', 'delete', 'download-attestation', 'exam-contents'];
         return [
@@ -45,18 +43,6 @@ class StudentGradeController extends Controller
                 ],
             ],
         ];
-    }
-
-    public function beforeAction($action)
-	{
-		if(parent::beforeAction($action)) {
-			if (AccessRule::checkAccess($action->controller->id, $action->id) === false) {
-				throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
-			}
-			return true;
-		} else {
-			return false;
-		}
     }
     
     public function actionIndex($id)

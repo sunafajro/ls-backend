@@ -2,11 +2,9 @@
 
 namespace school\controllers;
 
+use school\controllers\base\BaseController;
 use Yii;
 use school\models\Translationclient;
-use school\models\User;
-use yii\web\Controller;
-use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
 
@@ -14,23 +12,24 @@ use yii\filters\AccessControl;
  * Class TranslationclientController
  * @package school\controllers
  */
-class TranslationclientController extends Controller
+class TranslationclientController extends BaseController
 {
     /** {@inheritDoc} */
     public function behaviors(): array
     {
+        $rules = ['create','update','delete'];
         return [
             'access' => [
                 'class' => AccessControl::class,
-                'only' => ['create','update','delete','disable'],
+                'only' => $rules,
                 'rules' => [
                     [
-                        'actions' => ['create','update','disable'],
+                        'actions' => $rules,
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['create','update','disable'],
+                        'actions' => $rules,
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -38,19 +37,6 @@ class TranslationclientController extends Controller
             ],
         ];
     }
-
-    /** {@inheritDoc} */
-	public function beforeAction($action)
-	{
-		if (parent::beforeAction($action)) {
-			if (User::checkAccess($action->controller->id, $action->id) == false) {
-				throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-			}
-			return true;
-		} else {
-			return false;
-		}
-	}
 	
     /**
      * @return mixed
@@ -106,7 +92,7 @@ class TranslationclientController extends Controller
      * @return mixed
      * @throws NotFoundHttpException
      */
-    public function actionDisable($id)
+    public function actionDelete($id)
     {
         $model = $this->findModel($id);
 

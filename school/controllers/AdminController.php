@@ -2,20 +2,18 @@
 
 namespace school\controllers;
 
-use school\models\AccessRule;
+use school\controllers\base\BaseController;
 use school\models\searches\AccessRuleSearch;
 use school\models\searches\EducationLevelSearch;
 use school\models\searches\RoleSearch;
 use Yii;
 use yii\filters\AccessControl;
-use yii\web\Controller;
-use yii\web\ForbiddenHttpException;
 
 /**
  * Class AdminController
  * @package school\controllers
  */
-class AdminController extends Controller
+class AdminController extends BaseController
 {
     /** {@inheritDoc} */
     public function behaviors(): array
@@ -39,24 +37,6 @@ class AdminController extends Controller
                 ],
             ],
         ];
-    }
-
-    /**
-     * @param \yii\base\Action $action
-     * @return bool
-     * @throws ForbiddenHttpException
-     * @throws \yii\web\BadRequestHttpException
-     */
-    public function beforeAction($action): bool
-    {
-        if (parent::beforeAction($action)) {
-            if (AccessRule::checkAccess($action->controller->id, $action->id) === false) {
-                throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-            }
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /**
