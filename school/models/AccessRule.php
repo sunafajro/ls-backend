@@ -2,6 +2,7 @@
 
 namespace school\models;
 
+use school\AccessRuleAssignment;
 use school\models\queries\AccessRuleQuery;
 use Yii;
 use yii\db\ActiveQuery;
@@ -11,11 +12,11 @@ use yii\db\ActiveRecord;
  * This is the model class for table "access_rules".
  *
  * @property integer $id
- * @property string  $controller
- * @property string  $action
- * @property integer $role_id
- * @property integer $user_id
+ * @property string $slug
+ * @property string $name
+ * @property string $description
  *
+ * @property-read AccessRuleAssignment $assignment
  * @property-read Role $role
  * @property-read User $user
  */
@@ -35,9 +36,9 @@ class AccessRule extends ActiveRecord
     public function rules(): array
     {
         return [
-            [['action', 'controller'], 'string'],
-            [['role_id', 'user_id'], 'integer'],
-            [['action', 'controller'], 'required'],
+            [['slug', 'name'], 'string'],
+            [['slug'], 'unique'],
+            [['slug', 'name'], 'required'],
         ];
     }
 
@@ -47,11 +48,10 @@ class AccessRule extends ActiveRecord
     public function attributeLabels(): array
     {
         return [
-            'id'         => 'ID',
-            'controller' => Yii::t('app', 'Controller'),
-            'action'     => Yii::t('app', 'Action'),
-            'role_id'    => Yii::t('app', 'Role'),
-            'user_id'    => Yii::t('app', 'User'),
+            'id'          => 'ID',
+            'slug'        => Yii::t('app', 'Slug'),
+            'name'        => Yii::t('app', 'Name'),
+            'description' => Yii::t('app', 'Description'),
         ];
     }
 
@@ -70,28 +70,34 @@ class AccessRule extends ActiveRecord
     public static function getCRUD(string $controller): array
     {
         return [
-            'create' => self::checkAccess($controller, 'create'),
-            'update' => self::checkAccess($controller, 'update'),
-            'delete' => self::checkAccess($controller, 'delete'),
+            'create' => self::checkAccess("{$controller}_create"),
+            'update' => self::checkAccess("{$controller}_update"),
+            'delete' => self::checkAccess("{$controller}_delete"),
         ];
     }
 
     /**
-     * @param string $controller
-     * @param string $action
+     * @param string $slug
      * @return bool
      */
-    public static function checkAccess(string $controller, string $action): bool
+    public static function checkAccess(string $slug): bool
     {
         /** @var Auth $auth */
         $auth = Yii::$app->user->identity;
 
-        return self::find()->where([
-                'action'     => $action,
-                'controller' => $controller,
+        return AccessRuleAssignment::find()->where([
+                'access_rule_slug' => $slug,
             ])
             ->andWhere(['or', ['role_id' => $auth->roleId], ['user_id' => $auth->id]])
             ->exists();
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getAssignments(): ActiveQuery
+    {
+        return $this->hasMany(AccessRuleAssignment::class, ['slug' => 'access_rule_slug']);
     }
 
     /**

@@ -20,7 +20,7 @@ class BaseController extends Controller
     public function beforeAction($action): bool
     {
         if (parent::beforeAction($action)) {
-            if (AccessRule::checkAccess($action->controller->id, $action->id) === false) {
+            if (AccessRule::checkAccess("{$action->controller->id}_{$action->id}") === false) {
                 throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
             }
             return true;

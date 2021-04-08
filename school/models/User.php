@@ -312,25 +312,6 @@ class User extends BaseUser
                 return $result;
             /* подраздел счета клиента */
 
-            /* подраздел скидки клиента */
-            case 'salestud':
-                if ($action === 'approve' || $action === 'disable-all' || $action === 'index') {
-                    switch($roleId) {
-                        case 3: $result = true; break;
-                        default: $result = false;
-                    }
-                } else if($action === 'create' || $action === 'disable' || $action === 'enable' || $action === 'autocomplete') {
-                    switch($roleId) {
-                        case 3:
-                        case 4: $result = true; break;
-                        default:$result = false;
-                    }
-                } else {
-                    $result = false;
-                }
-                break;
-            /* подраздел скидки клиента */
-
             /* подраздел аттестации клиента */
             case 'student-grade':
                 if ($action === 'index') {
@@ -387,25 +368,6 @@ class User extends BaseUser
                     case 3:
                     case 9: $result = true; break;
                     default: $result = false;        
-                }
-                break;
-            #endregion
-
-            #region Скидки
-            case 'sale':
-                if ($action === 'create' || $action === 'update' || $action === 'delete') {
-                    switch($roleId) {
-                        case 3: $result = true; break;
-                        default: $result = false;
-                    }
-                } else if($action === 'index') {
-                    switch($roleId) {
-                        case 3:
-                        case 4: $result = true; break;
-                        default: $result = false;
-                    }
-                } else {
-                    $result = false;
                 }
                 break;
             #endregion

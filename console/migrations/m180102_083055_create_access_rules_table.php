@@ -13,15 +13,13 @@ class m180102_083055_create_access_rules_table extends Migration
     public function safeUp()
     {
         $this->createTable('{{%access_rules}}', [
-            'id'         => $this->primaryKey(),
-            'controller' => $this->string(),
-            'action'     => $this->string(),
-            'role_id'    => $this->integer(),
-            'user_id'    => $this->integer(),
+            'id'          => $this->primaryKey(),
+            'slug'        => $this->string()->notNull(),
+            'name'        => $this->string()->notNull(),
+            'description' => $this->string(),
         ]);
 
-        $this->createIndex('access_rules-role_id-idx', '{{%access_rules}}', 'role_id');
-        $this->createIndex('access_rules-user_id-idx', '{{%access_rules}}', 'user_id');
+        $this->createIndex('access_rules-slug-idx', '{{%access_rules}}', 'slug', true);
     }
 
     /**

@@ -18,5 +18,13 @@ use school\models\AccessRule;
  */
 class AccessRuleQuery extends BaseActiveQuery
 {
-
+    /**
+     * @param string $slug
+     * @return AccessRuleQuery
+     */
+    public function bySlug(string $slug): AccessRuleQuery
+    {
+        $tableName = $this->getPrimaryTableName();
+        return $this->andWhere(["{$tableName}.slug" => $slug]);
+    }
 }

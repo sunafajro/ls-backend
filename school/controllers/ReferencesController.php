@@ -23,9 +23,13 @@ use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
+/**
+ * Class ReferencesController
+ * @package school\controllers
+ */
 class ReferencesController extends Controller
 {
-    public function behaviors()
+    public function behaviors(): array
     {
         $actions = [
             'index',
@@ -63,15 +67,15 @@ class ReferencesController extends Controller
 
     public function beforeAction($action)
     {
-        if(parent::beforeAction($action)) {
+        if (parent::beforeAction($action)) {
             $name = Yii::$app->request->get('name', null);
             $controllerId = $action->controller->id;
             $actionId = str_replace('app-', '', $action->id);
             if ($name !== NULL && in_array($actionId, ['create', 'delete', 'list'])) {
                 $controllerId = "{$controllerId}/{$name}";
             }
-            if (AccessRule::checkAccess($controllerId, $actionId) == false) {
-                throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
+            if (AccessRule::checkAccess("{$controllerId}_{$actionId}") == false) {
+                throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
             }
             return true;
         } else {
@@ -79,40 +83,38 @@ class ReferencesController extends Controller
         }
     }
 
-    public function actions()
-    {
-        return [
-            'error' => [
-                'class' => 'yii\web\ErrorAction',
-            ],
-        ];
-    }
-
+    /**
+     * @return mixed
+     */
     public function actionIndex()
     {
         return $this->render('index');
     }
 
+    /**
+     * @return mixed
+     */
     public function actionAppMenuLinks()
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        return [
+        return $this->asJson([
             'status' => true,
             'links'  => Reference::getLinks()
-        ];
+        ]);
     }
 
+    /**
+     * @return mixed
+     */
     public function actionAppList($name = 'phonebook')
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
         ['columns' => $columns, 'data' => $data] = $this->getEntities($name, 'list');
 
-        return [
+        return $this->asJson([
             'actions' => AccessRule::getCRUD("references/{$name}"),
             'columns' => $columns,
             'data'    => $data,
             'status'  => true
-        ];
+        ]);
     }
 
     public function actionAppCreate($name)
