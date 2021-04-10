@@ -10,6 +10,7 @@ use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 /**
+ * @deprecated
  * OrdersController implements the CRUD actions for CalcOrders model.
  */
 class OrderController extends Controller

@@ -8,6 +8,7 @@
  */
 
 use common\components\helpers\IconHelper;
+use school\models\AccessRule;
 use school\models\Role;
 use school\models\searches\AccessRuleSearch;
 use yii\data\ActiveDataProvider;
@@ -50,6 +51,10 @@ echo  GridView::widget([
                         ['data-method' => 'post', 'data-confirm' => 'Вы действительно хотите удалить это правило?']
                     );
                 },
+            ],
+            'visibleButtons' => [
+                'update' => AccessRule::checkAccess('access-rule_update'),
+                'delete' => AccessRule::checkAccess('access-rule_delete'),
             ],
         ],
     ],

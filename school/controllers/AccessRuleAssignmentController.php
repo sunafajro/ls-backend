@@ -51,7 +51,7 @@ class AccessRuleAssignmentController extends BaseController
         if ($model->load(\Yii::$app->request->post())) {
             if ($model->save()) {
                 \Yii::$app->session->setFlash('success', 'Назначение правила доступа успешно создано.');
-                return $this->redirect(['admin/access-rules']);
+                return $this->redirect(['admin/access-rule-assignments']);
             } else {
                 \Yii::$app->session->setFlash('error', 'Не удалось создать назначение правила доступа.');
             }

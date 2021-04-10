@@ -8,6 +8,7 @@
  */
 
 use common\components\helpers\IconHelper;
+use school\models\AccessRule;
 use school\models\Role;
 use school\models\searches\AccessRuleAssignmentSearch;
 use yii\data\ActiveDataProvider;
@@ -29,6 +30,7 @@ echo  GridView::widget([
     'filterModel' => $searchModel,
     'columns' => [
         'id',
+        'access_rule_slug',
         'accessRuleName',
         'role_id' => [
             'attribute' => 'role_id',
@@ -56,6 +58,10 @@ echo  GridView::widget([
                         ['data-method' => 'post', 'data-confirm' => 'Вы действительно хотите удалить назначениие правила?']
                     );
                 },
+            ],
+            'visibleButtons' => [
+                'update' => AccessRule::checkAccess('access-rule-assignment_update'),
+                'delete' => AccessRule::checkAccess('access-rule-assignment_delete'),
             ],
         ],
     ],

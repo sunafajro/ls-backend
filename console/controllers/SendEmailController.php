@@ -1,11 +1,15 @@
 <?php
 
-namespace app\commands;
+namespace console\controllers;
 
 use Yii;
-use app\models\Notification;
+use school\models\Notification;
 use yii\console\Controller;
 
+/**
+ * Class SendEmailController
+ * @package console\controllers
+ */
 class SendEmailController extends Controller
 {
     public function actionSend()

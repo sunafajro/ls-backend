@@ -8,6 +8,7 @@
  * @var string|null  $officeId
  */
 
+use school\models\AccessRule;
 use school\models\Moneystud;
 use school\models\Notification;
 use school\models\Office;
@@ -147,24 +148,43 @@ if (!empty($payments)) {
                                                 ]
                                             )?>
                                         <?php } ?>
-                                        <?php if ($row['notification'] !== Notification::STATUS_QUEUE) { ?>
-                                            <?= Html::a(
-                                                Html::tag(
-                                                'i',
-                                                '',
-                                                [
-                                                    'class' => 'fa fa-paper-plane',
-                                                    'aria-hidden' => 'true',
-                                                ]),
-                                                $row['notificationId'] ?
-                                                    ['notification/resend', 'id' => $row['notificationId']] :
-                                                    ['notification/create', 'type' => Notification::TYPE_PAYMENT, 'id' => $row['id']],
-                                                [
-                                                    'data' => ['method' => 'post'],
-                                                    'title' => $row['notificationId'] ? Yii::t('app', 'Resend') : Yii::t('app', 'Send'),
-                                                ]
-                                            )?>
-                                        <?php } ?>
+                                        <?php if ($row['notification'] !== Notification::STATUS_QUEUE) {
+                                            if (!$row['notificationId']) {
+                                                if (AccessRule::checkAccess('notification_create')) {
+                                                    echo Html::a(
+                                                        Html::tag(
+                                                            'i',
+                                                            '',
+                                                            [
+                                                                'class' => 'fa fa-paper-plane',
+                                                                'aria-hidden' => 'true',
+                                                            ]),
+                                                        ['notification/create', 'type' => Notification::TYPE_PAYMENT, 'id' => $row['id']],
+                                                        [
+                                                            'data' => ['method' => 'post'],
+                                                            'title' => Yii::t('app', 'Send'),
+                                                        ]
+                                                    );
+                                                }
+                                            } else {
+                                                if (AccessRule::checkAccess('notification_resend')) {
+                                                    echo Html::a(
+                                                        Html::tag(
+                                                            'i',
+                                                            '',
+                                                            [
+                                                                'class' => 'fa fa-paper-plane',
+                                                                'aria-hidden' => 'true',
+                                                            ]),
+                                                        ['notification/resend', 'id' => $row['notificationId']],
+                                                        [
+                                                            'data' => ['method' => 'post'],
+                                                            'title' => Yii::t('app', 'Resend'),
+                                                        ]
+                                                    );
+                                                }
+                                            }
+                                        } ?>
                                     <?php } ?>
                                 </td>
                             </tr>

@@ -11,7 +11,7 @@ use yii\helpers\Json;
 
 /**
  * Class AccessRuleController
- * @package app\commands
+ * @package console\controllers
  */
 class AccessRuleController extends Controller
 {

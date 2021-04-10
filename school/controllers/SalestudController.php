@@ -43,6 +43,7 @@ class SalestudController extends BaseController
                 'actions' => [
                     'approve'      => ['post'],
                     'disable'      => ['post'],
+                    'disable-all'  => ['post'],
                     'enable'       => ['post'],
                     'autocomplete' => ['post'],
                 ],
@@ -184,11 +185,11 @@ class SalestudController extends BaseController
     public function actionDisableAll($sid)
     {
         $sql = (new \yii\db\Query())
-        ->createCommand()
-        ->update('calc_salestud', ['visible' => 0, 'user_visible' => Yii::$app->session->get('user.uid'), 'data_visible' => date('Y-m-d')], ['calc_sale' => $sid, 'visible' => 1])
-        ->execute();
+            ->createCommand()
+            ->update('calc_salestud', ['visible' => 0, 'user_visible' => Yii::$app->session->get('user.uid'), 'data_visible' => date('Y-m-d')], ['calc_sale' => $sid, 'visible' => 1])
+            ->execute();
 		
-		if($sql > 0) {
+		if ($sql > 0) {
 			Yii::$app->session->setFlash('success', 'Скидка успешно аннулирована!');
 		} else {
 			Yii::$app->session->setFlash('error', 'Не удалось аннулировать скидку!');

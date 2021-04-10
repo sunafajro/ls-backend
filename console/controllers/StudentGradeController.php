@@ -1,10 +1,14 @@
 <?php
 
-namespace app\commands;
+namespace console\controllers;
 
-use app\models\StudentGrade;
+use school\models\StudentGrade;
 use yii\console\Controller;
 
+/**
+ * Class StudentGradeController
+ * @package app\commands
+ */
 class StudentGradeController extends Controller
 {
     public function actionWriteFiles()

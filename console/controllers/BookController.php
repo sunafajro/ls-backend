@@ -1,11 +1,15 @@
 <?php
 
-namespace app\commands;
+namespace console\controllers;
 
 use Yii;
-use app\models\Book;
+use school\models\Book;
 use yii\console\Controller;
 
+/**
+ * Class BookController
+ * @package app\commands
+ */
 class BookController extends Controller
 {
     public function actionPrepare()

@@ -28,7 +28,7 @@ class AccessRuleAssignmentSearch extends AccessRuleAssignment
     {
         return [
             [['id', 'role_id'], 'integer'],
-            [['accessRuleName', 'userName'], 'string'],
+            [['access_rule_slug', 'accessRuleName', 'userName'], 'string'],
         ];
     }
 
@@ -38,10 +38,11 @@ class AccessRuleAssignmentSearch extends AccessRuleAssignment
     public function attributeLabels(): array
     {
         return [
-            'id'         => 'ID',
+            'id' => 'ID',
+            'access_rule_slug' => \Yii::t('app', 'Access rule slug'),
             'accessRuleName' => \Yii::t('app', 'Access rule'),
-            'role_id'    => \Yii::t('app', 'Role'),
-            'userName'    => \Yii::t('app', 'User'),
+            'role_id' => \Yii::t('app', 'Role'),
+            'userName' => \Yii::t('app', 'User'),
         ];
     }
 
@@ -58,6 +59,7 @@ class AccessRuleAssignmentSearch extends AccessRuleAssignment
             ->select([
                 'id' => "{$a}.id",
                 'role_id' => "{$a}.role_id",
+                'access_rule_slug' => "{$a}.access_rule_slug",
             ])
             ->addSelect([
                 'accessRuleName' => "{$r}.name",
@@ -68,7 +70,8 @@ class AccessRuleAssignmentSearch extends AccessRuleAssignment
         $this->load($params);
         if ($this->validate()) {
             $query->andFilterWhere(["{$a}.id" => $this->id]);
-            $query->andFilterWhere(["{$r}.name" => $this->accessRuleName]);
+            $query->andFilterWhere(['like', "lower({$a}.access_rule_slug)", mb_strtolower($this->access_rule_slug)]);
+            $query->andFilterWhere(['like', "lower({$r}.name)", mb_strtolower($this->accessRuleName)]);
             $query->andFilterWhere(["{$a}.role_id" => $this->role_id]);
             $query->andFilterWhere(['like', "lower({$u}.name)", mb_strtolower($this->userName)]);
         } else {
@@ -80,6 +83,7 @@ class AccessRuleAssignmentSearch extends AccessRuleAssignment
                 'defaultOrder' =>["id" => SORT_ASC],
                 'attributes' => [
                     'id',
+                    'access_rule_slug',
                     'accessRuleName',
                     'role_id',
                     'userName',

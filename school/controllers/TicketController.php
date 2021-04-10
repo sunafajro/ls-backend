@@ -12,31 +12,33 @@ use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 /**
- * JournalgroupController implements the CRUD actions for CalcTicket model.
+ * @deprecated
+ * TicketController implements the CRUD actions for CalcTicket model.
  */
 class TicketController extends Controller
 {
-	public function behaviors()
+	public function behaviors(): array
     {
+        $rules = ['index', 'view', 'create', 'update', 'addexecutor', 'delexecutor', 'publish', 'accept', 'adjourn', 'disable', 'resume'];
         return [
 	        'access' => [
-                'class' => AccessControl::className(),
-                'only' => ['index', 'view', 'create', 'update', 'addexecutor', 'delexecutor', 'publish', 'accept', 'adjourn', 'disable', 'resume'],
+                'class' => AccessControl::class,
+                'only' => $rules,
                 'rules' => [
                     [
-                        'actions' => ['index', 'view', 'create', 'update', 'addexecutor', 'delexecutor', 'publish', 'accept', 'adjourn', 'disable', 'resume'],
+                        'actions' => $rules,
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index', 'view', 'create', 'update', 'addexecutor', 'delexecutor', 'publish', 'accept', 'adjourn', 'disable', 'resume'],
+                        'actions' => $rules,
                         'allow' => true,
                         'roles' => ['@'],
                     ],
                 ],
 			],
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'accept' => ['post'],
                 ],

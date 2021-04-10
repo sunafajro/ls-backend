@@ -8,11 +8,12 @@ use school\School;
 use Yii;
 use yii\console\Controller;
 use yii\db\Query;
+use yii\helpers\Console;
 use yii\helpers\FileHelper;
 
 /**
  * Class FilesController
- * @package app\commands
+ * @package console\controllers
  */
 class FilesController extends Controller
 {

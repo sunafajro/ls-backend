@@ -3,6 +3,7 @@
 namespace school\controllers;
 
 use school\controllers\base\BaseController;
+use school\models\AccessRule;
 use school\models\searches\AccessRuleAssignmentSearch;
 use school\models\searches\AccessRuleSearch;
 use school\models\searches\EducationLevelSearch;
@@ -118,31 +119,39 @@ class AdminController extends BaseController
      */
     private function getMenuLinks($key): array
     {
-        return [
-            [
+        $links = [];
+        if (AccessRule::checkAccess('admin_roles')) {
+            $links[] = [
                 'url'     => 'admin/roles',
                 'name'    => Yii::t('app','Roles'),
                 'classes' => true,
                 'active'  => $key === 'roles'
-            ],
-            [
+            ];
+        }
+        if (AccessRule::checkAccess('admin_education-levels')) {
+            $links[] = [
                 'url'     => 'admin/education-levels',
                 'name'    => Yii::t('app','Education levels'),
                 'classes' => true,
                 'active'  => $key === 'education-levels'
-            ],
-            [
+            ];
+        }
+        if (AccessRule::checkAccess('admin_access-rules')) {
+            $links[] = [
                 'url'     => 'admin/access-rules',
                 'name'    => Yii::t('app','Access rules'),
                 'classes' => true,
                 'active'  => $key === 'access-rules'
-            ],
-            [
+            ];
+        }
+        if (AccessRule::checkAccess('admin_access-rule-assignments')) {
+            $links[] = [
                 'url'     => 'admin/access-rule-assignments',
                 'name'    => Yii::t('app','Access rule assignments'),
                 'classes' => true,
                 'active'  => $key === 'access-rule-assignments'
-            ],
-        ];
+            ];
+        }
+        return $links;
     }
 }

@@ -12,32 +12,37 @@ use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 
+/**
+ * Class NotificationController
+ * @package school\controllers
+ */
 class NotificationController extends Controller
 {
     /**
      * @inheritdoc
      */
-    public function behaviors()
+    public function behaviors(): array
     {
+        $rules = ['create', 'resend'];
         return [
 		    'access' => [
-                'class' => AccessControl::className(),
-                'only' => ['create', 'resend'],
+                'class' => AccessControl::class,
+                'only' => $rules,
                 'rules' => [
                     [
-                        'actions' => ['create', 'resend'],
+                        'actions' => $rules,
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['create', 'resend'],
+                        'actions' => $rules,
                         'allow' => true,
                         'roles' => ['@'],
                     ],
                 ],
             ],
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'create' => ['POST'],
                     'resend' => ['POST'],
@@ -46,11 +51,15 @@ class NotificationController extends Controller
         ];
     }
 
+    /**
+     * @param string $type
+     * @param string $id
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
+     */
     public function actionCreate(string $type, string $id)
     {
-        if ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
-        }
         if ($type === Notification::TYPE_PAYMENT) {
             $student = (new \yii\db\Query())
             ->select(['email' => 's.email'])
@@ -74,16 +83,18 @@ class NotificationController extends Controller
         return $this->redirect(Yii::$app->request->referrer);
     }
 
+    /**
+     * @param string $id
+     * @return mixed
+     * @throws NotFoundHttpException
+     */
     public function actionResend(string $id)
     {
-        if ((int)Yii::$app->session->get('user.ustatus') !== 3 && (int)Yii::$app->session->get('user.ustatus') !== 4) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
-        }
         $notification = Notification::findOne($id);
         if ($notification !== NULL) {
             if ($notification->status !== Notification::STATUS_QUEUE) {
                 $notification->status = Notification::STATUS_QUEUE;
-                if ($notification->save()) {
+                if ($notification->save(true, ['status'])) {
                     Yii::$app->session->setFlash('success', Yii::t('app', 'E-mail notification successfully added to queue!'));
                 } else {
                     Yii::$app->session->setFlash('success', Yii::t('app', 'Failed to add e-mail notification to queue!'));

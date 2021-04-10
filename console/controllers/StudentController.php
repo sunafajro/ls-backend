@@ -1,13 +1,17 @@
 <?php
 
-namespace app\commands;
+namespace console\controllers;
 
-use app\models\Student;
-use app\models\StudentCommission;
+use school\models\Student;
+use school\models\StudentCommission;
 use yii\console\Controller;
 use yii\helpers\Json;
 use Yii;
 
+/**
+ * Class StudentController
+ * @package app\commands
+ */
 class StudentController extends Controller
 {
     public function actionUpdateDebts()

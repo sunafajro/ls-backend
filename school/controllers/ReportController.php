@@ -3,6 +3,7 @@
 namespace school\controllers;
 
 use common\components\helpers\DateHelper;
+use school\controllers\base\BaseController;
 use school\models\Office;
 use school\models\reports\CommonReport;
 use school\models\reports\DebtsReport;
@@ -22,14 +23,13 @@ use school\models\searches\LessonSearch;
 use school\models\Report;
 use Yii;
 use yii\filters\AccessControl;
-use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 
 /**
  * Class ReportController
  * @package school\controllers
  */
-class ReportController extends Controller
+class ReportController extends BaseController
 {
     /**
      * {@inheritDoc}
@@ -94,7 +94,7 @@ class ReportController extends Controller
     }
 
     /**
-     * отчет по Начислениям
+     * Отчет по Начислениям
      * @param string|null $tid
      * @param string|null $month
      * @param string|null $year
@@ -106,11 +106,6 @@ class ReportController extends Controller
     public function actionAccrual(string $tid = null, string $month = null, string $year = null, string $page = null)
     {
         $this->layout = 'main-2-column';
-        /** @var Auth $auth */
-        $auth = Yii::$app->user->identity;
-        if (!in_array($auth->roleId, [3])) {
-            throw new ForbiddenHttpException(Yii::t('app', 'Access denied'));
-        }
         
         /** @var array */
         $groups   = [];
@@ -194,6 +189,7 @@ class ReportController extends Controller
     }
 
     /**
+     * Отчет по Марже
      * @param string|null $start
      * @param string|null $end
      * @return mixed
@@ -202,11 +198,6 @@ class ReportController extends Controller
     public function actionMargin(string $start = null, string $end = null)
     {
         $this->layout = 'main-2-column';
-        /** @var Auth $auth */
-        $auth = Yii::$app->user->identity;
-        if (!in_array($auth->roleId, [3])) {
-            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-        }
 
         $report = new MarginsReport([
             'startDate' => $start,
@@ -221,7 +212,7 @@ class ReportController extends Controller
     }
 
     /**
-     * Отчет по оплатам
+     * Отчет по Оплатам
      * @param string|null $start
      * @param string|null $end
      * @param string|null $officeId
@@ -232,11 +223,6 @@ class ReportController extends Controller
     public function actionPayments (string $start = null, string $end = null, string $officeId = null)
     {
         $this->layout = 'main-2-column';
-        /** @var Auth $auth */
-        $auth = Yii::$app->user->identity;
-        if (!in_array($auth->roleId, [3, 4, 8])) {
-            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-        }
 
         $report = new PaymentsReport([
             'startDate' => $start,
@@ -264,11 +250,6 @@ class ReportController extends Controller
     public function actionInvoices(string $start = null, string $end = null, string $officeId = null)
     {
         $this->layout = 'main-2-column';
-        /** @var Auth $auth */
-        $auth = Yii::$app->user->identity;
-        if (!in_array($auth->roleId, [3, 4])) {
-            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-        }
 
         $report = new InvoicesReport([
             'startDate' => $start,
@@ -287,6 +268,7 @@ class ReportController extends Controller
     }
 
     /**
+     * План по офисам
      * @param string|null $officeId
      * @param string|null $nextMonth
      * @return mixed
@@ -295,11 +277,6 @@ class ReportController extends Controller
     public function actionOfficePlan(string $officeId = null, string $nextMonth = null)
 	{
         $this->layout = 'main-2-column';
-        /** @var Auth $auth */
-        $auth = Yii::$app->user->identity;
-        if (!in_array($auth->roleId, [3, 8])) {
-            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-        }
 
 		$office = $officeId ? Office::find()->byId($officeId)->active()->one() : null;
 		if (empty($office)) {
@@ -339,11 +316,6 @@ class ReportController extends Controller
     public function actionSalaries (string $start = null, string $end = null, string $teacherId = null)
     {
         $this->layout = 'main-2-column';
-        /** @var Auth $auth */
-        $auth = Yii::$app->user->identity;
-        if (!in_array($auth->roleId, [3, 8])) {
-            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-        }
 
         $report = new SalariesReport([
             'startDate' => $start,
@@ -370,11 +342,6 @@ class ReportController extends Controller
     public function actionSale(string $page = null)
     {
         $this->layout = 'main-2-column';
-        /** @var Auth $auth */
-        $auth = Yii::$app->user->identity;
-        if (!in_array($auth->roleId, [3])) {
-            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-        }
 
         $report = new SalesReport([
             'page' => $page,
@@ -399,11 +366,6 @@ class ReportController extends Controller
     public function actionCommon(string $start = null, string $end = null)
     {
         $this->layout = 'main-2-column';
-        /** @var Auth $auth */
-        $auth = Yii::$app->user->identity;
-        if (!in_array($auth->roleId, [3, 8])) {
-            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-        }
 
         $report = new CommonReport([
             'startDate' => $start,
@@ -473,11 +435,6 @@ class ReportController extends Controller
     public function actionLessons(string $end = null, string $start = null)
     {
         $this->layout = 'main-2-column';
-        /** @var Auth $auth */
-        $auth = Yii::$app->user->identity;
-        if (!in_array($auth->roleId, [3, 4, 6])) {
-            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-        }
 
         list($start, $end) = DateHelper::prepareWeeklyIntervalDates($start, $end);
         $searchModel = new LessonSearch();
@@ -508,9 +465,6 @@ class ReportController extends Controller
         $this->layout = 'main-2-column';
         /** @var Auth $auth */
         $auth = Yii::$app->user->identity;
-        if (!in_array($auth->roleId, [3, 4, 8])) {
-            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-        }
 
         list($start, $end) = DateHelper::prepareWeeklyIntervalDates($start, $end);
         $searchModel = new StudentCommissionSearch();
@@ -544,11 +498,6 @@ class ReportController extends Controller
     public function actionJournals(string $corporate = null, string $officeId = null, string $teacherId = null, string $page = null)
     {
         $this->layout = 'main-2-column';
-        /** @var Auth $auth */
-        $auth = Yii::$app->user->identity;
-        if (!in_array($auth->roleId, [3, 4])) {
-            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-        }
 
         $report = new JournalReport([
             'corporate' => $corporate,
@@ -572,7 +521,7 @@ class ReportController extends Controller
     }
 
     /**
-     * Отчет по почасовке преподавателей
+     * Отчет по нагрузке преподавателей
      * @param null $start
      * @param null $end
      * @param null $teacherId
@@ -585,11 +534,6 @@ class ReportController extends Controller
     public function actionTeacherHours($start = null, $end = null, $teacherId = null, $limit = 10, $offset = 0)
     {
         $this->layout = 'main-2-column';
-        /** @var Auth $auth */
-        $auth = Yii::$app->user->identity;
-        if (!(in_array($auth->roleId, [3, 4, 6]) || in_array($auth->id, [296]))) {
-            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-        }
 
         $report = new TeacherHoursReport([
             'startDate' => $start,

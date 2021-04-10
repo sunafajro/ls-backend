@@ -5,9 +5,14 @@
  */
 
 use common\components\helpers\IconHelper;
+use school\models\AccessRule;
 use yii\helpers\Html;
 use yii\web\View;
 ?>
 <?= $this->render('_menu', ['menuLinks' => $menuLinks]) ?>
 <h4><?= Yii::t('app', 'Actions') ?></h4>
-<?= Html::a(IconHelper::icon('plus') . ' ' . Yii::t('app', 'Add'), ['role/create'], ['class' => 'btn btn-success btn-sm btn-block']) ?>
+<?php
+    if (AccessRule::checkAccess('role_create')) {
+        echo Html::a(IconHelper::icon('plus') . ' ' . Yii::t('app', 'Add'), ['role/create'], ['class' => 'btn btn-success btn-sm btn-block']);
+    }
+?>

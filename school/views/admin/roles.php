@@ -8,6 +8,7 @@
  */
 
 use common\components\helpers\IconHelper;
+use school\models\AccessRule;
 use school\models\searches\RoleSearch;
 use yii\data\ActiveDataProvider;
 use yii\grid\ActionColumn;
@@ -45,6 +46,10 @@ echo  GridView::widget([
                         ['data-method' => 'post', 'data-confirm' => 'Вы действительно хотите удалить роль?']
                     );
                 },
+            ],
+            'visibleButtons' => [
+                'update' => AccessRule::checkAccess('role_update'),
+                'delete' => AccessRule::checkAccess('role_delete'),
             ],
         ],
     ],

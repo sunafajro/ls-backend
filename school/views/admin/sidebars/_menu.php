@@ -10,7 +10,7 @@ use yii\web\View;
 ?>
 <div class="dropdown">
     <?= Html::button(
-        IconHelper::icon('book') . ' ' . Yii::t('app', 'Administration') . ' <span class="caret"></span>',
+        IconHelper::icon('book', Yii::t('app', 'Administration')) . ' <span class="caret"></span>',
         [
             'class' => 'btn btn-default dropdown-toggle btn-sm btn-block',
             'type' => 'button',

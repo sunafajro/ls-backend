@@ -22,19 +22,20 @@ class Navigation extends BaseNavigation
         $roleId = $auth->roleId;
         $userId = $auth->id;
 
-        /* создаем пустые массивы */
         $menu = [];
-        /* ссыдка на страничку администрирования */
-        if ($roleId === 3){
-        $menu[] = [
-            'id' => 'admin',
-            'url' => Url::to(['admin/index']),
-            'classes' => 'fa fa-wrench',
-            'title' => Yii::t('app', 'Administration'),
-            'hasBadge' => false
-        ];
+
+        // ссылка на страничку администрирования
+        if (AccessRule::checkAccess('admin_index')) {
+            $menu[] = [
+                'id' => 'admin',
+                'url' => Url::to(['admin/index']),
+                'classes' => 'fa fa-wrench',
+                'title' => Yii::t('app', 'Administration'),
+                'hasBadge' => false
+            ];
         }
-        /* ссылка на главную страничку со списком новостей */
+
+        // ссылка на главную страничку со списком новостей
         $menu[] = [
             'id' => 'news',
             'url' => Url::to(['site/index']),
@@ -42,8 +43,9 @@ class Navigation extends BaseNavigation
             'title' => Yii::t('app', 'News'),
             'hasBadge' => false
         ];
-        if (in_array($roleId, [3, 4, 6, 8]) || $userId === 296) {
-            /* ссылка на раздел Отчеты */
+
+        // ссылка на раздел Отчеты
+        if (AccessRule::checkAccess('report_index')) {
             $menu[] = [
                 'id' => 'reports',
                 'url' => Url::to(['report/index']),
@@ -53,8 +55,8 @@ class Navigation extends BaseNavigation
             ];
         }
 
+        // ссылка на раздел Оплаты
         if ($roleId === 11) {
-            /* ссылка на раздел Оплаты */
             $menu[] = [
                 'id'       => 'payments',
                 'url'      => Url::to(['moneystud/create']),
