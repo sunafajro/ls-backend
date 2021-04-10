@@ -2,7 +2,7 @@
 
 namespace console\controllers;
 
-use school\AccessRuleAssignment;
+use school\models\AccessRuleAssignment;
 use school\models\AccessRule;
 use Yii;
 use yii\console\Controller;

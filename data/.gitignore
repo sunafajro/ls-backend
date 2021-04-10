@@ -1,1 +1,5 @@
-/db
+*
+!.gitignore
+!/attestates
+!/exams
+!/files

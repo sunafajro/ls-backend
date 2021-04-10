@@ -2,7 +2,6 @@
 
 namespace school\models;
 
-use school\AccessRuleAssignment;
 use school\models\queries\AccessRuleQuery;
 use Yii;
 use yii\db\ActiveQuery;
@@ -16,7 +15,7 @@ use yii\db\ActiveRecord;
  * @property string $name
  * @property string $description
  *
- * @property-read AccessRuleAssignment $assignment
+ * @property-read AccessRuleAssignment[] $assignments
  * @property-read Role $role
  * @property-read User $user
  */

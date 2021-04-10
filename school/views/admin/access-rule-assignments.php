@@ -3,13 +3,13 @@
 /**
  * @var View $this
  * @var ActiveDataProvider $dataProvider
- * @var AccessRuleSearch $searchModel
+ * @var AccessRuleAssignmentSearch $searchModel
  * @var array $menuLinks
  */
 
 use common\components\helpers\IconHelper;
 use school\models\Role;
-use school\models\searches\AccessRuleSearch;
+use school\models\searches\AccessRuleAssignmentSearch;
 use yii\data\ActiveDataProvider;
 use yii\grid\ActionColumn;
 use yii\grid\GridView;
@@ -29,9 +29,15 @@ echo  GridView::widget([
     'filterModel' => $searchModel,
     'columns' => [
         'id',
-        'slug',
-        'name',
-        'description',
+        'accessRuleName',
+        'role_id' => [
+            'attribute' => 'role_id',
+            'filter' => $roles,
+            'value' => function($model) use ($roles) {
+                return $roles[$model->role_id] ?? '-';
+            }
+        ],
+        'userName',
         [
             'class' => ActionColumn::class,
             'header' => Yii::t('app', 'Act.'),
@@ -40,14 +46,14 @@ echo  GridView::widget([
                 'update' => function ($url, $model) {
                     return Html::a(
                         IconHelper::icon('edit'),
-                        Url::to(['access-rule/update', 'id' => $model->id])
+                        Url::to(['access-rule-assignment/update', 'id' => $model->id])
                     );
                 },
                 'delete' => function ($url, $model) {
                     return Html::a(
                         IconHelper::icon('trash'),
-                        Url::to(['access-rule/delete', 'id' => $model->id]),
-                        ['data-method' => 'post', 'data-confirm' => 'Вы действительно хотите удалить это правило?']
+                        Url::to(['access-rule-assignment/delete', 'id' => $model->id]),
+                        ['data-method' => 'post', 'data-confirm' => 'Вы действительно хотите удалить назначениие правила?']
                     );
                 },
             ],

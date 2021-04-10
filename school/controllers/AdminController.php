@@ -3,6 +3,7 @@
 namespace school\controllers;
 
 use school\controllers\base\BaseController;
+use school\models\searches\AccessRuleAssignmentSearch;
 use school\models\searches\AccessRuleSearch;
 use school\models\searches\EducationLevelSearch;
 use school\models\searches\RoleSearch;
@@ -18,7 +19,7 @@ class AdminController extends BaseController
     /** {@inheritDoc} */
     public function behaviors(): array
     {
-        $rules = ['index', 'roles', 'education-levels', 'access-rules'];
+        $rules = ['index', 'roles', 'education-levels', 'access-rules', 'access-rule-assignments'];
         return [
             'access' => [
                 'class' => AccessControl::class,
@@ -91,7 +92,23 @@ class AdminController extends BaseController
         return $this->render('access-rules', [
             'dataProvider' => $dataProvider,
             'searchModel' => $searchModel,
-            'menuLinks' => self::getMenuLinks('roles'),
+            'menuLinks' => self::getMenuLinks('access-rules'),
+        ]);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function actionAccessRuleAssignments()
+    {
+        $this->layout = 'main-2-column';
+        $searchModel = new AccessRuleAssignmentSearch();
+        $dataProvider = $searchModel->search(\Yii::$app->request->get());
+
+        return $this->render('access-rule-assignments', [
+            'dataProvider' => $dataProvider,
+            'searchModel' => $searchModel,
+            'menuLinks' => self::getMenuLinks('access-rule-assignments'),
         ]);
     }
 
@@ -119,7 +136,13 @@ class AdminController extends BaseController
                 'name'    => Yii::t('app','Access rules'),
                 'classes' => true,
                 'active'  => $key === 'access-rules'
-            ]
+            ],
+            [
+                'url'     => 'admin/access-rule-assignments',
+                'name'    => Yii::t('app','Access rule assignments'),
+                'classes' => true,
+                'active'  => $key === 'access-rule-assignments'
+            ],
         ];
     }
 }
