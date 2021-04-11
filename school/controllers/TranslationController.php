@@ -9,6 +9,7 @@ use school\models\Translationlang;
 use school\models\Translationclient;
 use school\models\Translationnorm;
 use school\models\Translator;
+use yii\filters\VerbFilter;
 use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
 
@@ -21,21 +22,28 @@ class TranslationController extends BaseController
     /** {@inheritDoc} */
     public function behaviors(): array
     {
+        $rules = ['create','update','delete'];
         return [
             'access' => [
                 'class' => AccessControl::class,
-                'only' => ['create','update','disable'],
+                'only' => $rules,
                 'rules' => [
                     [
-                        'actions' => ['create','update','disable'],
+                        'actions' => $rules,
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['create','update','disable'],
+                        'actions' => $rules,
                         'allow' => true,
                         'roles' => ['@'],
                     ]
+                ],
+            ],
+            'verbs' => [
+                'class' => VerbFilter::class,
+                'actions' => [
+                    'delete'   => ['post'],
                 ],
             ],
         ];
@@ -53,7 +61,7 @@ class TranslationController extends BaseController
         $model->data = date('Y-m-d');
         if ($model->load(Yii::$app->request->post())) {
             $model->visible = 1;
-            $model->user = Yii::$app->session->get('user.uid');            
+            $model->user = Yii::$app->user->identity->id;
             if (($n = Translationnorm::findOne($model->calc_translationnorm)) !== null) {
                 $model->value = $model->accunitcount * $n->value;
             }
@@ -93,7 +101,7 @@ class TranslationController extends BaseController
                 $model->value = $model->accunitcount * $n->value;
             }
             $model->value = $model->value + $model->value_correction;
-            if($model->save()) {
+            if ($model->save()) {
                 Yii::$app->session->setFlash('success', 'Перевод успешно изменен!');
             } else {
                 Yii::$app->session->setFlash('error', 'Не удалось изменить перевод!');
@@ -115,15 +123,15 @@ class TranslationController extends BaseController
      * @return mixed
      * @throws NotFoundHttpException
      */
-    public function actionDisable($id)
+    public function actionDelete($id)
     {
 		$model = $this->findModel($id);
 
 		if($model->visible==1) {
 			$model->visible = 0;
-			$model->user_visible = Yii::$app->session->get('user.uid');
+			$model->user_visible = Yii::$app->user->identity->id;
 			$model->data_visible = date('Y-m-d');
-            if($model->save()) {
+            if ($model->save()) {
                 Yii::$app->session->setFlash('success', 'Перевод успешно удален!');
             } else {
                 Yii::$app->session->setFlash('error', 'Не удалось удалить перевод!');

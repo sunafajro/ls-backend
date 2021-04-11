@@ -8,6 +8,7 @@ use yii\filters\AccessControl;
 use school\models\Edunormteacher;
 use school\models\Teacher;
 use school\models\User;
+use yii\filters\VerbFilter;
 
 /**
  * EdunormteacherController implements the CRUD actions for Edunormteacher model.
@@ -19,21 +20,28 @@ class EdunormteacherController extends BaseController
      */
     public function behaviors(): array
     {
+        $rules = ['create', 'delete'];
         return [
             'access' => [
                 'class' => AccessControl::class,
-                'only' => ['create', 'delete'],
+                'only' => $rules,
                 'rules' => [
                     [
-                        'actions' => ['create', 'delete'],
+                        'actions' => $rules,
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['create', 'delete'],
+                        'actions' => $rules,
                         'allow' => true,
                         'roles' => ['@'],
                     ]
+                ],
+            ],
+            'verbs' => [
+                'class' => VerbFilter::class,
+                'actions' => [
+                    'delete' => ['POST'],
                 ],
             ],
         ];
@@ -45,7 +53,7 @@ class EdunormteacherController extends BaseController
      */
     public function actionCreate($tid)
     {
-        $userInfoBlock = User::getUserInfoBlock();
+        $this->layout = 'main-2-column';
         $teacherTaxes = Edunormteacher::find()
         ->where('calc_teacher=:tid AND active=:vis AND visible=:vis', 
         [':tid' => $tid, ':vis'=> 1])->all();
@@ -130,17 +138,21 @@ class EdunormteacherController extends BaseController
                 'norms' => $norms,
                 'tnorms' => $tnorms,
                 'teacher' => $teacher,
-                'userInfoBlock' => $userInfoBlock,
                 'jobPlace' => [ 1 => 'ШИЯ', 2 => 'СРР' ]
         ]);
         }
     }
 
+    /**
+     * @param $id
+     * @param $tid
+     * @return mixed
+     */
     public function actionDelete($id, $tid)
     {
         if (($model = Edunormteacher::findOne($id)) !== NULL) {
             $model->visible = 0;
-            if ($model->save()) {
+            if ($model->save(true, ['visible'])) {
                 Yii::$app->session->setFlash('success', Yii::t('app','Teacher tax successfully removed!'));
             } else {
                 Yii::$app->session->setFlash('success', Yii::t('app','Failed to remove teacher tax!'));

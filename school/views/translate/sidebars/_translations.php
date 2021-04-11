@@ -4,18 +4,18 @@
  * @var array $languages
  * @var array $years
  * @var array $urlParams
- * @var bool $canCreate
  */
 
 use common\components\helpers\DateHelper;
 use common\components\helpers\IconHelper;
+use school\models\AccessRule;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
 ?>
 <h4><?= Yii::t('app', 'Actions') ?>:</h4>
 <div class="form-group">
-    <?php if ($canCreate) { ?>
+    <?php if (AccessRule::checkAccess('translation_create')) { ?>
         <?= Html::a(IconHelper::icon('plus', Yii::t('app', 'Add')), ['translation/create'], ['class' => 'btn btn-success btn-sm btn-block']) ?>
     <?php } ?>
     <?= Html::a(IconHelper::icon('file-text-o', Yii::t('app', 'Receipt')), ['receipt/common'], ['class' => 'btn btn-default btn-sm btn-block'] ) ?>

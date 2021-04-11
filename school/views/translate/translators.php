@@ -9,16 +9,18 @@
  */
 
 use common\components\helpers\IconHelper;
-use school\models\Auth;
+use school\models\AccessRule;
 use yii\helpers\Html;
 use yii\web\View;
 
 $this->title = Yii::$app->name . ' :: ' . Yii::t('app','Translators');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Translations'), 'url' => ['translate/translations']];
 $this->params['breadcrumbs'][] = Yii::t('app','Translators');
-/** @var Auth $auth */
-$auth = \Yii::$app->user->identity;
-$this->params['sidebar'] = ['languages' => $languages, 'urlParams' => $urlParams, 'canCreate' => in_array($auth->roleId, [3, 9])];
+$this->params['sidebar'] = ['languages' => $languages, 'urlParams' => $urlParams];
+
+$canAddLanguage = AccessRule::checkAccess('langtranslator_create');
+$canUpdate = AccessRule::checkAccess('translator_update');
+$canDelete = AccessRule::checkAccess('translator_delete');
 ?>
 <table class="table table-stripped table-bordered table-hover table-condensed small">
     <thead>
@@ -32,9 +34,7 @@ $this->params['sidebar'] = ['languages' => $languages, 'urlParams' => $urlParams
             <th>Ссылка</th>
             <th>Скайп</th>
             <th>Комментарии</th>
-            <?php if (in_array($auth->roleId, [3, 9])) { ?>
-                <th><?= Yii::t('app','Act.') ?></th>
-            <?php } ?>
+            <th><?= Yii::t('app','Act.') ?></th>
         </tr>
     </thead>
     <tbody>
@@ -57,13 +57,35 @@ $this->params['sidebar'] = ['languages' => $languages, 'urlParams' => $urlParams
             </td>
             <td><?= $t['skype'] ?></td>
             <td><?= $t['description'] ?></td>
-            <?php if (in_array($auth->roleId, [3, 9])) { ?>
-                <td class="text-center">
-                <?= Html::a(IconHelper::icon('language'), ['langtranslator/create', 'tid' => $t['id']], ['title' => Yii::t('app','Add')]) ?>
-                <?= Html::a(IconHelper::icon('pencil'), ['translator/update', 'id' => $t['id']], ['title' => Yii::t('app','Edit')]) ?>
-                <?= Html::a(IconHelper::icon('trash'), ['translator/delete', 'id' => $t['id']], ['title' => Yii::t('app','Delete')]) ?>
-                </td>
-            <?php } ?>
+            <td class="text-center">
+                <?php
+                    if ($canAddLanguage) {
+                        echo Html::a(
+                                IconHelper::icon('language'),
+                                ['langtranslator/create', 'tid' => $t['id']],
+                                ['title' => Yii::t('app','Add'), 'style' => 'margin-right: 2px']
+                        );
+                    }
+                    if ($canUpdate) {
+                        echo Html::a(
+                                IconHelper::icon('pencil'),
+                                ['translator/update', 'id' => $t['id']],
+                                ['title' => Yii::t('app','Edit'), 'style' => 'margin-right: 2px']
+                        );
+                    }
+                    if ($canDelete) {
+                        echo Html::a(
+                                IconHelper::icon('trash'),
+                                ['translator/delete', 'id' => $t['id']],
+                                [
+                                    'title' => Yii::t('app','Delete'),
+                                    'data-method' => 'post',
+                                    'data-confirm' => 'Вы действительно хотите удалить этого переводчика?',
+                                ]
+                        );
+                    }
+                ?>
+            </td>
         </tr>
     <?php } ?>
     </tbody>

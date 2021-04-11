@@ -773,14 +773,18 @@ class StudnameController extends BaseController
         }
     }
 
+    /**
+     * @param $id
+     * @return mixed
+     * @throws \yii\web\NotFoundHttpException
+     */
     public function actionOffices($id)
     {
         $student = Student::findOne($id);
         if ($student === NULL) {
             throw new NotFoundHttpException(Yii::t('app', 'Client not found!'));
         }
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        return $student->getStudentOffices();
+        return $this->asJson($student->getStudentOffices());
     }
 
     public function actionUpdateSettings($id)

@@ -7,37 +7,52 @@
  */
 
 use common\components\helpers\IconHelper;
-use school\models\Auth;
+use school\models\AccessRule;
 use yii\helpers\Html;
 use yii\web\View;
 
 $this->title = Yii::$app->name . ' :: ' . Yii::t('app','Languages');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Translations'), 'url' => ['translate/translations']];
 $this->params['breadcrumbs'][] = Yii::t('app','Languages');
-/** @var Auth $auth */
-$auth = \Yii::$app->user->identity;
-$this->params['sidebar'] = ['urlParams' => $urlParams, 'canCreate' => in_array($auth->roleId, [3, 9])];
+$this->params['sidebar'] = ['urlParams' => $urlParams];
+
+$canUpdate = AccessRule::checkAccess('translationlang_update');
+$canDelete = AccessRule::checkAccess('translationlang_delete');
 ?>
 <table class="table table-stripped table-hover table-condensed table-bordered small">
     <thead>
         <tr>
             <th>№</th>
             <th><?= Yii::t('app','Name') ?></th>
-            <?php if (in_array($auth->roleId, [3, 9])) { ?>
-                <th><?= Yii::t('app','Act.') ?></th>
-            <?php } ?>
+            <th><?= Yii::t('app','Act.') ?></th>
     </thead>
     <tbody>
         <?php foreach($languages as $key => $lang) { ?>
             <tr>
                 <td class="tbl-cell-5"><?= $key + 1 ?></td>
                 <td><?= $lang->name ?></td>
-                <?php if (in_array($auth->roleId, [3, 9])) { ?>
-                    <td class="tbl-cell-5 text-center">
-                        <?= Html::a(IconHelper::icon('pencil'),['translationlang/update', 'id'=>$lang->id],['title'=>Yii::t('app','Edit')]) ?>
-                        <?= Html::a(IconHelper::icon('trash'),['translationlang/delete', 'id'=>$lang->id],['title'=>Yii::t('app','Delete')]) ?>
-                    </td>
-                <?php } ?>
+                <td class="tbl-cell-5 text-center">
+                    <?php
+                        if ($canUpdate) {
+                            echo Html::a(
+                                IconHelper::icon('pencil'),
+                                ['translationlang/update', 'id'=>$lang->id],
+                                ['title'=>Yii::t('app','Edit'), 'style' => 'margin-right: 2px']
+                            );
+                        }
+                        if ($canDelete) {
+                            echo Html::a(
+                                IconHelper::icon('trash'),
+                                ['translationlang/delete', 'id'=>$lang->id],
+                                [
+                                    'title'=>Yii::t('app','Delete'),
+                                    'data-method' => 'post',
+                                    'data-confirm' => 'Вы действительно хотите удалить этот язык?',
+                                ]
+                            );
+                        }
+                    ?>
+                </td>
             </tr>
             <?php } ?>
     </tbody>

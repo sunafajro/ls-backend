@@ -5,6 +5,7 @@ namespace school\controllers;
 use school\controllers\base\BaseController;
 use Yii;
 use school\models\Translator;
+use yii\filters\VerbFilter;
 use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
 
@@ -34,6 +35,12 @@ class TranslatorController extends BaseController
                     ],
                 ],
             ],
+            'verbs' => [
+                'class' => VerbFilter::class,
+                'actions' => [
+                    'delete'   => ['post'],
+                ],
+            ],
         ];
     }
 
@@ -58,9 +65,9 @@ class TranslatorController extends BaseController
             $model->skype = trim($model->skype);
             $model->url = trim($model->url);
             $model->visible = 1;
-            $model->user = Yii::$app->session->get('user.uid');
+            $model->user = Yii::$app->user->identity->id;
             $model->data = date('Y-m-d');
-            if($model->save()) {
+            if ($model->save()) {
                 Yii::$app->session->setFlash('success', 'Новый переводчик успешно добавлен!');
             } else {
                 Yii::$app->session->setFlash('error', 'Не удалось добавить нового переводчика!');
@@ -95,7 +102,8 @@ class TranslatorController extends BaseController
             $model->email = trim($model->email);
             $model->skype = trim($model->skype);
             $model->url = trim($model->url);
-            $model->save();            if($model->save()) {
+
+            if ( $model->save()) {
                 Yii::$app->session->setFlash('success', 'Данные переводчика успешно изменены!');
             } else {
                 Yii::$app->session->setFlash('error', 'Не удалось изменить данные переводчика!');
@@ -119,7 +127,7 @@ class TranslatorController extends BaseController
 
         if($model->visible !=0 ) {
             $model->visible = 0;
-            $model->user_visible = Yii::$app->session->get('user.uid');
+            $model->user_visible = Yii::$app->user->identity->id;
             $model->data_visible = date('Y-m-d');
             if($model->save()) {
                 Yii::$app->session->setFlash('success', 'Переводчик успешно удален!');

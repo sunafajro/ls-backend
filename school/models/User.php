@@ -258,34 +258,13 @@ class User extends BaseUser
         switch ($controller) {
             #region Клиенты
             case 'studname':
-                if (in_array($action, ['view', 'index'])) {
-                    switch($roleId) {
-                        case 3:
-                        case 4:
-                        case 5:
-                        case 6: $result = true; break;
-                        default: $result = false;
-                    }
-                } else if (in_array($action, [
+                if (in_array($action, [
                     'update', 'active', 'inactive',
                     'detail', 'change-office', 'update-debt',
                     'settings', 'update-settings', 'successes'])) {
                     switch($roleId) {
                         case 3:
                         case 4: $result = true; break;
-                        default: $result = false;
-                    }
-                } else if (in_array($action, ['merge', 'delete'])) {
-                    switch($roleId) {
-                        case 3: $result = true; break;
-                        default: $result = false;
-                    }
-                } else if ($action === 'offices') {
-                    switch($roleId) {
-                        case 3:
-                        case 4:
-                        case 8:
-                        case 11: $result = true; break;
                         default: $result = false;
                     }
                 } else {
@@ -322,7 +301,7 @@ class User extends BaseUser
                         default: $result = false;
                     }
                 }
-                if ($action === 'create' || $action === 'delete' || $action = 'download-attestation') {
+                if ($action === 'create' || $action === 'delete' || $action === 'download-attestation') {
                     switch($roleId) {
                         case 3:
                         case 4: $result = true; break;
@@ -359,19 +338,6 @@ class User extends BaseUser
                 break;
             #endregion
 
-            #region Переводы
-            case 'langtranslator':
-            case 'translation':
-            case 'translationlang':
-            case 'translationnorm':
-                switch($roleId) {
-                    case 3:
-                    case 9: $result = true; break;
-                    default: $result = false;        
-                }
-                break;
-            #endregion
-
             #region Справочники
             case 'reference':
                 if ($action === 'phonebook') {
@@ -384,37 +350,6 @@ class User extends BaseUser
                         case 8:
                         case 9: $result = true; break;
                         default: $result = false;
-                    }
-                } else {
-                    switch($roleId) {
-                        case 3: $result = true; break;
-                        default: $result = false;
-                    }
-                }
-                break;
-            #endregion
-
-            #region Языковые надбавки
-            case 'langpremium':
-            case 'teacherlangpremium':
-                switch($roleId) {
-                    case 3: $result = true; break;
-                    default: $result = false;
-                }
-                break;
-            #endregion
-
-            #region Языковые Ставки
-            case 'edunormteacher':
-                if ($action === 'create') {
-                    switch($roleId) {
-                        case 3: $result = true; break;
-                        default:
-                            if ((int)Yii::$app->session->get('user.uid') === 296) {
-                                return true;
-                            } else {
-                                $result = false;
-                            }
                     }
                 } else {
                     switch($roleId) {

@@ -6,16 +6,17 @@
  */
 
 use common\components\helpers\IconHelper;
-use school\models\Auth;
+use school\models\AccessRule;
 use yii\helpers\Html;
 use yii\web\View;
 
 $this->title = Yii::$app->name . ' :: ' . Yii::t('app','Clients');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Translations'), 'url' => ['translate/translations']];
 $this->params['breadcrumbs'][] = Yii::t('app','Clients');
-/** @var Auth $auth */
-$auth = \Yii::$app->user->identity;
-$this->params['sidebar'] = ['urlParams' => $urlParams, 'canCreate' => in_array($auth->roleId, [3, 9])];
+$this->params['sidebar'] = ['urlParams' => $urlParams];
+
+$canUpdate = AccessRule::checkAccess('translationclient_update');
+$canDelete = AccessRule::checkAccess('translationclient_delete');
 ?>
 <table class="table table-stripped table-bordered table-hover table-condensed small">
 <thead>
@@ -27,9 +28,7 @@ $this->params['sidebar'] = ['urlParams' => $urlParams, 'canCreate' => in_array($
         <th>Телефон</th>
         <th>Э.почта</th>
         <th>Комментарии</th>
-        <?php if (in_array($auth->roleId, [3, 9])) { ?>
-            <th><?= Yii::t('app','Act.') ?></th>
-        <?php } ?>
+        <th><?= Yii::t('app','Act.') ?></th>
     </tr>
 </thead>
 <tbody>
@@ -42,12 +41,28 @@ $this->params['sidebar'] = ['urlParams' => $urlParams, 'canCreate' => in_array($
             <td><?= $c['phone'] ?></td>
             <td><?= $c['email'] ?></td>
             <td><?= $c['description'] ?></td>
-            <?php if (in_array($auth->roleId, [3, 9])) { ?>
-                <td class="text-center">
-                <?= Html::a(IconHelper::icon('pencil'), ['translationclient/update', 'id'=>$c['id']], ['title'=>Yii::t('app','Edit')]) ?>
-                <?= Html::a(IconHelper::icon('trash'), ['translationclient/delete', 'id'=>$c['id']], ['title'=>Yii::t('app','Delete')]) ?>
-                </td>
-            <?php } ?>
+            <td class="text-center">
+                <?php
+                    if ($canUpdate) {
+                        echo Html::a(
+                                IconHelper::icon('pencil'),
+                                ['translationclient/update', 'id' => $c['id']],
+                                ['title' => Yii::t('app','Edit'), 'style' => 'margin-right: 2px']
+                        );
+                    }
+                    if ($canDelete) {
+                        echo Html::a(
+                                IconHelper::icon('trash'),
+                                ['translationclient/delete', 'id'=>$c['id']],
+                                [
+                                    'title' => Yii::t('app','Delete'),
+                                    'data-method' => 'post',
+                                    'data-confirm' => 'Вы действительно хотите удалить этого клиента?',
+                                ]
+                        );
+                    }
+                ?>
+            </td>
         </tr>
     <?php } ?>
     </tbody>

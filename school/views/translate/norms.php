@@ -7,16 +7,17 @@
  */
 
 use common\components\helpers\IconHelper;
-use school\models\Auth;
+use school\models\AccessRule;
 use yii\helpers\Html;
 use yii\web\View;
 
 $this->title = Yii::$app->name . ' :: ' . Yii::t('app','Translation pay norms');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Translations'), 'url' => ['translate/translations']];
 $this->params['breadcrumbs'][] = Yii::t('app','Translation pay norms');
-/** @var Auth $auth */
-$auth = \Yii::$app->user->identity;
-$this->params['sidebar'] = ['urlParams' => $urlParams, 'canCreate' => in_array($auth->roleId, [3, 9])];
+$this->params['sidebar'] = ['urlParams' => $urlParams];
+
+$canUpdate = AccessRule::checkAccess('translationnorm_update');
+$canDelete = AccessRule::checkAccess('translationnorm_delete');
 ?>
 <table class="table table-stripped table-hover table-condensed table-bordered small">
     <thead>
@@ -25,9 +26,7 @@ $this->params['sidebar'] = ['urlParams' => $urlParams, 'canCreate' => in_array($
             <th><?= Yii::t('app','Name') ?></th>
             <th class="tbl-cell-10 text-center"><?= Yii::t('app','Type') ?></th>
             <th class="tbl-cell-10 text-center"><?= Yii::t('app','Value') ?></th>
-            <?php if (in_array($auth->roleId, [3, 9])) { ?>
-                <th class="tbl-cell-5 text-center"><?= Yii::t('app','Act.') ?></th>
-            <?php } ?>
+            <th class="tbl-cell-5 text-center"><?= Yii::t('app','Act.') ?></th>
     </thead>
     <tbody>
         <?php foreach($norms as $key => $norm) { ?>
@@ -42,12 +41,28 @@ $this->params['sidebar'] = ['urlParams' => $urlParams, 'canCreate' => in_array($
                 } ?>
                 </td>
                 <td class="tbl-cell-10 text-center"><?= $norm->value ?></td>
-                <?php if (in_array($auth->roleId, [3, 9])) { ?>
-                    <td class="tbl-cell-5 text-center">
-                        <?= Html::a(IconHelper::icon('pencil'),['translationnorm/update', 'id'=>$norm->id],['title'=>Yii::t('app','Edit')]) ?>
-                        <?= Html::a(IconHelper::icon('trash'),['translationnorm/delete', 'id'=>$norm['id']],['title'=>Yii::t('app','Delete')]) ?>
-                    </td>
-                <?php } ?>
+                <td class="tbl-cell-5 text-center">
+                    <?php
+                        if ($canUpdate) {
+                            echo Html::a(
+                                    IconHelper::icon('pencil'),
+                                    ['translationnorm/update', 'id'=>$norm->id],
+                                    ['title'=>Yii::t('app','Edit'), 'style' => 'margin-right: 2px']
+                            );
+                        }
+                        if ($canDelete) {
+                            echo Html::a(
+                                    IconHelper::icon('trash'),
+                                    ['translationnorm/delete', 'id'=>$norm['id']],
+                                    [
+                                        'title'=>Yii::t('app','Delete'),
+                                        'data-method' => 'post',
+                                        'data-confirm' => 'Вы действительно хотите удалить этоу норму оплаты?',
+                                    ]
+                            );
+                        }
+                    ?>
+                </td>
             </tr>
         <?php } ?>
     </tbody>

@@ -2,20 +2,20 @@
 /**
  * @var View $this
  * @var array $urlParams
- * @var bool $canCreate
  */
 
 use common\components\helpers\IconHelper;
+use school\models\AccessRule;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;
 ?>
-<?php if ($canCreate) { ?>
-    <h4><?= Yii::t('app', 'Actions') ?>:</h4>
-    <div class="form-group">
+<h4><?= Yii::t('app', 'Actions') ?>:</h4>
+<div class="form-group">
+    <?php if (AccessRule::checkAccess('translationnorm_create')) { ?>
         <?= Html::a(IconHelper::icon('plus', Yii::t('app', 'Add')), ['translationnorm/create'], ['class' => 'btn btn-success btn-sm btn-block']) ?>
-    </div>
-<?php } ?>
+    <?php } ?>
+</div>
 <?= $this->render('_menu', ['activeItem' => 'payNorms']) ?>
 <h4><?= Yii::t('app', 'Filters') ?>:</h4>
 <?php $form = ActiveForm::begin([

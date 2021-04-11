@@ -23,7 +23,7 @@ class Edunormteacher extends ActiveRecord
     /**
      * @inheritdoc
      */
-    public static function tableName()
+    public static function tableName(): string
     {
         return 'calc_edunormteacher';
     }

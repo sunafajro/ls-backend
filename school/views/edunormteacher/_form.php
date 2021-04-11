@@ -1,27 +1,31 @@
 <?php
-    use yii\helpers\Html;
-    use yii\widgets\ActiveForm;
+
+/**
+ * @var View $this
+ * @var Edunormteacher $model
+ * @var Teacher $teacher
+ * @var array $norms
+ * @var array $tnorms
+ */
+
+use common\components\helpers\IconHelper;
+use school\models\AccessRule;
+use school\models\Edunormteacher;
+use school\models\Teacher;
+use yii\helpers\Html;
+use yii\web\View;
+use yii\widgets\ActiveForm;
+
+$jobPlaces = Yii::$app->params['jobPlaces'] ?? [];
 ?>
-
 <div class="edunormteacher-form">
-    <?php if (Yii::$app->session->hasFlash('error')) : ?>
-        <div class="alert alert-danger" role="alert">
-            <?= Yii::$app->session->getFlash('error') ?>
-        </div>
-    <?php endif; ?>
-    <?php if (Yii::$app->session->hasFlash('success')) : ?>
-        <div class="alert alert-success" role="alert">
-            <?= Yii::$app->session->getFlash('success') ?>
-        </div>
-    <?php endif; ?>
-
     <?php $form = ActiveForm::begin(); ?>
 
     <?= $form->field($model, 'calc_edunorm')->dropDownList($items=$norms, ['prompt'=>Yii::t('app', '-select-')]) ?>
 
     <?= $form->field($model, 'calc_edunorm_day')->dropDownList($items=$norms, ['prompt'=>Yii::t('app', '-select-')]) ?>
 
-    <?= $form->field($model, 'company')->dropDownList($items=$jobPlace, ['prompt'=>Yii::t('app', '-select-')]) ?>
+    <?= $form->field($model, 'company')->dropDownList($jobPlaces, ['prompt'=>Yii::t('app', '-select-')]) ?>
 
     <div class="form-group">
         <?= Html::submitButton(Yii::t('app','Add'), ['class' => 'btn btn-success']) ?>
@@ -41,22 +45,26 @@
             </tr>
         </thead>
         <tbody>
-        <?php foreach($tnorms as $tn) : ?>
+        <?php foreach ($tnorms as $tn) { ?>
             <tr>
                 <td><?= $tn['nname'] ?></td>
                 <td><?= $tn['ndname'] ?></td>
                 <td class="text-center"><?= $tn['ndate'] ?></td>
                 <td class="text-center">
                     <span class="label <?= (int)$tn['tjplace'] === 1 ? 'label-success' : 'label-info' ?>">
-                        <?= $jobPlace[$tn['tjplace']] ?>
+                        <?= $jobPlaces[$tn['tjplace']] ?>
                     </span>
                 </td>
-                <td class="text-center"><i class="fa <?= (int)$tn['active'] === 1 ? 'fa-check' : '' ?>"></i></td>
+                <td class="text-center"><?= (int)$tn['active'] === 1 ? IconHelper::icon('check') : null ?></td>
                 <td class="text-center">
-                    <?= Html::a('<i class="fa fa-trash"></i>', ['edunormteacher/delete', 'id' => $tn['enid'], 'tid' => $teacher->id]) ?>
+                    <?php
+                        if (AccessRule::checkAccess('edunormteacher_delete')) {
+                            echo Html::a(IconHelper::icon('trash'), ['edunormteacher/delete', 'id' => $tn['enid'], 'tid' => $teacher->id]);
+                        }
+                    ?>
                 </td>
             </tr>
-        <?php endforeach; ?>
+        <?php } ?>
         </tbody>
     </table>
 </div>

@@ -5,6 +5,7 @@ namespace school\controllers;
 use school\controllers\base\BaseController;
 use Yii;
 use school\models\Translationclient;
+use yii\filters\VerbFilter;
 use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
 
@@ -33,6 +34,12 @@ class TranslationclientController extends BaseController
                         'allow' => true,
                         'roles' => ['@'],
                     ],
+                ],
+            ],
+            'verbs' => [
+                'class' => VerbFilter::class,
+                'actions' => [
+                    'delete'   => ['post'],
                 ],
             ],
         ];

@@ -9,17 +9,18 @@
  */
 
 use common\components\helpers\IconHelper;
-use school\models\Auth;
+use school\models\AccessRule;
 use yii\helpers\Html;
 use yii\web\View;
 
 $this->title = Yii::$app->name . ' :: ' . Yii::t('app','Translations');
 $this->params['breadcrumbs'][] = Yii::t('app','Translations');
-/** @var Auth $auth */
-$auth = \Yii::$app->user->identity;
-$this->params['sidebar'] = ['languages' => $languages, 'years' => $years, 'urlParams' => $urlParams, 'canCreate' => in_array($auth->roleId, [3, 9])];
+$this->params['sidebar'] = ['languages' => $languages, 'years' => $years, 'urlParams' => $urlParams];
 
 $sum = 0;
+
+$canUpdate = AccessRule::checkAccess('translation_update');
+$canDelete = AccessRule::checkAccess('translation_delete');
 ?>
 <table class="table table-stripped table-bordered table-hover table-condensed small">
     <thead>
@@ -36,9 +37,7 @@ $sum = 0;
             <th>Сумма, р</th>
             <th>Примеч.</th>
             <th>Счет</th>
-            <?php if (in_array($auth->roleId, [3, 9])) { ?>
-                <th><?= Yii::t('app','Act.') ?></th>
-            <?php } ?>
+            <th><?= Yii::t('app','Act.') ?></th>
         </tr>
     </thead>
     <tbody>
@@ -56,12 +55,28 @@ $sum = 0;
             <td><?= number_format($t['value'], 2, ',', ' ') ?></td>
             <td><?= $t['desc'] ?></td>
             <td><?= $t['receipt'] ?></td>
-            <?php if (in_array($auth->roleId, [3, 9])) { ?>
-                <td class="text-center">
-                    <?= Html::a(IconHelper::icon('pencil'), ['translation/update', 'id'=>$t['tid']], ['title'=>Yii::t('app','Edit')]) ?>
-                    <?= Html::a(IconHelper::icon('trash'), ['translation/disable', 'id'=>$t['tid']], ['title'=>Yii::t('app','Delete')]) ?>
-                </td>
-            <?php } ?>
+            <td class="text-center">
+                <?php
+                    if ($canUpdate) {
+                        echo Html::a(
+                                IconHelper::icon('pencil'),
+                                ['translation/update', 'id' => $t['tid']],
+                                ['title' => Yii::t('app','Edit'), 'style' => 'margin-right: 2px']
+                        );
+                    }
+                    if ($canDelete) {
+                        echo Html::a(
+                                IconHelper::icon('trash'),
+                                ['translation/delete', 'id' => $t['tid']],
+                                [
+                                    'title' => Yii::t('app','Delete'),
+                                    'data-method' => 'post',
+                                    'data-confirm' => 'Вы действительно хотите удалить этот заказ на перевод?',
+                                ]
+                        );
+                    }
+                ?>
+            </td>
         </tr>
         <?php $sum = $sum + $t['value']; ?>
     <?php } ?>
