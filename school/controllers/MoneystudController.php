@@ -114,7 +114,6 @@ class MoneystudController extends Controller
                     $notification            = new Notification();
                     $notification->entity_id = $model->id;
                     $notification->type      = Notification::TYPE_PAYMENT;
-                    $notification->user_id   = Yii::$app->session->get('user.uid');
                     $notification->save();
                 }
                 if ($student->updateInvMonDebt()) {

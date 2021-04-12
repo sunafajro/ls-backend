@@ -1,5 +1,6 @@
 <?php
 
+use school\models\Notification;
 use yii\db\Migration;
 
 /**
@@ -12,25 +13,25 @@ class m190517_183511_create_notification_table extends Migration
      */
     public function safeUp()
     {
-        $this->createTable('notifications', [
+        $this->createTable('{{%notifications}}', [
             'id'         => $this->primaryKey(),
-            'visible'    => $this->integer(4)->defaultValue(1)->notNull(),
-            'created_at' => $this->date()->notNull()->defaultValue(date('Y-m-d')),
-            'count'      => $this->integer()->defaultValue(0)->notNull(),
+            'visible'    => $this->tinyInteger()->notNull()->defaultValue(1),
+            'created_at' => $this->date()->notNull(),
+            'count'      => $this->integer()->notNull()->defaultValue(0),
             'type'       => $this->string()->notNull(),
-            'status'     => $this->string()->defaultValue('queue')->notNull(),
+            'status'     => $this->string()->notNull()->defaultValue(Notification::STATUS_QUEUE),
             'entity_id'  => $this->integer()->notNull(),
             'user_id'    => $this->integer()->notNull(),
         ]);
 
         $this->createIndex(
             'notifications-entity_id-idx',
-            'notifications',
+            '{{%notifications}}',
             'entity_id'
         );
         $this->createIndex(
             'notifications-user_id-idx',
-            'notifications',
+            '{{%notifications}}',
             'user_id'
         );
     }

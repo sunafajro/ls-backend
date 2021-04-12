@@ -74,7 +74,6 @@ class NotificationController extends Controller
         $notification = new Notification();
         $notification->entity_id = $id;
         $notification->type      = $type;
-        $notification->user_id   = Yii::$app->session->get('user.uid');
         if ($notification->save()) {
             Yii::$app->session->setFlash('success', Yii::t('app', 'E-mail notification successfully added to queue!'));
         } else {

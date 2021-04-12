@@ -3,6 +3,7 @@
 namespace school\models;
 
 use Yii;
+use yii\db\ActiveRecord;
 
 /**
  * This is the model class for table "notifications".
@@ -17,7 +18,7 @@ use Yii;
  * @property integer $user_id
  */
 
-class Notification extends \yii\db\ActiveRecord
+class Notification extends ActiveRecord
 {
     const TYPE_PAYMENT   = 'payment';
 
@@ -30,7 +31,7 @@ class Notification extends \yii\db\ActiveRecord
      */
     public static function tableName() : string
     {
-        return 'notifications';
+        return '{{%notifications}}';
     }
 
     /**
@@ -39,10 +40,15 @@ class Notification extends \yii\db\ActiveRecord
     public function rules() : array
     {
         return [
-            [['type', 'entity_id', 'user_id'], 'required'],
+            [['created_at'], 'default', 'value' => date('Y-m-d')],
+            [['visible'], 'default', 'value' => 1],
+            [['user_id'], 'default', 'value' => Yii::$app->user->identity->id],
+            [['status'], 'default', 'value' => self::STATUS_QUEUE],
+            [['count'], 'default', 'value' => 0],
+            [['created_at'], 'date','format'=>'yyyy-mm-dd'],
             [['count', 'entity_id', 'user_id', 'visible'], 'integer'],
             [['type', 'status'], 'string'],
-            [['created_at'], 'safe'],
+            [['type', 'count', 'entity_id', 'user_id', 'status', 'visible', 'created_at'], 'required'],
         ];
     }
 

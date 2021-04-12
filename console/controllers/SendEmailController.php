@@ -19,19 +19,26 @@ class SendEmailController extends Controller
         foreach($notifications ?? [] as $n) {
             $subject = Notification::getNotificationSubject($n['notificationType']);
             $body = Notification::getNotificationBody($n['notificationType'], $n['recipientName'], $n['paymentDate'], $n['paymentValue']);
-            $mailer = Yii::$app->mailer->compose()
-            ->setFrom(Yii::$app->params['notificationEmail'])
-            ->setTo([trim($n['recipientEmail']) => $n['recipientName']])
-            ->setSubject($subject)
-            ->setHtmlBody($body);
+
             $notify = Notification::findOne($n['notificationId']);
-            $notify->count += 1;
-            if ($mailer->send()) {
-                $notify->status = Notification::STATUS_SUCCESS;
-                $notify->save();
-            } else {
+            try {
+                $mailer = Yii::$app->mailer->compose()
+                    ->setFrom(Yii::$app->params['notificationEmail'])
+                    ->setTo([trim($n['recipientEmail']) => $n['recipientName']])
+                    ->setSubject($subject)
+                    ->setHtmlBody($body);
+
+                $notify->count += 1;
+                if ($mailer->send()) {
+                    $notify->status = Notification::STATUS_SUCCESS;
+                    $notify->save(true, ['status']);
+                } else {
+                    throw new \Exception('Не удалось отправить сообщение.');
+                }
+            } catch (\Exception $e) {
                 $notify->status = Notification::STATUS_FAIL;
-                $notify->save(); 
+                $notify->save(true, ['status']);
+                Yii::error($e->getMessage());
             }
         }
     }
