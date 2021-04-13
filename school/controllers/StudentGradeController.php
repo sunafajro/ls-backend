@@ -10,8 +10,11 @@ use school\models\User;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\NotFoundHttpException;
-use yii\web\Response;
 
+/**
+ * Class StudentGradeController
+ * @package school\controllers
+ */
 class StudentGradeController extends BaseController
 {
     public function behaviors(): array
@@ -44,10 +47,16 @@ class StudentGradeController extends BaseController
             ],
         ];
     }
-    
+
+    /**
+     * @param $id
+     * @return mixed
+     * @throws NotFoundHttpException
+     */
     public function actionIndex($id)
     {
-        $student = Student::find()->andWhere(['id' => $id, 'visible' => 1])->one();
+        $this->layout = 'main-2-column';
+        $student = Student::findOne(['id' => $id, 'visible' => 1]);
         if (empty($student)) {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
@@ -61,32 +70,40 @@ class StudentGradeController extends BaseController
             'exams'         => array_merge([NULL => Yii::t('app', 'Select an exam')], $exams),
             'model'         => $model,
             'student'       => $student,
-            'userInfoBlock' => User::getUserInfoBlock()
         ]);
     }
 
+    /**
+     * @param $id
+     * @return mixed
+     * @throws NotFoundHttpException
+     */
     public function actionCreate($id)
     {
         $grade = new StudentGrade();
-        $student = Student::findOne(intval($id));
-        if ($student !== NULL) {
-            $grade->load(Yii::$app->request->post());
-            $grade->calc_studname = $id;
-            if ($grade->save()) {
-                $grade->writePdfFile();
-                Yii::$app->session->setFlash('success', "Аттестация успешно добавлена!");
-            } else {
-                Yii::$app->session->setFlash('error', "Ошибка добавления аттестации!");
-            }
-            return $this->redirect(Yii::$app->request->referrer);
-        } else {
+        $student = Student::findOne(['id' => $id, 'visible' => 1]);
+        if (empty($student)) {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
+        $grade->load(Yii::$app->request->post());
+        $grade->calc_studname = $id;
+        if ($grade->save()) {
+            $grade->writePdfFile();
+            Yii::$app->session->setFlash('success', "Аттестация успешно добавлена!");
+        } else {
+            Yii::$app->session->setFlash('error', "Ошибка добавления аттестации!");
+        }
+        return $this->redirect(Yii::$app->request->referrer);
     }
 
+    /**
+     * @param $id
+     * @return mixed
+     * @throws NotFoundHttpException
+     */
     public function actionUpdate($id)
     {
-        $grade = $this->findModel($id);
+        $grade = $this->findModel((int)$id);
         $grade->load(Yii::$app->request->post());
         if ($grade->save(true, ['date', 'description', 'score', 'contents'])) {
             $grade->writePdfFile();
@@ -97,9 +114,16 @@ class StudentGradeController extends BaseController
         return $this->redirect(Yii::$app->request->referrer);
     }
 
+    /**
+     * @param $id
+     * @return mixed
+     * @throws NotFoundHttpException
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
+     */
     public function actionDelete($id)
     {
-        $grade = $this->findModel($id);
+        $grade = $this->findModel((int)$id);
         if ($grade->delete()) {
             Yii::$app->session->setFlash('success', "Аттестация успешно удалена!");
         } else {
@@ -108,10 +132,14 @@ class StudentGradeController extends BaseController
         return $this->redirect(Yii::$app->request->referrer);
     }
 
+    /**
+     * @param $id
+     * @return mixed
+     * @throws NotFoundHttpException
+     */
     public function actionDownloadAttestation($id)
     {
-        /** @var StudentGrade $grade */
-        $grade = $this->findModel($id);
+        $grade = $this->findModel((int)$id);
         $filePath = $grade->getFullFileName();
         if (!file_exists($filePath)) {
             $grade->writePdfFile();
@@ -122,23 +150,23 @@ class StudentGradeController extends BaseController
         return Yii::$app->response->sendFile($filePath, null, ['inline' => true]);
     }
 
+    /**
+     * @param $exam
+     * @return mixed
+     */
     public function actionExamContents($exam)
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-
-        return StudentGrade::getExamContents($exam);
+        return $this->asJson(StudentGrade::getExamContents($exam));
     }
 
     /**
-     * Finds the StudentGrade model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return StudentGrade the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
+     * @return StudentGrade
+     * @throws NotFoundHttpException
      */
-    protected function findModel($id)
+    protected function findModel(int $id): StudentGrade
     {
-        if (($model = StudentGrade::find()->andWhere(['id' => $id, 'visible' => 1])->one()) !== null) {
+        if (($model = StudentGrade::find()->byId($id)->active()->one()) !== null) {
             return $model;
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');

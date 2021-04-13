@@ -10,6 +10,7 @@ use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 
 /**
+ * @deprecated
  * KaslibroclientController implements the CRUD actions for KaslibroClient model.
  */
 class KaslibroclientController extends Controller

@@ -65,6 +65,11 @@ class ReferencesController extends Controller
         ];
     }
 
+    /**
+     * @param $action
+     * @return bool
+     * @throws ForbiddenHttpException
+     */
     public function beforeAction($action)
     {
         if (parent::beforeAction($action)) {

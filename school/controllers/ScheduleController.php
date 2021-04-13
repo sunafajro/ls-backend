@@ -1,7 +1,8 @@
 <?php
 
 namespace school\controllers;
-use school\controllers\base\BaseController;
+use school\models\AccessRule;
+use school\models\Auth;
 use Yii;
 use school\models\Eduage;
 use school\models\Eduform;
@@ -11,14 +12,17 @@ use school\models\Room;
 use school\models\Schedule;
 use school\models\Teacher;
 use school\models\Tool;
-use school\models\User;
+use yii\web\Controller;
+use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 use yii\filters\AccessControl;
+
 /**
- * ScheduleController implements the CRUD actions for Schedule model.
+ * Class ScheduleController
+ * @package school\controllers
  */
-class ScheduleController extends BaseController
+class ScheduleController extends Controller
 {
     /**
      * @inheritDoc
@@ -52,6 +56,25 @@ class ScheduleController extends BaseController
     }
 
     /**
+     * @param $action
+     * @return bool
+     * @throws ForbiddenHttpException
+     */
+    public function beforeAction($action)
+    {
+        if (parent::beforeAction($action)) {
+            $controllerId = $action->controller->id;
+            $actionId = str_replace('app-', '', $action->id);
+            if (AccessRule::checkAccess("{$controllerId}_{$actionId}") == false) {
+                throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * Главная страница раздела Расписание
      *
      * @return mixed
@@ -68,16 +91,15 @@ class ScheduleController extends BaseController
      */
     public function actionAppActions()
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        return [
+        return $this->asJson([
             "actions" => [
-                "create" => User::checkAccess('schedule', 'create'),
-                "delete" => User::checkAccess('schedule', 'delete'),
-                "hours"  => User::checkAccess('schedule', 'hours'),
-                "update" => User::checkAccess('schedule', 'update'),
-                "view"   => User::checkAccess('schedule', 'index')
+                "create" => AccessRule::checkAccess('schedule_create'),
+                "delete" => AccessRule::checkAccess('schedule_delete'),
+                "hours"  => AccessRule::checkAccess('schedule_hours'),
+                "update" => AccessRule::checkAccess('schedule_update'),
+                "view"   => AccessRule::checkAccess('schedule_index')
             ]
-        ];
+        ]);
     }
 
     /**
@@ -87,22 +109,18 @@ class ScheduleController extends BaseController
      */
     public function actionAppCreate()
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
         $model = new Schedule();
         $model->load(Yii::$app->request->post());
-        $model->visible = 1;
-        $model->user = Yii::$app->session->get('user.uid');
-        $model->data = date('Y-m-d');
-        if($model->save()) {
-            return [
+        if ($model->save()) {
+            return $this->asJson([
                 'id' => $model->id,
                 'message' => 'Занятие успешно добавлено в расписание!'
-            ];
+            ]);
         } else {
             Yii::$app->response->statusCode = 500;
-            return [
+            return $this->asJson([
                 'message' => 'Не удалось добавить занятие в расписание!'
-            ];
+            ]);
         }
     }
 
@@ -111,27 +129,29 @@ class ScheduleController extends BaseController
      * @param int $id
      *
      * @return mixed
+     * @throws NotFoundHttpException
      */
     public function actionAppUpdate($id)
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        /** @var Schedule $model */
+        /** @var Auth $auth */
+        $auth = \Yii::$app->user->identity;
         $model = $this->findModel($id);
-        if ((int)Yii::$app->session->get('user.ustatus') === 5 && (int)$model->calc_teacher !== (int)Yii::$app->session->get('user.uteacher')) {
+        if ($auth->roleId === 5 && $model->calc_teacher !== $auth->teacherId) {
             Yii::$app->response->statusCode = 403;
-            return [
+            return $this->asJson([
                 "message" => "Вам не разрешено производить это действие!"
-            ];
+            ]);
         }
-        ;
+
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return [
+            return $this->asJson([
                 "message" => "Занятие успешно обновлено!"
-            ];
+            ]);
         } else {
-            return [
+            Yii::$app->response->statusCode = 500;
+            return $this->asJson([
                 "message" => "Не удалось обновить занятие!"
-            ];
+            ]);
         }
     }
 
@@ -143,30 +163,31 @@ class ScheduleController extends BaseController
      */
     public function actionAppDelete($id)
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
+        /** @var Auth $auth */
+        $auth = \Yii::$app->user->identity;
         $model = $this->findModel($id);
-        if ((int)Yii::$app->session->get('user.ustatus') === 5 && (int)$model->calc_teacher !== (int)Yii::$app->session->get('user.uteacher')) {
+        if ($auth->roleId === 5 && $model->calc_teacher !== $auth->teacherId) {
             Yii::$app->response->statusCode = 403;
-            return [
+            return $this->asJson([
                 "message" => "Вам не разрешено производить это действие!"
-            ];
+            ]);
         }
         if ((int)$model->visible === 1) {
             $model->visible = 0;
-            if ($model->save()) {
-                return [
+            if ($model->save(true, ['visible'])) {
+                return $this->asJson([
                     "message" => "Занятие успешно удалено из расписания!"
-                ];
+                ]);
             } else {
                 Yii::$app->response->statusCode = 500;
-                return [
+                return $this->asJson([
                     "message" => "Ошибка при удалении занятия!"
-                ];
+                ]);
             }
         } else {
-            return [
+            return $this->asJson([
                 "message" => "Занятие успешно удалено из расписания!"
-            ];
+            ]);
         }
     }
 
@@ -177,7 +198,6 @@ class ScheduleController extends BaseController
      */
     public function actionAppFilters()
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
         $eduform = new Eduform();
         $eduforms = $eduform->getEduforms();
         $office = new Office();
@@ -187,7 +207,7 @@ class ScheduleController extends BaseController
         $teacher = new Teacher();
         $teachers = $teacher->getTeachersInSchedule();
         $tool = new Tool();
-        return [
+        return $this->asJson([
             'filters' => [
                 'eduages'   => $tool->prepareDataForSelectElement(Eduage::getEduAges()),
                 'eduforms'  => $tool->prepareDataForSelectElement($eduforms),
@@ -195,7 +215,7 @@ class ScheduleController extends BaseController
                 'offices'   => $tool->prepareDataForSelectElement($offices),
                 'teachers'  => $tool->prepareDataForSelectElement($teachers),
             ]
-        ];
+        ]);
     }
 
     /**
@@ -206,16 +226,15 @@ class ScheduleController extends BaseController
      */
     public function actionAppHours($oid = NULL, $tid = NULL)
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
         $schedule = new Schedule();
         $params = [
             'oid' => $oid,
             'tid' => $tid
         ];
-        return [
+        return $this->asJson([
             'columns' => $schedule->getTableColumns('hours'),
             'hours' => $schedule->getTeacherHours($params)
-        ];
+        ]);
     }
 
     /**
@@ -229,7 +248,6 @@ class ScheduleController extends BaseController
      */
     public function actionAppLessons($aid = NULL, $did = NULL, $fid = NULL, $lid = NULL, $oid = NULL, $tid = NULL)
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
         $schedule = new Schedule();
         $params = [
             'aid' => $aid,
@@ -239,10 +257,10 @@ class ScheduleController extends BaseController
             'oid' => $oid,
             'tid' => $tid,
         ];
-        return [
+        return $this->asJson([
             'columns' => $schedule->getTableColumns(),
             'lessons' => $schedule->getScheduleData($params)
-        ];
+        ]);
     }
 
     /**
@@ -252,13 +270,12 @@ class ScheduleController extends BaseController
      */
     public function actionAppGroups($tid)
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
         $tool = new Tool();
         $teacher = new Teacher();
         $groups = $teacher->getActiveTeacherGroups($tid);
-        return [
+        return $this->asJson([
             'groups' => $tool->prepareDataForSelectElement($groups)
-        ];
+        ]);
     }
 
     /**
@@ -266,10 +283,9 @@ class ScheduleController extends BaseController
      */
     public function actionAppOffices()
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        return [
+        return $this->asJson([
             'offices' => (new Tool())->prepareDataForSelectElement(Office::getOfficesList())
-        ];
+        ]);
     }
 
     /**
@@ -279,13 +295,12 @@ class ScheduleController extends BaseController
      */
     public function actionAppRooms($oid)
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
         $tool = new Tool();
         $room = new Room();
         $rooms = $room->getRooms($oid);
-        return [
+        return $this->asJson([
             'rooms' => $tool->prepareDataForSelectElement($rooms)
-        ];
+        ]);
     }
 
     /**
@@ -295,24 +310,23 @@ class ScheduleController extends BaseController
      */
     public function actionAppTeachers($tid = NULL)
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        if ((int)Yii::$app->session->get('user.ustatus') === 5) {
-            $tid = Yii::$app->session->get('user.uteacher');
+        /** @var Auth $auth */
+        $auth = \Yii::$app->user->identity;
+        if ($auth->roleId === 5) {
+            $tid = $auth->teacherId;
         }
         $tool = new Tool();
         $teacher = new Teacher();
         $teachers = $teacher->getTeachersWithActiveGroups($tid);
-        return [
+        return $this->asJson([
             'teachers' => $tool->prepareDataForSelectElement($teachers)
-        ];
+        ]);
     }
 
     /**
-     * Finds the Schedule model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return Schedule the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
+     * @return Schedule
+     * @throws NotFoundHttpException
      */
     protected function findModel($id)
     {

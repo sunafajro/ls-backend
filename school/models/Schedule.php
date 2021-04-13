@@ -3,6 +3,7 @@ namespace school\models;
 
 use common\components\helpers\DateHelper;
 use school\models\Report;
+use school\models\reports\TeacherHoursReport;
 use Yii;
 use yii\helpers\ArrayHelper;
 
@@ -27,16 +28,19 @@ class Schedule extends \yii\db\ActiveRecord
     /**
      * @inheritdoc
      */
-    public static function tableName()
+    public static function tableName(): string
     {
-        return 'calc_schedule';
+        return '{{%calc_schedule}}';
     }
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         return [
+            [['user'], 'default', 'value' => \Yii::$app->user->identity->id],
+            [['data'], 'default', 'value' => date('Y-m-d')],
+            [['visible'], 'default', 'value' => 1],
             [['calc_teacher', 'calc_groupteacher', 'calc_office', 'calc_cabinetoffice', 'calc_denned', 'time_begin', 'time_end', 'visible', 'user', 'data'], 'required'],
             [['calc_teacher', 'calc_groupteacher', 'calc_office', 'calc_cabinetoffice', 'calc_denned', 'visible', 'user'], 'integer'],
             [['notes'], 'string'],
@@ -46,7 +50,7 @@ class Schedule extends \yii\db\ActiveRecord
     /**
      * @inheritdoc
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'id' => 'ID',
@@ -267,10 +271,12 @@ class Schedule extends \yii\db\ActiveRecord
 
         $lessons = [];
         if (!empty($data)) {
-            list('hours' => $lessonHours) = (new Report())->getTeacherHours([
-                'start' => DateHelper::getStartOfWeek(-1, true),
-                'end'   => DateHelper::getEndOfWeek(-1, true),
+            $report = new TeacherHoursReport([
+                'startDate' => DateHelper::getStartOfWeek(-1, true),
+                'endDate'   => DateHelper::getEndOfWeek(-1, true),
+                'teacherId' => $params['tid'] ?? null,
             ]);
+            list('hours' => $lessonHours) = $report->prepareReportData();
             foreach ($data ?? [] as $l) {
                 if (!isset($lessons[$l['teacher_id']])) {
                     $lessons[$l['teacher_id']] = [

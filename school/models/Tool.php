@@ -43,7 +43,7 @@ class Tool extends Model
     public function prepareDataForSelectElement($data)
     {
         $result = [];
-        if(!empty($data)) {
+        if (!empty($data)) {
             foreach ($data as $d) {
                 $result[] = [
                     'value' => $d['id'],

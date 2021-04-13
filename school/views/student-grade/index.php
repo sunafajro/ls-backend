@@ -1,16 +1,16 @@
 <?php
 
+use common\components\helpers\IconHelper;
 use school\assets\StudentGradeFormAsset;
+use school\models\AccessRule;
 use school\models\Student;
 use school\models\StudentGrade;
-use common\widgets\alert\AlertWidget;
 use yii\grid\GridView;
 use yii\helpers\Html;
 use yii\helpers\Json;
 use yii\helpers\Url;
 use yii\web\View;
 use yii\widgets\ActiveForm;
-use yii\widgets\Breadcrumbs;
 
 /**
  * @var View         $this
@@ -25,12 +25,16 @@ use yii\widgets\Breadcrumbs;
 
 StudentGradeFormAsset::register($this);
 
-$this->title = 'Система учета :: ' . Yii::t('app', 'Add attestation');
+$this->title = Yii::$app->name . ' :: ' . Yii::t('app', 'Add attestation');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Clients'), 'url' => ['studname/index']];
 $this->params['breadcrumbs'][] = ['label' => $student->name, 'url' => ['studname/view','id' => $student->id]];
 $this->params['breadcrumbs'][] = Yii::t('app', 'Add attestation');
+$this->params['sidebar'] = '';
 
-$roleId = (int)Yii::$app->session->get('user.ustatus');
+$canDownload = AccessRule::checkAccess('student-grade_download-attestation');
+$canCreate = AccessRule::checkAccess('student-grade_create');
+$canUpdate = AccessRule::checkAccess('student-grade_update');
+$canDelete = AccessRule::checkAccess('student-grade_delete');
 
 $columns = [];
 $columns[] = [
@@ -90,117 +94,81 @@ $columns[] = [
       return $grade['userName'];
   }
 ];
-if (((int)Yii::$app->session->get('user.ustatus') === 3 ||
-   (int)Yii::$app->session->get('user.ustatus') === 4) &&
-   (int)$student->active === 1) {
-    $columns[] = [
-        'class' => 'yii\grid\ActionColumn',
-        'header' => Yii::t('app', 'Act.'),
-        'headerOptions' => ['width' => '10%'],
-        'template' => '{pdf}{edit}{delete}',
-        'buttons' => [
-            'pdf' => function ($url, $grade) {
-                return Html::a(
-                    Html::tag('i',
-                    '',
-                    [
-                        'class' => 'fa fa-print',
-                        'aria-hidden' => 'true',
-                    ]),
-                    ['student-grade/download-attestation', 'id' => $grade['id']],
-                    [
-                        'class' => 'btn btn-default btn-xs',
-                        'style' => 'margin-right: 0.2rem',
-                        'target' => '_blank',
-                    ]
-                );
-            },
-            'edit' => function ($url, $grade) use ($model) {
-                $mainParams = [
-                    ['id' => 'studentgrade-date', 'value' => $grade['date']],
-                    ['id' => 'studentgrade-description', 'value' => $grade['description']],
-                    ['id' => 'studentgrade-score', 'value' => $grade['score']], 
-                ];
-                $scoreContents = [];
-                if ($grade['contents'] ?? false) {
-                    foreach (JSON::decode($grade['contents']) as $key => $value) {
-                        $name = Html::getInputName($model, 'contents') . "[{$key}]";
-                        $scoreContents[] = ['name' => $name, 'value' => $value];
-                    }
+$columns[] = [
+    'class' => 'yii\grid\ActionColumn',
+    'header' => Yii::t('app', 'Act.'),
+    'headerOptions' => ['width' => '10%'],
+    'template' => '{download} {update} {delete}',
+    'buttons' => [
+        'download' => function ($url, $grade) {
+            return Html::a(
+                IconHelper::icon('print', null, Yii::t('app', 'Download')),
+                ['student-grade/download-attestation', 'id' => $grade['id']],
+                [
+                    'class' => 'btn btn-default btn-xs',
+                    'style' => 'margin-right: 0.2rem',
+                    'target' => '_blank',
+                ]
+            );
+        },
+        'update' => function ($url, $grade) use ($model) {
+            $mainParams = [
+                ['id' => 'studentgrade-date', 'value' => $grade['date']],
+                ['id' => 'studentgrade-description', 'value' => $grade['description']],
+                ['id' => 'studentgrade-score', 'value' => $grade['score']],
+            ];
+            $scoreContents = [];
+            if ($grade['contents'] ?? false) {
+                foreach (JSON::decode($grade['contents']) as $key => $value) {
+                    $name = Html::getInputName($model, 'contents') . "[{$key}]";
+                    $scoreContents[] = ['name' => $name, 'value' => $value];
                 }
-                return Html::a(
-                    Html::tag(
-                        'i',
-                        '',
-                        [
-                            'class' => 'fa fa-pencil',
-                            'aria-hidden' => 'true',
-                        ]
-                    ),
-                    'javascript:void(0)',
-                    [
-                        'class' => 'btn btn-xs btn-warning js--edit-attestation',
-                        'style' => 'margin-top: 0.2rem;margin-right: 0.2rem',
-                        'data' => [
-                            'action-url' => Url::to(['student-grade/update', 'id' => $grade['id']]),
-                            'main-params' => JSON::encode($mainParams),
-                            'score-contents' => JSON::encode($scoreContents),
-                        ],
-                    ]
-                );
-            },
-            'delete' => function ($url, $grade) {
-                return Html::a(
-                    Html::tag('i',
-                    '',
-                    [
-                      'class' => 'fa fa-trash',
-                      'aria-hidden' => 'true',
-                    ]
-                    ),
-                    ['student-grade/delete', 'id' => $grade['id']],
-                    [
-                        'class' => 'btn btn-danger btn-xs',
-                        'style' => 'margin-top: 0.2rem',
-                        'data' => [
-                            'method'  => 'post',
-                            'confirm' => 'Действительно удалить эту аттестацию?',
-                        ],
-                    ]
-                );
             }
-        ],
-    ];
+            return Html::a(
+                IconHelper::icon('pencil', null, Yii::t('app', 'Update')),
+                'javascript:void(0)',
+                [
+                    'class' => 'btn btn-xs btn-warning js--edit-attestation',
+                    'style' => 'margin-top: 0.2rem;margin-right: 0.2rem',
+                    'data' => [
+                        'action-url' => Url::to(['student-grade/update', 'id' => $grade['id']]),
+                        'main-params' => JSON::encode($mainParams),
+                        'score-contents' => JSON::encode($scoreContents),
+                    ],
+                ]
+            );
+        },
+        'delete' => function ($url, $grade) {
+            return Html::a(
+                IconHelper::icon('trash', null, Yii::t('app', 'Delete')),
+                ['student-grade/delete', 'id' => $grade['id']],
+                [
+                    'class' => 'btn btn-danger btn-xs',
+                    'style' => 'margin-top: 0.2rem',
+                    'data' => [
+                        'method'  => 'post',
+                        'confirm' => 'Действительно удалить эту аттестацию?',
+                    ],
+                ]
+            );
+        }
+    ],
+    'visibleButtons' => [
+        'download' => $canDownload,
+        'update' => $canUpdate,
+        'delete' => $canDelete,
+    ],
+];
+
+if ((int)$student->active === 1 && ($canCreate || $canUpdate)) { ?>
+    <?= $this->render('_form', [
+        'model'     => $model,
+        'exams'     => $exams,
+        'studentId' => $student->id,
+    ]);
 }
-?>
-<div class="row row-offcanvas row-offcanvas-left student_grade-create">
-    <div id="sidebar" class="col-xs-6 col-sm-2 sidebar-offcanvas">
-		<?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
-            <div id="main-menu"></div>
-        <?php } ?>
-		<?= $userInfoBlock ?>
-	</div>
-	<div id="content" class="col-sm-10">
-		<?php if (Yii::$app->params['appMode'] === 'bitrix') { ?>
-            <?= Breadcrumbs::widget([
-                'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [''],
-            ]); ?>
-        <?php } ?>
-		<p class="pull-left visible-xs">
-			<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
-		</p>
-        <?= AlertWidget::widget() ?>
-        <?php if (in_array($roleId, [3, 4]) && (int)$student->active === 1) { ?>
-            <?= $this->render('_form', [
-                'model'     => $model,
-                'exams'     => $exams,
-                'studentId' => $student->id,
-            ]) ?>
-        <?php } ?>
-        <?= GridView::widget([
-            'dataProvider' => $grades,
-            'layout'       => "{items}\n{pager}",
-            'columns'      => $columns,
-        ])?>
-    </div>
-</div>
+echo GridView::widget([
+        'dataProvider' => $grades,
+        'layout'       => "{items}\n{pager}",
+        'columns'      => $columns,
+]);

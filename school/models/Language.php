@@ -101,12 +101,12 @@ class Language extends ActiveRecord
     public function getTeachersLanguages() : array
     {
         return (new \yii\db\Query())
-        ->select(['id' => 'l.id', 'name' => 'l.name', 'teacherName' => 'lt.calc_teacher'])
-        ->distinct()
-        ->from(['l' => self::tableName()])
-        ->innerJoin(['lt' => Langteacher::tableName()], 'l.id = lt.calc_lang')
-        ->where(['lt.visible' => 1])
-        ->orderBy(['l.name' => SORT_ASC, 'lt.calc_teacher' => SORT_ASC])
-        ->all();
+            ->select(['id' => 'l.id', 'name' => 'l.name'])
+            ->distinct()
+            ->from(['l' => self::tableName()])
+            ->innerJoin(['lt' => Langteacher::tableName()], 'l.id = lt.calc_lang')
+            ->where(['lt.visible' => 1])
+            ->orderBy(['l.name' => SORT_ASC])
+            ->all();
     }
 }

@@ -11,6 +11,7 @@ use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 
 /**
+ * @deprecated
  * DevelopController implements the CRUD actions for Develop model.
  */
 class DevelopController extends Controller

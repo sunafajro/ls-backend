@@ -256,7 +256,7 @@ class User extends BaseUser
         $roleId = Yii::$app->user->identity->roleId;
 
         switch ($controller) {
-            #region Клиенты
+
             case 'studname':
                 if (in_array($action, [
                     'update', 'active', 'inactive',
@@ -271,8 +271,7 @@ class User extends BaseUser
                     $result = false;
                 }
                 return $result;
-            #endregion
-            /* подраздел счета клиента */
+
             case 'invoice':
                 if (in_array($action, ['index','create','toggle','get-data'])) {
                     switch($roleId) {
@@ -289,76 +288,6 @@ class User extends BaseUser
                     $result = false;
                 }
                 return $result;
-            /* подраздел счета клиента */
-
-            /* подраздел аттестации клиента */
-            case 'student-grade':
-                if ($action === 'index') {
-                    switch($roleId) {
-                        case 3:
-                        case 4:
-                        case 5: $result = true; break;
-                        default: $result = false;
-                    }
-                }
-                if ($action === 'create' || $action === 'delete' || $action === 'download-attestation') {
-                    switch($roleId) {
-                        case 3:
-                        case 4: $result = true; break;
-                        default: $result = false;
-                    }
-                }
-                break;
-            /* подраздел аттестации клиента */
-            /* раздел Клиенты */
-
-            #region Расписание */
-            case 'schedule':
-                if ($action === 'app-actions' ||
-                    $action === 'app-create' ||
-                    $action === 'app-delete' ||
-                    $action === 'app-filters' ||
-                    $action === 'app-groups' ||
-                    $action === 'app-hours' ||
-                    $action === 'app-lessons' ||
-                    $action === 'app-offices' ||
-                    $action === 'app-rooms' ||
-                    $action === 'app-teachers' ||
-                    $action === 'app-update' ||
-                    $action === 'index') {
-                    switch($roleId) {
-                        case 3:
-                        case 4:
-                        case 5:
-                        case 6:
-                        case 10: $result = true; break;
-                        default: $result = false;
-                    }
-                }
-                break;
-            #endregion
-
-            #region Справочники
-            case 'reference':
-                if ($action === 'phonebook') {
-                    switch($roleId) {
-                        case 3:
-                        case 4:
-                        case 5:
-                        case 6:
-                        case 7:
-                        case 8:
-                        case 9: $result = true; break;
-                        default: $result = false;
-                    }
-                } else {
-                    switch($roleId) {
-                        case 3: $result = true; break;
-                        default: $result = false;
-                    }
-                }
-                break;
-            #endregion
 
             default: $result = false;
 		}

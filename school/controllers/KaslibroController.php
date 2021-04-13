@@ -12,6 +12,7 @@ use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 
 /**
+ * @deprecated
  * KaslibroController implements the CRUD actions for Kaslibro model.
  */
 class KaslibroController extends Controller

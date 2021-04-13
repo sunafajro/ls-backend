@@ -2,10 +2,12 @@
 
 namespace school\models;
 
+use school\models\queries\StudentGradeQuery;
 use school\traits\StudentMergeTrait;
 use kartik\mpdf\Pdf;
 use Yii;
 use yii\data\ActiveDataProvider;
+use yii\db\ActiveQuery;
 use yii\helpers\FileHelper;
 
 /**
@@ -20,6 +22,8 @@ use yii\helpers\FileHelper;
  * @property string  $contents
  * @property string  $description
  * @property integer $calc_studname
+ *
+ * @property-read Student $student
  */
 
 class StudentGrade extends \yii\db\ActiveRecord
@@ -159,6 +163,22 @@ class StudentGrade extends \yii\db\ActiveRecord
             'description'   => Yii::t('app', 'Exam description'),
             'calc_studname' => Yii::t('app', 'Student'),
         ];
+    }
+
+    /**
+     * @return StudentGradeQuery
+     */
+    public static function find(): StudentGradeQuery
+    {
+        return new StudentGradeQuery(get_called_class(), []);
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getStudent(): ActiveQuery
+    {
+        return $this->hasOne(Student::class, ['id' => 'calc_studname']);
     }
 
     public function getFullFileName()
