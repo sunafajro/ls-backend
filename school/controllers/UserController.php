@@ -3,6 +3,7 @@
 namespace school\controllers;
 
 use common\models\queries\BaseActiveQuery;
+use school\controllers\base\BaseController;
 use school\models\Auth;
 use school\models\forms\UserTimeTrackingForm;
 use school\models\searches\UserSearch;
@@ -19,21 +20,21 @@ use school\models\User;
 use school\models\forms\UploadForm;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
-use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\UploadedFile;
 
 /**
- * UserController implements the CRUD actions for User model.
+ * Class UserController
+ * @package school\controllers
  */
-class UserController extends Controller
+class UserController extends BaseController
 {
     /** {@inheritDoc} */
     public function behaviors(): array
     {
         $rules = [
-            'index','view','create','update','delete','enable','disable',
+            'index','view','create','update','delete','restore','remove',
             'download-image','upload-image','delete-image',
             'change-password','time-tracking','app-info',
         ];
@@ -58,8 +59,8 @@ class UserController extends Controller
                 'class' => VerbFilter::class,
                 'actions' => [
                     'change-password' => ['POST'],
-                    'enable' => ['POST'],
-                    'disable' => ['POST'],
+                    'restore' => ['POST'],
+                    'remove' => ['POST'],
                 ],
             ],
         ];
@@ -67,17 +68,10 @@ class UserController extends Controller
 
     /**
      * @return mixed
-     * @throws ForbiddenHttpException
      */
     public function actionIndex()
     {
         $this->layout = 'main-2-column';
-        /** @var Auth $user */
-        $user = Yii::$app->user->identity;
-
-        if ($user->roleId !== 3 && $user->id !== 296) {
-            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-        }
 
         $searchModel = new UserSearch();
         $dataProvider = $searchModel->search(\Yii::$app->request->get());
@@ -93,17 +87,10 @@ class UserController extends Controller
 
     /**
      * @return mixed
-     * @throws ForbiddenHttpException
      */
     public function actionCreate()
     {
         $this->layout = 'main-2-column';
-        /** @var Auth $user */
-        $user = Yii::$app->user->identity;
-
-        if ($user->roleId !== 3 && $user->id !== 296) {
-            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-        }
 
         $model = new User();
         $model->scenario = 'create';
@@ -157,18 +144,11 @@ class UserController extends Controller
      * @param string $id
      *
      * @return mixed
-     * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
      */
     public function actionUpdate(string $id)
     {
         $this->layout = 'main-2-column';
-        /** @var Auth $user */
-        $user = Yii::$app->user->identity;
-
-        if ($user->roleId !== 3 && $user->id !== 296) {
-            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-        }
 
         $model = $this->findModel($id);
         $model->scenario = 'update';
@@ -209,20 +189,12 @@ class UserController extends Controller
      * @param string $id
      *
      * @return mixed
-     * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
      * @throws \Throwable
      * @throws \yii\db\StaleObjectException
      */
     public function actionDelete(string $id)
     {
-        /** @var Auth $user */
-        $user = Yii::$app->user->identity;
-
-        if ($user->roleId !== 3) {
-            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-        }
-
         $this->findModel($id)->delete();
 
         return $this->redirect(['index']);
@@ -232,24 +204,11 @@ class UserController extends Controller
      * @param string $id
      *
      * @return mixed
-     * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
      */
-    public function actionEnable(string $id)
+    public function actionRestore(string $id)
     {
-        /** @var Auth $user */
-        $user = Yii::$app->user->identity;
-
-        if ($user->roleId !== 3 && $user->id !== 296){
-            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-        }
-
-        $model = $this->findModel($id);
-
-        if ($model->visible === 0) {
-            $model->visible = 1;
-            $model->save(true, ['visible']);
-	    }
+        $this->findModel($id)->restore();
 
         return $this->redirect(Yii::$app->request->referrer);
     }
@@ -258,23 +217,11 @@ class UserController extends Controller
      * @param string $id
      *
      * @return mixed
-     * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
      */
-    public function actionDisable(string $id)
+    public function actionRemove(string $id)
     {
-        /** @var Auth $user */
-        $user = Yii::$app->user->identity;
-
-        if ($user->roleId !== 3 && $user->id !== 296){
-            throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
-        }
-
-        $model = $this->findModel($id);
-        if ($model->visible === 1) {
-	        $model->visible = 0;
-            $model->save(true, ['visible']);
-	    }
+        $this->findModel($id)->softDelete();
 
         return $this->redirect(Yii::$app->request->referrer);
     }
@@ -441,12 +388,6 @@ class UserController extends Controller
         $imageForm = new UploadForm();
 
         return $this->render('view', [
-            'can' => [
-                'updateUser' => $user->roleId === 3 || in_array($user->id, [296]),
-                'updatePassword' => $user->roleId === 3 || in_array($user->id, [(int)$id, 296]),
-                'updateImage' => $user->roleId === 3 || in_array($user->id, [(int)$id, 296]),
-                'viewTimeTracking' => $user->roleId === 3 || $user->id === 296 || ($user->roleId === 4 && in_array($user->id, [(int)$id])),
-            ],
             'imageForm' => $imageForm,
             'user'  => $userModel,
         ]);
@@ -458,16 +399,15 @@ class UserController extends Controller
      * @param string|null $action
      *
      * @return mixed
-     * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
+     * @throws ForbiddenHttpException
      */
     public function actionTimeTracking(string $id, string $time_tracking_id = null, string $action = null)
     {
         $this->layout = 'main-2-column';
         /** @var Auth $user */
         $user = Yii::$app->user->identity;
-
-        if ($user->roleId !== 3 && !in_array($user->id, [(int)$id, 296])){
+        if ($user->roleId === 4 && $user->id !== (int)$id) {
             throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 

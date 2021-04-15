@@ -5,11 +5,11 @@
  * @var User $user
  * @var UserTimeTrackingForm $model
  * @var UploadForm $imageForm
- * @var array $can
  */
 
 use common\components\helpers\IconHelper;
 use school\assets\UserViewAsset;
+use school\models\AccessRule;
 use school\models\forms\UploadForm;
 use school\models\User;
 use school\models\forms\UserTimeTrackingForm;
@@ -24,20 +24,41 @@ $this->params['breadcrumbs'][] = $user->name;
 
 UserViewAsset::register($this);
 
-$this->params['sidebar'] = ['can' => $can, 'user' => $user];
+$this->params['sidebar'] = ['user' => $user];
 
-if ($can['updateUser']) { ?>
+$canChangePassword = AccessRule::checkAccess('user_change-password');
+$canUpdate = AccessRule::checkAccess('user_update');
+$canRestore = AccessRule::checkAccess('user_restore');
+$canRemove = AccessRule::checkAccess('user_remove');
+$canUploadImage = AccessRule::checkAccess('user_upload-image');
+$canDeleteImage = AccessRule::checkAccess('user_delete-image');
+$canTimeTracking = AccessRule::checkAccess('user_time-tracking');
+
+if ($canUpdate || $canRemove || $canRestore) { ?>
     <div style="margin-bottom: 1rem">
-        <?= Html::a(
-            IconHelper::icon('edit', Yii::t('app', 'Update')),
-            ['user/update', 'id' => $user->id],
-            ['class' => 'btn btn-info']
-        ) ?>
-        <?= Html::a(
-            IconHelper::icon($user->visible ? 'times' : 'check', Yii::t('app', $user->visible ? 'Disable' : 'Enable')),
-            ['user/' . ($user->visible ? 'disable' : 'enable'), 'id' => $user->id],
-            ['class' => 'btn btn-' . ($user->visible ? 'danger' : 'success')]
-        ) ?>
+        <?php
+            if ($canUpdate) {
+                echo Html::a(
+                    IconHelper::icon('edit', Yii::t('app', 'Update')),
+                    ['user/update', 'id' => $user->id],
+                    ['class' => 'btn btn-info', 'style' => 'margin-right:1rem']
+                );
+            }
+            if ($canRemove && (int)$user->visible === 1) {
+                echo Html::a(
+                    IconHelper::icon('times', Yii::t('app', 'Disable')),
+                    ['user/remove', 'id' => $user->id],
+                    ['class' => 'btn btn-danger', 'style' => 'margin-right:1rem']
+                );
+            }
+            if ($canRestore && (int)$user->visible === 0) {
+                echo Html::a(
+                    IconHelper::icon('check', Yii::t('app', 'Enable')),
+                    ['user/restore', 'id' => $user->id],
+                    ['class' => 'btn btn-success']
+                );
+            }
+        ?>
     </div>
 <?php } ?>
 <?= DetailView::widget([
@@ -55,9 +76,9 @@ if ($can['updateUser']) { ?>
             'pass' => [
                 'attribute' => 'pass',
                 'format' => 'raw',
-                'value' => function(User $user) use ($can) {
+                'value' => function(User $user) use ($canChangePassword) {
                     $html = [];
-                    if ($can['updatePassword']) {
+                    if ($canChangePassword) {
                         $html[] = Html::button(
                             IconHelper::icon('edit', Yii::t('app', 'Change')),
                             ['class' => 'btn btn-info btn-xs js--change-user-password']
@@ -116,15 +137,15 @@ if ($can['updateUser']) { ?>
             'logo' => [
                 'attribute' => 'logo',
                 'format' => 'raw',
-                'value' => function(User $user) use ($can, $imageForm) {
+                'value' => function(User $user) use ($canUploadImage, $canDeleteImage, $imageForm) {
                     $logoPath = $user->getImageWebPath();
                     $html = [];
-                    if ($can['updateImage']) {
+                    if ($canUploadImage) {
                         $html[] = $this->render('_upload', ['imageForm' => $imageForm, 'user' => $user]);
                     }
 
                     $html[] = Html::img($logoPath, ['class' => 'thumbnail', 'style' => 'margin-bottom:1rem;max-height:300px']);
-                    if ($can['updateImage']) {
+                    if ($canDeleteImage) {
                         $html[] = Html::a(
                             IconHelper::icon('trash', Yii::t('app', 'Delete')),
                             ['user/delete-image', 'id' => $user->id],

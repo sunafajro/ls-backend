@@ -85,9 +85,19 @@ class User extends BaseUser
     /**
      * {@inheritDoc}
      */
-    public function delete()
+    public function softDelete(): bool
     {
         $this->visible = 0;
+
+        return $this->save(true, ['visible']);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function restore(): bool
+    {
+        $this->visible = 1;
 
         return $this->save(true, ['visible']);
     }

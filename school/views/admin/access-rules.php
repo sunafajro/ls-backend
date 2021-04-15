@@ -25,6 +25,10 @@ $this->params['breadcrumbs'][] = Yii::t('app','Access rules');
 $this->params['sidebar'] = ['menuLinks' => $menuLinks];
 
 $roles = Role::find()->select('name')->indexBy('id')->orderBy('id')->column();
+
+$canUpdate = AccessRule::checkAccess('access-rule_update');
+$canDelete = AccessRule::checkAccess('access-rule_delete');
+
 echo  GridView::widget([
     'dataProvider' => $dataProvider,
     'filterModel' => $searchModel,
@@ -53,8 +57,8 @@ echo  GridView::widget([
                 },
             ],
             'visibleButtons' => [
-                'update' => AccessRule::checkAccess('access-rule_update'),
-                'delete' => AccessRule::checkAccess('access-rule_delete'),
+                'update' => $canUpdate,
+                'delete' => $canDelete,
             ],
         ],
     ],

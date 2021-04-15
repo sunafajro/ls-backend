@@ -12,6 +12,7 @@
  */
 
 use common\components\helpers\IconHelper;
+use school\models\AccessRule;
 use school\models\searches\UserSearch;
 use school\models\User;
 use yii\data\ActiveDataProvider;
@@ -23,6 +24,11 @@ use yii\web\View;
 $this->title = Yii::$app->name . ' :: ' . Yii::t('app','Users');
 $this->params['breadcrumbs'][] = Yii::t('app','Users');
 $this->params['sidebar'] = [];
+
+$canView = AccessRule::checkAccess('user_view');
+$canUpdate = AccessRule::checkAccess('user_update');
+$canRestore = AccessRule::checkAccess('user_restore');
+$canRemove = AccessRule::checkAccess('user_remove');
 
 echo GridView::widget([
     'dataProvider' => $dataProvider,
@@ -55,23 +61,34 @@ echo GridView::widget([
         [
             'class' => ActionColumn::class,
             'header' => Yii::t('app', 'Act.'),
-            'template' => '{view} {update} {toggle}',
+            'template' => '{view} {update} {restore} {remove} {delete}',
             'buttons' => [
-                'toggle' => function($url, $model, $key) {
-                    if (intval($model->visible) === 1) {
-                        return Html::a(
-                            IconHelper::icon('times'),
-                            ['user/disable', 'id' => $model->id],
-                            ['title' => Yii::t('app', 'Disable user'), 'data-method' => 'post']
-                        );
-                    } else {
+                'restore' => function($url, $model, $key) {
+                    if (intval($model->visible) === 0) {
                         return Html::a(
                             IconHelper::icon('check'),
-                            ['user/enable', 'id' => $model->id],
+                            ['user/restore', 'id' => $model->id],
                             ['title' => Yii::t('app', 'Enable user'), 'data-method' => 'post']
                         );
                     }
+                    return null;
+                },
+                'remove' => function($url, $model, $key) {
+                    if (intval($model->visible) === 1) {
+                        return Html::a(
+                            IconHelper::icon('times'),
+                            ['user/remove', 'id' => $model->id],
+                            ['title' => Yii::t('app', 'Disable user'), 'data-method' => 'post']
+                        );
+                    }
+                    return null;
                 }
+            ],
+            'visibleButtons' => [
+                'view' => $canView,
+                'update' => $canUpdate,
+                'restore' => $canRestore,
+                'remove' => $canRemove,
             ],
         ],
     ],

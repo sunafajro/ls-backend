@@ -119,7 +119,7 @@ $columns[] = [
             ];
             $scoreContents = [];
             if ($grade['contents'] ?? false) {
-                foreach (JSON::decode($grade['contents']) as $key => $value) {
+                foreach (JSON::decode($grade['contents']) ?? [] as $key => $value) {
                     $name = Html::getInputName($model, 'contents') . "[{$key}]";
                     $scoreContents[] = ['name' => $name, 'value' => $value];
                 }

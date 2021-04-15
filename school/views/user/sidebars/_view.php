@@ -2,15 +2,15 @@
 /**
  * @var View $this
  * @var User $user
- * @var array $can
  */
 
 use common\components\helpers\IconHelper;
+use school\models\AccessRule;
 use school\models\User;
 use yii\helpers\Html;
 use yii\web\View;
 ?>
-<?php if ($can['viewTimeTracking']) { ?>
+<?php if (AccessRule::checkAccess('user_time-tracking')) { ?>
     <div style="margin-bottom:1rem">
         <h4>Действия:</h4>
         <?= Html::a(
