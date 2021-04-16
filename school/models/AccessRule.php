@@ -87,7 +87,12 @@ class AccessRule extends ActiveRecord
         return AccessRuleAssignment::find()->where([
                 'access_rule_slug' => $slug,
             ])
-            ->andWhere(['or', ['role_id' => $auth->roleId], ['user_id' => $auth->id]])
+            ->andWhere([
+                'or',
+                ['role_id' => $auth->roleId],
+                ['user_id' => $auth->id],
+                ['all' => 1],
+            ])
             ->exists();
     }
 

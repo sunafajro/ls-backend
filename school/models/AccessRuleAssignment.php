@@ -14,6 +14,7 @@ use yii\db\ActiveRecord;
  * @property string $access_rule_slug
  * @property integer $role_id
  * @property integer $user_id
+ * @property integer $all
  *
  * @property-read AccessRule $accessRule
  * @property-read Role $role
@@ -36,7 +37,7 @@ class AccessRuleAssignment extends ActiveRecord
     {
         return [
             [['access_rule_slug'], 'string'],
-            [['role_id', 'user_id'], 'integer'],
+            [['role_id', 'user_id', 'all'], 'integer'],
             [['access_rule_slug'], 'required'],
         ];
     }
@@ -51,6 +52,7 @@ class AccessRuleAssignment extends ActiveRecord
             'access_rule_slug' => Yii::t('app', 'Access rule slug'),
             'role_id' => Yii::t('app', 'Role'),
             'user_id' => Yii::t('app', 'User ID'),
+            'all' => Yii::t('app', 'To all users'),
         ];
     }
 

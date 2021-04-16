@@ -45,4 +45,13 @@ class AccessRuleAssignmentQuery extends BaseActiveQuery
         $tableName = $this->getPrimaryTableName();
         return $this->andWhere(["{$tableName}.user_id" => $id]);
     }
+
+    /**
+     * @return AccessRuleAssignmentQuery
+     */
+    public function toAll(): AccessRuleAssignmentQuery
+    {
+        $tableName = $this->getPrimaryTableName();
+        return $this->andWhere(["{$tableName}.all" => 1]);
+    }
 }

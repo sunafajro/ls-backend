@@ -17,6 +17,7 @@ class m180102_083056_create_access_rule_assignments_table extends Migration
             'access_rule_slug' => $this->string()->notNull(),
             'role_id'          => $this->integer(),
             'user_id'          => $this->integer(),
+            'all'              => $this->tinyInteger(),
         ]);
 
         $this->createIndex('access_rule_assignments-access_rule_slug-idx', '{{%access_rule_assignments}}', 'access_rule_slug');

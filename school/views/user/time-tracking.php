@@ -11,6 +11,8 @@
 
 use common\components\helpers\IconHelper;
 use school\assets\UserViewAsset;
+use school\models\AccessRule;
+use school\models\Auth;
 use school\models\searches\UserTimeTrackingSearch;
 use school\models\User;
 use school\models\forms\UserTimeTrackingForm;
@@ -29,7 +31,11 @@ $this->params['breadcrumbs'][] = 'Учет рабочего времени';
 
 UserViewAsset::register($this);
 
-if ($can['createTimeTracking']) {
+/** @var Auth $auth */
+$auth = Yii::$app->user->identity;
+$canManage = AccessRule::checkAccess('rule.time-tracking.manage.any') || $auth->id === $user->id;
+
+if ($canManage) {
     $this->params['sidebar'] = [
         'viewFile' => '//user/time-tracking/_form',
         'params' => [
@@ -37,6 +43,8 @@ if ($can['createTimeTracking']) {
             'userId' => $user->id,
         ]
     ];
+} else {
+    $this->params['sidebar'] = '';
 }
 echo GridView::widget([
     'dataProvider' => $dataProvider,
@@ -65,20 +73,17 @@ echo GridView::widget([
             'class' => ActionColumn::class,
             'header' => Yii::t('app', 'Act.'),
             'buttons' => [
-                'update' => function ($url, UserTimeTracking $model) use ($can, $user) {
-                    return $can['updateTimeTracking']
-                        ? Html::a(
+                'update' => function ($url, UserTimeTracking $model) use ($user) {
+                    return Html::a(
                             IconHelper::icon('pencil'),
                             ['user/time-tracking', 'id' => $user->id, 'time_tracking_id' => $model->id],
                             [
                                 'title' => Yii::t('app', 'Update'),
                             ]
-                        )
-                        : null ;
+                        );
                 },
-                'delete' => function ($url, UserTimeTracking $model) use ($can, $user) {
-                    return $can['deleteTimeTracking']
-                        ? Html::a(
+                'delete' => function ($url, UserTimeTracking $model) use ($user) {
+                    return Html::a(
                             IconHelper::icon('trash'),
                             ['user/time-tracking', 'id' => $user->id, 'action' => 'delete', 'time_tracking_id' => $model->id],
                             [
@@ -88,12 +93,14 @@ echo GridView::widget([
                                     'confirm' => 'Вы действительно хотите удалить запись?',
                                 ],
                             ]
-                        )
-                        : null;
+                        );
                 }
             ],
             'template' => '{update} {delete}',
-            'visible'  => $can['updateTimeTracking'] || $can['deleteTimeTracking'],
+            'visibleButtons'  => [
+                'update' => $canManage,
+                'delete' => $canManage,
+            ],
         ],
     ],
 ]);

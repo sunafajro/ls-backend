@@ -6,11 +6,15 @@
 
 use common\components\helpers\IconHelper;
 use school\models\AccessRule;
+use school\models\Auth;
 use school\models\User;
 use yii\helpers\Html;
 use yii\web\View;
 ?>
-<?php if (AccessRule::checkAccess('user_time-tracking')) { ?>
+<?php
+/** @var Auth $auth */
+$auth = Yii::$app->user->identity;
+if (AccessRule::checkAccess('rule.time-tracking.manage.any') || $auth->id === $user->id) { ?>
     <div style="margin-bottom:1rem">
         <h4>Действия:</h4>
         <?= Html::a(

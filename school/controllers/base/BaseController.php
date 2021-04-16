@@ -2,6 +2,7 @@
 
 namespace school\controllers\base;
 
+use common\models\queries\BaseActiveQuery;
 use school\models\AccessRule;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
@@ -27,5 +28,21 @@ class BaseController extends Controller
         } else {
             return false;
         }
+    }
+
+    /**
+     * @param $entityClass
+     * @return array
+     */
+    protected function getEntityItems($entityClass): array
+    {
+        /** @var BaseActiveQuery $query */
+        $query = call_user_func([$entityClass, 'find']);
+        return $query
+            ->select(['name'])
+            ->active()
+            ->indexBy('id')
+            ->orderBy(['name' => SORT_ASC])
+            ->column();
     }
 }

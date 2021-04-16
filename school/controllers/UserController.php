@@ -2,8 +2,8 @@
 
 namespace school\controllers;
 
-use common\models\queries\BaseActiveQuery;
 use school\controllers\base\BaseController;
+use school\models\AccessRule;
 use school\models\Auth;
 use school\models\forms\UserTimeTrackingForm;
 use school\models\searches\UserSearch;
@@ -30,6 +30,14 @@ use yii\web\UploadedFile;
  */
 class UserController extends BaseController
 {
+    /** @var {inheritDoc} */
+    protected $actionCustomAccessRules = [
+        'view'            => 'rule.user.view.any',
+        'change-password' => 'rule.user.change-password.any',
+        'upload-image'    => 'rule.user.upload-image.any',
+        'delete-image'    => 'rule.user.delete-image.any',
+    ];
+
     /** {@inheritDoc} */
     public function behaviors(): array
     {
@@ -230,7 +238,6 @@ class UserController extends BaseController
      * @param string $id
      *
      * @return mixed
-     * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
      * @throws \yii\base\Exception
      */
@@ -238,10 +245,9 @@ class UserController extends BaseController
     {
         $user = $this->findModel(intval($id));
 
-        /** @var Auth $user */
+        /** @var Auth $auth */
         $auth = Yii::$app->user->identity;
-
-        if ($auth->roleId !== 3 && !in_array($auth->id, [$user->id, 296])) {
+        if (!AccessRule::checkAccess('rule.user.upload-image.any') && $auth->id !== $user->id) {
             throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
@@ -293,17 +299,18 @@ class UserController extends BaseController
      *
      * @return mixed
      * @throws NotFoundHttpException
+     * @throws ForbiddenHttpException
      */
     public function actionDeleteImage(string $id)
     {
         $user = $this->findModel(intval($id));
 
-        /** @var Auth $user */
+        /** @var Auth $auth */
         $auth = Yii::$app->user->identity;
-
-        if ($auth->roleId !== 3 && !in_array($auth->id, [$user->id, 296])) {
+        if (!AccessRule::checkAccess('rule.user.delete-image.any') && $auth->id !== $user->id) {
             throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
+
         if (($file = $user->image) !== null) {
             if ($file->delete()) {
                 Yii::$app->session->setFlash('success', Yii::t('app', 'Image successfully deleted.'));
@@ -320,36 +327,36 @@ class UserController extends BaseController
      * @param $id
      *
      * @return mixed
-     * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
      * @throws \yii\db\Exception
+     * @throws ForbiddenHttpException
      */
     public function actionChangePassword($id)
     {
-        /** @var Auth $user */
-        $user = Yii::$app->user->identity;
+        $user = $this->findModel($id);
 
-        if ($user->roleId !== 3 && !in_array($user->id, [(int)$id, 296])){
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!AccessRule::checkAccess('rule.user.change-password.any') && $auth->id !== $user->id) {
             throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
-        $model = $this->findModel($id);
         $result = [
             'success' => true,
             'message' => null,
         ];
-        if ($model->load(Yii::$app->request->post())) {
-            if ($model->validate(['pass'])) {
-                $model->pass = md5($model->pass);
-                if (!$model->save(true, ['pass'])) {
+        if ($user->load(Yii::$app->request->post())) {
+            if ($user->validate(['pass'])) {
+                $user->pass = md5($user->pass);
+                if (!$user->save(true, ['pass'])) {
                     $result['success'] = false;
-                    $result['message'] = $model->getFirstError('pass');
+                    $result['message'] = $user->getFirstError('pass');
                 } else {
                     Yii::$app->session->setFlash('success', 'Пароль пользователя успешно изменен!');
                 }
             } else {
                 $result['success'] = false;
-                $result['message'] = $model->getFirstError('pass');
+                $result['message'] = $user->getFirstError('pass');
             }
         }
 
@@ -371,25 +378,25 @@ class UserController extends BaseController
      * @param string $id
      *
      * @return mixed
-     * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
+     * @throws ForbiddenHttpException
      */
     public function actionView(string $id)
     {
         $this->layout = 'main-2-column';
-        /** @var Auth $user */
-        $user = Yii::$app->user->identity;
+        $user = $this->findModel($id);
 
-        if ($user->roleId !== 3 && !in_array($user->id, [(int)$id, 296])){
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!AccessRule::checkAccess('rule.user.view.any') && $auth->id !== $user->id) {
             throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
 
-        $userModel = $this->findModel($id);
         $imageForm = new UploadForm();
 
         return $this->render('view', [
             'imageForm' => $imageForm,
-            'user'  => $userModel,
+            'user'  => $user,
         ]);
     }
 
@@ -405,13 +412,13 @@ class UserController extends BaseController
     public function actionTimeTracking(string $id, string $time_tracking_id = null, string $action = null)
     {
         $this->layout = 'main-2-column';
-        /** @var Auth $user */
-        $user = Yii::$app->user->identity;
-        if ($user->roleId === 4 && $user->id !== (int)$id) {
+        $user = $this->findModel($id);
+
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
+        if (!AccessRule::checkAccess('rule.time-tracking.manage.any') && $auth->id !== $user->id) {
             throw new ForbiddenHttpException('Вам не разрешено производить данное действие.');
         }
-
-        $userModel = $this->findModel($id);
 
         $timeTracking = $time_tracking_id
             ? UserTimeTracking::find()->byId((int)$time_tracking_id)->byEntityId((int)$id)->one()
@@ -473,15 +480,10 @@ class UserController extends BaseController
         $dataProvider = $searchModel->search(UserTimeTracking::find()->byEntityId((int)$id)->active(), Yii::$app->request->get());
 
         return $this->render('time-tracking', [
-            'can' => [
-                'createTimeTracking' => $user->roleId === 3 || in_array($user->id, [(int)$id, 296]),
-                'updateTimeTracking' => $user->roleId === 3 || in_array($user->id, [(int)$id, 296]),
-                'deleteTimeTracking' => $user->roleId === 3 || in_array($user->id, [(int)$id, 296]),
-            ],
             'dataProvider'     => $dataProvider,
             'timeTrackingForm' => $timeTrackingForm,
             'searchModel'      => $searchModel,
-            'user'             => $userModel,
+            'user'             => $user,
         ]);
     }
 
@@ -498,16 +500,5 @@ class UserController extends BaseController
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
-    }
-
-    /**
-     * @param $entityClass
-     * @return array
-     */
-    protected function getEntityItems($entityClass): array
-    {
-        /** @var BaseActiveQuery $query */
-        $query = call_user_func([$entityClass, 'find']);
-        return $query->select(['name'])->active()->indexBy('id')->orderBy(['name' => SORT_ASC])->column();
     }
 }
