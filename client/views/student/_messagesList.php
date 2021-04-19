@@ -18,26 +18,7 @@ use yii\web\View;
     <div class="panel-body">
         <div class="text-justify">
             <?= $model['text'] ?>
-            <?php
-                /** @var File[] $files */
-                $files = File::find()->andWhere([
-                    'entity_type' => File::TYPE_MESSAGE_FILES, 'entity_id' => $model['id']
-                ])->all();
-                if (!empty($files)) {
-                    echo Html::beginTag('div');
-                    $list = [];
-                    foreach ($files as $file) {
-                        $list[] = IconHelper::icon('paperclip', null, null, 'fa5') . ' ' .
-                            Html::tag(
-                                'span',
-                                Html::a($file->original_name, ['files/download', 'id' => $file->id], ['target' => '_blank']),
-                                ['class' => 'small', 'style' => 'margin-right: 5px']
-                            );
-                    }
-                    echo join(Html::tag('br'), $list);
-                    echo Html::endTag('div');
-                }
-            ?>
+            <?= $this->render('//layouts/_attachments', ['entityType' => File::TYPE_MESSAGE_FILES, 'entityId' => $model['id']]) ?>
         </div>
         <div class="text-right">
             <small><?= ((int)$model['type'] === 13 ? $model['sender'] : Yii::$app->user->identity->name) ?></small>

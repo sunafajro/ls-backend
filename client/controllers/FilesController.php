@@ -106,13 +106,17 @@ class FilesController extends Controller
             /** @var Message|null $message */
             $message = Message::find()->andWhere(['id' => $file->entity_id, 'visible' => 1])->one();
             if (!empty($message)) {
-                $receiver = (new Query())->from(['r' => 'calc_messreport'])->andWhere(['r.user' => $uid, 'r.calc_message' => $message->id])->exists();
-                if ((int)$message->calc_messwhomtype === 100 && (int)$message->user === $uid) {
-                    // лк -> система учета
+                if ($message->calc_messwhomtype === Message::TARGET_ALL_STUDENTS) {
                     $result = true;
-                } else if ((int)$message->calc_messwhomtype === 13 && $receiver) {
-                    // система учета -> лк
-                    $result = true;
+                } else if ($message->calc_messwhomtype === Message::TARGET_ONE_STUDENT) {
+                    $receiver = (new Query())->from(['r' => 'calc_messreport'])->andWhere(['r.user' => $uid, 'r.calc_message' => $message->id])->exists();
+                    if ((int)$message->calc_messwhomtype === Message::TARGET_USER && (int)$message->user === $uid) {
+                        // лк -> система учета
+                        $result = true;
+                    } else if ((int)$message->calc_messwhomtype === Message::TARGET_ONE_STUDENT && $receiver) {
+                        // система учета -> лк
+                        $result = true;
+                    }
                 }
             }
         } else if ($file->entity_type === File::TYPE_GROUP_FILES) {

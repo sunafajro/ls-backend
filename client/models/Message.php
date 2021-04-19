@@ -20,11 +20,16 @@ use Yii;
  * @property string $refinement
  * @property integer $refinement_id
  */
-class Message extends \yii\db\ActiveRecord {
+class Message extends \yii\db\ActiveRecord
+{
+    const TARGET_ALL_STUDENTS = 12;
+    const TARGET_ONE_STUDENT = 13;
+    const TARGET_USER = 100;
+
     /**
      * @inheritdoc
      */
-    public static function tableName()
+    public static function tableName(): string
     {
         return 'calc_message';
     }
