@@ -9,25 +9,26 @@ use Yii;
  *
  * @property integer $id
  * @property integer $site
- * @property string $username
- * @property string $password
+ * @property string  $username
+ * @property string  $password
  * @property integer $calc_studname
- * @property string $date
+ * @property string  $access_token
+ * @property string  $date
  */
 class User extends \yii\db\ActiveRecord
 {
     /**
      * @inheritdoc
      */
-    public static function tableName()
+    public static function tableName(): string
     {
-        return 'tbl_client_access';
+        return '{{tbl_client_access}}';
     }
 
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['site', 'calc_studname'], 'integer'],
@@ -40,7 +41,7 @@ class User extends \yii\db\ActiveRecord
     /**
      * @inheritdoc
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'id' => 'ID',
@@ -50,5 +51,15 @@ class User extends \yii\db\ActiveRecord
             'calc_studname' => Yii::t('app', 'Student'),
             'date' => Yii::t('app', 'Date'),
         ];
+    }
+
+    /**
+     * Resets access token
+     * @throws \yii\base\Exception
+     */
+    public function resetAccessToken(): bool
+    {
+        $this->access_token = Yii::$app->security->generateRandomString() . '_' . time();
+        return $this->save(true, ['access_token']);
     }
 }

@@ -174,24 +174,25 @@ class Student extends ActiveRecord
         }
 
         $student = (new Query())
-        ->select([
-            'id'       => 's.id',
-            'active'   => 's.active',
-            'name'     => 's.name',
-            'username' => 'c.username',
-            'password' => 'c.password',
-            'date'     => 'c.date',
-        ])
-        ->from(['s' => static::tableName()])
-        ->innerJoin(['c' => 'tbl_client_access'], 'c.calc_studname = s.id')
-        ->where([
-            's.active'  => 1,
-            's.visible' => 1,
-            'c.site'    => 1,
-        ])
-        ->andFilterWhere(['c.id' => $id])
-        ->andFilterWhere(['c.username' => $username])
-        ->one();
+            ->select([
+                'id'       => 's.id',
+                'active'   => 's.active',
+                'name'     => 's.name',
+                'username' => 'c.username',
+                'password' => 'c.password',
+                'accessToken' => 'c.access_token',
+                'date'     => 'c.date',
+            ])
+            ->from(['s' => static::tableName()])
+            ->innerJoin(['c' => 'tbl_client_access'], 'c.calc_studname = s.id')
+            ->where([
+                's.active'  => 1,
+                's.visible' => 1,
+                'c.site'    => 1,
+            ])
+            ->andFilterWhere(['c.id' => $id])
+            ->andFilterWhere(['c.username' => $username])
+            ->one();
 
         return $student ? [
             'id' => $student['id'],
@@ -199,7 +200,7 @@ class Student extends ActiveRecord
             'username' => $student['username'],
             'password' => $student['password'],
             'authKey' => '',
-            'accessToken' => '',
+            'accessToken' => $student['accessToken'],
             'isActive' => $student['active'],
             'lastLoginDate' => $student['date']
         ] : null;

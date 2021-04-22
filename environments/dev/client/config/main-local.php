@@ -16,7 +16,7 @@ if (YII_DEBUG) {
 }
 
 if (YII_ENV === 'dev') {
-    $config['components']['assetManager']['forceCopy'] = true;
+    // $config['components']['assetManager']['forceCopy'] = true;
 }
 
 return $config;

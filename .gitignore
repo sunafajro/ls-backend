@@ -31,9 +31,12 @@ phpunit.phar
 /phpunit.xml
 
 # ignore generated files
-/school/web/index.php
-/school/web/robots.txt
+/api/web/index.php
+/api/web/robots.txt
 /client/web/index.php
 /client/web/robots.txt
 /exam/web/index.php
 /exam/web/robots.txt
+/school/web/index.php
+/school/web/robots.txt
+

@@ -32,14 +32,15 @@ return [
     'Development' => [
         'path' => 'dev',
         'setWritable' => [
+            'api/runtime',
             'console/runtime',
+            'client/runtime',
+            'exam/runtime',
             'school/runtime',
+            'client/web/assets',
+            'exam/web/assets',
             'school/web/assets',
             'school/web/uploads',
-            'client/runtime',
-            'client/web/assets',
-            'exam/runtime',
-            'exam/web/assets',
             'data/attestates',
             'data/files'
         ],
@@ -47,9 +48,9 @@ return [
             'yii',
         ],
         'setCookieValidationKey' => [
-            'school/config/main-local.php',
             'client/config/main-local.php',
             'exam/config/main-local.php',
+            'school/config/main-local.php',
         ],
     ],
 ];

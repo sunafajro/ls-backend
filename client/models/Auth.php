@@ -17,6 +17,9 @@ class Auth extends \yii\base\BaseObject implements \yii\web\IdentityInterface
     public $isActive;
     public $lastLoginDate;
 
+    /** @var User */
+    private $_user;
+
     /**
      * {@inheritdoc}
      */
@@ -24,7 +27,14 @@ class Auth extends \yii\base\BaseObject implements \yii\web\IdentityInterface
     {
         $student = new Student();
         $client = $student->findByIdOrUsername($id, null);
-        return $client ? new static($client) : null;
+        $auth = $client ? new static($client) : null;
+        if (!is_null($auth)) {
+            $auth->_user = User::find()->andWhere([
+                'calc_studname' => $auth->id,
+                'site'          => 1,
+            ])->one();
+        }
+        return $auth;
     }
 
     /**
@@ -32,12 +42,22 @@ class Auth extends \yii\base\BaseObject implements \yii\web\IdentityInterface
      */
     public static function findIdentityByAccessToken($token, $type = null)
     {
-        // TODO написать механизм создания и хранения токена
-        // foreach (self::$users as $user) {
-        //     if ($user['accessToken'] === $token) {
-        //         return new static($user);
-        //     }
-        // }
+        /** @var User $user */
+        $user = User::find()->where([
+            'access_token' => $token,
+            'site'         => 1,
+        ])->one();
+        if (!empty($user)) {
+            $student = new Student();
+            $client = $student->findByIdOrUsername($user->calc_studname, $user->username);
+            $auth = $client ? new static($client) : null;
+            if (!is_null($auth)) {
+                $auth->_user = $user;
+            }
+
+            return $auth;
+        }
+
         return null;
     }
 
@@ -51,7 +71,14 @@ class Auth extends \yii\base\BaseObject implements \yii\web\IdentityInterface
     {
         $student = new Student();
         $client = $student->findByIdOrUsername(null, $username);
-        return $client ? new static($client) : null;
+        $auth = $client ? new static($client) : null;
+        if (!is_null($auth)) {
+            $auth->_user = User::find()->andWhere([
+                'calc_studname' => $auth->id,
+                'site'          => 1,
+            ])->one();
+        }
+        return $auth;
     }
 
     /**
@@ -91,5 +118,19 @@ class Auth extends \yii\base\BaseObject implements \yii\web\IdentityInterface
     public function validatePassword($password)
     {
         return $this->password === md5($password);
+    }
+
+    /**
+     * Resets access token
+     * @throws \yii\base\Exception
+     */
+    public function resetAccessToken(): bool
+    {
+        if ($this->_user->resetAccessToken()) {
+            $this->accessToken = $this->_user->access_token;
+            return true;
+        }
+
+        return false;
     }
 }

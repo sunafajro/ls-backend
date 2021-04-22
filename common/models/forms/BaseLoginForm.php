@@ -85,7 +85,19 @@ class BaseLoginForm extends Model
     }
 
     /**
-     * @return BaseAuth|false
+     * @return BaseAuth|bool
+     */
+    public function validateAndGetAuth()
+    {
+        if ($this->validate()) {
+            return $this->getUser();
+        }
+
+        return false;
+    }
+
+    /**
+     * @return BaseAuth|bool
      */
     public function getUser()
     {
