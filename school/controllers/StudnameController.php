@@ -22,7 +22,6 @@ use school\models\Studjournalgroup;
 use school\models\forms\StudentMergeForm;
 use school\models\User;
 use yii\web\NotFoundHttpException;
-use yii\web\Response;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use yii\data\Pagination;
@@ -80,9 +79,9 @@ class StudnameController extends BaseController
     {
         $this->layout = 'main-2-column';
         $request = Yii::$app->request;
-        /** @var Auth $user */
-        $user   = Yii::$app->user->identity;
-        $roleId = $user->roleId;
+        /** @var Auth $auth */
+        $auth   = Yii::$app->user->identity;
+        $roleId = $auth->roleId;
 
         // по умолчанию поиск по имени
         $tss = $request->get('TSS') ? $request->get('TSS') : NULL;
@@ -104,7 +103,7 @@ class StudnameController extends BaseController
             }
         } else {
             if ($roleId === 4) {
-                $oid = (int)Yii::$app->session->get('user.uoffice_id');
+                $oid = $auth->officeId;
             }
         }
 
@@ -141,7 +140,7 @@ class StudnameController extends BaseController
             'hiddenServices' => "(s.settings->'$.hiddenServices')",
         ];
         // для руководителя и менеджера выводим полный список студентов
-        if (in_array($roleId, [3, 4, 6]) || (int)Yii::$app->session->get('user.uid') === 296) {
+        if (in_array($roleId, [3, 4, 6]) || $auth->id === 296) {
             // формируем запрос
             $students = (new \yii\db\Query())
             ->select($columns)

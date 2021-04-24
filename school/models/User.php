@@ -252,38 +252,4 @@ class User extends BaseUser
 
         return Yii::getAlias('@web/images/dream.jpg');
     }
-
-    /**
-     * Метод проверки ролей пользователей на доступ к ресурсам
-     * @param string $controller
-     * @param string $action
-     *
-     * @return bool
-     */
-    public static function checkAccess(string $controller, string $action) : bool
-    {
-        $result = true;
-        $roleId = Yii::$app->user->identity->roleId;
-
-        switch ($controller) {
-
-            case 'studname':
-                if (in_array($action, [
-                    'update', 'active', 'inactive',
-                    'detail', 'change-office', 'update-debt',
-                    'settings', 'update-settings', 'successes'])) {
-                    switch($roleId) {
-                        case 3:
-                        case 4: $result = true; break;
-                        default: $result = false;
-                    }
-                } else {
-                    $result = false;
-                }
-                return $result;
-
-            default: $result = false;
-		}
-		return $result;
-	}
 }
