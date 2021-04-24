@@ -282,23 +282,6 @@ class User extends BaseUser
                 }
                 return $result;
 
-            case 'invoice':
-                if (in_array($action, ['index','create','toggle','get-data'])) {
-                    switch($roleId) {
-                        case 3:
-                        case 4: $result = true; break;
-                        default: $result = false;
-                    }
-                } else if ($action === 'delete') {
-                    switch($roleId) {
-                        case 3: $result = true; break;
-                        default: $result = false;
-                    }
-                } else {
-                    $result = false;
-                }
-                return $result;
-
             default: $result = false;
 		}
 		return $result;

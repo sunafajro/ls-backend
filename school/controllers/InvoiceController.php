@@ -3,6 +3,7 @@
 namespace school\controllers;
 
 use school\controllers\base\BaseController;
+use school\models\Auth;
 use Yii;
 use school\models\Invoicestud;
 use school\models\Office;
@@ -17,42 +18,32 @@ use yii\filters\VerbFilter;
 use yii\web\ServerErrorHttpException;
 
 /**
- * InvoiceController implements the CRUD actions for CalcInvoicestud model.
+ * Class InvoiceController
+ * @package school\controllers
  */
 class InvoiceController extends BaseController
 {
     public function behaviors(): array
     {
+        $rules = [
+            'index',
+            'create',
+            'delete',
+            'toggle',
+            'get-data',
+        ];
         return [
             'access' => [
                 'class' => AccessControl::class,
-                'only' => [
-                    'index',
-                    'create',
-                    'delete',
-                    'toggle',
-                    'get-data',
-                ],
+                'only' => $rules,
                 'rules' => [
                     [
-                        'actions' => [
-                            'index',
-                            'create',
-                            'delete',
-                            'toggle',
-                            'get-data',
-                        ],
+                        'actions' => $rules,
                         'allow' => false,
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => [
-                            'index',
-                            'create',
-                            'delete',
-                            'toggle',
-                            'get-data',
-                        ],
+                        'actions' => $rules,
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -86,6 +77,8 @@ class InvoiceController extends BaseController
      */
     public function actionGetData()
     {
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
         /* включаем формат ответа JSON */
         Yii::$app->response->format = Response::FORMAT_JSON;
         if (Yii::$app->request->post('sid')) {
@@ -126,7 +119,7 @@ class InvoiceController extends BaseController
                 'services'  => Service::getInvoiceServicesList(),
                 'rubsales'  => $sales['rub'],
                 'procsales' => $sales['proc'],
-                'offices'   => (int)Yii::$app->session->get('user.ustatus') !== 4 ? Office::getOfficesList() : [],
+                'offices'   => $auth->roleId !== 4 ? Office::getOfficesList() : [],
                 'permsale'  => Salestud::getClientPermamentSale($sid),
                 'labels'    => $labels
             ];
@@ -144,9 +137,10 @@ class InvoiceController extends BaseController
      * Для выставления счета необходим id клиента.
      * Стоимость счета добавляется в общую сумму счетов, долг клиента пересчитывается.
      */
-
     public function actionCreate()
     {
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
         /* включаем формат ответа JSON */
         Yii::$app->response->format = Response::FORMAT_JSON;
         if (Yii::$app->request->post('Invoicestud')) {
@@ -169,15 +163,15 @@ class InvoiceController extends BaseController
             $model->calc_salestud_proc  = isset($data['procsale'])          ? (int)$data['procsale']                   : 0;
             $model->calc_sale           = isset($data['permsale'])          ? (int)$data['permsale']                   : 0;
             /* для менеджеров офис подставляется из сессии, для руководителей из формы */
-            if((int)Yii::$app->session->get('user.ustatus') === 4) {
-                $model->calc_office     = (int)Yii::$app->session->get('user.uoffice_id');
+            if($auth->roleId === 4) {
+                $model->calc_office     = $auth->officeId;
             } else {
                 $model->calc_office     = isset($data['office'])            ? (int)$data['office']                     : 0;
             }
             $model->num                 = isset($data['num'])               ? (int)$data['num']                        : 0;
             $model->value               = isset($data['invoiceValue'])      ? (float)$data['invoiceValue']             : 0;
             $model->value_discount      = isset($data['invoiceDiscount'])   ? (float)$data['invoiceDiscount']          : 0;
-            $model->user                = (int)Yii::$app->session->get('user.uid');
+            $model->user                = $auth->id;
             $model->done                = 0;
             $model->data_done           = '0000-00-00';
             $model->data_visible        = '0000-00-00';
@@ -186,8 +180,8 @@ class InvoiceController extends BaseController
             $model->cumdisc             = 0;
             $model->cumdisc_name        = '';
             $model->remain              = isset($data['remain'])            ? (int)$data['remain']                     : 0;
-            $model->user_remain         = $model->remain > 0                ? (int)Yii::$app->session->get('user.uid') : 0;
-            $model->data_remain         = $model->remain > 0                ? date('Y-m-d')                            : '0000-00-00';
+            $model->user_remain         = $model->remain > 0                ? $auth->id                                : 0;
+            $model->data_remain         = $model->remain > 0                ? date('Y-m-d')                     : '0000-00-00';
 
             $transaction = Yii::$app->db->beginTransaction();
             try {
@@ -201,7 +195,7 @@ class InvoiceController extends BaseController
 
                 if ($model->calc_salestud > 0) {
                     $rsalestud = Salestud::findOne($model->calc_salestud);
-                    $rsalestud->user_used = Yii::$app->session->get('user.uid');
+                    $rsalestud->user_used = $auth->id;
                     $rsalestud->data_used = date('Y-m-d');
                     if (!$rsalestud->save(true, ['user_used', 'data_used'])) {
                         throw new ServerErrorHttpException('Не удалось обновить использование рублевой скидки.');
@@ -210,7 +204,7 @@ class InvoiceController extends BaseController
 
                 if ($model->calc_salestud_proc > 0) {
                     $psalestud = Salestud::findOne($model->calc_salestud_proc);
-                    $psalestud->user_used = Yii::$app->session->get('user.uid');
+                    $psalestud->user_used = $auth->id;
                     $psalestud->data_used = date('Y-m-d');
                     if (!$psalestud->save(true, ['user_used', 'data_used'])) {
                         throw new ServerErrorHttpException('Не удалось обновить использование процентной скидки.');
@@ -247,8 +241,16 @@ class InvoiceController extends BaseController
         }
     }
 
+    /**
+     * @param string $id
+     * @param string $action
+     * @return Response
+     * @throws NotFoundHttpException
+     */
     public function actionToggle(string $id, string $action)
     {
+        /** @var Auth $auth */
+        $auth = Yii::$app->user->identity;
         $invoice = $this->findModel($id);
         if($invoice !== NULL) {
             switch($action) {
@@ -256,8 +258,8 @@ class InvoiceController extends BaseController
                     if ((int)$invoice->calc_office !== 6) {
                         $invoice->calc_office = 6;
                     } else {
-                        if ((int)Yii::$app->session->get('user.ustatus') === 4) {
-                            $invoice->calc_office = Yii::$app->session->get('user.uoffice_id');
+                        if ($auth->roleId === 4) {
+                            $invoice->calc_office = $auth->officeId;
                         } else {
                             Yii::$app->session->setFlash('error', 'Возврат счета в обычное состояние доступен только менеджерам!');
                         }
@@ -271,7 +273,7 @@ class InvoiceController extends BaseController
                 }
                 case 'done': {
                     $invoice->done = (int)$invoice->done === 0 ? 1 : 0;
-                    $invoice->user_done = (int)$invoice->done === 1 ? Yii::$app->session->get('user.uid') : 0;
+                    $invoice->user_done = (int)$invoice->done === 1 ? $auth->id : 0;
                     $invoice->data_done = (int)$invoice->done === 1 ? date('Y-m-d') : '0000-00-00';
                     if ($invoice->save()) {
                         Yii::$app->session->setFlash('success', 'Счет успешно изменен!');
@@ -282,7 +284,7 @@ class InvoiceController extends BaseController
                 }
                 case 'enable': {
                     $invoice->visible = (int)$invoice->visible === 0 ? 1 : 0;
-                    $invoice->user_visible = (int)$invoice->visible === 1 ? 0 : Yii::$app->session->get('user.uid');
+                    $invoice->user_visible = (int)$invoice->visible === 1 ? 0 : $auth->id;
                     $invoice->data_visible = (int)$invoice->visible === 1 ? '0000-00-00' : date('Y-m-d');
                     // TODO transaction
                     if ($invoice->save()) {
@@ -298,7 +300,7 @@ class InvoiceController extends BaseController
                 }
                 case 'netting': {
                     $invoice->remain = (int)$invoice->remain === 0 ? 2 : 0;
-                    $invoice->user_remain = (int)$invoice->remain === 0 ? 0 : Yii::$app->session->get('user.uid');
+                    $invoice->user_remain = (int)$invoice->remain === 0 ? 0 : $auth->id;
                     $invoice->data_remain = (int)$invoice->remain === 0 ? '0000-00-00' : date('Y-m-d');
                     // TODO transaction
                     if($invoice->save()) {
@@ -314,7 +316,7 @@ class InvoiceController extends BaseController
                 }
                 case 'remain': {
                     $invoice->remain = (int)$invoice->remain === 0 ? 1 : 0;
-                    $invoice->user_remain = (int)$invoice->remain === 0 ? 0 : Yii::$app->session->get('user.uid');
+                    $invoice->user_remain = (int)$invoice->remain === 0 ? 0 : $auth->id;
                     $invoice->data_remain = (int)$invoice->remain === 0 ? '0000-00-00' : date('Y-m-d');
                     if($invoice->save()) {
                         Yii::$app->session->setFlash('success', 'Счет успешно изменен!');
@@ -330,6 +332,13 @@ class InvoiceController extends BaseController
         }
     }
 
+    /**
+     * @param string $id
+     * @return Response
+     * @throws NotFoundHttpException
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
+     */
     public function actionDelete(string $id)
     {
         $model = $this->findModel($id);
@@ -349,10 +358,8 @@ class InvoiceController extends BaseController
     }
 
     /**
-     * Finds the CalcInvoicestud model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return CalcInvoicestud the loaded model
+     * @return Invoicestud the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
