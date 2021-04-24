@@ -34,6 +34,8 @@ class AuthController extends Controller
         }
 
         return [
+            'id' => $auth->id,
+            'name' => $auth->name,
             'accessToken' => $auth->accessToken,
         ];
     }
