@@ -6,9 +6,10 @@ use client\models\LoginLog;
 use Yii;
 use client\models\forms\LoginForm;
 use client\models\Student;
-use yii\base\BaseObject;
+use common\models\BasePoll as Poll;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
+use yii\web\BadRequestHttpException;
 use yii\web\Controller;
 
 /**
@@ -25,7 +26,7 @@ class SiteController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::class,
-                'only' => ['index', 'login', 'logout'],
+                'only' => ['index', 'login', 'logout', 'save-poll-answers'],
                 'rules' => [
                     [
                         'actions' => ['login'],
@@ -33,7 +34,7 @@ class SiteController extends Controller
                         'roles' => ['?'],
                     ],
                     [
-                        'actions' => ['index', 'logout'],
+                        'actions' => ['index', 'logout', 'save-poll-answers'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -42,6 +43,7 @@ class SiteController extends Controller
             'verbs' => [
                 'class' => VerbFilter::class,
                 'actions' => [
+                    'save-poll-answers' => ['post'],
                     'logout' => ['post'],
                 ],
             ],
@@ -69,6 +71,7 @@ class SiteController extends Controller
         $messages = $student->getNews();
         list($comments) = $student ? $student->getLessonsComments(5, 0) : [[], []];
         return $this->render('index', [
+            'poll'    => Poll::find()->byEntityType(Poll::ENTITY_TYPE_CLIENT)->inProgress()->active()->one(),
             'messages' => $messages,
             'comments' => $comments,
         ]);
@@ -118,6 +121,17 @@ class SiteController extends Controller
         Yii::$app->user->logout();
 
         return $this->goHome();
+    }
+
+    public function actionSavePollAnswers($id)
+    {
+        $pollResponseData = \Yii::$app->request->post('PollResponse', null);
+        if (empty($pollResponseData)) {
+            throw new BadRequestHttpException('Необходимо ответить хотя бы на один вопрос.');
+        }
+
+
+        return $this->redirect(\Yii::$app->request->referrer);
     }
 
     /**

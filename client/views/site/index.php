@@ -4,10 +4,12 @@
  * @var View $this
  * @var array $messages
  * @var array $comments
+ * @var Poll $poll
  */
 
 use client\models\Student;
 use common\components\helpers\IconHelper;
+use common\models\BasePoll as Poll;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ListView;
@@ -17,6 +19,9 @@ $this->title = Yii::$app->params['siteTitle'];
 <div class="content-block">
     <div class="row">
         <div class="col-xs-12 col-sm-9">
+            <div class="poll-block">
+                <?= $this->render('poll/_poll', ['poll' => $poll]) ?>
+            </div>
             <?php
                 try {
                     echo ListView::widget([
