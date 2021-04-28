@@ -6,7 +6,7 @@ use Yii;
 use yii\db\ActiveRecord;
 
 /**
- * This is the model class for table "calc_login_log".
+ * This is the model class for table "login_logs".
  *
  * @property integer $id
  * @property string  $date
@@ -23,15 +23,15 @@ class BaseLoginLog extends ActiveRecord
     /**
      * @inheritdoc
      */
-    public static function tableName()
+    public static function tableName(): string
     {
-        return 'calc_login_log';
+        return '{{%login_logs}}';
     }
 
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['user_id'], 'default', 'value' => Yii::$app->user->identity->id],
@@ -47,7 +47,7 @@ class BaseLoginLog extends ActiveRecord
     /**
      * @inheritdoc
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'id'          => Yii::t('app', 'ID'),

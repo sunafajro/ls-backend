@@ -1,9 +1,9 @@
 <?php
 
-namespace exam\models;
+namespace client\models;
 
 use common\models\BaseLoginLog;
-use exam\Exam;
+use client\Client;
 
 /**
  * This is the model class for table "login_logs".
@@ -23,7 +23,7 @@ class LoginLog extends BaseLoginLog
     public function rules(): array
     {
         $rules = parent::rules();
-        array_unshift($rules, [['module_type'], 'default', 'value' => Exam::MODULE_NAME]);
+        array_unshift($rules, [['module_type'], 'default', 'value' => Client::MODULE_NAME]);
         return $rules;
     }
 }

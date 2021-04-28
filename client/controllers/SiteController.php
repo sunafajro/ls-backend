@@ -2,9 +2,11 @@
 
 namespace client\controllers;
 
+use client\models\LoginLog;
 use Yii;
 use client\models\forms\LoginForm;
 use client\models\Student;
+use yii\base\BaseObject;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
@@ -83,7 +85,15 @@ class SiteController extends Controller
 
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            return $this->goBack();
+            // TODO перенести в события
+            $login               = new LoginLog();
+            $login->result       = LoginLog::ACTION_LOGIN;
+            $login->ipaddr       = Yii::$app->request->userIP;
+            if (!$login->save()) {
+                Yii::error("Не удалось сохранить информацию о входе пользователя #{$login->user_id} в систему.");
+            }
+
+            return $this->redirect($this->getDefaultAction());
         }
 
         $model->password = '';
@@ -97,8 +107,24 @@ class SiteController extends Controller
      */
     public function actionLogout()
     {
+        // TODO перенести в события
+        $login = new LoginLog();
+        $login->result = \exam\models\LoginLog::ACTION_LOGOUT;
+        $login->ipaddr = Yii::$app->request->userIP;
+        if (!$login->save()) {
+            Yii::error("Не удалось сохранить информацию о выходе пользователя #{$login->user_id} из системы.");
+        }
+
         Yii::$app->user->logout();
 
         return $this->goHome();
+    }
+
+    /**
+     * @return array|string[]
+     */
+    private function getDefaultAction() : array
+    {
+        return ['site/index'];
     }
 }
