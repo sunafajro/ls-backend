@@ -12,6 +12,23 @@ use yii\helpers\Url;
 use yii\widgets\ActiveForm;
 
 if (!empty($poll)) {
+$js = <<<JS
+$(document)
+    .on('change', '.js--question-item', function(e) {
+        if (!e.target.checked) {
+            $(this).closest('.js--question-item-block')
+                .find('.js--question-item-option').each(function() {
+                    $(this).prop('checked', false);
+                });
+        }
+    })
+    .on('change', '.js--question-item-option', function(e) {
+        if (e.target.checked) {
+            $(this).closest('.js--question-item-block').find('.js--question-item:eq(0)').prop('checked', true);
+        }
+    });
+JS;
+$this->registerJS($js);
 ?>
     <div class="panel panel-primary">
         <div class="panel-heading">
