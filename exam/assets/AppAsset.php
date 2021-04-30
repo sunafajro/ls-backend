@@ -2,7 +2,7 @@
 
 namespace exam\assets;
 
-use common\assets\FontawesomeAsset;
+use common\assets\FontAwesomeAsset;
 use yii\bootstrap4\BootstrapAsset;
 use yii\web\AssetBundle;
 use yii\web\YiiAsset;
@@ -16,6 +16,6 @@ class AppAsset extends AssetBundle
     public $depends = [
         YiiAsset::class,
         BootstrapAsset::class,
-        FontawesomeAsset::class,
+        FontAwesomeAsset::class,
     ];
 }
