@@ -14,7 +14,7 @@ class m210428_193126_create_poll_questions_table extends Migration
     {
         $this->createTable('{{%poll_questions}}', [
             'id'          => $this->primaryKey(),
-            'poll_id'     => $this->string()->notNull(),
+            'poll_id'     => $this->integer()->notNull(),
             'title'       => $this->string()->notNull(),
             'type'        => $this->string()->notNull(),
             'items'       => $this->json(),
