@@ -9,6 +9,7 @@ use school\models\reports\CommonReport;
 use school\models\reports\DebtsReport;
 use school\models\reports\InvoicesReport;
 use school\models\reports\JournalReport;
+use school\models\reports\LoginsReport;
 use school\models\reports\MarginsReport;
 use school\models\reports\OfficePlanReport;
 use school\models\reports\PaymentsReport;
@@ -49,7 +50,8 @@ class ReportController extends BaseController
             'sale',
             'salaries',
             'teacher-hours',
-            'commissions'
+            'commissions',
+            'logins',
         ];
         return [
             'access' => [
@@ -101,7 +103,6 @@ class ReportController extends BaseController
      * @param string|null $page
      *
      * @return mixed
-     * @throws ForbiddenHttpException
      */
     public function actionAccrual(string $tid = null, string $month = null, string $year = null, string $page = null)
     {
@@ -193,7 +194,6 @@ class ReportController extends BaseController
      * @param string|null $start
      * @param string|null $end
      * @return mixed
-     * @throws ForbiddenHttpException
      */
     public function actionMargin(string $start = null, string $end = null)
     {
@@ -218,7 +218,6 @@ class ReportController extends BaseController
      * @param string|null $officeId
      *
      * @return mixed
-     * @throws ForbiddenHttpException
      */
     public function actionPayments (string $start = null, string $end = null, string $officeId = null)
     {
@@ -245,7 +244,6 @@ class ReportController extends BaseController
      * @param string|null $officeId
      *
      * @return mixed
-     * @throws ForbiddenHttpException
      */
     public function actionInvoices(string $start = null, string $end = null, string $officeId = null)
     {
@@ -272,7 +270,6 @@ class ReportController extends BaseController
      * @param string|null $officeId
      * @param string|null $nextMonth
      * @return mixed
-     * @throws ForbiddenHttpException
      */
     public function actionOfficePlan(string $officeId = null, string $nextMonth = null)
 	{
@@ -304,14 +301,11 @@ class ReportController extends BaseController
 
     /**
      * Отчет по зарплатам
-     * @param null $end
-     * @param int $limit
-     * @param int $offset
-     * @param null $tid
-     * @param null $start
+     * @param string|null $end
+     * @param string|null $teacherId
+     * @param string|null $start
      *
      * @return mixed
-     * @throws ForbiddenHttpException
      */
     public function actionSalaries (string $start = null, string $end = null, string $teacherId = null)
     {
@@ -337,7 +331,6 @@ class ReportController extends BaseController
      * Отчет по скидкам
      * @param string|null $page
      * @return mixed
-     * @throws ForbiddenHttpException
      */
     public function actionSale(string $page = null)
     {
@@ -361,7 +354,6 @@ class ReportController extends BaseController
      * @param string|null $end
      *
      * @return mixed
-     * @throws ForbiddenHttpException
      */
     public function actionCommon(string $start = null, string $end = null)
     {
@@ -430,7 +422,6 @@ class ReportController extends BaseController
      * @param string|null $end
      *
      * @return mixed
-     * @throws ForbiddenHttpException
      */
     public function actionLessons(string $end = null, string $start = null)
     {
@@ -458,7 +449,6 @@ class ReportController extends BaseController
      * @param string $start
      *
      * @return mixed
-     * @throws ForbiddenHttpException
      */
     public function actionCommissions(string $end = null, string $start = null)
     {
@@ -492,9 +482,7 @@ class ReportController extends BaseController
      * @param string|null $teacherId
      * @param string|null $page
      * @return mixed
-     * @throws ForbiddenHttpException
      */
-    
     public function actionJournals(string $corporate = null, string $officeId = null, string $teacherId = null, string $page = null)
     {
         $this->layout = 'main-2-column';
@@ -529,7 +517,6 @@ class ReportController extends BaseController
      * @param int $offset
      *
      * @return mixed
-     * @throws ForbiddenHttpException
      */
     public function actionTeacherHours($start = null, $end = null, $teacherId = null, $limit = 10, $offset = 0)
     {
@@ -548,6 +535,29 @@ class ReportController extends BaseController
             'end'          => date('d.m.Y', strtotime($report->endDate)),
             'start'        => date('d.m.Y', strtotime($report->startDate)),
             'teacherId'    => $report->teacherId,
+        ]);
+    }
+
+    /**
+     * Отчет по посещениям
+     * @param string|null $start
+     * @param string|null $end
+     *
+     * @return mixed
+     */
+    public function actionLogins(string $start = null, string $end = null)
+    {
+        $this->layout = 'main-2-column';
+
+        $report = new LoginsReport([
+            'startDate' => $start,
+            'endDate'   => $end,
+        ]);
+
+        return $this->render('logins', [
+            'dataProvider' => $report->prepareReportData(),
+            'end'    => date('d.m.Y', strtotime($report->endDate)),
+            'start'  => date('d.m.Y', strtotime($report->startDate)),
         ]);
     }
 }

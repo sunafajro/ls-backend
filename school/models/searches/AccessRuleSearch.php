@@ -28,7 +28,6 @@ class AccessRuleSearch extends AccessRule
      */
     public function search(array $params): ActiveDataProvider
     {
-        $ar = self::tableName();
         $query = self::find();
         $this->load($params);
         if ($this->validate()) {
