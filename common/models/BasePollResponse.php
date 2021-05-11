@@ -16,7 +16,7 @@ use yii\db\ActiveRecord;
  * @property string $created_at
  * @property string $deleted_at
  *
- * @property-read BasePoll[] $poll
+ * @property-read BasePoll $poll
  * @property-read BasePollQuestionResponse[] $questionResponses
  */
 class BasePollResponse extends ActiveRecord

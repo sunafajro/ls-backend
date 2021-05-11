@@ -120,6 +120,14 @@ class Report extends Model
             ];
         }
 
+        if (AccessRule::checkAccess('report_polls')) {
+            $items[] = [
+                'id' => 'polls',
+                'label' => Yii::t('app','Polls'),
+                'url' => Url::to(['report/polls']),
+            ];
+        }
+
         return $items;
     }
 

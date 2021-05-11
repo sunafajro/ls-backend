@@ -13,6 +13,7 @@ use school\models\reports\LoginsReport;
 use school\models\reports\MarginsReport;
 use school\models\reports\OfficePlanReport;
 use school\models\reports\PaymentsReport;
+use school\models\reports\PollsReport;
 use school\models\reports\SalariesReport;
 use school\models\reports\SalesReport;
 use school\models\reports\TeacherHoursReport;
@@ -558,6 +559,31 @@ class ReportController extends BaseController
             'dataProvider' => $report->prepareReportData(),
             'end'    => date('d.m.Y', strtotime($report->endDate)),
             'start'  => date('d.m.Y', strtotime($report->startDate)),
+        ]);
+    }
+
+    /**
+     * Отчет по посещениям
+     * @param string|null $start
+     * @param string|null $end
+     *
+     * @return mixed
+     */
+    public function actionPolls(string $start = null, string $end = null, string $pollId = null)
+    {
+        $this->layout = 'main-2-column';
+
+        $report = new PollsReport([
+            'startDate' => $start,
+            'endDate' => $end,
+            'pollId' => $pollId,
+        ]);
+
+        return $this->render('polls', [
+            'dataProvider' => $report->prepareReportData(),
+            'end' => date('d.m.Y', strtotime($report->endDate)),
+            'start' => date('d.m.Y', strtotime($report->startDate)),
+            'poll' => $report->poll,
         ]);
     }
 }

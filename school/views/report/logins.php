@@ -55,7 +55,7 @@ echo GridView::widget([
             ],
             'count' => [
                 'attribute' => 'count',
-                'label' => Yii::T('app', 'Login count'),
+                'label' => Yii::t('app', 'Login count'),
             ],
         ],
 ]);
