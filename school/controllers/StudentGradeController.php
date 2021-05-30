@@ -56,12 +56,19 @@ class StudentGradeController extends BaseController
     public function actionIndex($id)
     {
         $this->layout = 'main-2-column';
+
+        /** @var \school\models\Auth $auth */
+        $auth = \Yii::$app->user->identity;
+
         $student = Student::findOne(['id' => $id, 'visible' => 1]);
         if (empty($student)) {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
 
         $model = new StudentGrade();
+        if ($auth->roleId === 4) {
+            $model->office_id = $auth->officeId;
+        }
         $exams = StudentGrade::getExams();
 
         return $this->render('index', [
@@ -105,7 +112,7 @@ class StudentGradeController extends BaseController
     {
         $grade = $this->findModel((int)$id);
         $grade->load(Yii::$app->request->post());
-        if ($grade->save(true, ['date', 'description', 'score', 'contents'])) {
+        if ($grade->save(true, ['date', 'description', 'score', 'contents', 'teacher_id', 'office_id'])) {
             $grade->writePdfFile();
             Yii::$app->session->setFlash('success', "Аттестация успешно обновлена!");
         } else {

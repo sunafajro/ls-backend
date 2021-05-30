@@ -128,6 +128,14 @@ class Report extends Model
             ];
         }
 
+        if (AccessRule::checkAccess('report_grades')) {
+            $items[] = [
+                'id' => 'grades',
+                'label' => Yii::t('app','Attestations'),
+                'url' => Url::to(['report/grades']),
+            ];
+        }
+
         return $items;
     }
 

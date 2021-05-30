@@ -2,6 +2,7 @@
 
 namespace school\models;
 
+use school\models\queries\TeacherQuery;
 use Yii;
 use yii\db\ActiveQuery;
 
@@ -34,7 +35,7 @@ class Teacher extends \yii\db\ActiveRecord
      */
     public static function tableName(): string
     {
-        return 'calc_teacher';
+        return '{{%calc_teacher}}';
     }
 
     /**
@@ -82,6 +83,14 @@ class Teacher extends \yii\db\ActiveRecord
             'description' => Yii::t('app', 'Annotation'),
             'calc_statusjob' => Yii::t('app', 'Job type')
         ];
+    }
+
+    /**
+     * @return TeacherQuery
+     */
+    public static function find(): TeacherQuery
+    {
+        return new TeacherQuery(get_called_class(), []);
     }
 
     /**

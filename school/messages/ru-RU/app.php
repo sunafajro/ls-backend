@@ -17,6 +17,8 @@ return array(
     '-all weeks-' => 'все недели-',
     '-notarial-' => '-нот.завер.-',
     '-select-' => '-выбрать-',
+    '-select office-' => '-выберите офис-',
+    '-select teacher-' => '-выберите преподавателя-',
     'Access denied' => 'Вам не разрешено производить данное действие.',
     'Access rule' => 'Правило доступа',
     'Access rule assignments' => 'Назначение правил доступа',

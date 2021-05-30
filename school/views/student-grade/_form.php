@@ -1,6 +1,9 @@
 <?php
 
+use common\components\helpers\ArrayHelper;
+use school\models\Office;
 use school\models\StudentGrade;
+use school\models\Teacher;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\web\View;
@@ -14,6 +17,10 @@ use kartik\datetime\DateTimePicker;
  * @var array        $exams
  * @var string       $studentId
  */
+$teachers = Teacher::find()->select('name')->active()->indexBy('id')->orderBy('name')->column();
+$teachers = ArrayHelper::unshiftOption($teachers, '-select teacher-');
+$offices = Office::find()->select('name')->active()->indexBy('id')->orderBy('name')->column();
+$offices = ArrayHelper::unshiftOption($offices, '-select office-');
 ?>
 <?php $form = ActiveForm::begin([
   'action' => Url::to(['create', 'id' => $studentId]),
@@ -65,6 +72,18 @@ use kartik\datetime\DateTimePicker;
   <div class="col-xs-12 col-sm-2">
     <?= $form->field($model, 'score')->textInput(['class' => 'form-control input-sm', 'placeholder' => Yii::t('app', 'Score')])->label(false) ?>
   </div>
+</div>
+<div class="row">
+    <div class="col-xs-12 col-sm-6">
+        <?= $form->field($model, 'teacher_id')
+            ->dropDownList($teachers, ['class' => 'form-control input-sm js--teacher-select'])
+            ->label(false) ?>
+    </div>
+    <div class="col-xs-12 col-sm-6">
+        <?= $form->field($model, 'office_id')
+            ->dropDownList($offices, ['class' => 'form-control input-sm js--office-select'])
+            ->label(false) ?>
+    </div>
 </div>
 <div class="row js--exam-contents" style="min-height: 40px"></div>
 <?php ActiveForm::end(); ?>

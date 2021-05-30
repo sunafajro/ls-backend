@@ -7,6 +7,7 @@ use school\controllers\base\BaseController;
 use school\models\Office;
 use school\models\reports\CommonReport;
 use school\models\reports\DebtsReport;
+use school\models\reports\GradesReport;
 use school\models\reports\InvoicesReport;
 use school\models\reports\JournalReport;
 use school\models\reports\LoginsReport;
@@ -53,6 +54,8 @@ class ReportController extends BaseController
             'teacher-hours',
             'commissions',
             'logins',
+            'polls',
+            'grades',
         ];
         return [
             'access' => [
@@ -584,6 +587,31 @@ class ReportController extends BaseController
             'end' => date('d.m.Y', strtotime($report->endDate)),
             'start' => date('d.m.Y', strtotime($report->startDate)),
             'poll' => $report->poll,
+        ]);
+    }
+
+    /**
+     * Отчет по аттестациям
+     * @param string|null $start
+     * @param string|null $end
+     *
+     * @return mixed
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function actionGrades(string $start = null, string $end = null)
+    {
+        $this->layout = 'main-2-column';
+
+        $report = new GradesReport([
+            'startDate' => $start,
+            'endDate' => $end,
+        ]);
+
+        return $this->render('grades', [
+            'dataProvider' => $report->prepareReportData(\Yii::$app->request->get()),
+            'end' => date('d.m.Y', strtotime($report->endDate)),
+            'start' => date('d.m.Y', strtotime($report->startDate)),
+            'searchModel' => $report->getSearchModel(),
         ]);
     }
 }

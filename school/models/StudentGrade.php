@@ -22,6 +22,8 @@ use yii\helpers\FileHelper;
  * @property string  $contents
  * @property string  $description
  * @property integer $calc_studname
+ * @property integer $teacher_id
+ * @property integer $office_id
  *
  * @property-read Student $student
  */
@@ -61,7 +63,7 @@ class StudentGrade extends \yii\db\ActiveRecord
      */
     public static function tableName() : string
     {
-        return 'student_grades';
+        return '{{%student_grades}}';
     }
 
     /**
@@ -94,6 +96,16 @@ class StudentGrade extends \yii\db\ActiveRecord
             self::EXAM_OLYMPIAD        => 'Олимпиада',
             self::EXAM_DICTATION       => 'Тотальный диктант',
         ];
+    }
+
+    /**
+     * @param $description
+     * @return string
+     */
+    public static function getExamName($description): string
+    {
+        $exams = self::getExams();
+        return $exams[$description] ?? '';
     }
 
     /**
@@ -139,7 +151,7 @@ class StudentGrade extends \yii\db\ActiveRecord
         return [
             [['date', 'description', 'calc_studname'], 'required'],
             [['description', 'score'], 'string'],
-            [['visible', 'user', 'calc_studname', 'type'], 'integer'],
+            [['visible', 'user', 'calc_studname', 'type', 'teacher_id', 'office_id'], 'integer'],
             [['user'],    'default', 'value' => Yii::$app->user->identity->id ?? 0],
             [['type'],    'default', 'value' => self::EXAM_TYPE_DEFAULT],
             [['visible'], 'default', 'value' => 1],
@@ -244,6 +256,7 @@ class StudentGrade extends \yii\db\ActiveRecord
     }
 
     /**
+     * @deprecated
      * Возвращает список оценок студента
      * @param int $id
      * 
@@ -262,6 +275,8 @@ class StudentGrade extends \yii\db\ActiveRecord
             'contents'    => 'sg.contents',
             'studentId'   => 'sg.calc_studname',
             'studentName' => 's.name',
+            'teacherId'   => 'sg.teacher_id',
+            'officeId'   => 'sg.office_id',
         ])
         ->from(['sg' => self::tableName()])
         ->innerJoin(['u' => User::tableName()], 'sg.user = u.id')

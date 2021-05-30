@@ -25,10 +25,11 @@ $this->title = Yii::$app->name . ' :: ' . Yii::t('app','Users');
 $this->params['breadcrumbs'][] = Yii::t('app','Users');
 $this->params['sidebar'] = [];
 
-$canView = AccessRule::checkAccess('user_view');
-$canUpdate = AccessRule::checkAccess('user_update');
+$canView    = AccessRule::checkAccess('user_view');
+$canUpdate  = AccessRule::checkAccess('user_update');
 $canRestore = AccessRule::checkAccess('user_restore');
-$canRemove = AccessRule::checkAccess('user_remove');
+$canRemove  = AccessRule::checkAccess('user_remove');
+$canDelete  = AccessRule::checkAccess('user_delete');
 
 echo GridView::widget([
     'dataProvider' => $dataProvider,
@@ -89,6 +90,7 @@ echo GridView::widget([
                 'update' => $canUpdate,
                 'restore' => $canRestore,
                 'remove' => $canRemove,
+                'delete' => $canDelete,
             ],
         ],
     ],

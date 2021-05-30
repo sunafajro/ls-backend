@@ -93,6 +93,7 @@ class AccessRule extends ActiveRecord
                 ['user_id' => $auth->id],
                 ['all' => 1],
             ])
+            ->cache(60)
             ->exists();
     }
 

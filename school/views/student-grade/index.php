@@ -116,6 +116,8 @@ $columns[] = [
                 ['id' => 'studentgrade-date', 'value' => $grade['date']],
                 ['id' => 'studentgrade-description', 'value' => $grade['description']],
                 ['id' => 'studentgrade-score', 'value' => $grade['score']],
+                ['id' => 'studentgrade-teacher_id', 'value' => $grade['teacherId']],
+                ['id' => 'studentgrade-office_id', 'value' => $grade['officeId']],
             ];
             $scoreContents = [];
             if ($grade['contents'] ?? false) {
