@@ -6,6 +6,7 @@
  * @var string|null $start
  * @var string|null $end
  * @var Poll|null $poll
+ * @var array $totals
  */
 
 use common\models\BasePoll as Poll;
@@ -18,7 +19,6 @@ use yii\helpers\Html;
 $this->title = Yii::$app->name . ' :: ' . Yii::t('app','Reports');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app','Reports'), 'url' => ['report/index']];
 $this->params['breadcrumbs'][] = Yii::t('app','Polls');
-
 
 $this->params['sidebar'] = [
     'viewFile' => '//report/_sidebar',
@@ -55,9 +55,8 @@ if (!empty($poll)) {
     echo GridView::widget([
         'dataProvider' => $dataProvider,
         'columns' => [
-            'id' => [
-                'attribute' => 'id',
-                'label' => 'ID',
+            [
+                'class' => 'yii\grid\SerialColumn',
             ],
             'date' => [
                 'attribute' => 'date',
@@ -75,12 +74,14 @@ if (!empty($poll)) {
             'responses' => [
                 'attribute' => 'responses',
                 'format' => 'raw',
+                'headerOptions' => ['style' => 'width:60%'],
                 'label' => Yii::t('app', 'Responses'),
                 'value' => function(array $model) use ($poll) {
-                    return $this->render('poll/_poll', ['poll' => $poll, 'responseId' => $model['id']]);
+                    return $this->render('poll/_poll', ['poll' => $poll, 'studentId' => $model['studentId'], 'responseId' => $model['id']]);
                 }
             ],
         ],
     ]);
+    echo $this->render('poll/_totals', ['poll' => $poll, 'totals' => $totals]);
 }
 

@@ -581,6 +581,7 @@ class ReportController extends BaseController
 
         return $this->render('polls', [
             'dataProvider' => $report->prepareReportData(),
+            'totals' => $report->prepareTotals(),
             'end' => date('d.m.Y', strtotime($report->endDate)),
             'start' => date('d.m.Y', strtotime($report->startDate)),
             'poll' => $report->poll,
