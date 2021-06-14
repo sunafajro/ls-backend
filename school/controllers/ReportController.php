@@ -608,11 +608,12 @@ class ReportController extends BaseController
             'endDate' => $end,
         ]);
 
+        [$dataProvider, $searchModel] = $report->prepareReportData(\Yii::$app->request->get());
         return $this->render('grades', [
-            'dataProvider' => $report->prepareReportData(\Yii::$app->request->get()),
+            'dataProvider' => $dataProvider,
             'end' => date('d.m.Y', strtotime($report->endDate)),
             'start' => date('d.m.Y', strtotime($report->startDate)),
-            'searchModel' => $report->getSearchModel(),
+            'searchModel' => $searchModel,
         ]);
     }
 }

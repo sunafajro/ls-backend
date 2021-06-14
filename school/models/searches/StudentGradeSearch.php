@@ -42,7 +42,7 @@ class StudentGradeSearch extends StudentGrade
     public function rules(): array
     {
         return [
-            [['startDate', 'endDate', 'description', 'studentName', 'teacherName', 'officeName'], 'string'],
+            [['startDate', 'endDate', 'description', 'studentName', 'teacherName', 'officeName', 'date'], 'string'],
             [['id'], 'integer'],
         ];
     }
@@ -93,12 +93,14 @@ class StudentGradeSearch extends StudentGrade
             $query->andFilterWhere(['like', "lower({$st}.officeName)", mb_strtolower($this->officeName)]);
             $query->andFilterWhere(['>=', "{$sgt}.date", $this->startDate]);
             $query->andFilterWhere(['<=', "{$sgt}.date", $this->endDate]);
+            $query->andFilterWhere(['like', "DATE_FORMAT({$sgt}.date, \"%d.%m.%Y\")", $this->date]);
         } else {
             $query->where('1 = 0');
         }
 
         return new ActiveDataProvider([
             'query' => $query,
+            'sort' => ['defaultOrder' => ['date' => SORT_ASC]],
         ]);
     }
 }

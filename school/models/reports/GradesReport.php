@@ -39,7 +39,7 @@ class GradesReport extends Report
      * {@inheritDoc}
      * @throws \yii\base\InvalidConfigException
      */
-    public function prepareReportData(array $params = []): ActiveDataProvider
+    public function prepareReportData(array $params = []): array
     {
         $searchModel = $this->getSearchModel();
         $formName = $searchModel->formName();
@@ -52,7 +52,7 @@ class GradesReport extends Report
         if ($this->endDate) {
             $params[$formName]['endDate'] = $this->endDate;
         }
-        return $searchModel->search($params);
+        return [$searchModel->search($params), $searchModel];
     }
 
     /**
