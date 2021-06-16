@@ -70,6 +70,13 @@ echo GridView::widget([
                 return StudentGrade::getExamName($model->description);
             }
         ],
+        'textBook' => [
+            'attribute' => 'textBook',
+            'label' => Yii::t('app', 'Book'),
+            'value' => function(StudentGradeSearch $model) {
+                return trim($model->textBook, '"');
+            }
+        ],
         'date' => [
             'attribute' => 'date',
             'format' => ['date', 'php:d.m.Y'],
